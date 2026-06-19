@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Alexandria", "Outfit", "Tajawal", sans-serif;
+  --font-sans: "Alexandria", "Tajawal", "Outfit", sans-serif;
+  --color-diyar-dark: #1f3d3a;
+  --color-diyar-cream: #f3ecdb;
+  --color-diyar-brown: #947961;
+}
+
+@layer base {
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@keyframes sweep {
+  0% { clip-path: inset(0 100% 0 0); }
+  50% { clip-path: inset(0 0% 0 0); }
+  100% { clip-path: inset(0 100% 0 0); }
+}
+
+@keyframes scan-x {
+  0% { left: 0%; }
+  50% { left: 100%; }
+  100% { left: 0%; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } 
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
