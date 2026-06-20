@@ -107,7 +107,6 @@ function MobileBottomNav({ onOpenCart, isLoggedIn }: { onOpenCart: () => void, i
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isImageSearchOpen, setIsImageSearchOpen] = useState(false);
@@ -136,18 +135,18 @@ export default function App() {
   };
 
   useEffect(() => {
+    let lastY = window.scrollY;
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setLastScrollY(currentScrollY);
+      const currentY = window.scrollY;
+      // ignore tiny scroll jitter
+      if (Math.abs(currentY - lastY) < 8) return;
+      // show when scrolling up or near the top, hide when scrolling down
+      setIsVisible(currentY < lastY || currentY < 80);
+      lastY = currentY;
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   const isAuthPage = location.pathname.startsWith('/auth');
   const isDashboardPage = location.pathname.startsWith('/dashboard');
@@ -160,7 +159,7 @@ export default function App() {
         <div className={`sticky top-0 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full md:-translate-y-[120%]'} w-full flex justify-center ${isHomePage ? 'h-0 overflow-visible' : ''}`}>
           <div className={`w-full flex justify-center left-0 right-0 pointer-events-none ${isHomePage ? 'absolute top-0 mt-2 md:mt-4' : 'relative mt-2 md:mt-4 mb-2 md:mb-4'}`}>
             <header className="max-w-[1400px] w-full px-3 md:px-4 pointer-events-auto">
-              <div className="bg-white/95 backdrop-blur-md rounded-[2rem] shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-wrap md:flex-nowrap items-center justify-between p-2 lg:px-4 lg:py-3 gap-3 w-full">
+              <div className="bg-white/95 backdrop-blur-md rounded-[2rem] shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-nowrap items-center justify-between p-2 lg:px-4 lg:py-3 gap-3 w-full">
 
             {/* Right Group: Menu, Logo, Navigation Links */}
             <div className="flex items-center gap-3 md:gap-6 Order-1">
@@ -177,18 +176,18 @@ export default function App() {
               </div>
 
               {/* Navigation Links - Desktop Only */}
-              <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-bold">
-                <Link to="/" className="text-diyar-dark bg-diyar-cream px-4 py-2 rounded-full whitespace-nowrap transition-colors">الرئيسية</Link>
-                <Link to="/services" className="text-gray-600 hover:text-diyar-dark px-3 py-2 rounded-full transition-colors whitespace-nowrap">خدمات</Link>
-                <Link to="/b2b" className="text-gray-600 hover:text-diyar-dark px-3 py-2 rounded-full transition-colors whitespace-nowrap">B2B</Link>
-                <Link to="/ai-designer" className="text-gray-600 hover:text-diyar-dark px-3 py-2 rounded-full transition-colors flex items-center gap-1.5 whitespace-nowrap">
+              <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-[13px] font-medium">
+                <Link to="/" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors whitespace-nowrap">الرئيسية</Link>
+                <Link to="/services" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors whitespace-nowrap">خدمات</Link>
+                <Link to="/b2b" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors whitespace-nowrap">B2B</Link>
+                <Link to="/ai-designer" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors flex items-center gap-1.5 whitespace-nowrap">
                   المصمم المساعد
                 </Link>
               </nav>
             </div>
 
             {/* Middle Group: Search */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 w-full md:w-auto md:max-w-xl bg-white border border-gray-200 rounded-full px-4 py-2 flex items-center gap-2 order-3 md:order-2">
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 md:max-w-xl bg-white border border-gray-200 rounded-full px-4 py-2 items-center gap-2 md:order-2">
               <button type="submit" className="text-diyar-dark hover:text-diyar-dark/80 transition shrink-0">
                 <Search className="w-5 h-5 shrink-0" />
               </button>
@@ -232,6 +231,9 @@ export default function App() {
 
               {/* Action Icons */}
               <div className="flex items-center gap-1.5 lg:gap-2">
+                <Link to="/search" className="md:hidden w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors">
+                  <Search className="w-5 h-5" />
+                </Link>
                 <div className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center relative cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setIsCartOpen(true)}>
                   <ShoppingCart className="w-5 h-5 text-gray-600" />
                   <span className="absolute -top-1 -right-1 bg-diyar-dark text-diyar-cream text-[10px] items-center justify-center border border-white font-bold rounded-full w-4 h-4 flex">2</span>

@@ -30,7 +30,7 @@ export default function FeaturedDeals() {
         <h2 className="text-2xl md:text-3xl font-sans font-bold">عروض مميزة</h2>
         <div className="text-sm md:text-xl font-bold bg-diyar-cream p-2 md:p-3 rounded-lg text-diyar-brown" dir="ltr">{format(timeLeft)}</div>
       </div>
-      <div className="flex md:grid md:grid-cols-5 gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6 px-4 -mx-4">
+      <div className="flex md:grid md:grid-cols-5 gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6">
         {products.map((p, i) => (
           <div key={i} className="w-[200px] md:w-auto flex-shrink-0 snap-start">
             <ProductCard product={p} />

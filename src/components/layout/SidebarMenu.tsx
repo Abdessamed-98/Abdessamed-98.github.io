@@ -134,8 +134,8 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
           <div className="flex items-center gap-3">
              <img src="/logo_diyar.svg" alt="DIYAR" className="h-9" />
              <div>
-               <h2 className="font-bold text-base text-diyar-dark leading-tight">ديار للضيافة</h2>
-               <p className="text-[10px] text-gray-500 font-semibold tracking-wide">أناقة وأصالة الضيافة العربية</p>
+               <h2 className="font-bold text-base text-diyar-dark leading-snug">ديار للضيافة</h2>
+               <p className="text-[10px] text-gray-500 font-semibold">أناقة وأصالة الضيافة العربية</p>
              </div>
           </div>
           <button 
@@ -149,37 +149,57 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         {/* Links Area */}
         <div className="flex-1 overflow-y-auto px-4 py-5 scrollbar-hide space-y-6">
           
+          {/* Main navigation (mirrors the top navbar — for mobile access) */}
           <div className="space-y-1">
-             <h3 className="font-bold text-gray-400 mb-2 px-3 text-[11px] uppercase tracking-wider">الوصول السريع</h3>
+             <h3 className="font-bold text-gray-400 mb-2 px-3 text-[11px]">التصفح</h3>
 
-             {/* 1. الرئيسية */}
-             <button 
-               onClick={() => handleNavigate('/')} 
+             <button
+               onClick={() => handleNavigate('/')}
                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
              >
                <Home size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
                <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">الرئيسية</span>
              </button>
 
-             {/* 2. المنتجات */}
-             <button 
-               onClick={() => handleNavigate('/category/all')} 
+             <button
+               onClick={() => handleNavigate('/services')}
+               className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
+             >
+               <Wrench size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
+               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">خدمات</span>
+             </button>
+
+             <button
+               onClick={() => handleNavigate('/b2b')}
+               className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
+             >
+               <Layers size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
+               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">B2B</span>
+             </button>
+
+             <button
+               onClick={() => handleNavigate('/ai-designer')}
+               className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
+             >
+               <Sparkles size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
+               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">المصمم المساعد</span>
+             </button>
+          </div>
+
+          {/* Quick access utilities */}
+          <div className="space-y-1">
+             <h3 className="font-bold text-gray-400 mb-2 px-3 text-[11px]">الوصول السريع</h3>
+
+             {/* المنتجات */}
+             <button
+               onClick={() => handleNavigate('/category/all')}
                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
              >
                <Grid size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
                <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">المنتجات</span>
              </button>
 
-             {/* 3. الخدمات */}
-             <button 
-               onClick={() => handleNavigate('/category/maintenance')} 
-               className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
-             >
-               <Wrench size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
-               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">الخدمات</span>
-             </button>
-
-             {/* 4. المشاريع */}
+             {/* المشاريع */}
              <button 
                onClick={() => setIsProjectsOpen(true)} 
                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
@@ -219,7 +239,7 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
           <div className="border-t border-gray-100 pt-5">
              <button 
                onClick={() => setShowCategoriesSection(!showCategoriesSection)}
-               className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wider hover:bg-gray-50 transition-all"
+               className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50 transition-all"
              >
                <span>تصفح الأثاث حسب الفئات</span>
                <ChevronDown size={14} className={`transition-transform duration-300 ${showCategoriesSection ? 'rotate-180 text-diyar-brown' : ''}`} />
@@ -333,7 +353,7 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <Sparkles size={16} />
                 </div>
                 <div>
-                   <h3 className="font-bold text-sm tracking-wide">مصمم الغرف التفاعلي AI Studio</h3>
+                   <h3 className="font-bold text-sm">مصمم الغرف التفاعلي AI Studio</h3>
                    <p className="text-[10px] text-gray-400 font-semibold">تخيل مكانك، ورتب قطع أثاث ديار كيفما تشاء</p>
                 </div>
               </div>
@@ -436,7 +456,7 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                           >
                             <img src={bg.img} alt={bg.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-center p-1">
-                               <span className="text-[10px] font-bold text-white block leading-tight">{bg.name.split(' ')[0]}</span>
+                               <span className="text-[10px] font-bold text-white block leading-snug">{bg.name.split(' ')[0]}</span>
                             </div>
                           </button>
                        ))}
@@ -511,8 +531,8 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             {/* Visual Header */}
             <div className="p-8 bg-[#132624] text-white shrink-0 text-center relative overflow-hidden">
                <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-white/[0.02] rounded-full" />
-               <h3 className="text-xl md:text-2xl font-bold mb-2 tracking-wide text-[#f3ecdb]">عرين الكرم والضيافة والعزة</h3>
-               <p className="text-xs text-[#947961] font-bold uppercase tracking-widest leading-6">عن منصة ديار لأثاث وتجهيزات الضيافة</p>
+               <h3 className="text-xl md:text-2xl font-bold mb-2 text-[#f3ecdb]">عرين الكرم والضيافة والعزة</h3>
+               <p className="text-xs text-[#947961] font-bold leading-6">عن منصة ديار لأثاث وتجهيزات الضيافة</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 leading-relaxed text-sm scrollbar-hide">

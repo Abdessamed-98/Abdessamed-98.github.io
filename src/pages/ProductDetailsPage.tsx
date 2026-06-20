@@ -178,7 +178,7 @@ export default function ProductDetailsPage() {
                   {MOCK_PRODUCT.category}
                 </span>
               </div>
-              <h1 className="text-2xl md:text-4xl font-bold text-diyar-dark mb-4 leading-tight">
+              <h1 className="text-2xl md:text-4xl font-bold text-diyar-dark mb-4 leading-snug">
                 {MOCK_PRODUCT.title}
               </h1>
               

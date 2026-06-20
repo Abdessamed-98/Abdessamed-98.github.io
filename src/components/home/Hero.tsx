@@ -49,7 +49,7 @@ export default function Hero() {
             <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black/80 via-black/40 to-transparent"></div>
             <div className="relative h-full max-w-7xl mx-auto px-6 md:px-20 flex items-end md:items-center justify-center md:justify-start pb-20 md:pb-0 text-center md:text-right">
               <div className="text-white max-w-lg mb-10 md:mb-0">
-                <h1 className="text-3xl md:text-6xl font-sans font-bold mb-4 md:mb-6 leading-tight">{slide.title}</h1>
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-sans font-bold mb-4 md:mb-6 leading-snug">{slide.title}</h1>
                 <p className="text-base md:text-xl mb-8 leading-relaxed opacity-90">{slide.sub}</p>
                 <button className="bg-diyar-brown text-white px-8 py-3.5 rounded-xl md:rounded-lg font-sans text-lg hover:bg-[#856b54] transition shadow-lg w-full md:w-auto">{slide.btnText}</button>
               </div>

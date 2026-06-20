@@ -102,7 +102,7 @@ const ProductCard: React.FC<{product: any; layout?: 'grid' | 'list'}> = ({produc
             <span className="truncate">{product.vendor || product.store}</span>
           </div>
           
-          <h3 className="font-bold text-sm md:text-base mb-1.5 line-clamp-2 text-diyar-dark leading-tight">{product.name}</h3>
+          <h3 className="font-bold text-sm md:text-base mb-1.5 line-clamp-2 text-diyar-dark leading-snug">{product.name}</h3>
           
           <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2 mt-auto">
             <div className="flex gap-0.5 text-yellow-400">

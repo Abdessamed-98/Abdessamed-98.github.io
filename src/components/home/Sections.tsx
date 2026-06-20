@@ -1,7 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../cards/ProductCard.tsx';
-import { Star, Quote, ArrowLeft, Send, Sparkles, UploadCloud, Grid, Store, Briefcase, Paintbrush, Smartphone, Scan, Box, BellRing, Wrench, ShieldCheck, Truck, HeadphonesIcon, CreditCard, PenTool, Twitter, Instagram, MessageCircle, Heart, Bookmark, Eye, Gift } from 'lucide-react';
+import { Star, Quote, ArrowLeft, Send, Sparkles, UploadCloud, Grid, Store, Briefcase, Paintbrush, Smartphone, Scan, Box, BellRing, Wrench, ShieldCheck, Truck, HeadphonesIcon, CreditCard, PenTool, Twitter, Instagram, MessageCircle, Heart, Bookmark, Eye, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
+
+// Edge-overlay left/right scroll arrows for horizontal card rails (desktop only).
+// Must be placed inside a `relative` wrapper around the scroll container.
+function RailArrows({ scroller }: { scroller: React.RefObject<HTMLDivElement | null> }) {
+  const scroll = (dir: number) => scroller.current?.scrollBy({ left: dir * 340, behavior: 'smooth' });
+  const base = 'hidden md:flex absolute top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md border border-gray-100 items-center justify-center text-diyar-dark hover:bg-diyar-brown hover:text-white hover:border-diyar-brown transition-colors';
+  return (
+    <>
+      <button onClick={() => scroll(1)} aria-label="السابق" className={`${base} -right-3`}>
+        <ChevronRight size={20} />
+      </button>
+      <button onClick={() => scroll(-1)} aria-label="التالي" className={`${base} -left-3`}>
+        <ChevronLeft size={20} />
+      </button>
+    </>
+  );
+}
 
 export function BestSellers() {
   const [tab, setTab] = useState(0);
@@ -16,12 +33,12 @@ export function BestSellers() {
     {img: "https://images.unsplash.com/photo-1560606177-063fb90494f4?auto=format&fit=crop&q=80&w=400", name: "طقم طعام كلاسيك", vendor: "مفروشات الرقي", price: 9200, oldPrice: 12000},
   ];
   return (
-    <div className="max-w-7xl mx-auto py-8 md:py-12">
-      <h2 className="text-xl md:text-3xl font-sans font-bold mb-4 md:mb-8 text-center px-4">الأعلى مبيعاً</h2>
-      <div className="flex gap-2 md:gap-4 mb-6 md:mb-8 overflow-x-auto scrollbar-hide px-4 snap-x justify-start md:justify-center">
+    <div className="max-w-7xl mx-auto py-8 md:py-12 px-4">
+      <h2 className="text-xl md:text-3xl font-sans font-bold mb-4 md:mb-8 text-center">الأعلى مبيعاً</h2>
+      <div className="flex gap-2 md:gap-4 mb-6 md:mb-8 overflow-x-auto scrollbar-hide snap-x justify-start md:justify-center">
         {["الكل", "المنصة", "غرف النوم", "الصالونات", "المطابخ"].map((t, i) => <button key={i} onClick={() => setTab(i)} className={`px-4 md:px-6 py-2 rounded-full transition whitespace-nowrap snap-start text-sm md:text-base ${tab === i ? 'bg-diyar-brown text-white shadow-md' : 'bg-diyar-cream text-diyar-dark hover:bg-diyar-brown/20'}`}>{t}</button>)}
       </div>
-      <div className="flex md:grid md:grid-cols-5 gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x px-4 py-6 -my-6">
+      <div className="flex md:grid md:grid-cols-5 gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6">
         {products.map((p, i) => (
           <div key={i} className="w-[200px] md:w-auto flex-shrink-0 snap-start">
             <ProductCard product={p} />
@@ -41,6 +58,7 @@ export function NewArrivals() {
     {img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=400", name: "طقم سجاد يدوي", vendor: "سجاد الشرق", price: 2100, oldPrice: 2800},
     {img: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=400", name: "لوحة جدارية فنية", vendor: "لمسات فنية", price: 120, oldPrice: 200},
   ];
+  const railRef = useRef<HTMLDivElement>(null);
   return (
     <div className="bg-diyar-cream/30 py-4 md:py-6">
       <div className="max-w-7xl mx-auto px-4">
@@ -50,12 +68,15 @@ export function NewArrivals() {
             عرض الكل <ArrowLeft size={16} className="md:w-[18px] md:h-[18px]" />
           </button>
         </div>
-        <div className="flex gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6 px-4 -mx-4">
-          {products.map((p, i) => (
-            <div className="w-[200px] md:w-[230px] shrink-0 snap-start" key={i}>
-               <ProductCard product={p} />
-            </div>
-          ))}
+        <div className="relative">
+          <RailArrows scroller={railRef} />
+          <div ref={railRef} className="flex gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6">
+            {products.map((p, i) => (
+              <div className="w-[200px] md:w-[230px] shrink-0 snap-start" key={i}>
+                 <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -73,10 +94,10 @@ export function SuggestedForYou() {
   return (
     <div className="max-w-7xl mx-auto py-8 md:py-12 px-4">
        <div className="text-center mb-6 md:mb-8">
-        <span className="text-diyar-brown text-sm font-medium tracking-wide mb-2 block">بناءً على تصفحك</span>
+        <span className="text-diyar-brown text-sm font-medium mb-2 block">بناءً على تصفحك</span>
         <h2 className="text-2xl md:text-3xl font-sans font-bold">مقترح لك</h2>
        </div>
-      <div className="flex md:grid md:grid-cols-5 gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6 px-4 -mx-4">
+      <div className="flex md:grid md:grid-cols-5 gap-4 md:gap-5 overflow-x-auto scrollbar-hide snap-x py-6 -my-6">
         {products.map((p, i) => (
           <div key={i} className="w-[200px] md:w-auto flex-shrink-0 snap-start">
             <ProductCard product={p} />
@@ -152,7 +173,7 @@ export function StyleFilter() {
   return (
     <div className="max-w-7xl mx-auto py-8 md:py-12 px-4">
       <div className="text-center mb-6 md:mb-10">
-        <span className="text-diyar-brown text-sm md:text-base font-bold tracking-widest mb-3 block">تنوع الأذواق</span>
+        <span className="text-diyar-brown text-sm md:text-base font-bold mb-3 block">تنوع الأذواق</span>
         <h2 className="text-2xl md:text-5xl font-sans font-bold text-diyar-dark">تسوق حسب الأسلوب</h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 md:gap-5 md:h-[600px]">
@@ -183,13 +204,13 @@ export function StyleFilter() {
 
 export function AIBanner() {
   return (
-    <div className="bg-[#132624] text-white py-8 md:py-12 my-8 md:my-10 relative overflow-hidden rounded-none max-w-7xl mx-auto shadow-md lg:border-white/10 lg:border-x">
+    <div className="bg-[#132624] text-white py-8 md:py-12 my-8 md:my-10 mx-4 md:mx-auto relative overflow-hidden rounded-3xl max-w-7xl shadow-md">
       {/* Decorative background elements */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
       <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-[#947961]/20 rounded-full blur-[130px] -translate-y-1/2 translate-x-1/3"></div>
       <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-[#1a4a42]/30 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3"></div>
 
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12 relative z-10">
         
         <div className="w-full md:w-1/2 text-center md:text-right order-2 md:order-1">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 backdrop-blur-md shadow-md text-[#d2b694] font-bold rounded-full mb-6 md:mb-8 text-sm">
@@ -261,10 +282,10 @@ export function PartnerBanner() {
         <div className="w-full lg:translate-x-0 lg:w-1/2 relative z-10 text-center lg:text-right flex flex-col justify-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 shadow-sm self-center lg:self-start">
             <Store size={16} className="text-diyar-cream" />
-            <span className="text-diyar-cream text-sm font-bold tracking-wide">شركاء النجاح في ديار</span>
+            <span className="text-diyar-cream text-sm font-bold">شركاء النجاح في ديار</span>
           </div>
           
-          <h2 className="text-3xl md:text-5xl font-sans font-bold text-white mb-6 leading-tight">
+          <h2 className="text-3xl md:text-5xl font-sans font-bold text-white mb-6 leading-snug">
             انضم إلى مجتمع ديار <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#d4b08c] to-yellow-500">وابدأ قصة نجاحك</span>
           </h2>
@@ -349,14 +370,14 @@ export function ShopByRoom() {
         <h2 className="text-xl md:text-4xl font-sans font-bold text-diyar-dark mb-4">تسوق حسب غرفتك</h2>
         <p className="text-gray-500 text-sm md:text-base max-w-2xl mx-auto">تصفح منتجاتنا مصنفة حسب مساحات منزلك لتجربة تسوق أسهل وأكثر إلهاماً.</p>
        </div>
-       <div className="flex gap-3 md:gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x">
+       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
           {rooms.map((room, i) => (
-            <div key={i} className="min-w-[190px] md:min-w-[260px] h-52 md:h-72 rounded-xl overflow-hidden relative group cursor-pointer snap-start flex-shrink-0 shadow-sm border border-gray-100">
-               <img 
-                 src={room.img} 
-                 alt={room.name} 
+            <div key={i} className="h-44 md:h-60 rounded-xl overflow-hidden relative group cursor-pointer shadow-sm border border-gray-100">
+               <img
+                 src={room.img}
+                 alt={room.name}
                  referrerPolicy="no-referrer"
-                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                  onError={(e) => {
                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=600";
                  }}
@@ -387,7 +408,7 @@ export function FeaturedStores() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-end mb-6 md:mb-10">
            <div>
-             <span className="text-diyar-brown text-sm font-bold tracking-wider mb-2 block">شركاء النجاح</span>
+             <span className="text-diyar-brown text-sm font-bold mb-2 block">شركاء النجاح</span>
              <h2 className="text-2xl md:text-4xl font-sans font-bold text-diyar-dark">متاجر مميزة على ديار</h2>
            </div>
            <button className="hidden md:flex text-diyar-brown font-bold items-center gap-2 hover:text-diyar-dark transition">
@@ -510,7 +531,7 @@ export function DesignBlog() {
     <div className="py-8 md:py-12 max-w-7xl mx-auto px-4">
       <div className="flex justify-between items-end mb-6 md:mb-10">
         <div>
-           <span className="text-diyar-brown text-sm font-bold tracking-wider mb-2 block">مدونة ديار</span>
+           <span className="text-diyar-brown text-sm font-bold mb-2 block">مدونة ديار</span>
            <h2 className="text-2xl md:text-4xl font-sans font-bold text-diyar-dark">أفكار وإلهام لمنزلك</h2>
         </div>
         <button className="hidden md:flex text-diyar-brown font-bold items-center gap-2 hover:text-diyar-dark transition">
@@ -551,20 +572,22 @@ export function DesignBlog() {
 
 export function AppPromo() {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-      <div className="bg-gradient-to-br from-diyar-dark to-[#342D25] rounded-xl md:rounded-[40px] relative overflow-hidden flex flex-col md:flex-row items-center shadow-md">
-        
-        {/* Abstract shapes in the background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-diyar-brown/30 rounded-full mix-blend-color-dodge filter blur-[80px] translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-600/20 rounded-full mix-blend-color-dodge filter blur-[100px] -translate-x-1/3 translate-y-1/3"></div>
+    <div className="max-w-6xl mx-auto px-4 pt-16 md:pt-28 pb-8 md:pb-12">
+      <div className="bg-gradient-to-br from-diyar-dark to-[#342D25] rounded-3xl relative flex flex-col md:flex-row items-stretch shadow-md">
 
-        <div className="w-full md:w-1/2 p-6 md:p-12 relative z-10 text-center md:text-right">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-diyar-cream mb-6 backdrop-blur-md border border-white/10">
+        {/* Abstract shapes (clipped to the rounded box) */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-diyar-brown/30 rounded-full mix-blend-color-dodge filter blur-[80px] translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-600/20 rounded-full mix-blend-color-dodge filter blur-[100px] -translate-x-1/3 translate-y-1/3"></div>
+        </div>
+
+        <div className="w-full md:w-1/2 p-6 md:p-10 relative z-10 text-center md:text-right flex flex-col justify-center">
+          <div className="inline-flex self-center md:self-start items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-diyar-cream mb-6 backdrop-blur-md border border-white/10">
             <Smartphone size={14} />
-            <span className="text-xs font-bold tracking-wider">تطبيق ديار الجديد</span>
+            <span className="text-xs font-bold">تطبيق ديار الجديد</span>
           </div>
           
-          <h2 className="text-2xl md:text-4xl lg:text-5xl font-black text-white mb-4 leading-[1.2] font-sans">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-black text-white mb-4 leading-[1.4] font-sans">
             تسوق أثاثك المفضل <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-diyar-cream to-amber-300">أينما كنت!</span>
           </h2>
@@ -604,14 +627,13 @@ export function AppPromo() {
           </div>
         </div>
 
-        <div className="w-full md:w-1/2 relative min-h-[300px] md:min-h-[450px] flex justify-center items-center mt-8 md:mt-0">
-            <div className="relative w-full flex justify-center">
-               <img 
-                 src="/app mockup.png" 
-                 alt="Diyar App Mockup" 
-                 className="w-[85%] md:w-[90%] max-w-[500px] h-auto object-contain z-20 drop-shadow-md hover:scale-[1.02] transition-transform duration-500" 
-               />
-            </div>
+        <div className="w-full md:w-1/2 relative min-h-[230px] md:min-h-[260px] flex justify-center items-end mt-4 md:mt-0">
+            <img
+              src="/app mockup.png"
+              alt="Diyar App Mockup"
+              referrerPolicy="no-referrer"
+              className="w-[62%] sm:w-[46%] md:w-auto md:h-[120%] md:absolute md:bottom-0 md:left-1/2 md:-translate-x-1/2 max-w-[420px] h-auto object-contain z-20 drop-shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+            />
         </div>
 
       </div>
@@ -672,7 +694,7 @@ export function FastOffersSlider() {
 export function LoyaltyPromo() {
   return (
     <div className="max-w-7xl mx-auto px-4 my-8 md:my-12">
-      <div className="bg-[#FFFDF8] rounded-[2.5rem] border border-[#F2DEB4]/50 shadow-sm overflow-hidden relative">
+      <div className="bg-[#FFFDF8] rounded-3xl border border-[#F2DEB4]/50 shadow-sm overflow-hidden relative">
         <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] z-0"></div>
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[radial-gradient(circle,var(--tw-gradient-stops))] from-[#F9E8C8]/80 to-transparent blur-3xl z-0 -translate-y-1/2 translate-x-1/3"></div>
         
@@ -687,7 +709,7 @@ export function LoyaltyPromo() {
                <span className="text-amber-800 text-sm font-bold">برنامج ولاء ديار</span>
             </div>
 
-            <h2 className="text-3xl lg:text-5xl font-bold text-[#3D2E1F] leading-[1.3] mb-5">
+            <h2 className="text-3xl lg:text-5xl font-bold text-[#3D2E1F] leading-[1.4] mb-5">
               كل عملية شراء هي بداية <br /> لمكافأة جديدة
             </h2>
             <p className="text-gray-600 text-lg mb-10 max-w-lg leading-relaxed">
@@ -851,7 +873,7 @@ export function ServicesSection() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-end mb-6">
            <div>
-             <span className="text-purple-600 text-sm font-bold tracking-wider mb-2 block">خدمات ديار</span>
+             <span className="text-purple-600 text-sm font-bold mb-2 block">خدمات ديار</span>
              <h2 className="text-2xl md:text-3xl font-sans font-bold text-diyar-dark flex items-center gap-3">
                <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
                  <Paintbrush size={20} />
@@ -901,6 +923,7 @@ export function ServicesSection() {
 }
 
 export function MostInteractiveProducts() {
+  const railRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState([
     {
       id: 1,
@@ -1016,7 +1039,7 @@ export function MostInteractiveProducts() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
               </span>
-              <span className="text-diyar-brown text-xs md:text-sm font-bold tracking-wide">الآن مباشر</span>
+              <span className="text-diyar-brown text-xs md:text-sm font-bold">الآن مباشر</span>
             </div>
             <h2 className="text-xl md:text-3xl font-sans font-bold text-diyar-dark flex items-center gap-2">
               الأكثر تفاعلاً ونشاطاً 🔥
@@ -1028,7 +1051,9 @@ export function MostInteractiveProducts() {
           </Link>
         </div>
 
-        <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x py-4 px-1 -mx-4 md:mx-0">
+        <div className="relative">
+        <RailArrows scroller={railRef} />
+        <div ref={railRef} className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x py-4">
           {items.map((item) => (
             <div key={item.id} className="w-[280px] md:w-[320px] bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all shrink-0 snap-start overflow-hidden flex flex-col group relative">
               {/* Badges Overlay */}
@@ -1109,6 +1134,7 @@ export function MostInteractiveProducts() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>

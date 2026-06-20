@@ -56,7 +56,7 @@ export function RequestServiceModal({ isOpen, onClose }: RequestServiceModalProp
               <ConciergeBell size={22} />
             </div>
             <div className="pt-0.5">
-              <h2 className="text-xl md:text-2xl font-bold text-diyar-dark leading-tight">طلب تنفيذ مخصص</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-diyar-dark leading-snug">طلب تنفيذ مخصص</h2>
               <p className="text-gray-500 text-sm mt-2 leading-relaxed">صف ما تريد تنفيذه وسنوصلك بأفضل المختصين</p>
             </div>
           </div>

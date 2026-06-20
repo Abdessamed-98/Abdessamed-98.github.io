@@ -258,7 +258,7 @@ export default function CheckoutPage() {
                       method.logo
                     )}
                   </div>
-                  <span className="text-[10px] md:text-xs font-bold text-diyar-dark text-center leading-tight">{method.name}</span>
+                  <span className="text-[10px] md:text-xs font-bold text-diyar-dark text-center leading-snug">{method.name}</span>
                 </div>
               ))}
             </div>

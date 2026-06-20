@@ -103,7 +103,7 @@ const ServiceCard: React.FC<{service: any; layout?: 'grid' | 'list'}> = ({servic
             </div>
           </div>
           
-          <h3 className="font-bold text-sm md:text-base mb-1.5 line-clamp-2 text-diyar-dark leading-tight">{service.name}</h3>
+          <h3 className="font-bold text-sm md:text-base mb-1.5 line-clamp-2 text-diyar-dark leading-snug">{service.name}</h3>
           
           <div className="flex items-center gap-2 mb-2 mt-auto text-[10px] text-gray-500">
             <div className="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">

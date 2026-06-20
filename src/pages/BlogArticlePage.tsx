@@ -94,7 +94,7 @@ export default function BlogArticlePage() {
             ))}
           </div>
           
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-diyar-dark leading-tight md:leading-tight mb-6">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-diyar-dark leading-snug md:leading-snug mb-6">
             {MOCK_ARTICLE.title}
           </h1>
           
@@ -197,7 +197,7 @@ export default function BlogArticlePage() {
                   <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
                     <Calendar size={14} /> <span>{article.date}</span>
                   </div>
-                  <h3 className="font-bold text-lg text-diyar-dark group-hover:text-diyar-brown transition-colors line-clamp-2 leading-tight">
+                  <h3 className="font-bold text-lg text-diyar-dark group-hover:text-diyar-brown transition-colors line-clamp-2 leading-snug">
                     {article.title}
                   </h3>
                 </div>
