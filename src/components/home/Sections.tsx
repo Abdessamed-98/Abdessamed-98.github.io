@@ -540,7 +540,7 @@ export function DesignBlog() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         {posts.map((post, i) => (
-           <div key={i} className="group cursor-pointer">
+           <Link to={`/blog/${i + 1}`} key={i} className="group cursor-pointer block">
               <div className="w-full h-60 rounded-xl md:rounded-xl overflow-hidden mb-6 relative">
                  <img 
                    src={post.img} 
@@ -563,7 +563,7 @@ export function DesignBlog() {
               <h3 className="text-xl md:text-2xl font-bold font-sans text-diyar-dark leading-snug group-hover:text-diyar-brown transition">
                 {post.title}
               </h3>
-           </div>
+           </Link>
         ))}
       </div>
     </div>
