@@ -121,18 +121,20 @@ export default function BlogArticlePage() {
 
         {/* Cover Image */}
         <div className="rounded-3xl overflow-hidden mb-10 shadow-sm border border-gray-100 flex justify-center bg-gray-100">
-          <img 
-            src={MOCK_ARTICLE.coverImage} 
-            alt={MOCK_ARTICLE.title} 
+          <img
+            src={MOCK_ARTICLE.coverImage}
+            alt={MOCK_ARTICLE.title}
+            referrerPolicy="no-referrer"
             className="w-full max-h-[500px] object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=1600"; }}
           />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Main Content */}
           <div className="lg:w-2/3">
-            <div 
-              className="prose prose-lg prose-headings:text-diyar-dark prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-diyar-brown prose-img:rounded-2xl prose-img:border prose-img:border-gray-100 prose-img:shadow-sm prose-blockquote:border-r-4 prose-blockquote:border-l-0 prose-blockquote:border-diyar-brown prose-blockquote:bg-amber-50 prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:rounded-l-2xl prose-blockquote:text-diyar-dark prose-blockquote:font-medium prose-blockquote:not-italic"
+            <div
+              className="article-content"
               dangerouslySetInnerHTML={{ __html: MOCK_ARTICLE.content }}
             />
             
@@ -191,7 +193,7 @@ export default function BlogArticlePage() {
                   <span className="absolute top-4 right-4 bg-white/90 backdrop-blur text-diyar-dark text-xs font-bold px-3 py-1.5 rounded-full z-10">
                     {article.category}
                   </span>
-                  <img src={article.image} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={article.image} alt={article.title} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=600"; }} />
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
