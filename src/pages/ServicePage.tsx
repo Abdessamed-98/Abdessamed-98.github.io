@@ -95,27 +95,28 @@ export default function ServicePage() {
 
             {/* Info */}
             <div className="flex-1">
-              <div className="mb-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-diyar-dark">{SERVICE_INFO.name}</h1>
-                <Link to="/provider/1" className="text-purple-600 font-medium flex items-center gap-1.5 mt-1 w-fit hover:text-purple-700 transition">
-                  <User size={16} /> مقدم الخدمة: {SERVICE_INFO.provider}
+              <div className="mb-4">
+                <h1 className="text-2xl md:text-3xl font-bold text-diyar-dark leading-snug">{SERVICE_INFO.name}</h1>
+                <Link to="/provider/1" className="inline-flex items-center gap-1.5 mt-2.5 w-fit text-sm text-gray-400 hover:text-diyar-brown transition-colors group">
+                  <User size={15} className="text-diyar-brown" /> مقدم الخدمة:
+                  <span className="font-bold text-diyar-dark group-hover:text-diyar-brown transition-colors">{SERVICE_INFO.provider}</span>
                 </Link>
               </div>
-              <p className="text-gray-500 text-sm md:text-base leading-relaxed mb-4 max-w-2xl pt-2">
+              <p className="text-gray-500 text-sm md:text-base leading-relaxed mb-5 max-w-2xl">
                 {SERVICE_INFO.description}
               </p>
-              
-              <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm text-gray-600">
+
+              <div className="flex flex-wrap items-center gap-2.5 md:gap-3 text-sm">
                 <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 text-amber-700">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="font-bold">{SERVICE_INFO.rating}</span>
-                  <span className="opacity-80">({SERVICE_INFO.reviews} تقييم)</span>
+                  <span className="text-amber-700/60">({SERVICE_INFO.reviews} تقييم)</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 text-gray-500">
                   <MapPin className="w-4 h-4 text-diyar-brown" />
                   <span>{SERVICE_INFO.location}</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 text-blue-700 font-bold">
+                <div className="flex items-center gap-1.5 bg-diyar-brown/10 px-3 py-1.5 rounded-lg border border-diyar-brown/20 text-diyar-brown font-bold">
                   <span>{SERVICE_INFO.price}</span>
                 </div>
               </div>

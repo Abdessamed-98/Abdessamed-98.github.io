@@ -10,6 +10,21 @@
 }
 
 @layer base {
+  /* Global type scale: phones keep 16px; tablet/laptop/desktop scale down
+     so rem-based text isn't oversized on smaller laptops (e.g. 13" screens). */
+  html {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    html {
+      font-size: 15px;
+    }
+  }
+  @media (min-width: 1536px) {
+    html {
+      font-size: 16px;
+    }
+  }
   body {
     -webkit-tap-highlight-color: transparent;
   }
