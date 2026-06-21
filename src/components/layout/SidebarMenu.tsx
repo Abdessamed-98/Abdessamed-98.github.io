@@ -214,7 +214,7 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
              >
                <Sparkles size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
-               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">AI Studio</span>
+               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">استوديو التصميم</span>
              </button>
 
              {/* 6. من نحن */}
@@ -353,8 +353,8 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <Sparkles size={16} />
                 </div>
                 <div>
-                   <h3 className="font-bold text-sm">مصمم الغرف التفاعلي AI Studio</h3>
-                   <p className="text-[10px] text-gray-400 font-semibold">تخيل مكانك، ورتب قطع أثاث ديار كيفما تشاء</p>
+                   <h3 className="font-bold text-sm">مصمم الغرف التفاعلي</h3>
+                   <p className="text-[10px] text-gray-400 font-semibold">تخيّل مكانك، ورتّب قطع أثاث ديار كيفما تشاء</p>
                 </div>
               </div>
               <button 
@@ -381,10 +381,20 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                  </div>
 
                  <div className="absolute bottom-4 left-4 right-4 z-20 text-center pointer-events-none">
-                   <span className="bg-[#132624]/90 text-yellow-400 text-[10px] md:text-xs font-bold py-1.5 px-3.5 rounded-full shadow-lg border border-[#947961]/20">
-                     ✨ تقنية المصمم الذكي تحدد الأبعاد والعمق تلقائياً لملاءمة القطع
+                   <span className="bg-[#132624]/90 text-diyar-cream text-[10px] md:text-xs font-bold py-1.5 px-3.5 rounded-full shadow-lg border border-[#947961]/30">
+                     اسحب القطع، كبّرها أو دوّرها لترتيب غرفتك بسهولة
                    </span>
                  </div>
+
+                 {activeItems.length === 0 && (
+                   <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
+                     <div className="w-12 h-12 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-diyar-cream mb-3">
+                       <Sparkles size={22} />
+                     </div>
+                     <p className="text-white/90 text-sm font-bold mb-1">ابدأ بتأثيث غرفتك</p>
+                     <p className="text-white/50 text-xs max-w-[220px] leading-relaxed">اختر طابع الغرفة، ثم اضغط على أي قطعة أثاث من القائمة لإضافتها هنا.</p>
+                   </div>
+                 )}
 
                  {/* Simulated 2.5D Canvas Container */}
                  <div className="relative w-full aspect-[4/3] max-w-2xl bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-white/5 select-none">
@@ -478,7 +488,7 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                              </div>
                              <div className="flex-1 truncate">
                                 <span className="font-bold block truncate text-[11px]">{item.name}</span>
-                                <span className="text-[9px] text-[#947961] block font-semibold">بأبعاد AI</span>
+                                <span className="text-[9px] text-[#947961] block font-semibold">بأبعاد دقيقة</span>
                              </div>
                           </button>
                        ))}

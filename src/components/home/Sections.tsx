@@ -28,7 +28,7 @@ export function BestSellers() {
     {img: "https://images.unsplash.com/photo-1583847268964-b28ce8f30e9b?auto=format&fit=crop&q=80&w=400", name: "طاولة خشب طبيعي", vendor: "روائع الخشب", price: 1200, oldPrice: 1600},
     {img: "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=400", name: "سرير كينج ملكي", vendor: "أناقة المنزل", price: 4200, oldPrice: 5500},
     {img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=400", name: "خزانة ملابس مبتكرة", vendor: "بيت التصميم", price: 3100, oldPrice: 4000},
-    {img: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=400", name: "مكتب عمل مريح", vendor: "المكتب الذكي", price: 850, oldPrice: 1100},
+    {img: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=400", name: "مكتب عمل مريح", vendor: "ركن المكاتب", price: 850, oldPrice: 1100},
     {img: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&q=80&w=400", name: "كرسي استرخاء", vendor: "زاوية الراحة", price: 1450, oldPrice: 1900},
     {img: "https://images.unsplash.com/photo-1560606177-063fb90494f4?auto=format&fit=crop&q=80&w=400", name: "طقم طعام كلاسيك", vendor: "مفروشات الرقي", price: 9200, oldPrice: 12000},
   ];
@@ -215,14 +215,14 @@ export function AIBanner() {
         <div className="w-full md:w-1/2 text-center md:text-right order-2 md:order-1">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 backdrop-blur-md shadow-md text-[#d2b694] font-bold rounded-full mb-6 md:mb-8 text-sm">
             <Sparkles size={16} className="animate-pulse" />
-            <span>تقنية المصمم الذكي من ديار</span>
+            <span>تقنية المصمم المساعد من ديار</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-sans font-bold mb-6 text-[#f3ecdb] leading-[1.4]">
             المستقبل هنا. <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#d2b694] to-white">صمم غرفتك بلمسة خيال!</span>
           </h2>
           <p className="mb-8 md:mb-10 text-gray-300 text-base md:text-lg leading-relaxed max-w-xl mx-auto md:mx-0 font-light">
-            لا داعي للتخيل بعد الآن. صور مساحتك، وسيقوم المصمم الذكي المتقدم بتحليل الأبعاد والنمط، ليدمج قطع الأثاث المثالية بواقعية مذهلة، لترى غرفتك قبل التنفيذ.
+            لا داعي للتخيل بعد الآن. صور مساحتك، وسيقوم المصمم المساعد المتقدم بتحليل الأبعاد والنمط، ليدمج قطع الأثاث المثالية بواقعية مذهلة، لترى غرفتك قبل التنفيذ.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
@@ -260,7 +260,7 @@ export function AIBanner() {
             </div>
             <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-gradient-to-r from-[#947961] to-[#7a6450] px-4 py-1.5 md:px-5 md:py-2 rounded-lg text-xs md:text-sm font-bold text-white shadow-md z-20 flex items-center gap-2 border border-white/20">
                <Sparkles size={16} className="text-yellow-200" />
-               ترتيب المصمم الذكي
+               ترتيب المصمم المساعد
             </div>
           </div>
         </div>

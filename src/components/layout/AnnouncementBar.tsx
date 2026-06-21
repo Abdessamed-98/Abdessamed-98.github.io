@@ -11,7 +11,7 @@ const ANNOUNCEMENTS = [
   },
   {
     icon: <Sparkles className="w-4 h-4 text-yellow-400 shrink-0 animate-pulse" />,
-    text: "جرّب المصمم الذكي التفاعلي للغرف",
+    text: "جرّب المصمم المساعد التفاعلي للغرف",
     cta: "جرّب الآن",
     link: "/search", // leads to search/AI trial
   },

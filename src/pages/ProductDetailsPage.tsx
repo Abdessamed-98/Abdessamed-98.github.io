@@ -137,10 +137,10 @@ export default function ProductDetailsPage() {
                  <button 
                    onClick={() => setIsAiModalOpen(true)}
                    className="bg-diyar-dark/90 backdrop-blur text-white px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium flex items-center gap-2 hover:bg-black transition-colors shadow-lg"
-                   title="تجربة في غرفتك بالمصمم الذكي"
+                   title="تجربة في غرفتك بالمصمم المساعد"
                  >
                    <Sparkles size={16} className="text-yellow-400 shrink-0" />
-                   <span className="hidden sm:inline">جرّب في غرفتك </span>بالمصمم الذكي
+                   <span className="hidden sm:inline">جرّب في غرفتك </span>بالمصمم المساعد
                  </button>
               </div>
             </div>
@@ -393,9 +393,9 @@ export default function ProductDetailsPage() {
             </button>
             <div className="p-6 md:p-8 text-center bg-diyar-dark text-white">
               <Sparkles className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-xl md:text-2xl font-bold mb-2">Nano Banana Pro</h3>
+              <h3 className="text-xl md:text-2xl font-bold mb-2">جرّب المنتج في غرفتك</h3>
               <p className="text-diyar-cream text-sm opacity-90 max-w-md mx-auto">
-                قم برفع صورة لغرفتك، وسيقوم المصمم الذكي بدمج المنتج في مساحتك بأبعاد واقعية لتخيل مظهر الغرفة قبل الشراء.
+                ارفع صورة لغرفتك، وسيقوم المصمم المساعد بدمج المنتج في مساحتك بأبعاد واقعية لترى مظهر الغرفة قبل الشراء.
               </p>
             </div>
             <div className="p-8 pb-10 flex flex-col items-center">
@@ -406,7 +406,7 @@ export default function ProductDetailsPage() {
                </div>
                <button className="w-full bg-diyar-brown text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#A67B5B]/90 transition">
                  <Sparkles size={18} />
-                 توليد المشهد الآن
+                 معاينة في غرفتي
                </button>
             </div>
           </div>
