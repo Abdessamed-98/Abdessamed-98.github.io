@@ -215,14 +215,14 @@ export function AIBanner() {
         <div className="w-full md:w-1/2 text-center md:text-right order-2 md:order-1">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 backdrop-blur-md shadow-md text-[#d2b694] font-bold rounded-full mb-6 md:mb-8 text-sm">
             <Sparkles size={16} className="animate-pulse" />
-            <span>تقنية المصمم المساعد من ديار</span>
+            <span>تقنية المساعد الشخصي من ديار</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-sans font-bold mb-6 text-[#f3ecdb] leading-[1.4]">
             المستقبل هنا. <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#d2b694] to-white">صمم غرفتك بلمسة خيال!</span>
           </h2>
           <p className="mb-8 md:mb-10 text-gray-300 text-base md:text-lg leading-relaxed max-w-xl mx-auto md:mx-0 font-light">
-            لا داعي للتخيل بعد الآن. صور مساحتك، وسيقوم المصمم المساعد المتقدم بتحليل الأبعاد والنمط، ليدمج قطع الأثاث المثالية بواقعية مذهلة، لترى غرفتك قبل التنفيذ.
+            لا داعي للتخيل بعد الآن. صور مساحتك، وسيقوم المساعد الشخصي المتقدم بتحليل الأبعاد والنمط، ليدمج قطع الأثاث المثالية بواقعية مذهلة، لترى غرفتك قبل التنفيذ.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
@@ -260,7 +260,7 @@ export function AIBanner() {
             </div>
             <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-gradient-to-r from-[#947961] to-[#7a6450] px-4 py-1.5 md:px-5 md:py-2 rounded-lg text-xs md:text-sm font-bold text-white shadow-md z-20 flex items-center gap-2 border border-white/20">
                <Sparkles size={16} className="text-yellow-200" />
-               ترتيب المصمم المساعد
+               ترتيب المساعد الشخصي
             </div>
           </div>
         </div>

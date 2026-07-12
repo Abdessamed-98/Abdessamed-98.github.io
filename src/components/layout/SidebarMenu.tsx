@@ -182,7 +182,7 @@ export function SidebarMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all text-right group animate-in slide-in-from-right duration-75"
              >
                <Sparkles size={18} className="text-gray-400 group-hover:text-diyar-brown shrink-0 transition-colors" />
-               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">المصمم المساعد</span>
+               <span className="font-bold text-sm text-diyar-dark group-hover:text-diyar-brown transition-colors">المساعد الشخصي</span>
              </button>
           </div>
 

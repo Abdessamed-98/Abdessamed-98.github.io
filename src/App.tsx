@@ -13,6 +13,7 @@ import { RequestServiceModal } from './components/modals/RequestServiceModal.tsx
 import { SidebarMenu } from './components/layout/SidebarMenu.tsx';
 import { AnnouncementBar } from './components/layout/AnnouncementBar.tsx';
 import { FloatingContactBar } from './components/layout/FloatingContactBar.tsx';
+import { useCart } from './context/CartContext.tsx';
 import HomePage from './pages/HomePage.tsx';
 import CategoryPage from './pages/CategoryPage.tsx';
 import ProductDetailsPage from './pages/ProductDetailsPage.tsx';
@@ -42,6 +43,7 @@ import ServicePage from './pages/ServicePage.tsx';
 import ServicesPage from './pages/ServicesPage.tsx';
 
 import AIDesignerPage from './pages/AIDesignerPage.tsx';
+import ChatPage from './pages/ChatPage.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import DashboardIndex from './pages/dashboard/DashboardIndex.tsx';
@@ -68,6 +70,7 @@ import Notifications from './pages/dashboard/Notifications.tsx';
 
 function MobileBottomNav({ onOpenCart, isLoggedIn }: { onOpenCart: () => void, isLoggedIn: boolean }) {
   const location = useLocation();
+  const { count } = useCart();
   const isHome = location.pathname === '/';
   const isCategory = location.pathname.startsWith('/category');
   
@@ -89,7 +92,7 @@ function MobileBottomNav({ onOpenCart, isLoggedIn }: { onOpenCart: () => void, i
       >
         <div className="relative">
           <ShoppingCart size={22} className="mb-1" />
-          <span className="absolute -top-1.5 -right-2 bg-diyar-dark text-diyar-cream text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">2</span>
+          {count > 0 && <span className="absolute -top-1.5 -right-2 bg-diyar-dark text-diyar-cream text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{count}</span>}
         </div>
         <span className="text-[11px] font-medium">السلة</span>
       </div>
@@ -116,9 +119,12 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { count: cartCount } = useCart();
 
   useEffect(() => {
     setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
+    // reset scroll to top on every navigation (so pages don't open mid-scroll)
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -181,7 +187,7 @@ export default function App() {
                 <Link to="/services" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors whitespace-nowrap">خدمات</Link>
                 <Link to="/b2b" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors whitespace-nowrap">B2B</Link>
                 <Link to="/ai-designer" className="text-gray-600 hover:text-diyar-dark px-3 py-2 transition-colors flex items-center gap-1.5 whitespace-nowrap">
-                  المصمم المساعد
+                  المساعد الشخصي
                 </Link>
               </nav>
             </div>
@@ -214,32 +220,20 @@ export default function App() {
             {/* Left Group: Profile, Icons, CTA */}
             <div className="flex items-center justify-end gap-2 lg:gap-3 order-2 md:order-3 w-auto">
 
-              {/* Profile - Desktop Only */}
-              {isLoggedIn ? (
-                <div className="hidden xl:flex items-center gap-3 pl-3 border-l border-gray-100">
-                  <Link to="/profile" className="w-10 h-10 rounded-full bg-diyar-cream/50 border border-diyar-cream flex items-center justify-center text-diyar-dark transition-colors hover:bg-diyar-cream">
-                    <User size={18} />
-                  </Link>
-                </div>
-              ) : (
-                <div className="hidden xl:flex items-center gap-3 pl-3 border-l border-gray-100">
-                  <Link to="/auth" className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 hover:bg-diyar-dark hover:text-white transition-colors">
-                    <User size={18} />
-                  </Link>
-                </div>
-              )}
-
               {/* Action Icons */}
               <div className="flex items-center gap-1.5 lg:gap-2">
-                <Link to="/search" className="md:hidden w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors">
+                <Link to="/search" className="md:hidden w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-diyar-dark hover:text-diyar-cream hover:border-diyar-dark transition-colors">
                   <Search className="w-5 h-5" />
                 </Link>
-                <div className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center relative cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setIsCartOpen(true)}>
-                  <ShoppingCart className="w-5 h-5 text-gray-600" />
-                  <span className="absolute -top-1 -right-1 bg-diyar-dark text-diyar-cream text-[10px] items-center justify-center border border-white font-bold rounded-full w-4 h-4 flex">2</span>
+                <Link to={isLoggedIn ? "/profile" : "/auth"} className="hidden xl:flex w-10 h-10 rounded-full border border-gray-100 items-center justify-center text-gray-600 hover:bg-diyar-dark hover:text-diyar-cream hover:border-diyar-dark transition-colors">
+                  <User size={18} />
+                </Link>
+                <div className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center relative cursor-pointer text-gray-600 hover:bg-diyar-dark hover:text-diyar-cream hover:border-diyar-dark transition-colors" onClick={() => setIsCartOpen(true)}>
+                  <ShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-diyar-dark text-diyar-cream text-[10px] items-center justify-center border border-white font-bold rounded-full w-4 h-4 flex">{cartCount}</span>}
                 </div>
-                <Link to="/profile/notifications" className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center relative cursor-pointer hover:bg-gray-50 transition-colors">
-                  <Bell className="w-5 h-5 text-gray-600" />
+                <Link to="/profile/notifications" className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center relative cursor-pointer text-gray-600 hover:bg-diyar-dark hover:text-diyar-cream hover:border-diyar-dark transition-colors">
+                  <Bell className="w-5 h-5" />
                   <span className="absolute -top-1 -right-1 bg-diyar-dark text-diyar-cream text-[10px] items-center justify-center border border-white font-bold rounded-full w-4 h-4 flex">3</span>
                 </Link>
               </div>
@@ -270,6 +264,7 @@ export default function App() {
         <Route path="/b2b" element={<B2BPage />} />
         <Route path="/b2b/:id" element={<B2BCompanyPage />} />
         <Route path="/ai-designer" element={<AIDesignerPage />} />
+        <Route path="/chat" element={<ChatPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:id" element={<ServicePage />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />

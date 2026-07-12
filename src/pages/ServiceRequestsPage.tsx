@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle2, XCircle, ArrowRight, ArrowLeft, Wrench, Paintbrush, FileText, MessageSquare, Star, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MOCK_REQUESTS = [
   {
@@ -75,6 +75,7 @@ const MOCK_OFFERS = [
 export default function ServiceRequestsPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -151,7 +152,10 @@ export default function ServiceRequestsPage() {
 
                        <div className="flex gap-3 mt-auto">
                          <button className="bg-diyar-dark text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-diyar-brown transition-colors">قبول العرض</button>
-                         <button className="border border-gray-200 bg-white text-gray-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                         <button
+                           onClick={() => navigate('/chat', { state: { provider: offer.providerName, title: request?.title, price: offer.price } })}
+                           className="border border-gray-200 bg-white text-gray-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                         >
                            <MessageSquare size={16} /> محادثة
                          </button>
                        </div>

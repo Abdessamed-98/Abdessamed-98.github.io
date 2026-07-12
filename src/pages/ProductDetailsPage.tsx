@@ -137,10 +137,10 @@ export default function ProductDetailsPage() {
                  <button 
                    onClick={() => setIsAiModalOpen(true)}
                    className="bg-diyar-dark/90 backdrop-blur text-white px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium flex items-center gap-2 hover:bg-black transition-colors shadow-lg"
-                   title="تجربة في غرفتك بالمصمم المساعد"
+                   title="تجربة في غرفتك بالمساعد الشخصي"
                  >
                    <Sparkles size={16} className="text-yellow-400 shrink-0" />
-                   <span className="hidden sm:inline">جرّب في غرفتك </span>بالمصمم المساعد
+                   <span className="hidden sm:inline">جرّب في غرفتك </span>بالمساعد الشخصي
                  </button>
               </div>
             </div>
@@ -395,7 +395,7 @@ export default function ProductDetailsPage() {
               <Sparkles className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
               <h3 className="text-xl md:text-2xl font-bold mb-2">جرّب المنتج في غرفتك</h3>
               <p className="text-diyar-cream text-sm opacity-90 max-w-md mx-auto">
-                ارفع صورة لغرفتك، وسيقوم المصمم المساعد بدمج المنتج في مساحتك بأبعاد واقعية لترى مظهر الغرفة قبل الشراء.
+                ارفع صورة لغرفتك، وسيقوم المساعد الشخصي بدمج المنتج في مساحتك بأبعاد واقعية لترى مظهر الغرفة قبل الشراء.
               </p>
             </div>
             <div className="p-8 pb-10 flex flex-col items-center">

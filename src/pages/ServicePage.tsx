@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Star, Share2, Mail, Info, Clock, CheckCircle, Smartphone, User, ChevronRight, ChevronLeft } from 'lucide-react';
 import ServiceCard from '../components/cards/ServiceCard.tsx';
+import { useCart } from '../context/CartContext.tsx';
 
 export default function ServicePage() {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('about');
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
   const MOCK_REVIEWS = [
     { id: 1, name: 'أحمد محمد', rating: 5, date: 'قبل يومين', comment: 'خدمة ممتازة وتصميم رائع، التزموا بالمواعيد وبكل التفاصيل. أنصح بالتعامل معهم بشدة.', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100' },
@@ -124,8 +127,14 @@ export default function ServicePage() {
 
             {/* Actions */}
             <div className="flex gap-3 md:w-auto w-full">
-              <button className="flex-1 md:flex-none bg-diyar-dark text-white font-bold py-3 px-8 rounded-xl hover:bg-black transition shadow-md w-full md:w-48 text-center text-lg">
-                طلب تنفيذ
+              <button
+                onClick={() => {
+                  addItem({ type: 'service', name: SERVICE_INFO.name, vendor: SERVICE_INFO.provider, price: SERVICE_INFO.price, img: SERVICE_INFO.logo });
+                  setAdded(true);
+                }}
+                className={`flex-1 md:flex-none font-bold py-3 px-8 rounded-xl transition shadow-md w-full md:w-48 text-center text-lg ${added ? 'bg-green-600 text-white' : 'bg-diyar-dark text-white hover:bg-black'}`}
+              >
+                {added ? 'أُضيفت للسلة ✓' : 'طلب تنفيذ'}
               </button>
             </div>
           </div>

@@ -24,7 +24,8 @@ export default function AIDesignerPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // block: 'nearest' keeps the scroll inside the chat area (doesn't move the page/window)
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   useEffect(() => {

@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { Bookmark, Star, Store, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.tsx';
 
 const ProductCard: React.FC<{product: any; layout?: 'grid' | 'list'}> = ({product, layout = 'grid'}) => {
   const [isSaved, setIsSaved] = useState(false);
+  const { addItem } = useCart();
+  const addToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({ type: 'product', name: product.name, vendor: product.vendor || product.store, price: product.price, img: product.img });
+  };
 
   if (layout === 'list') {
     return (
@@ -61,7 +68,7 @@ const ProductCard: React.FC<{product: any; layout?: 'grid' | 'list'}> = ({produc
             <div className="flex justify-end mt-1">
               <button 
                 className="bg-gray-50 text-diyar-dark border border-gray-200 rounded-lg sm:rounded-lg py-1 px-3 sm:py-1.5 sm:px-5 font-bold text-[10px] sm:text-xs transition-all hover:bg-diyar-brown hover:text-white hover:border-diyar-dark flex items-center justify-center gap-1 z-10 relative"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onClick={addToCart}
               >
                 أضف للسلة
               </button>
