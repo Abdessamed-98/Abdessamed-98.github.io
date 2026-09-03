@@ -45,6 +45,11 @@ import ServicesPage from './pages/ServicesPage.tsx';
 import AIDesignerPage from './pages/AIDesignerPage.tsx';
 import ChatPage from './pages/ChatPage.tsx';
 
+import LooksIndex from './pages/looks/LooksIndex.tsx';
+import LookOne from './pages/looks/LookOne.tsx';
+import LookTwo from './pages/looks/LookTwo.tsx';
+import LookThree from './pages/looks/LookThree.tsx';
+
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import DashboardIndex from './pages/dashboard/DashboardIndex.tsx';
 import VendorDashboard from './pages/dashboard/VendorDashboard.tsx';
@@ -156,12 +161,14 @@ export default function App() {
 
   const isAuthPage = location.pathname.startsWith('/auth');
   const isDashboardPage = location.pathname.startsWith('/dashboard');
+  // Standalone design-direction demo pages (/looks, /look/1..3) render their own chrome.
+  const isLookPage = location.pathname.startsWith('/look');
   const isHomePage = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-white font-sans text-diyar-dark pb-[70px] md:pb-0" dir="rtl">
-      {!(isAuthPage || isDashboardPage) && <AnnouncementBar />}
-      {!(isAuthPage || isDashboardPage) && (
+    <div className={`min-h-screen bg-white font-sans text-diyar-dark ${isLookPage ? '' : 'pb-[70px] md:pb-0'}`} dir="rtl">
+      {!(isAuthPage || isDashboardPage || isLookPage) && <AnnouncementBar />}
+      {!(isAuthPage || isDashboardPage || isLookPage) && (
         <div className={`sticky top-0 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full md:-translate-y-[120%]'} w-full flex justify-center ${isHomePage ? 'h-0 overflow-visible' : ''}`}>
           <div className={`w-full flex justify-center left-0 right-0 pointer-events-none ${isHomePage ? 'absolute top-0 mt-2 md:mt-4' : 'relative mt-2 md:mt-4 mb-2 md:mb-4'}`}>
             <header className="max-w-[1400px] w-full px-3 md:px-4 pointer-events-auto">
@@ -283,7 +290,13 @@ export default function App() {
         <Route path="/profile/notification-settings" element={<NotificationSettingsPage />} />
         <Route path="/profile/language" element={<LanguagePage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
-        
+
+        {/* Redesign proposal: 3 design-direction demos */}
+        <Route path="/looks" element={<LooksIndex />} />
+        <Route path="/look/1" element={<LookOne />} />
+        <Route path="/look/2" element={<LookTwo />} />
+        <Route path="/look/3" element={<LookThree />} />
+
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardIndex />} />
           
@@ -315,9 +328,9 @@ export default function App() {
         </Route>
       </Routes>
 
-      {!(isAuthPage || isDashboardPage) && <FloatingContactBar />}
-      {!(isAuthPage || isDashboardPage) && <Footer />}
-      {!(isAuthPage || isDashboardPage) && <MobileBottomNav onOpenCart={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} />}
+      {!(isAuthPage || isDashboardPage || isLookPage) && <FloatingContactBar />}
+      {!(isAuthPage || isDashboardPage || isLookPage) && <Footer />}
+      {!(isAuthPage || isDashboardPage || isLookPage) && <MobileBottomNav onOpenCart={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} />}
     </div>
   );
 }
