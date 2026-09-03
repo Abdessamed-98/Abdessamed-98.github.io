@@ -11,7 +11,6 @@ const LOOKS = [
     to: '/look/1',
     num: '01',
     name: 'Editorial Light',
-    ar: 'إيديتوريال فاتح',
     desc: 'Gallery-white canvas, bold uppercase titles, olive accents — the closest match to the reference direction.',
     img: IMG.hero,
     palette: ['#FDFCF9', '#171512', '#5A6B4D'],
@@ -20,7 +19,6 @@ const LOOKS = [
     to: '/look/2',
     num: '02',
     name: 'Dark Luxury',
-    ar: 'فخامة داكنة',
     desc: 'Espresso black, brass-gold hairlines, serif display type — the showroom at night.',
     img: IMG.loungeDark,
     palette: ['#131009', '#EFE9DD', '#C9A86A'],
@@ -29,7 +27,6 @@ const LOOKS = [
     to: '/look/3',
     num: '03',
     name: 'Quiet Gallery',
-    ar: 'معرض هادئ',
     desc: 'Warm greige canvas, serif-led type, museum-caption details — the calmest and most understated of the three.',
     img: IMG.roomHotspots,
     palette: ['#F1EDE5', '#2A241C', '#8A6D4F'],
@@ -46,7 +43,7 @@ export default function LooksIndex() {
 
       <main className="flex-1 max-w-[1200px] w-full mx-auto px-6 py-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <p className="font-['Amiri',serif] text-2xl text-white/60 mb-2">ثلاثة اتجاهات تصميمية</p>
+          <p className="text-[11px] tracking-[0.3em] uppercase text-white/40 mb-3">Diyar — Redesign</p>
           <h1 className="text-4xl md:text-6xl font-extrabold uppercase tracking-tight mb-3">Three Design Directions</h1>
           <p className="text-white/50 max-w-xl mb-12">
             One brand, one content structure — three visual voices. Open each look, scroll it end to end, and tell us which world Diyar should live in.
@@ -75,7 +72,6 @@ export default function LooksIndex() {
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-1">
                     <h2 className="text-xl font-bold">{look.name}</h2>
-                    <span className="font-['Amiri',serif] text-white/50">{look.ar}</span>
                   </div>
                   <p className="text-sm text-white/50 leading-relaxed mb-4">{look.desc}</p>
                   <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.2em] uppercase text-white/80 group-hover:text-white transition-colors">

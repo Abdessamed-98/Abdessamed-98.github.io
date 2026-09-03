@@ -1,8 +1,9 @@
 /**
  * Look 1 — "Editorial Light"
  * Warm minimal luxury e-commerce direction (Zara Home / RH aesthetic).
- * Near-white warm canvas, huge bold uppercase section titles with Amiri
- * Arabic lead-ins, editorial photography, hairline dividers, restrained motion.
+ * Near-white warm canvas, huge bold uppercase section titles with tiny
+ * letterspaced eyebrows, editorial photography, hairline dividers,
+ * restrained motion. English-only content.
  */
 import { useEffect, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -52,12 +53,12 @@ function Reveal({
   );
 }
 
-/** Amiri Arabic lead-in over a huge bold uppercase Outfit title. */
-function SectionHeading({ arLead, title }: { arLead: string; title: string }) {
+/** Tiny letterspaced eyebrow over a huge bold uppercase Outfit title. */
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div>
-      <p className="font-['Amiri',serif] text-xl md:text-2xl mb-3" style={{ color: OLIVE }}>
-        {arLead}
+      <p className="mb-4 text-[11px] uppercase tracking-[0.32em]" style={{ color: OLIVE }}>
+        {eyebrow}
       </p>
       <h2
         className="font-['Outfit',sans-serif] font-extrabold uppercase leading-[0.95] tracking-tight text-4xl md:text-5xl lg:text-6xl"
@@ -229,7 +230,6 @@ export default function LookOne() {
                           <span className="block text-[11px] uppercase tracking-[0.18em] text-[#171512] transition-colors group-hover/cat:text-[#5A6B4D]">
                             {c.en}
                           </span>
-                          <span className="mt-1 block font-['Amiri',serif] text-sm text-neutral-500">{c.ar}</span>
                         </a>
                       ))}
                       <div className="col-span-3 border-t pt-5" style={{ borderColor: HAIR }}>
@@ -318,10 +318,9 @@ export default function LookOne() {
                   transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
                 >
                   <p className="mb-5 text-[11px] uppercase tracking-[0.4em] text-white/85">{HERO_SLIDES[slide].tag}</p>
-                  <h1 className="mb-3 font-['Amiri',serif] text-5xl leading-[1.25] md:text-7xl">{HERO_SLIDES[slide].ar}</h1>
-                  <p className="mb-9 text-lg font-light uppercase tracking-[0.22em] text-white/90 md:text-2xl">
+                  <h1 className="mb-9 font-['Outfit',sans-serif] text-4xl font-extrabold uppercase leading-[1.04] tracking-tight md:text-6xl">
                     {HERO_SLIDES[slide].en}
-                  </p>
+                  </h1>
                   <button
                     type="button"
                     className="bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase tracking-[0.32em] text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
@@ -383,7 +382,7 @@ export default function LookOne() {
       <section className="py-20 md:py-28">
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
-            <SectionHeading arLead="الأقسام المميزة" title="Featured Categories" />
+            <SectionHeading eyebrow="Collection — 01" title="Featured Categories" />
           </Reveal>
         </div>
 
@@ -405,8 +404,7 @@ export default function LookOne() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-7 text-white">
-                  <p className="font-['Amiri',serif] text-2xl leading-tight">{c.ar}</p>
-                  <p className="mt-1.5 text-[12px] uppercase tracking-[0.24em] text-white/90">{c.en}</p>
+                  <p className="text-lg font-light uppercase tracking-[0.2em] leading-tight md:text-xl">{c.en}</p>
                   <div className="mt-5">
                     <ViewMore light />
                   </div>
@@ -423,7 +421,7 @@ export default function LookOne() {
       <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
-            <SectionHeading arLead="خدماتنا" title="Our Services" />
+            <SectionHeading eyebrow="Services — 02" title="Our Services" />
           </Reveal>
 
           <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-16 md:mt-20 lg:grid-cols-4 lg:gap-x-12">
@@ -438,7 +436,6 @@ export default function LookOne() {
                 <div className="flex flex-col items-center text-center">
                   <s.icon size={34} strokeWidth={1.25} className="text-[#5A6B4D]" />
                   <h3 className="mt-6 text-[12px] font-bold uppercase tracking-[0.2em] leading-relaxed">{s.en}</h3>
-                  <p className="mt-1.5 font-['Amiri',serif] text-base text-neutral-500">{s.ar}</p>
                   <div className="mt-6">
                     <ViewMore />
                   </div>
@@ -456,7 +453,7 @@ export default function LookOne() {
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
             <div className="flex flex-wrap items-end justify-between gap-6">
-              <SectionHeading arLead="وصل حديثاً" title="New Products" />
+              <SectionHeading eyebrow="New In — 03" title="New Products" />
               <div className="pb-2">
                 <ViewMore label="View All" />
               </div>
@@ -507,10 +504,10 @@ export default function LookOne() {
                     </div>
                     <a
                       href="#"
-                      className="shrink-0 font-['Amiri',serif] text-[15px] leading-none underline-offset-4 hover:underline"
+                      className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.24em] leading-none underline-offset-4 hover:underline"
                       style={{ color: RED }}
                     >
-                      جرب AI
+                      Try with AI
                     </a>
                   </div>
 
@@ -542,10 +539,10 @@ export default function LookOne() {
           </Reveal>
           <div className="flex items-center bg-white">
             <Reveal className="px-6 py-16 md:px-16 lg:px-20 lg:py-24 xl:px-24" delay={0.1}>
-              <p className="font-['Amiri',serif] text-xl md:text-2xl" style={{ color: OLIVE }}>
-                تنفيذ الأثاث
+              <p className="text-[11px] uppercase tracking-[0.32em]" style={{ color: OLIVE }}>
+                Craftsmanship — 04
               </p>
-              <h2 className="mt-3 font-['Outfit',sans-serif] text-4xl font-extrabold uppercase leading-[0.98] tracking-tight md:text-5xl">
+              <h2 className="mt-4 font-['Outfit',sans-serif] text-4xl font-extrabold uppercase leading-[0.98] tracking-tight md:text-5xl">
                 Custom Furniture Manufacturing
               </h2>
               <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
@@ -575,10 +572,10 @@ export default function LookOne() {
         <div className="relative mx-auto flex min-h-[70vh] max-w-[1400px] flex-col justify-end gap-10 px-6 py-16 md:px-10 md:py-20 lg:flex-row lg:items-end lg:justify-between">
           {/* headline panel — bottom-left */}
           <Reveal className="max-w-xl text-white">
-            <p className="font-['Amiri',serif] text-xl text-white/90 md:text-2xl">استشارة تصميم مجانية</p>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-white/85">Design Studio — 05</p>
             <a
               href="#"
-              className="group/da mt-3 inline-flex flex-wrap items-center gap-4 font-['Outfit',sans-serif] text-3xl font-extrabold uppercase leading-[1.02] tracking-tight md:text-5xl"
+              className="group/da mt-4 inline-flex flex-wrap items-center gap-4 font-['Outfit',sans-serif] text-3xl font-extrabold uppercase leading-[1.02] tracking-tight md:text-5xl"
             >
               Get Free Design Assistance
               <ArrowRight size={34} strokeWidth={1.5} className="transition-transform duration-300 group-hover/da:translate-x-2" />
@@ -596,13 +593,10 @@ export default function LookOne() {
                 {DESIGN_ASSIST_ITEMS.map((item, i) => (
                   <li
                     key={item.en}
-                    className={`flex items-center justify-between gap-4 py-3.5 ${
-                      i < DESIGN_ASSIST_ITEMS.length - 1 ? 'border-b' : ''
-                    }`}
+                    className={`py-3.5 ${i < DESIGN_ASSIST_ITEMS.length - 1 ? 'border-b' : ''}`}
                     style={{ borderColor: HAIR }}
                   >
                     <span className="text-[13px] font-medium">{item.en}</span>
-                    <span className="shrink-0 font-['Amiri',serif] text-sm text-neutral-500">{item.ar}</span>
                   </li>
                 ))}
               </ul>
@@ -620,7 +614,7 @@ export default function LookOne() {
       <section className="py-20 md:py-28">
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
-            <SectionHeading arLead="اكتشف ذوقك" title="Find Your Style" />
+            <SectionHeading eyebrow="Styles — 06" title="Find Your Style" />
           </Reveal>
 
           {/* uneven editorial grid — middle tiles taller */}
@@ -648,10 +642,7 @@ export default function LookOne() {
                         className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                       />
                     </div>
-                    <div className="mt-4 flex items-baseline justify-between gap-3">
-                      <h3 className="font-['Marcellus',serif] text-2xl leading-none">{s.en}</h3>
-                      <span className="font-['Amiri',serif] text-sm text-neutral-500">{s.ar}</span>
-                    </div>
+                    <h3 className="mt-4 font-['Marcellus',serif] text-2xl leading-none">{s.en}</h3>
                     <p className="mt-1.5 text-[10px] uppercase tracking-[0.26em] text-neutral-400">
                       {formatSAR(s.count)} Products
                     </p>
@@ -671,10 +662,7 @@ export default function LookOne() {
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative mx-auto flex min-h-[62vh] max-w-[1400px] flex-col items-center justify-center px-6 py-28 text-center text-white md:px-10">
           <Reveal>
-            <p className="font-['Amiri',serif] text-2xl leading-relaxed text-white/90 md:text-3xl">
-              حلول متكاملة للشركات والمشاريع
-            </p>
-            <h2 className="mt-4 font-['Marcellus',serif] text-4xl uppercase tracking-[0.06em] md:text-5xl">
+            <h2 className="font-['Marcellus',serif] text-4xl uppercase tracking-[0.06em] md:text-5xl">
               Turnkey Project Solutions
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-sm font-light tracking-[0.06em] text-white/80 md:text-base">
@@ -703,9 +691,6 @@ export default function LookOne() {
             <div className="lg:col-span-4">
               <img src="/logo_diyar.svg" alt="Diyar" className="h-8 w-auto invert" />
               <p className="mt-6 max-w-sm text-sm font-light leading-relaxed text-[#EFE9DD]/60">{FOOTER_LINKS.about}</p>
-              <p className="mt-3 max-w-sm font-['Amiri',serif] text-[15px] leading-relaxed text-[#EFE9DD]/50" dir="rtl">
-                {FOOTER_LINKS.aboutAr}
-              </p>
               <div className="mt-7 flex items-center gap-5">
                 <a href="#" aria-label="Instagram" className="text-[#EFE9DD]/55 transition-colors hover:text-[#EFE9DD]">
                   <Instagram size={18} strokeWidth={1.5} />

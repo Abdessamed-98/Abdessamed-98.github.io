@@ -91,11 +91,11 @@ function Hotspot({ top, left, label }: { top: string; left: string; label: strin
 }
 
 function Heading({
-  lead, center = false, children,
-}: { lead: string; center?: boolean; children: ReactNode }) {
+  eyebrow, center = false, children,
+}: { eyebrow: string; center?: boolean; children: ReactNode }) {
   return (
     <div className={center ? 'text-center' : ''}>
-      <p className={`${AR} text-[#C9A86A] text-xl md:text-2xl mb-4`}>{lead}</p>
+      <p className={`${CAPS} text-[11px] tracking-[0.4em] uppercase text-[#C9A86A] mb-5`}>{eyebrow}</p>
       <h2 className={`${DISPLAY} text-4xl md:text-6xl text-[#EFE9DD] leading-[1.08]`}>{children}</h2>
       {center && <span className="block w-16 h-px bg-[#C9A86A]/60 mx-auto mt-8" />}
     </div>
@@ -130,6 +130,11 @@ export default function LookTwo() {
 
   const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
+
+  /* English headline with an italic gold accent on the final word */
+  const words = active.en.trim().split(' ');
+  const accent = words[words.length - 1] ?? '';
+  const headline = words.slice(0, -1).join(' ');
 
   /* header chrome: white over the hero, ivory on the solid bar; gold hovers */
   const navLinkCls = `${CAPS} block whitespace-nowrap py-2 text-[11px] uppercase tracking-[0.25em] transition-colors duration-300 hover:text-[#C9A86A] ${
@@ -207,11 +212,10 @@ export default function LookTwo() {
                         <p className={`${CAPS} text-[10px] tracking-[0.35em] text-[#C9A86A] mb-6`}>SHOP BY CATEGORY</p>
                         <div className="grid grid-cols-3 gap-x-8 gap-y-5">
                           {CATEGORIES.map((c) => (
-                            <a key={c.en} href="#" onClick={stop} className="group/cat block">
+                            <a key={c.en} href="#" onClick={stop} className="group/cat block py-1">
                               <span className={`${CAPS} block text-[11px] uppercase tracking-[0.15em] text-[#EFE9DD]/85 group-hover/cat:text-[#C9A86A] transition-colors`}>
                                 {c.en}
                               </span>
-                              <span className={`${AR} block text-sm text-[#EFE9DD]/45 mt-1`}>{c.ar}</span>
                             </a>
                           ))}
                         </div>
@@ -291,8 +295,10 @@ export default function LookTwo() {
                 <span className="w-12 h-px bg-[#C9A86A]" />
                 <span className={`${CAPS} text-[11px] tracking-[0.4em] text-[#C9A86A]`}>{active.tag}</span>
               </div>
-              <h1 className={`${AR} text-5xl md:text-7xl text-[#EFE9DD] leading-[1.2] mb-4`}>{active.ar}</h1>
-              <p className={`${DISPLAY} italic text-2xl md:text-4xl text-[#C9A86A] mb-10`}>{active.en}</p>
+              <h1 className={`${DISPLAY} text-5xl md:text-7xl text-[#EFE9DD] leading-[1.12] mb-10`}>
+                {headline}{headline && ' '}
+                <em className="italic text-[#C9A86A]">{accent}</em>
+              </h1>
               <button className={GOLD_BTN}>
                 EXPLORE <ArrowRight size={14} strokeWidth={1.5} />
               </button>
@@ -338,7 +344,7 @@ export default function LookTwo() {
       <section className="py-24 md:py-32">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
           <Reveal className="mb-14 md:mb-20">
-            <Heading lead="الواجهة" center>
+            <Heading eyebrow="The Showroom" center>
               Featured <em className="italic">Categories</em>
             </Heading>
           </Reveal>
@@ -355,7 +361,6 @@ export default function LookTwo() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#131009]/95 via-[#131009]/25 to-transparent" />
                   <div className="absolute inset-3 border border-[#C9A86A]/30 pointer-events-none" />
                   <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                    <p className={`${AR} text-lg md:text-xl text-[#C9A86A] mb-1`}>{c.ar}</p>
                     <h3 className={`${CAPS} text-xs md:text-base uppercase tracking-[0.2em] text-[#EFE9DD] mb-4`}>{c.en}</h3>
                     <span className={`${CAPS} inline-flex items-center gap-2 text-[10px] tracking-[0.3em] text-[#C9A86A] border-b border-[#C9A86A]/40 pb-1 opacity-80 group-hover:opacity-100 group-hover:border-[#C9A86A] transition-all duration-300`}>
                       VIEW MORE <ArrowRight size={11} strokeWidth={1.5} />
@@ -372,7 +377,7 @@ export default function LookTwo() {
       <section className="py-24 md:py-32 border-t border-white/5">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
           <Reveal className="mb-14 md:mb-20">
-            <Heading lead="خدماتنا" center>
+            <Heading eyebrow="At Your Service" center>
               Our <em className="italic">Services</em>
             </Heading>
           </Reveal>
@@ -385,10 +390,7 @@ export default function LookTwo() {
                     <span className="w-16 h-16 rounded-full border border-[#C9A86A]/35 flex items-center justify-center text-[#C9A86A] transition-all duration-500 group-hover:border-[#C9A86A] group-hover:bg-[#C9A86A]/5">
                       <s.icon size={26} strokeWidth={1} />
                     </span>
-                    <span>
-                      <span className={`${CAPS} block text-[11px] md:text-xs uppercase tracking-[0.2em] text-[#EFE9DD]`}>{s.en}</span>
-                      <span className={`${AR} block text-sm text-[#EFE9DD]/45 mt-1.5`}>{s.ar}</span>
-                    </span>
+                    <span className={`${CAPS} block text-[11px] md:text-xs uppercase tracking-[0.2em] text-[#EFE9DD]`}>{s.en}</span>
                   </div>
                 </Reveal>
               ))}
@@ -401,7 +403,7 @@ export default function LookTwo() {
       <section className="py-24 md:py-32">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
           <Reveal className="flex flex-wrap items-end justify-between gap-6 mb-12 md:mb-16">
-            <Heading lead="وصل حديثاً">
+            <Heading eyebrow="Just Arrived">
               The New <em className="italic">Collection</em>
             </Heading>
             <GoldLink>
@@ -441,8 +443,8 @@ export default function LookTwo() {
                           />
                         ))}
                       </span>
-                      <a href="#" onClick={stop} className={`${AR} text-[13px] text-[#C9A86A] hover:underline underline-offset-4`}>
-                        جرب AI
+                      <a href="#" onClick={stop} className={`${CAPS} text-[9px] tracking-[0.25em] uppercase text-[#C9A86A] hover:underline underline-offset-4`}>
+                        TRY WITH AI
                       </a>
                     </div>
 
@@ -481,7 +483,7 @@ export default function LookTwo() {
           </Reveal>
 
           <Reveal delay={0.12}>
-            <p className={`${AR} text-[#C9A86A] text-xl md:text-2xl mb-4`}>تنفيذ الأثاث</p>
+            <p className={`${CAPS} text-[11px] tracking-[0.4em] uppercase text-[#C9A86A] mb-5`}>Made to Order</p>
             <h2 className={`${DISPLAY} text-4xl md:text-5xl lg:text-6xl text-[#EFE9DD] leading-[1.1] mb-8`}>
               Custom Furniture,
               <br />
@@ -513,7 +515,7 @@ export default function LookTwo() {
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 md:px-10 py-24 md:py-32">
           <Reveal className="max-w-xl bg-[#131009]/80 backdrop-blur-md border border-[#C9A86A]/25 p-8 md:p-12">
-            <p className={`${AR} text-[#C9A86A] text-xl md:text-2xl mb-3`}>استشارة مجانية</p>
+            <p className={`${CAPS} text-[11px] tracking-[0.4em] uppercase text-[#C9A86A] mb-5`}>Complimentary Service</p>
             <h2 className={`${DISPLAY} text-3xl md:text-5xl text-[#EFE9DD] leading-[1.1] mb-8`}>
               Get Free <em className="italic">Design</em> Assistance
             </h2>
@@ -521,7 +523,6 @@ export default function LookTwo() {
               {DESIGN_ASSIST_ITEMS.map((item) => (
                 <li key={item.en} className="border-b border-white/10 pb-3">
                   <span className="block text-sm text-[#EFE9DD] font-light">{item.en}</span>
-                  <span className={`${AR} block text-[13px] text-[#EFE9DD]/45 mt-0.5`}>{item.ar}</span>
                 </li>
               ))}
             </ul>
@@ -536,7 +537,7 @@ export default function LookTwo() {
       <section className="py-24 md:py-32">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
           <Reveal className="mb-14 md:mb-20">
-            <Heading lead="اكتشف ذوقك" center>
+            <Heading eyebrow="Discover" center>
               Find Your <em className="italic">Style</em>
             </Heading>
           </Reveal>
@@ -557,7 +558,6 @@ export default function LookTwo() {
                     <p className={`${CAPS} text-[10px] tracking-[0.3em] text-[#C9A86A]/80 mt-1.5`}>
                       {formatSAR(st.count)} PRODUCTS
                     </p>
-                    <p className={`${AR} text-sm text-[#EFE9DD]/55 mt-0.5`}>{st.ar}</p>
                   </div>
                 </a>
               </Reveal>
@@ -577,7 +577,7 @@ export default function LookTwo() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#131009] via-[#131009]/55 to-transparent" />
 
         <Reveal className="relative z-10 max-w-4xl mx-auto text-center px-6 pt-44 pb-24 md:pb-32">
-          <p className={`${AR} text-[#C9A86A] text-2xl md:text-3xl mb-5`}>حلول متكاملة للشركات والمشاريع</p>
+          <p className={`${CAPS} text-[11px] tracking-[0.4em] uppercase text-[#C9A86A] mb-5`}>For Business</p>
           <h2 className={`${DISPLAY} text-4xl md:text-6xl text-[#EFE9DD] leading-[1.08] mb-6`}>
             Turnkey <em className="italic">Project</em> Solutions
           </h2>
@@ -597,11 +597,8 @@ export default function LookTwo() {
             {/* Brand */}
             <div>
               <img src="/logo_diyar.svg" alt="Diyar" className="h-9 invert mb-6" />
-              <p className="text-sm text-[#EFE9DD]/60 font-light leading-relaxed max-w-sm mb-3">
+              <p className="text-sm text-[#EFE9DD]/60 font-light leading-relaxed max-w-sm mb-8">
                 {FOOTER_LINKS.about}
-              </p>
-              <p dir="rtl" className={`${AR} text-sm text-[#EFE9DD]/45 leading-relaxed max-w-sm mb-8 text-right`}>
-                {FOOTER_LINKS.aboutAr}
               </p>
               <div className="flex items-center gap-3">
                 {[

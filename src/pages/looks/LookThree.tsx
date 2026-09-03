@@ -27,7 +27,7 @@ const BRONZE = '#8A6D4F';   // sparing accent
 const HAIR = '#DDD6CA';     // hairlines
 const DARK = '#1B1712';     // footer / B2B brown-black
 const CREAM = '#EFE9DD';    // text on dark
-const GOLDISH = '#C9B393';  // Arabic lead on dark
+const GOLDISH = '#C9B393';  // accent on dark
 
 const CONTAINER = 'mx-auto w-full max-w-[1360px] px-6 md:px-10';
 
@@ -69,18 +69,15 @@ function Reveal({
   );
 }
 
-/** Centered museum-catalog section header: thin bronze rule, Amiri lead, Playfair Title Case. */
-function SectionHeader({ eyebrow, ar, children }: { eyebrow: string; ar: string; children: ReactNode }) {
+/** Centered museum-catalog section header: thin bronze rule, Marcellus eyebrow, Playfair Title Case. */
+function SectionHeader({ eyebrow, children }: { eyebrow: string; children: ReactNode }) {
   return (
     <Reveal className="flex flex-col items-center text-center">
       <span className="h-px w-10" style={{ backgroundColor: BRONZE }} />
       <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em]`} style={{ color: MUTED }}>
         {eyebrow}
       </p>
-      <p className={`${AMIRI} mt-4 text-xl`} style={{ color: BRONZE }}>
-        {ar}
-      </p>
-      <h2 className={`${PLAYFAIR} mt-2 text-4xl md:text-5xl leading-[1.12]`} style={{ color: INK }}>
+      <h2 className={`${PLAYFAIR} mt-5 text-4xl md:text-5xl leading-[1.12]`} style={{ color: INK }}>
         {children}
       </h2>
     </Reveal>
@@ -270,9 +267,6 @@ function Header() {
                   <span className={`${PLAYFAIR} text-[15px] text-[#2A241C] transition-colors duration-300 group-hover:text-[#8A6D4F]`}>
                     {c.en}
                   </span>
-                  <span className={`${AMIRI} text-sm`} style={{ color: MUTED }}>
-                    {c.ar}
-                  </span>
                 </a>
               ))}
             </div>
@@ -336,10 +330,9 @@ function Hero() {
             className="max-w-2xl"
           >
             <p className={`${MARCELLUS} text-[10px] uppercase tracking-[0.3em] text-white/80`}>{current.tag}</p>
-            <h1 className={`${AMIRI} mt-5 text-5xl leading-[1.3] text-white md:text-6xl`}>
-              {current.ar}
+            <h1 className={`${PLAYFAIR} mt-5 text-5xl leading-[1.12] text-white md:text-6xl`}>
+              {current.en}
             </h1>
-            <p className={`${PLAYFAIR} mt-3 text-xl italic text-white/90`}>{current.en}</p>
           </motion.div>
         </AnimatePresence>
         <div className="mt-8">
@@ -381,7 +374,7 @@ function FeaturedCategories() {
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Collection — 01" ar="الواجهة">
+        <SectionHeader eyebrow="Collection — 01">
           Featured <em>Categories</em>
         </SectionHeader>
 
@@ -401,9 +394,6 @@ function FeaturedCategories() {
                   <h3 className={`${PLAYFAIR} text-xl`} style={{ color: INK }}>
                     {c.en}
                   </h3>
-                  <p className={`${AMIRI} mt-1 text-sm`} style={{ color: BRONZE }}>
-                    {c.ar}
-                  </p>
                   <div className="mt-3">
                     <BronzeLink label="View More" />
                   </div>
@@ -421,7 +411,7 @@ function Services() {
   return (
     <section className="py-28">
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Practice — 02" ar="خدماتنا">
+        <SectionHeader eyebrow="Practice — 02">
           Our Services
         </SectionHeader>
 
@@ -439,9 +429,6 @@ function Services() {
                 <h3 className={`${PLAYFAIR} mt-6 text-lg leading-snug`} style={{ color: INK }}>
                   {s.en}
                 </h3>
-                <p className={`${AMIRI} mt-1.5 text-sm`} style={{ color: MUTED }}>
-                  {s.ar}
-                </p>
               </div>
             </Reveal>
           ))}
@@ -455,7 +442,7 @@ function NewProducts() {
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Featured — 03" ar="وصل حديثاً">
+        <SectionHeader eyebrow="Featured — 03">
           New <em>Arrivals</em>
         </SectionHeader>
         <Reveal className="mt-10 flex justify-center md:justify-end">
@@ -501,14 +488,9 @@ function NewProducts() {
                       </span>
                     )}
                   </div>
-                  <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    className={`${AMIRI} mt-1.5 text-sm transition-opacity hover:opacity-70`}
-                    style={{ color: BRONZE }}
-                  >
-                    جرب AI
-                  </a>
+                  <div className="mt-2.5">
+                    <BronzeLink label="Try with AI" />
+                  </div>
                   <button className="mt-4 w-full border border-[#2A241C]/30 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD]">
                     Add to Cart
                   </button>
@@ -533,10 +515,6 @@ function Atelier() {
           <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
           <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em]`} style={{ color: MUTED }}>
             Atelier
-            <span className="mx-3" style={{ color: BRONZE }}>—</span>
-            <span className={`${AMIRI} text-sm normal-case tracking-normal`} style={{ color: BRONZE }}>
-              تنفيذ الأثاث
-            </span>
           </p>
           <h2 className={`${PLAYFAIR} mt-5 text-4xl leading-[1.15] md:text-[2.75rem]`} style={{ color: INK }}>
             Custom Furniture, <em>Made for You</em>
@@ -566,10 +544,8 @@ function DesignAssistance() {
 
       <div className={`${CONTAINER} relative z-10 w-full pb-14 pt-44 md:pb-20`}>
         <Reveal className="max-w-md bg-white p-8 md:p-10">
-          <p className={`${AMIRI} text-lg`} style={{ color: BRONZE }}>
-            استشارة تصميم مجانية لمساحتك
-          </p>
-          <h2 className={`${PLAYFAIR} mt-2 text-3xl leading-[1.15]`} style={{ color: INK }}>
+          <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
+          <h2 className={`${PLAYFAIR} mt-6 text-3xl leading-[1.15]`} style={{ color: INK }}>
             Complimentary <em>Design</em> Assistance
           </h2>
           <div className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 border-t pt-7" style={{ borderColor: HAIR }}>
@@ -577,9 +553,6 @@ function DesignAssistance() {
               <div key={item.en}>
                 <p className="text-[11px] font-light tracking-[0.06em]" style={{ color: INK }}>
                   {item.en}
-                </p>
-                <p className={`${AMIRI} mt-0.5 text-xs`} style={{ color: MUTED }}>
-                  {item.ar}
                 </p>
               </div>
             ))}
@@ -597,7 +570,7 @@ function FindYourStyle() {
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Gallery — 04" ar="اكتشف ذوقك">
+        <SectionHeader eyebrow="Gallery — 04">
           Find Your <em>Style</em>
         </SectionHeader>
 
@@ -629,9 +602,6 @@ function FindYourStyle() {
                     <p className="mt-1 text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
                       {formatSAR(s.count)} pieces
                     </p>
-                    <p className={`${AMIRI} mt-1 text-sm`} style={{ color: BRONZE }}>
-                      {s.ar}
-                    </p>
                   </div>
                 </a>
               </Reveal>
@@ -655,10 +625,7 @@ function B2B() {
           <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em] text-[#EFE9DD]/50`}>
             B2B — 05
           </p>
-          <p className={`${AMIRI} mt-5 text-xl`} style={{ color: GOLDISH }}>
-            حلول متكاملة للشركات والمشاريع
-          </p>
-          <h2 className={`${PLAYFAIR} mt-2 text-4xl leading-[1.15]`} style={{ color: CREAM }}>
+          <h2 className={`${PLAYFAIR} mt-5 text-4xl leading-[1.15]`} style={{ color: CREAM }}>
             Turnkey <em>Project</em> Solutions
           </h2>
           <p className="mt-5 text-[15px] font-light leading-relaxed text-[#EFE9DD]/55">
@@ -689,9 +656,6 @@ function Footer() {
           <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto invert" />
           <p className="mt-6 max-w-xs text-[13px] font-light leading-relaxed text-[#EFE9DD]/55">
             {FOOTER_LINKS.about}
-          </p>
-          <p dir="rtl" className={`${AMIRI} mt-4 max-w-xs text-sm leading-relaxed text-[#EFE9DD]/45`}>
-            {FOOTER_LINKS.aboutAr}
           </p>
         </div>
 
