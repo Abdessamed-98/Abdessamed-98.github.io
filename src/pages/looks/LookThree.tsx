@@ -4,6 +4,10 @@
  * serif-led Title Case headings (Playfair), Marcellus small-caps labels, bronze
  * used only as a whisper (rules, links, captions), museum captions under images,
  * ghost numerals, hairlines, sharp corners, and very slow, quiet motion.
+ *
+ * Fully bilingual (Arabic-first): the header ENG | عربي switch flips the page
+ * between RTL Arabic (Amiri headings, Alexandria labels, Tajawal body — no
+ * letterspacing on Arabic script) and the original English look.
  */
 import { useEffect, useState, type Key, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,8 +16,9 @@ import {
   ChevronLeft, ChevronRight, Instagram, Facebook, Linkedin,
 } from 'lucide-react';
 import {
-  IMG, HERO_SLIDES, NAV_LINKS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
-  DESIGN_ASSIST_ITEMS, FOOTER_LINKS, formatSAR, LookSwitcher,
+  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
+  DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
+  formatSAR, LookSwitcher, type Lang,
 } from './lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -34,11 +39,18 @@ const CONTAINER = 'mx-auto w-full max-w-[1360px] px-6 md:px-10';
 const PLAYFAIR = "font-['Playfair_Display',serif]";
 const MARCELLUS = "font-['Marcellus',serif]";
 const AMIRI = "font-['Amiri',serif]";
+const ALEXANDRIA = "font-['Alexandria',sans-serif]";
+const TAJAWAL = "font-['Tajawal',sans-serif]";
+
+/** Serif display face per language — Amiri's calligraphic tone stands in for Playfair in Arabic. */
+const serif = (lang: Lang) => (lang === 'ar' ? AMIRI : PLAYFAIR);
+/** Arabic headings breathe more — letterforms and marks need taller lines than Playfair's tight leading. */
+const headingLeading = (lang: Lang, en: string) => (lang === 'ar' ? 'leading-[1.35]' : en);
 
 const HOTSPOTS = [
-  { label: 'Lighting', top: '38%', left: '15%' },
-  { label: 'Dining Tables', top: '66%', left: '58%' },
-  { label: 'Vases & Vessels', top: '46%', left: '42%' },
+  { en: 'Lighting', ar: 'الإنارة', top: '38%', left: '15%' },
+  { en: 'Dining Tables', ar: 'طاولات الطعام', top: '66%', left: '58%' },
+  { en: 'Vases & Vessels', ar: 'المزهريات والأواني', top: '46%', left: '42%' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -70,14 +82,19 @@ function Reveal({
 }
 
 /** Centered museum-catalog section header: thin bronze rule, Marcellus eyebrow, Playfair Title Case. */
-function SectionHeader({ eyebrow, children }: { eyebrow: string; children: ReactNode }) {
+function SectionHeader({ eyebrow, lang, children }: { eyebrow: string; lang: Lang; children: ReactNode }) {
   return (
     <Reveal className="flex flex-col items-center text-center">
       <span className="h-px w-10" style={{ backgroundColor: BRONZE }} />
-      <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em]`} style={{ color: MUTED }}>
+      <p
+        className={`mt-6 ${
+          lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+        }`}
+        style={{ color: MUTED }}
+      >
         {eyebrow}
       </p>
-      <h2 className={`${PLAYFAIR} mt-5 text-4xl md:text-5xl leading-[1.12]`} style={{ color: INK }}>
+      <h2 className={`${serif(lang)} mt-5 text-4xl md:text-5xl ${headingLeading(lang, 'leading-[1.12]')}`} style={{ color: INK }}>
         {children}
       </h2>
     </Reveal>
@@ -89,10 +106,12 @@ function HairButton({
   label,
   tone = 'ink',
   className = '',
+  lang = 'en',
 }: {
   label: string;
   tone?: 'ink' | 'white' | 'cream';
   className?: string;
+  lang?: Lang;
 }) {
   const tones = {
     ink: 'border-[#2A241C]/40 text-[#2A241C] hover:bg-[#2A241C] hover:border-[#2A241C] hover:text-[#EFE9DD]',
@@ -103,7 +122,9 @@ function HairButton({
     <a
       href="#"
       onClick={(e) => e.preventDefault()}
-      className={`inline-block border px-10 py-4 text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 ${tones[tone]} ${className}`}
+      className={`inline-block border px-10 py-4 transition-colors duration-300 ${
+        lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+      } ${tones[tone]} ${className}`}
     >
       {label}
     </a>
@@ -111,12 +132,14 @@ function HairButton({
 }
 
 /** Bronze small-caps link with a thin underline. */
-function BronzeLink({ label, className = '' }: { label: string; className?: string }) {
+function BronzeLink({ label, className = '', lang = 'en' }: { label: string; className?: string; lang?: Lang }) {
   return (
     <a
       href="#"
       onClick={(e) => e.preventDefault()}
-      className={`inline-block border-b border-[#8A6D4F]/35 pb-1 text-[10px] uppercase tracking-[0.3em] text-[#8A6D4F] transition-colors duration-300 hover:border-[#8A6D4F] ${className}`}
+      className={`inline-block border-b border-[#8A6D4F]/35 pb-1 text-[#8A6D4F] transition-colors duration-300 hover:border-[#8A6D4F] ${
+        lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+      } ${className}`}
     >
       {label}
     </a>
@@ -139,10 +162,10 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-/** Pulsing white hotspot dot with a small Marcellus chip label. */
+/** Pulsing white hotspot dot with a small Marcellus chip label. Dots stay physically positioned in RTL. */
 function Hotspot({
-  top, left, label, delay = 0,
-}: { top: string; left: string; label: string; delay?: number; key?: Key }) {
+  top, left, label, lang, delay = 0,
+}: { top: string; left: string; label: string; lang: Lang; delay?: number; key?: Key }) {
   return (
     <div className="absolute z-10" style={{ top, left }}>
       <div className="relative h-3 w-3">
@@ -153,7 +176,9 @@ function Hotspot({
         />
         <span className="absolute inset-0 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.12)]" />
         <span
-          className={`${MARCELLUS} absolute left-6 top-1/2 hidden -translate-y-1/2 whitespace-nowrap bg-white/95 px-3 py-1.5 text-[9px] uppercase tracking-[0.3em] md:inline-block`}
+          className={`absolute left-6 top-1/2 hidden -translate-y-1/2 whitespace-nowrap bg-white/95 px-3 py-1.5 md:inline-block ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+          }`}
           style={{ color: INK }}
         >
           {label}
@@ -167,9 +192,10 @@ function Hotspot({
 /* Header                                                              */
 /* ------------------------------------------------------------------ */
 
-function Header() {
+function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -206,8 +232,10 @@ function Header() {
           <Search size={14} strokeWidth={1.5} className="shrink-0 opacity-80" />
           <input
             type="text"
-            placeholder="Search"
-            className="w-full bg-transparent text-[11px] tracking-[0.12em] outline-none placeholder:text-inherit placeholder:opacity-50"
+            placeholder={t('Search', 'ابحث')}
+            className={`w-full bg-transparent text-[11px] outline-none placeholder:text-inherit placeholder:opacity-50 ${
+              lang === 'ar' ? 'tracking-normal' : 'tracking-[0.12em]'
+            }`}
           />
           <button aria-label="Visual search" className="shrink-0 opacity-80 transition-opacity hover:opacity-100">
             <Camera size={14} strokeWidth={1.5} />
@@ -215,24 +243,45 @@ function Header() {
         </div>
 
         {/* Nav */}
-        <nav className="ml-auto hidden items-center gap-7 lg:flex">
-          {NAV_LINKS.map((link) => (
+        <nav className="ms-auto hidden items-center gap-7 lg:flex">
+          {NAV_ITEMS.map((item) => (
             <a
-              key={link}
+              key={item.en}
               href="#"
               onClick={(e) => e.preventDefault()}
-              onMouseEnter={() => setShopOpen(link === 'Shop')}
-              className="text-[11px] uppercase tracking-[0.22em] opacity-90 transition-opacity duration-300 hover:opacity-100"
+              onMouseEnter={() => setShopOpen(item.en === 'Shop')}
+              className={`opacity-90 transition-opacity duration-300 hover:opacity-100 ${
+                lang === 'ar' ? `${ALEXANDRIA} text-[12px] tracking-normal` : 'text-[11px] uppercase tracking-[0.22em]'
+              }`}
             >
-              {link}
+              {t(item.en, item.ar)}
             </a>
           ))}
         </nav>
 
         {/* Right utilities */}
-        <div className="ml-auto flex items-center gap-5 lg:ml-0">
-          <button className="flex items-center gap-1.5 text-[11px] tracking-[0.15em]">
-            ENG <span className="opacity-40">|</span> <span className={`${AMIRI} text-[13px]`}>عربي</span>
+        <div className="ms-auto flex items-center gap-5 lg:ms-0">
+          <button
+            data-testid="lang-toggle"
+            onClick={onToggle}
+            className="flex items-center gap-1.5 text-[11px]"
+            aria-label={t('Switch language to Arabic', 'التبديل إلى الإنجليزية')}
+          >
+            <span
+              className={`tracking-[0.15em] transition-opacity duration-300 ${
+                lang === 'en' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50 hover:opacity-80'
+              }`}
+            >
+              ENG
+            </span>
+            <span className="opacity-40">|</span>
+            <span
+              className={`${AMIRI} text-[13px] tracking-normal transition-opacity duration-300 ${
+                lang === 'ar' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50 hover:opacity-80'
+              }`}
+            >
+              عربي
+            </span>
           </button>
           <button aria-label="Account" className="transition-opacity hover:opacity-70">
             <User size={17} strokeWidth={1.25} />
@@ -264,8 +313,12 @@ function Header() {
                   onClick={(e) => e.preventDefault()}
                   className="group flex items-baseline justify-between border-b border-[#DDD6CA]/70 pb-3"
                 >
-                  <span className={`${PLAYFAIR} text-[15px] text-[#2A241C] transition-colors duration-300 group-hover:text-[#8A6D4F]`}>
-                    {c.en}
+                  <span
+                    className={`${serif(lang)} ${
+                      lang === 'ar' ? 'text-[16px]' : 'text-[15px]'
+                    } text-[#2A241C] transition-colors duration-300 group-hover:text-[#8A6D4F]`}
+                  >
+                    {t(c.en, c.ar)}
                   </span>
                 </a>
               ))}
@@ -281,8 +334,9 @@ function Header() {
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 
-function Hero() {
+function Hero({ lang }: { lang: Lang }) {
   const [slide, setSlide] = useState(0);
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
 
   useEffect(() => {
     const id = window.setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 7000);
@@ -318,7 +372,7 @@ function Hero() {
       {/* Soft dark gradient, bottom third */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
 
-      {/* Copy — bottom left */}
+      {/* Copy — bottom start */}
       <div className={`${CONTAINER} absolute inset-x-0 bottom-0 pb-20 md:pb-24`}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -329,19 +383,25 @@ function Hero() {
             transition={{ duration: 0.7, ease: 'easeOut' }}
             className="max-w-2xl"
           >
-            <p className={`${MARCELLUS} text-[10px] uppercase tracking-[0.3em] text-white/80`}>{current.tag}</p>
-            <h1 className={`${PLAYFAIR} mt-5 text-5xl leading-[1.12] text-white md:text-6xl`}>
-              {current.en}
+            <p
+              className={`text-white/80 ${
+                lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
+              }`}
+            >
+              {lang === 'ar' ? current.tagAr : current.tag}
+            </p>
+            <h1 className={`${serif(lang)} mt-5 text-5xl text-white md:text-6xl ${headingLeading(lang, 'leading-[1.12]')}`}>
+              {lang === 'ar' ? current.ar : current.en}
             </h1>
           </motion.div>
         </AnimatePresence>
         <div className="mt-8">
-          <HairButton label="Discover" tone="white" />
+          <HairButton lang={lang} label={t('Discover', 'اكتشف')} tone="white" />
         </div>
 
-        {/* Indicators — bottom right */}
-        <div className="absolute bottom-20 right-6 hidden items-center gap-5 md:right-10 md:bottom-24 md:flex">
-          <span className={`${PLAYFAIR} text-sm tracking-[0.2em] text-white/90`}>
+        {/* Indicators — bottom end. Numerals stay Latin in both languages. */}
+        <div className="absolute bottom-20 end-6 hidden items-center gap-5 md:end-10 md:bottom-24 md:flex">
+          <span dir="ltr" className={`${PLAYFAIR} text-sm tracking-[0.2em] text-white/90`}>
             {pad(slide + 1)} <span className="text-white/40">/ {pad(HERO_SLIDES.length)}</span>
           </span>
           <div className="flex items-center gap-2">
@@ -350,14 +410,14 @@ function Hero() {
               onClick={() => setSlide((s) => (s + HERO_SLIDES.length - 1) % HERO_SLIDES.length)}
               className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#2A241C]"
             >
-              <ChevronLeft size={15} strokeWidth={1.25} />
+              <ChevronLeft size={15} strokeWidth={1.25} className="rtl:rotate-180" />
             </button>
             <button
               aria-label="Next slide"
               onClick={() => setSlide((s) => (s + 1) % HERO_SLIDES.length)}
               className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#2A241C]"
             >
-              <ChevronRight size={15} strokeWidth={1.25} />
+              <ChevronRight size={15} strokeWidth={1.25} className="rtl:rotate-180" />
             </button>
           </div>
         </div>
@@ -370,12 +430,13 @@ function Hero() {
 /* Sections                                                            */
 /* ------------------------------------------------------------------ */
 
-function FeaturedCategories() {
+function FeaturedCategories({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Collection — 01">
-          Featured <em>Categories</em>
+        <SectionHeader lang={lang} eyebrow={t('Collection — 01', 'التشكيلة — 01')}>
+          {lang === 'ar' ? <>أبرز <em>التصنيفات</em></> : <>Featured <em>Categories</em></>}
         </SectionHeader>
 
         <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-14 md:mt-20 md:grid-cols-3 md:gap-x-10">
@@ -391,11 +452,11 @@ function FeaturedCategories() {
                 </div>
                 {/* Museum caption */}
                 <div className="pt-5 text-center">
-                  <h3 className={`${PLAYFAIR} text-xl`} style={{ color: INK }}>
-                    {c.en}
+                  <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
+                    {t(c.en, c.ar)}
                   </h3>
                   <div className="mt-3">
-                    <BronzeLink label="View More" />
+                    <BronzeLink lang={lang} label={t('View More', 'عرض المزيد')} />
                   </div>
                 </div>
               </div>
@@ -407,12 +468,13 @@ function FeaturedCategories() {
   );
 }
 
-function Services() {
+function Services({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="py-28">
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Practice — 02">
-          Our Services
+        <SectionHeader lang={lang} eyebrow={t('Practice — 02', 'الحرفة — 02')}>
+          {t('Our Services', 'خدماتنا')}
         </SectionHeader>
 
         <div className="mt-16 grid grid-cols-2 gap-x-8 md:mt-20 md:grid-cols-4 md:gap-x-12">
@@ -421,13 +483,13 @@ function Services() {
               <div className="relative border-t pt-9 pb-14" style={{ borderColor: HAIR }}>
                 <span
                   aria-hidden
-                  className={`${PLAYFAIR} pointer-events-none absolute right-0 top-5 select-none text-6xl leading-none text-[#2A241C14]`}
+                  className={`${PLAYFAIR} pointer-events-none absolute end-0 top-5 select-none text-6xl leading-none text-[#2A241C14]`}
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <s.icon size={26} strokeWidth={1} className="text-[#8A6D4F]" />
-                <h3 className={`${PLAYFAIR} mt-6 text-lg leading-snug`} style={{ color: INK }}>
-                  {s.en}
+                <h3 className={`${serif(lang)} mt-6 text-lg leading-snug`} style={{ color: INK }}>
+                  {t(s.en, s.ar)}
                 </h3>
               </div>
             </Reveal>
@@ -438,15 +500,16 @@ function Services() {
   );
 }
 
-function NewProducts() {
+function NewProducts({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Featured — 03">
-          New <em>Arrivals</em>
+        <SectionHeader lang={lang} eyebrow={t('Featured — 03', 'مختارات — 03')}>
+          {lang === 'ar' ? <>وصل <em>حديثاً</em></> : <>New <em>Arrivals</em></>}
         </SectionHeader>
         <Reveal className="mt-10 flex justify-center md:justify-end">
-          <BronzeLink label="View All" />
+          <BronzeLink lang={lang} label={t('View All', 'عرض الكل')} />
         </Reveal>
 
         <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-4 md:gap-x-8">
@@ -455,8 +518,13 @@ function NewProducts() {
               <div className="group flex h-full flex-col">
                 <div className="relative overflow-hidden border bg-white" style={{ borderColor: HAIR }}>
                   {p.sale && (
-                    <span className="absolute left-3 top-3 z-10 text-[9px] uppercase tracking-[0.3em]" style={{ color: BRONZE }}>
-                      Sale
+                    <span
+                      className={`absolute start-3 top-3 z-10 ${
+                        lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                      }`}
+                      style={{ color: BRONZE }}
+                    >
+                      {t('Sale', 'تخفيض')}
                     </span>
                   )}
                   <img
@@ -470,7 +538,7 @@ function NewProducts() {
                     {p.brand}
                   </p>
                   <h3 className="mt-1.5 text-[14px] font-light leading-snug" style={{ color: INK }}>
-                    {p.nameEn}
+                    {t(p.nameEn, p.nameAr)}
                   </h3>
                   <div className="mt-2.5">
                     <Stars rating={p.rating} />
@@ -479,8 +547,11 @@ function NewProducts() {
                     <span className={`${PLAYFAIR} text-lg`} style={{ color: INK }}>
                       {formatSAR(p.price)}
                     </span>
-                    <span className="text-[10px] tracking-[0.15em]" style={{ color: MUTED }}>
-                      SAR
+                    <span
+                      className={lang === 'ar' ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.15em]'}
+                      style={{ color: MUTED }}
+                    >
+                      {t('SAR', 'ر.س')}
                     </span>
                     {p.oldPrice && (
                       <span className="text-xs line-through" style={{ color: MUTED }}>
@@ -489,10 +560,14 @@ function NewProducts() {
                     )}
                   </div>
                   <div className="mt-2.5">
-                    <BronzeLink label="Try with AI" />
+                    <BronzeLink lang={lang} label={t('Try with AI', 'جرب AI')} />
                   </div>
-                  <button className="mt-4 w-full border border-[#2A241C]/30 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD]">
-                    Add to Cart
+                  <button
+                    className={`mt-4 w-full border border-[#2A241C]/30 py-3 transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+                    }`}
+                  >
+                    {t('Add to Cart', 'أضف إلى السلة')}
                   </button>
                 </div>
               </div>
@@ -504,7 +579,8 @@ function NewProducts() {
   );
 }
 
-function Atelier() {
+function Atelier({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="grid lg:grid-cols-[11fr_9fr]">
       <div className="relative min-h-[420px] overflow-hidden lg:min-h-0">
@@ -513,18 +589,28 @@ function Atelier() {
       <div className="flex items-center px-6 py-24 md:px-16 lg:py-36" style={{ backgroundColor: BG }}>
         <Reveal>
           <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
-          <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em]`} style={{ color: MUTED }}>
-            Atelier
+          <p
+            className={`mt-6 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+            }`}
+            style={{ color: MUTED }}
+          >
+            {t('Atelier', 'المشغل')}
           </p>
-          <h2 className={`${PLAYFAIR} mt-5 text-4xl leading-[1.15] md:text-[2.75rem]`} style={{ color: INK }}>
-            Custom Furniture, <em>Made for You</em>
+          <h2
+            className={`${serif(lang)} mt-5 text-4xl md:text-[2.75rem] ${headingLeading(lang, 'leading-[1.15]')}`}
+            style={{ color: INK }}
+          >
+            {lang === 'ar' ? <>أثاث مخصص، <em>صُنع لأجلك</em></> : <>Custom Furniture, <em>Made for You</em></>}
           </h2>
           <p className="mt-6 max-w-md text-[15px] font-light leading-relaxed" style={{ color: MUTED }}>
-            We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and
-            lifestyle.
+            {t(
+              'We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and lifestyle.',
+              'نحوّل رؤيتك إلى واقع من خلال أثاث مخصص يُصنع بعناية ليلائم مساحتك وذوقك وأسلوب حياتك.',
+            )}
           </p>
           <div className="mt-10">
-            <HairButton label="Start Your Project" />
+            <HairButton lang={lang} label={t('Start Your Project', 'ابدأ مشروعك')} />
           </div>
         </Reveal>
       </div>
@@ -532,33 +618,37 @@ function Atelier() {
   );
 }
 
-function DesignAssistance() {
+function DesignAssistance({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="relative flex min-h-[75vh] items-end overflow-hidden">
       <img src={IMG.roomHotspots} alt="Styled dining room" className="absolute inset-0 h-full w-full object-cover" />
       <div className="pointer-events-none absolute inset-0 bg-black/10" />
 
       {HOTSPOTS.map((h, i) => (
-        <Hotspot key={h.label} {...h} delay={i * 0.5} />
+        <Hotspot key={h.en} top={h.top} left={h.left} label={t(h.en, h.ar)} lang={lang} delay={i * 0.5} />
       ))}
 
       <div className={`${CONTAINER} relative z-10 w-full pb-14 pt-44 md:pb-20`}>
         <Reveal className="max-w-md bg-white p-8 md:p-10">
           <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
-          <h2 className={`${PLAYFAIR} mt-6 text-3xl leading-[1.15]`} style={{ color: INK }}>
-            Complimentary <em>Design</em> Assistance
+          <h2 className={`${serif(lang)} mt-6 text-3xl ${headingLeading(lang, 'leading-[1.15]')}`} style={{ color: INK }}>
+            {lang === 'ar' ? <>مساعدة <em>تصميم</em> مجانية</> : <>Complimentary <em>Design</em> Assistance</>}
           </h2>
           <div className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 border-t pt-7" style={{ borderColor: HAIR }}>
             {DESIGN_ASSIST_ITEMS.map((item) => (
               <div key={item.en}>
-                <p className="text-[11px] font-light tracking-[0.06em]" style={{ color: INK }}>
-                  {item.en}
+                <p
+                  className={`text-[11px] font-light ${lang === 'ar' ? 'tracking-normal' : 'tracking-[0.06em]'}`}
+                  style={{ color: INK }}
+                >
+                  {t(item.en, item.ar)}
                 </p>
               </div>
             ))}
           </div>
           <div className="mt-8">
-            <HairButton label="Book a Session" className="w-full text-center" />
+            <HairButton lang={lang} label={t('Book a Session', 'احجز جلسة')} className="w-full text-center" />
           </div>
         </Reveal>
       </div>
@@ -566,12 +656,13 @@ function DesignAssistance() {
   );
 }
 
-function FindYourStyle() {
+function FindYourStyle({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader eyebrow="Gallery — 04">
-          Find Your <em>Style</em>
+        <SectionHeader lang={lang} eyebrow={t('Gallery — 04', 'المعرض — 04')}>
+          {lang === 'ar' ? <>اكتشف <em>أسلوبك</em></> : <>Find Your <em>Style</em></>}
         </SectionHeader>
 
         {/* Asymmetric gallery wall — center tile taller and lifted */}
@@ -596,11 +687,14 @@ function FindYourStyle() {
                   </div>
                   {/* Museum caption */}
                   <div className="pt-4 text-center">
-                    <h3 className={`${PLAYFAIR} text-xl`} style={{ color: INK }}>
-                      {s.en}
+                    <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
+                      {t(s.en, s.ar)}
                     </h3>
-                    <p className="mt-1 text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
-                      {formatSAR(s.count)} pieces
+                    <p
+                      className={`mt-1 ${lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'}`}
+                      style={{ color: MUTED }}
+                    >
+                      {lang === 'ar' ? `${formatSAR(s.count)} قطعة` : `${formatSAR(s.count)} pieces`}
                     </p>
                   </div>
                 </a>
@@ -613,7 +707,8 @@ function FindYourStyle() {
   );
 }
 
-function B2B() {
+function B2B({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
     <section className="grid md:grid-cols-2">
       <div className="relative min-h-[380px] overflow-hidden md:min-h-[560px]">
@@ -622,17 +717,24 @@ function B2B() {
       <div className="flex items-center justify-center px-6 py-24 md:px-16 md:py-32" style={{ backgroundColor: DARK }}>
         <Reveal className="flex max-w-md flex-col items-center text-center">
           <span className="h-px w-10" style={{ backgroundColor: GOLDISH }} />
-          <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em] text-[#EFE9DD]/50`}>
-            B2B — 05
+          <p
+            className={`mt-6 text-[#EFE9DD]/50 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+            }`}
+          >
+            {t('B2B — 05', 'قطاع الأعمال — 05')}
           </p>
-          <h2 className={`${PLAYFAIR} mt-5 text-4xl leading-[1.15]`} style={{ color: CREAM }}>
-            Turnkey <em>Project</em> Solutions
+          <h2 className={`${serif(lang)} mt-5 text-4xl ${headingLeading(lang, 'leading-[1.15]')}`} style={{ color: CREAM }}>
+            {lang === 'ar' ? <>حلول <em>متكاملة</em> للشركات والمشاريع</> : <>Turnkey <em>Project</em> Solutions</>}
           </h2>
           <p className="mt-5 text-[15px] font-light leading-relaxed text-[#EFE9DD]/55">
-            From concept to handover — furniture, fit-out, and design for hotels, offices, and restaurants.
+            {t(
+              'From concept to handover — furniture, fit-out, and design for hotels, offices, and restaurants.',
+              'من الفكرة إلى التسليم — أثاث وتجهيز وتصميم للفنادق والمكاتب والمطاعم.',
+            )}
           </p>
           <div className="mt-10">
-            <HairButton label="Request a Consultation" tone="cream" />
+            <HairButton lang={lang} label={t('Request a Consultation', 'اطلب استشارة')} tone="cream" />
           </div>
         </Reveal>
       </div>
@@ -644,8 +746,12 @@ function B2B() {
 /* Footer                                                              */
 /* ------------------------------------------------------------------ */
 
-function Footer() {
-  const colTitle = `${MARCELLUS} text-[10px] uppercase tracking-[0.35em] text-[#EFE9DD]/75`;
+function Footer({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const colTitle =
+    lang === 'ar'
+      ? `${ALEXANDRIA} text-[11px] tracking-normal text-[#EFE9DD]/75`
+      : `${MARCELLUS} text-[10px] uppercase tracking-[0.35em] text-[#EFE9DD]/75`;
   const link = 'text-[13px] font-light text-[#EFE9DD]/55 transition-colors duration-300 hover:text-[#C9B393]';
 
   return (
@@ -655,18 +761,18 @@ function Footer() {
         <div>
           <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto invert" />
           <p className="mt-6 max-w-xs text-[13px] font-light leading-relaxed text-[#EFE9DD]/55">
-            {FOOTER_LINKS.about}
+            {t(FOOTER_LINKS.about, FOOTER_LINKS.aboutAr)}
           </p>
         </div>
 
         {/* Quick links */}
         <div>
-          <h3 className={colTitle}>Quick Links</h3>
+          <h3 className={colTitle}>{t('Quick Links', 'روابط سريعة')}</h3>
           <ul className="mt-6 space-y-3">
-            {FOOTER_LINKS.quick.map((l) => (
-              <li key={l}>
+            {FOOTER_QUICK.map((l) => (
+              <li key={l.en}>
                 <a href="#" onClick={(e) => e.preventDefault()} className={link}>
-                  {l}
+                  {t(l.en, l.ar)}
                 </a>
               </li>
             ))}
@@ -675,12 +781,12 @@ function Footer() {
 
         {/* Support */}
         <div>
-          <h3 className={colTitle}>Customer Support</h3>
+          <h3 className={colTitle}>{t('Customer Support', 'خدمة العملاء')}</h3>
           <ul className="mt-6 space-y-3">
-            {FOOTER_LINKS.support.map((l) => (
-              <li key={l}>
+            {FOOTER_SUPPORT.map((l) => (
+              <li key={l.en}>
                 <a href="#" onClick={(e) => e.preventDefault()} className={link}>
-                  {l}
+                  {t(l.en, l.ar)}
                 </a>
               </li>
             ))}
@@ -689,25 +795,31 @@ function Footer() {
 
         {/* Contact + subscribe */}
         <div>
-          <h3 className={colTitle}>Contact</h3>
+          <h3 className={colTitle}>{t('Contact', 'تواصل معنا')}</h3>
           <div className="mt-6 space-y-3">
             <a href="#" onClick={(e) => e.preventDefault()} className={`${link} block tracking-[0.08em]`}>
-              {FOOTER_LINKS.phone}
+              <span dir="ltr">{FOOTER_LINKS.phone}</span>
             </a>
             <a href="#" onClick={(e) => e.preventDefault()} className={`${link} block tracking-[0.08em]`}>
               {FOOTER_LINKS.email}
             </a>
           </div>
 
-          <h3 className={`${colTitle} mt-10`}>Subscribe</h3>
+          <h3 className={`${colTitle} mt-10`}>{t('Subscribe', 'النشرة البريدية')}</h3>
           <div className="mt-5 flex items-center gap-4 border-b border-[#EFE9DD]/25 pb-3">
             <input
               type="email"
-              placeholder="Your email address"
-              className="w-full bg-transparent text-[12px] font-light tracking-[0.08em] text-[#EFE9DD] outline-none placeholder:text-[#EFE9DD]/35"
+              placeholder={t('Your email address', 'بريدك الإلكتروني')}
+              className={`w-full bg-transparent text-[12px] font-light text-[#EFE9DD] outline-none placeholder:text-[#EFE9DD]/35 ${
+                lang === 'ar' ? 'tracking-normal' : 'tracking-[0.08em]'
+              }`}
             />
-            <button className="shrink-0 text-[10px] uppercase tracking-[0.3em] text-[#C9B393] transition-opacity hover:opacity-70">
-              Submit
+            <button
+              className={`shrink-0 text-[#C9B393] transition-opacity hover:opacity-70 ${
+                lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+              }`}
+            >
+              {t('Submit', 'اشترك')}
             </button>
           </div>
 
@@ -732,8 +844,12 @@ function Footer() {
       </div>
 
       <div className="border-t border-white/10">
-        <p className="py-7 text-center text-[9px] uppercase tracking-[0.35em] text-[#EFE9DD]/40">
-          © 2026 Diyar. All Rights Reserved.
+        <p
+          className={`py-7 text-center text-[#EFE9DD]/40 ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.35em]'
+          }`}
+        >
+          {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار — جميع الحقوق محفوظة.')}
         </p>
       </div>
     </footer>
@@ -745,22 +861,32 @@ function Footer() {
 /* ------------------------------------------------------------------ */
 
 export default function LookThree() {
+  const [lang, setLang] = useState<Lang>(() =>
+    typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
+  );
+
+  const toggleLang = () => {
+    const next: Lang = lang === 'ar' ? 'en' : 'ar';
+    if (typeof localStorage !== 'undefined') localStorage.setItem('diyar-look-lang', next);
+    setLang(next);
+  };
+
   return (
     <div
-      dir="ltr"
-      className="min-h-screen overflow-x-hidden font-['Outfit',sans-serif] antialiased"
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      className={`min-h-screen overflow-x-hidden antialiased ${lang === 'ar' ? TAJAWAL : "font-['Outfit',sans-serif]"}`}
       style={{ backgroundColor: BG, color: INK }}
     >
-      <Header />
-      <Hero />
-      <FeaturedCategories />
-      <Services />
-      <NewProducts />
-      <Atelier />
-      <DesignAssistance />
-      <FindYourStyle />
-      <B2B />
-      <Footer />
+      <Header lang={lang} onToggle={toggleLang} />
+      <Hero lang={lang} />
+      <FeaturedCategories lang={lang} />
+      <Services lang={lang} />
+      <NewProducts lang={lang} />
+      <Atelier lang={lang} />
+      <DesignAssistance lang={lang} />
+      <FindYourStyle lang={lang} />
+      <B2B lang={lang} />
+      <Footer lang={lang} />
       <LookSwitcher />
     </div>
   );

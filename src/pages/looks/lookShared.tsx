@@ -45,6 +45,16 @@ export interface LookSlide {
   ar: string;
   en: string;
   tag: string;
+  tagAr: string;
+}
+
+/** Active language of a look page. The site is primarily Arabic. */
+export type Lang = 'ar' | 'en';
+
+/** A bilingual string pair. */
+export interface Bi {
+  en: string;
+  ar: string;
 }
 
 export const IMG = {
@@ -61,12 +71,38 @@ export const IMG = {
 } as const;
 
 export const HERO_SLIDES: LookSlide[] = [
-  { img: IMG.hero, ar: 'ديـــار لكل دار', en: 'Diyar for Every Home', tag: 'NEW COLLECTION' },
-  { img: IMG.workshop, ar: 'نصنع أثاثك كما تتخيله', en: 'Crafted to Your Vision', tag: 'CUSTOM MANUFACTURING' },
-  { img: IMG.loungeDark, ar: 'حلول متكاملة للشركات والمشاريع', en: 'Turnkey Project Solutions', tag: 'B2B SOLUTIONS' },
+  { img: IMG.hero, ar: 'ديـــار لكل دار', en: 'Diyar for Every Home', tag: 'NEW COLLECTION', tagAr: 'تشكيلة جديدة' },
+  { img: IMG.workshop, ar: 'نصنع أثاثك كما تتخيله', en: 'Crafted to Your Vision', tag: 'CUSTOM MANUFACTURING', tagAr: 'تصنيع حسب الطلب' },
+  { img: IMG.loungeDark, ar: 'حلول متكاملة للشركات والمشاريع', en: 'Turnkey Project Solutions', tag: 'B2B SOLUTIONS', tagAr: 'حلول الشركات' },
 ];
 
 export const NAV_LINKS = ['Home', 'Design Consultation', 'B2B Solutions', 'Services', 'Shop'] as const;
+
+/** Bilingual nav items (same order as NAV_LINKS). */
+export const NAV_ITEMS: Bi[] = [
+  { en: 'Home', ar: 'الرئيسية' },
+  { en: 'Design Consultation', ar: 'استشارات التصميم' },
+  { en: 'B2B Solutions', ar: 'خدمات الشركات' },
+  { en: 'Services', ar: 'الخدمات' },
+  { en: 'Shop', ar: 'المتجر' },
+];
+
+export const FOOTER_QUICK: Bi[] = [
+  { en: 'Home', ar: 'الرئيسية' },
+  { en: 'Shop', ar: 'المتجر' },
+  { en: 'Services', ar: 'الخدمات' },
+  { en: 'B2B Solutions', ar: 'خدمات الشركات' },
+  { en: 'About Us', ar: 'من نحن' },
+  { en: 'Contact Us', ar: 'اتصل بنا' },
+];
+
+export const FOOTER_SUPPORT: Bi[] = [
+  { en: 'FAQ', ar: 'الأسئلة الشائعة' },
+  { en: 'Shipping & Delivery', ar: 'الشحن والتوصيل' },
+  { en: 'Returns & Exchanges', ar: 'الاسترجاع والاستبدال' },
+  { en: 'Warranty', ar: 'الضمان' },
+  { en: 'Track Order', ar: 'تتبع الطلب' },
+];
 
 export const CATEGORIES: LookCategory[] = [
   { img: IMG.catHome, en: 'Home Furniture', ar: 'الأثاث المنزلي' },
