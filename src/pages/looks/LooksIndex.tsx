@@ -28,11 +28,11 @@ const LOOKS = [
   {
     to: '/look/3',
     num: '03',
-    name: 'Warm Modern',
-    ar: 'عصري دافئ',
-    desc: 'Sand and terracotta, rounded geometry, confident oversized type — a bold contemporary voice.',
-    img: IMG.restaurant,
-    palette: ['#F3EDE3', '#B4552D', '#3E4633'],
+    name: 'Quiet Gallery',
+    ar: 'معرض هادئ',
+    desc: 'Warm greige canvas, serif-led type, museum-caption details — the calmest and most understated of the three.',
+    img: IMG.roomHotspots,
+    palette: ['#F1EDE5', '#2A241C', '#8A6D4F'],
   },
 ];
 

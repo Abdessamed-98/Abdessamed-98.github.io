@@ -107,6 +107,15 @@ function Heading({
 /* ------------------------------------------------------------------ */
 export default function LookTwo() {
   const [slide, setSlide] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+
+  /* header: transparent over hero → solid chrome after ~60px of scroll */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const id = window.setInterval(
@@ -122,6 +131,14 @@ export default function LookTwo() {
   const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
 
+  /* header chrome: white over the hero, ivory on the solid bar; gold hovers */
+  const navLinkCls = `${CAPS} block whitespace-nowrap py-2 text-[11px] uppercase tracking-[0.25em] transition-colors duration-300 hover:text-[#C9A86A] ${
+    scrolled ? 'text-[#EFE9DD]/75' : 'text-white'
+  }`;
+  const headerIconCls = `cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
+    scrolled ? 'text-[#EFE9DD]/75' : 'text-white'
+  }`;
+
   return (
     <div
       dir="ltr"
@@ -136,82 +153,101 @@ export default function LookTwo() {
       `}</style>
 
       {/* ============================== 1. HEADER ============================== */}
-      <header className="sticky top-0 z-50 bg-[#131009]/90 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-          <div className="flex items-center justify-between gap-6 py-4">
-            <a href="#" onClick={stop} className="shrink-0" aria-label="Diyar home">
-              <img src="/logo_diyar.svg" alt="Diyar" className="h-8 md:h-9 invert" />
-            </a>
+      {/* One line, fixed over the hero: transparent at top, espresso after scroll */}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
+          scrolled ? 'bg-[#131009]/95 backdrop-blur-md border-white/10' : 'bg-transparent border-transparent'
+        }`}
+      >
+        <div className="max-w-[1400px] mx-auto flex h-[72px] items-center gap-5 lg:gap-6 px-6 md:px-10">
+          {/* Logo — page is dark, stays inverted in both states */}
+          <a href="#" onClick={stop} className="shrink-0" aria-label="Diyar home">
+            <img src="/logo_diyar.svg" alt="Diyar" className="h-8 invert" />
+          </a>
 
-            {/* Search */}
-            <div className="hidden md:flex items-center gap-3 border border-white/15 px-4 py-2.5 flex-1 max-w-md focus-within:border-[#C9A86A]/50 transition-colors">
-              <Search size={15} strokeWidth={1.25} className="text-[#EFE9DD]/45 shrink-0" />
-              <input
-                type="text"
-                placeholder="Search furniture, lighting, decor…"
-                className="bg-transparent flex-1 min-w-0 text-[13px] font-light outline-none text-[#EFE9DD] placeholder:text-[#EFE9DD]/35"
-              />
-              <button aria-label="Search by photo" className="text-[#C9A86A]/70 hover:text-[#C9A86A] transition-colors shrink-0 cursor-pointer">
-                <Camera size={16} strokeWidth={1.25} />
-              </button>
-            </div>
-
-            {/* Language + account icons */}
-            <div className="flex items-center gap-4 md:gap-5 shrink-0">
-              <button className={`${CAPS} flex items-center gap-2 text-[11px] tracking-[0.2em] text-[#EFE9DD]/80 hover:text-[#C9A86A] transition-colors cursor-pointer`}>
-                ENG <span className="text-[#C9A86A]/60">|</span>
-                <span className={`${AR} text-[14px] leading-none`}>عربي</span>
-              </button>
-              <span className="hidden sm:block h-4 w-px bg-white/10" />
-              <button aria-label="Account" className="text-[#EFE9DD]/75 hover:text-[#C9A86A] transition-colors cursor-pointer">
-                <User size={19} strokeWidth={1.25} />
-              </button>
-              <button aria-label="Wishlist" className="text-[#EFE9DD]/75 hover:text-[#C9A86A] transition-colors cursor-pointer">
-                <Heart size={19} strokeWidth={1.25} />
-              </button>
-              <button aria-label="Shopping bag" className="relative text-[#EFE9DD]/75 hover:text-[#C9A86A] transition-colors cursor-pointer">
-                <ShoppingBag size={19} strokeWidth={1.25} />
-                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#C9A86A] text-[#131009] text-[8px] font-medium flex items-center justify-center">
-                  2
-                </span>
-              </button>
-            </div>
+          {/* Search */}
+          <div
+            className={`hidden md:flex items-center gap-3 rounded-full border h-9 w-44 xl:w-60 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60 ${
+              scrolled ? 'border-white/15' : 'border-white/40'
+            }`}
+          >
+            <Search
+              size={15}
+              strokeWidth={1.25}
+              className={`shrink-0 transition-colors duration-300 ${scrolled ? 'text-[#EFE9DD]/45' : 'text-white'}`}
+            />
+            <input
+              type="text"
+              placeholder="Search…"
+              className={`bg-transparent flex-1 min-w-0 text-[13px] font-light outline-none transition-colors duration-300 ${
+                scrolled ? 'text-[#EFE9DD] placeholder:text-[#EFE9DD]/35' : 'text-white placeholder:text-white/70'
+              }`}
+            />
+            <button
+              aria-label="Search by photo"
+              className={`shrink-0 cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
+                scrolled ? 'text-[#C9A86A]/70' : 'text-white'
+              }`}
+            >
+              <Camera size={16} strokeWidth={1.25} />
+            </button>
           </div>
-        </div>
 
-        {/* Nav row */}
-        <nav className="hidden lg:block border-t border-white/5">
-          <ul className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-center gap-12">
-            {NAV_LINKS.map((link) => (
-              <li key={link} className={link === 'Shop' ? 'relative group' : undefined}>
-                <a
-                  href="#"
-                  onClick={stop}
-                  className={`${CAPS} block py-3.5 text-[11px] uppercase tracking-[0.25em] text-[#EFE9DD]/75 hover:text-[#C9A86A] transition-colors`}
-                >
-                  {link}
-                </a>
-                {link === 'Shop' && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full z-50 pt-px opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
-                    <div className="w-[620px] bg-[#1C1610] border border-[#C9A86A]/20 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.85)] p-8">
-                      <p className={`${CAPS} text-[10px] tracking-[0.35em] text-[#C9A86A] mb-6`}>SHOP BY CATEGORY</p>
-                      <div className="grid grid-cols-3 gap-x-8 gap-y-5">
-                        {CATEGORIES.map((c) => (
-                          <a key={c.en} href="#" onClick={stop} className="group/cat block">
-                            <span className={`${CAPS} block text-[11px] uppercase tracking-[0.15em] text-[#EFE9DD]/85 group-hover/cat:text-[#C9A86A] transition-colors`}>
-                              {c.en}
-                            </span>
-                            <span className={`${AR} block text-sm text-[#EFE9DD]/45 mt-1`}>{c.ar}</span>
-                          </a>
-                        ))}
+          {/* Nav — single line (mega-menu panel keeps its own solid chrome) */}
+          <nav className="hidden lg:block ml-auto">
+            <ul className="flex items-center gap-6 xl:gap-8">
+              {NAV_LINKS.map((link) => (
+                <li key={link} className={link === 'Shop' ? 'relative group' : undefined}>
+                  <a href="#" onClick={stop} className={navLinkCls}>
+                    {link}
+                  </a>
+                  {link === 'Shop' && (
+                    <div className="absolute right-0 top-full z-50 pt-4 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
+                      <div className="w-[620px] bg-[#1C1610] border border-[#C9A86A]/20 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.85)] p-8">
+                        <p className={`${CAPS} text-[10px] tracking-[0.35em] text-[#C9A86A] mb-6`}>SHOP BY CATEGORY</p>
+                        <div className="grid grid-cols-3 gap-x-8 gap-y-5">
+                          {CATEGORIES.map((c) => (
+                            <a key={c.en} href="#" onClick={stop} className="group/cat block">
+                              <span className={`${CAPS} block text-[11px] uppercase tracking-[0.15em] text-[#EFE9DD]/85 group-hover/cat:text-[#C9A86A] transition-colors`}>
+                                {c.en}
+                              </span>
+                              <span className={`${AR} block text-sm text-[#EFE9DD]/45 mt-1`}>{c.ar}</span>
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Language + account icons */}
+          <div className="flex items-center gap-4 md:gap-5 shrink-0 ml-auto lg:ml-0">
+            <button
+              className={`${CAPS} flex items-center gap-2 text-[11px] tracking-[0.2em] transition-colors duration-300 hover:text-[#C9A86A] cursor-pointer ${
+                scrolled ? 'text-[#EFE9DD]/80' : 'text-white'
+              }`}
+            >
+              ENG <span className={scrolled ? 'text-[#C9A86A]/60' : 'text-white/60'}>|</span>
+              <span className={`${AR} text-[14px] leading-none`}>عربي</span>
+            </button>
+            <span className={`hidden sm:block h-4 w-px transition-colors duration-300 ${scrolled ? 'bg-white/10' : 'bg-white/30'}`} />
+            <button aria-label="Account" className={headerIconCls}>
+              <User size={19} strokeWidth={1.25} />
+            </button>
+            <button aria-label="Wishlist" className={headerIconCls}>
+              <Heart size={19} strokeWidth={1.25} />
+            </button>
+            <button aria-label="Shopping bag" className={`relative ${headerIconCls}`}>
+              <ShoppingBag size={19} strokeWidth={1.25} />
+              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#C9A86A] text-[#131009] text-[8px] font-medium flex items-center justify-center">
+                2
+              </span>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* ============================ 2. HERO SLIDER ============================ */}

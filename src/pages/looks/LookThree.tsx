@@ -1,103 +1,67 @@
 /**
- * Look 3 — "Warm Modern"
- * Bold contemporary take on the warm minimal-luxury direction: massive Outfit
- * headlines, rounded geometry, terracotta energy and a signature marquee strip.
- * A confident modern Saudi lifestyle brand — energetic, but always premium.
+ * Look 3 — "Quiet Gallery"
+ * Museum-catalog calm inside the warm minimal-luxury brief: warm greige canvas,
+ * serif-led Title Case headings (Playfair), Marcellus small-caps labels, bronze
+ * used only as a whisper (rules, links, captions), museum captions under images,
+ * ghost numerals, hairlines, sharp corners, and very slow, quiet motion.
  */
-import { useCallback, useEffect, useState } from 'react';
-import type { Key, ReactNode } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import type { Variants } from 'motion/react';
+import { useEffect, useState, type Key, type ReactNode } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
-  ArrowRight,
-  ArrowUpRight,
-  Camera,
-  ChevronLeft,
-  ChevronRight,
-  Facebook,
-  Heart,
-  Instagram,
-  Linkedin,
-  Plus,
-  Search,
-  ShoppingBag,
-  Star,
-  User,
+  Search, Camera, User, Heart, ShoppingBag, Star,
+  ChevronLeft, ChevronRight, Instagram, Facebook, Linkedin,
 } from 'lucide-react';
 import {
-  CATEGORIES,
-  DESIGN_ASSIST_ITEMS,
-  FOOTER_LINKS,
-  HERO_SLIDES,
-  IMG,
-  LookSwitcher,
-  NAV_LINKS,
-  PRODUCTS,
-  SERVICES,
-  STYLES,
-  formatSAR,
+  IMG, HERO_SLIDES, NAV_LINKS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
+  DESIGN_ASSIST_ITEMS, FOOTER_LINKS, formatSAR, LookSwitcher,
 } from './lookShared';
 
-/* ------------------------------- constants ------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Palette                                                             */
+/* ------------------------------------------------------------------ */
+const BG = '#F1EDE5';       // warm greige canvas
+const ALT = '#FBFAF7';      // alternating section white
+const INK = '#2A241C';      // warm ink
+const MUTED = '#8B8378';    // warm grey
+const BRONZE = '#8A6D4F';   // sparing accent
+const HAIR = '#DDD6CA';     // hairlines
+const DARK = '#1B1712';     // footer / B2B brown-black
+const CREAM = '#EFE9DD';    // text on dark
+const GOLDISH = '#C9B393';  // Arabic lead on dark
 
-const CONTAINER = 'mx-auto w-full max-w-[1400px] px-6 md:px-10';
-const AR = "font-['Alexandria',sans-serif]";
+const CONTAINER = 'mx-auto w-full max-w-[1360px] px-6 md:px-10';
 
-const MARQUEE_ITEMS = ['FURNITURE', 'INTERIOR DESIGN', 'CUSTOM MANUFACTURING', 'B2B SOLUTIONS'];
+const PLAYFAIR = "font-['Playfair_Display',serif]";
+const MARCELLUS = "font-['Marcellus',serif]";
+const AMIRI = "font-['Amiri',serif]";
 
 const HOTSPOTS = [
-  { label: 'Lighting', top: '40%', left: '17%' },
-  { label: 'Dining Tables', top: '68%', left: '60%' },
-  { label: 'Vases & Vessels', top: '54%', left: '55%' },
+  { label: 'Lighting', top: '38%', left: '15%' },
+  { label: 'Dining Tables', top: '66%', left: '58%' },
+  { label: 'Vases & Vessels', top: '46%', left: '42%' },
 ];
 
-const heroVariants: Variants = {
-  enter: (dir: number) => ({ opacity: 0, x: dir * 90 }),
-  center: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.32, 0.72, 0, 1] } },
-  exit: (dir: number) => ({ opacity: 0, x: dir * -90, transition: { duration: 0.55, ease: [0.32, 0.72, 0, 1] } }),
-};
+/* ------------------------------------------------------------------ */
+/* Small shared pieces                                                 */
+/* ------------------------------------------------------------------ */
 
-/* -------------------------------- helpers -------------------------------- */
-
+/** Calm scroll reveal — fade and rise, nothing more. */
 function Reveal({
   children,
-  className,
   delay = 0,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.55, ease: 'easeOut', delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function GridItem({
-  children,
   className,
-  index,
 }: {
   children: ReactNode;
+  delay?: number;
   className?: string;
-  index: number;
-  /** consumed by React, declared so list usage type-checks with the resolved JSX types */
-  key?: Key;
+  key?: Key; // allow list usage — no @types/react, so `key` is checked structurally
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.55, ease: 'easeOut', delay: index * 0.05 }}
+      viewport={{ once: true, margin: '-70px' }}
+      transition={{ duration: 0.7, ease: 'easeOut', delay }}
       className={className}
     >
       {children}
@@ -105,647 +69,734 @@ function GridItem({
   );
 }
 
-function SectionHeading({
-  ar,
-  en,
-  dark = false,
-  right,
-}: {
-  ar: string;
-  en: ReactNode;
-  dark?: boolean;
-  right?: ReactNode;
-}) {
+/** Centered museum-catalog section header: thin bronze rule, Amiri lead, Playfair Title Case. */
+function SectionHeader({ eyebrow, ar, children }: { eyebrow: string; ar: string; children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-6">
-      <div>
-        <p className={`${AR} text-lg font-bold ${dark ? 'text-[#F3EDE3]/70' : 'text-[#B4552D]'}`}>{ar}</p>
-        <h2
-          className={`mt-3 max-w-3xl text-4xl font-extrabold uppercase leading-[0.95] tracking-tight md:text-6xl ${
-            dark ? 'text-white' : 'text-[#221D16]'
-          }`}
-        >
-          {en}
-        </h2>
-      </div>
-      {right}
-    </div>
+    <Reveal className="flex flex-col items-center text-center">
+      <span className="h-px w-10" style={{ backgroundColor: BRONZE }} />
+      <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em]`} style={{ color: MUTED }}>
+        {eyebrow}
+      </p>
+      <p className={`${AMIRI} mt-4 text-xl`} style={{ color: BRONZE }}>
+        {ar}
+      </p>
+      <h2 className={`${PLAYFAIR} mt-2 text-4xl md:text-5xl leading-[1.12]`} style={{ color: INK }}>
+        {children}
+      </h2>
+    </Reveal>
   );
 }
 
+/** Hairline-bordered rectangle button. Sharp corners, letterspaced caps, slow fill on hover. */
+function HairButton({
+  label,
+  tone = 'ink',
+  className = '',
+}: {
+  label: string;
+  tone?: 'ink' | 'white' | 'cream';
+  className?: string;
+}) {
+  const tones = {
+    ink: 'border-[#2A241C]/40 text-[#2A241C] hover:bg-[#2A241C] hover:border-[#2A241C] hover:text-[#EFE9DD]',
+    white: 'border-white/60 text-white hover:bg-white hover:border-white hover:text-[#2A241C]',
+    cream: 'border-[#EFE9DD]/50 text-[#EFE9DD] hover:bg-[#EFE9DD] hover:border-[#EFE9DD] hover:text-[#1B1712]',
+  } as const;
+  return (
+    <a
+      href="#"
+      onClick={(e) => e.preventDefault()}
+      className={`inline-block border px-10 py-4 text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 ${tones[tone]} ${className}`}
+    >
+      {label}
+    </a>
+  );
+}
+
+/** Bronze small-caps link with a thin underline. */
+function BronzeLink({ label, className = '' }: { label: string; className?: string }) {
+  return (
+    <a
+      href="#"
+      onClick={(e) => e.preventDefault()}
+      className={`inline-block border-b border-[#8A6D4F]/35 pb-1 text-[10px] uppercase tracking-[0.3em] text-[#8A6D4F] transition-colors duration-300 hover:border-[#8A6D4F] ${className}`}
+    >
+      {label}
+    </a>
+  );
+}
+
+/** Rating stars — size 11, filled in bronze. */
 function Stars({ rating }: { rating: number }) {
   return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }, (_, i) => (
+    <div className="flex items-center gap-[3px]" aria-label={`Rated ${rating} out of 5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          size={12}
-          strokeWidth={0}
-          className={i < Math.round(rating) ? 'fill-[#B4552D]' : 'fill-[#DED4C2]'}
+          size={11}
+          strokeWidth={1}
+          className={i < Math.round(rating) ? 'fill-[#8A6D4F] text-[#8A6D4F]' : 'fill-transparent text-[#DDD6CA]'}
         />
       ))}
     </div>
   );
 }
 
-/* ----------------------------- hero slider ------------------------------- */
+/** Pulsing white hotspot dot with a small Marcellus chip label. */
+function Hotspot({
+  top, left, label, delay = 0,
+}: { top: string; left: string; label: string; delay?: number; key?: Key }) {
+  return (
+    <div className="absolute z-10" style={{ top, left }}>
+      <div className="relative h-3 w-3">
+        <motion.span
+          className="absolute inset-0 rounded-full bg-white/70"
+          animate={{ scale: [1, 2.8], opacity: [0.7, 0] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut', delay }}
+        />
+        <span className="absolute inset-0 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.12)]" />
+        <span
+          className={`${MARCELLUS} absolute left-6 top-1/2 hidden -translate-y-1/2 whitespace-nowrap bg-white/95 px-3 py-1.5 text-[9px] uppercase tracking-[0.3em] md:inline-block`}
+          style={{ color: INK }}
+        >
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
 
-function HeroSlider() {
-  const [slide, setSlide] = useState(0);
-  const [dir, setDir] = useState(1);
+/* ------------------------------------------------------------------ */
+/* Header                                                              */
+/* ------------------------------------------------------------------ */
 
-  const go = useCallback((d: number) => {
-    setDir(d);
-    setSlide((s) => (s + d + HERO_SLIDES.length) % HERO_SLIDES.length);
-  }, []);
+function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
 
   useEffect(() => {
-    const t = setInterval(() => go(1), 6000);
-    return () => clearInterval(t);
-  }, [slide, go]);
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  const current = HERO_SLIDES[slide];
+  const solid = scrolled || shopOpen;
 
   return (
-    <section className={`${CONTAINER} mt-4`}>
-      <div className="relative h-[82vh] max-h-[860px] min-h-[540px] overflow-hidden rounded-[2.5rem] bg-[#3E4633]">
-        <AnimatePresence initial={false} custom={dir}>
-          <motion.div
-            key={slide}
-            custom={dir}
-            variants={heroVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="absolute inset-0"
-          >
-            <img src={current.img} alt={current.en} className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-black/5" />
-            <div className="absolute inset-0 flex flex-col justify-end p-8 pb-20 md:p-14 md:pb-24">
-              <motion.span
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25, duration: 0.5, ease: 'easeOut' }}
-                className="inline-flex w-fit items-center rounded-full bg-[#B4552D] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-white"
-              >
-                {current.tag}
-              </motion.span>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.55, ease: 'easeOut' }}
-                className={`${AR} mt-5 max-w-4xl text-5xl font-extrabold leading-[1.15] text-white md:text-7xl`}
-              >
-                {current.ar}
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.55, ease: 'easeOut' }}
-                className="mt-4 text-lg font-medium text-white/90 md:text-2xl"
-              >
-                {current.en}
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55, duration: 0.55, ease: 'easeOut' }}
-                className="mt-8 flex flex-wrap gap-3"
-              >
-                <button className="rounded-full bg-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-[#221D16] transition-colors hover:bg-[#B4552D] hover:text-white">
-                  Shop Now
-                </button>
-                <button className="rounded-full border-2 border-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-white hover:text-[#221D16]">
-                  Explore
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+    <header
+      onMouseLeave={() => setShopOpen(false)}
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+        solid ? 'border-b border-[#DDD6CA] bg-[#F1EDE5] text-[#2A241C]' : 'border-b border-transparent bg-transparent text-white'
+      }`}
+    >
+      <div className={`${CONTAINER} flex h-[72px] items-center gap-6`}>
+        {/* Logo */}
+        <a href="#" onClick={(e) => e.preventDefault()} className="shrink-0">
+          <img
+            src="/logo_diyar.svg"
+            alt="Diyar"
+            className={`h-7 w-auto transition-all duration-300 ${solid ? '' : 'invert'}`}
+          />
+        </a>
 
-        {/* pill-dot indicators */}
-        <div className="absolute bottom-7 left-8 z-10 flex items-center gap-2 md:left-14">
-          {HERO_SLIDES.map((s, i) => (
-            <button
-              key={s.en}
-              aria-label={`Go to slide ${i + 1}`}
-              onClick={() => {
-                setDir(i > slide ? 1 : -1);
-                setSlide(i);
-              }}
-              className={`h-2.5 rounded-full transition-all duration-500 ${
-                i === slide ? 'w-9 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/70'
-              }`}
-            />
-          ))}
+        {/* Slim search */}
+        <div
+          className={`hidden h-10 w-60 items-center gap-3 rounded-full border px-4 transition-colors duration-300 lg:flex ${
+            solid ? 'border-[#DDD6CA]' : 'border-white/40'
+          }`}
+        >
+          <Search size={14} strokeWidth={1.5} className="shrink-0 opacity-80" />
+          <input
+            type="text"
+            placeholder="Search"
+            className="w-full bg-transparent text-[11px] tracking-[0.12em] outline-none placeholder:text-inherit placeholder:opacity-50"
+          />
+          <button aria-label="Visual search" className="shrink-0 opacity-80 transition-opacity hover:opacity-100">
+            <Camera size={14} strokeWidth={1.5} />
+          </button>
         </div>
 
-        {/* big round chevrons */}
-        <div className="absolute bottom-6 right-6 z-10 hidden gap-3 md:flex md:right-10">
-          <button
-            aria-label="Previous slide"
-            onClick={() => go(-1)}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-[#221D16]"
-          >
-            <ChevronLeft size={22} />
+        {/* Nav */}
+        <nav className="ml-auto hidden items-center gap-7 lg:flex">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link}
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              onMouseEnter={() => setShopOpen(link === 'Shop')}
+              className="text-[11px] uppercase tracking-[0.22em] opacity-90 transition-opacity duration-300 hover:opacity-100"
+            >
+              {link}
+            </a>
+          ))}
+        </nav>
+
+        {/* Right utilities */}
+        <div className="ml-auto flex items-center gap-5 lg:ml-0">
+          <button className="flex items-center gap-1.5 text-[11px] tracking-[0.15em]">
+            ENG <span className="opacity-40">|</span> <span className={`${AMIRI} text-[13px]`}>عربي</span>
           </button>
-          <button
-            aria-label="Next slide"
-            onClick={() => go(1)}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-[#221D16]"
-          >
-            <ChevronRight size={22} />
+          <button aria-label="Account" className="transition-opacity hover:opacity-70">
+            <User size={17} strokeWidth={1.25} />
           </button>
+          <button aria-label="Wishlist" className="transition-opacity hover:opacity-70">
+            <Heart size={17} strokeWidth={1.25} />
+          </button>
+          <button aria-label="Cart" className="transition-opacity hover:opacity-70">
+            <ShoppingBag size={17} strokeWidth={1.25} />
+          </button>
+        </div>
+      </div>
+
+      {/* Shop hover panel */}
+      <AnimatePresence>
+        {shopOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="absolute inset-x-0 top-full border-b border-[#DDD6CA] bg-white"
+          >
+            <div className={`${CONTAINER} grid grid-cols-2 gap-x-12 gap-y-5 py-10 md:grid-cols-3`}>
+              {CATEGORIES.map((c) => (
+                <a
+                  key={c.en}
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                  className="group flex items-baseline justify-between border-b border-[#DDD6CA]/70 pb-3"
+                >
+                  <span className={`${PLAYFAIR} text-[15px] text-[#2A241C] transition-colors duration-300 group-hover:text-[#8A6D4F]`}>
+                    {c.en}
+                  </span>
+                  <span className={`${AMIRI} text-sm`} style={{ color: MUTED }}>
+                    {c.ar}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero                                                                */
+/* ------------------------------------------------------------------ */
+
+function Hero() {
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 7000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const current = HERO_SLIDES[slide];
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  return (
+    <section className="relative h-screen min-h-[620px] overflow-hidden" style={{ backgroundColor: DARK }}>
+      {/* Slides — slow crossfade with a quiet drift-in scale */}
+      <AnimatePresence>
+        <motion.div
+          key={slide}
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.4, ease: 'easeInOut' }}
+        >
+          <motion.img
+            src={current.img}
+            alt={current.en}
+            initial={{ scale: 1.05 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 8, ease: 'linear' }}
+            className="h-full w-full object-cover"
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Soft dark gradient, bottom third */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+
+      {/* Copy — bottom left */}
+      <div className={`${CONTAINER} absolute inset-x-0 bottom-0 pb-20 md:pb-24`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={slide}
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="max-w-2xl"
+          >
+            <p className={`${MARCELLUS} text-[10px] uppercase tracking-[0.3em] text-white/80`}>{current.tag}</p>
+            <h1 className={`${AMIRI} mt-5 text-5xl leading-[1.3] text-white md:text-6xl`}>
+              {current.ar}
+            </h1>
+            <p className={`${PLAYFAIR} mt-3 text-xl italic text-white/90`}>{current.en}</p>
+          </motion.div>
+        </AnimatePresence>
+        <div className="mt-8">
+          <HairButton label="Discover" tone="white" />
+        </div>
+
+        {/* Indicators — bottom right */}
+        <div className="absolute bottom-20 right-6 hidden items-center gap-5 md:right-10 md:bottom-24 md:flex">
+          <span className={`${PLAYFAIR} text-sm tracking-[0.2em] text-white/90`}>
+            {pad(slide + 1)} <span className="text-white/40">/ {pad(HERO_SLIDES.length)}</span>
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Previous slide"
+              onClick={() => setSlide((s) => (s + HERO_SLIDES.length - 1) % HERO_SLIDES.length)}
+              className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#2A241C]"
+            >
+              <ChevronLeft size={15} strokeWidth={1.25} />
+            </button>
+            <button
+              aria-label="Next slide"
+              onClick={() => setSlide((s) => (s + 1) % HERO_SLIDES.length)}
+              className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#2A241C]"
+            >
+              <ChevronRight size={15} strokeWidth={1.25} />
+            </button>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* --------------------------------- page ---------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Sections                                                            */
+/* ------------------------------------------------------------------ */
 
-export default function LookThree() {
+function FeaturedCategories() {
   return (
-    <div dir="ltr" className="min-h-screen overflow-x-clip bg-[#F3EDE3] font-['Outfit',sans-serif] text-[#221D16] antialiased">
-      <style>{`
-        @keyframes look3-marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        @keyframes look3-pulse {
-          0% { transform: scale(1); opacity: 0.85; }
-          75% { transform: scale(2.6); opacity: 0; }
-          100% { transform: scale(2.6); opacity: 0; }
-        }
-      `}</style>
+    <section className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader eyebrow="Collection — 01" ar="الواجهة">
+          Featured <em>Categories</em>
+        </SectionHeader>
 
-      {/* 1 — HEADER: floating pill */}
-      <header className="sticky top-0 z-50">
-        <div className={CONTAINER}>
-          <div className="mt-4 flex items-center gap-3 rounded-full bg-white/80 py-2.5 pl-6 pr-2.5 shadow-[0_12px_40px_rgba(34,29,22,0.10)] backdrop-blur-xl md:gap-5">
-            <a href="#" className="shrink-0">
-              <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto md:h-8" />
-            </a>
-            <nav className="hidden items-center gap-6 xl:flex">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link}
-                  href="#"
-                  className="whitespace-nowrap text-[13px] font-semibold text-[#221D16]/80 transition-colors hover:text-[#B4552D]"
-                >
-                  {link}
-                </a>
-              ))}
-            </nav>
-            <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-full bg-[#F3EDE3] px-4 py-2.5 md:flex lg:max-w-xs">
-              <Search size={16} className="shrink-0 text-[#221D16]/45" />
-              <input
-                type="text"
-                placeholder="Search products…"
-                className="w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-[#221D16]/40"
-              />
-              <button aria-label="Search by image" className="shrink-0 text-[#221D16]/45 transition-colors hover:text-[#B4552D]">
-                <Camera size={16} />
-              </button>
-            </div>
-            <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-1.5">
-              <button className="hidden items-center gap-1.5 px-2 text-[11px] font-bold tracking-wide sm:flex">
-                ENG <span className="text-[#221D16]/25">|</span>{' '}
-                <span className={`${AR} text-xs`}>عربي</span>
-              </button>
-              <button
-                aria-label="Account"
-                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[#F3EDE3]"
-              >
-                <User size={18} />
-              </button>
-              <button
-                aria-label="Wishlist"
-                className="hidden h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[#F3EDE3] sm:flex"
-              >
-                <Heart size={18} />
-              </button>
-              <button
-                aria-label="Cart"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[#F3EDE3]"
-              >
-                <ShoppingBag size={18} />
-                <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#B4552D] text-[9px] font-bold text-white">
-                  2
-                </span>
-              </button>
-              <button className="hidden whitespace-nowrap rounded-full bg-[#B4552D] px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#96431F] lg:block">
-                Book a Designer
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 2 — HERO SLIDER */}
-      <HeroSlider />
-
-      {/* 3 — MARQUEE STRIP (signature) */}
-      <div className="mt-16 overflow-hidden bg-[#B4552D] py-4 md:mt-20 md:py-5" aria-hidden="true">
-        <div className="flex w-max animate-[look3-marquee_30s_linear_infinite]">
-          {[0, 1].map((half) => (
-            <div key={half} className="flex shrink-0 items-center">
-              {Array.from({ length: 3 }).flatMap((_, r) =>
-                MARQUEE_ITEMS.map((item) => (
-                  <span
-                    key={`${r}-${item}`}
-                    className="flex items-center whitespace-nowrap text-xl font-extrabold uppercase tracking-[0.1em] text-white md:text-2xl"
-                  >
-                    <span className="px-6 md:px-8">{item}</span>
-                    <span className="text-base text-white/60">✦</span>
-                  </span>
-                )),
-              )}
-            </div>
+        <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-14 md:mt-20 md:grid-cols-3 md:gap-x-10">
+          {CATEGORIES.map((c, i) => (
+            <Reveal key={c.en} delay={(i % 3) * 0.08}>
+              <div className="group block cursor-pointer">
+                <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+                  <img
+                    src={c.img}
+                    alt={c.en}
+                    className="aspect-[4/5] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption */}
+                <div className="pt-5 text-center">
+                  <h3 className={`${PLAYFAIR} text-xl`} style={{ color: INK }}>
+                    {c.en}
+                  </h3>
+                  <p className={`${AMIRI} mt-1 text-sm`} style={{ color: BRONZE }}>
+                    {c.ar}
+                  </p>
+                  <div className="mt-3">
+                    <BronzeLink label="View More" />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
           ))}
         </div>
       </div>
+    </section>
+  );
+}
 
-      {/* 4 — FEATURED CATEGORIES: bento grid */}
-      <section className={`${CONTAINER} mt-20 md:mt-28`}>
-        <Reveal>
-          <SectionHeading
-            ar="أبرز التصنيفات"
-            en={
-              <>
-                Shop by
-                <br />
-                Category
-              </>
-            }
-            right={
-              <button
-                aria-label="View all categories"
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-[#221D16] text-white transition-colors hover:bg-[#B4552D]"
-              >
-                <ArrowUpRight size={22} />
-              </button>
-            }
-          />
-        </Reveal>
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
-          {CATEGORIES.map((c, i) => (
-            <GridItem key={c.en} index={i} className={i === 0 || i === 5 ? 'sm:col-span-2' : ''}>
-              <a href="#" className="group relative block h-64 overflow-hidden rounded-[2rem] md:h-80">
-                <img
-                  src={c.img}
-                  alt={c.en}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-2.5 rounded-full bg-white/90 px-4 py-2 backdrop-blur-sm">
-                  <span className="text-sm font-bold">{c.en}</span>
-                  <span className={`${AR} text-xs text-[#221D16]/60`}>{c.ar}</span>
-                </div>
-                <div className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <ArrowUpRight size={16} />
-                </div>
-              </a>
-            </GridItem>
+function Services() {
+  return (
+    <section className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader eyebrow="Practice — 02" ar="خدماتنا">
+          Our Services
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-2 gap-x-8 md:mt-20 md:grid-cols-4 md:gap-x-12">
+          {SERVICES.map((s, i) => (
+            <Reveal key={s.en} delay={(i % 4) * 0.07}>
+              <div className="relative border-t pt-9 pb-14" style={{ borderColor: HAIR }}>
+                <span
+                  aria-hidden
+                  className={`${PLAYFAIR} pointer-events-none absolute right-0 top-5 select-none text-6xl leading-none text-[#2A241C14]`}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <s.icon size={26} strokeWidth={1} className="text-[#8A6D4F]" />
+                <h3 className={`${PLAYFAIR} mt-6 text-lg leading-snug`} style={{ color: INK }}>
+                  {s.en}
+                </h3>
+                <p className={`${AMIRI} mt-1.5 text-sm`} style={{ color: MUTED }}>
+                  {s.ar}
+                </p>
+              </div>
+            </Reveal>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* 5 — SERVICES: dark olive block */}
-      <section className={`${CONTAINER} mt-20 md:mt-28`}>
-        <div className="rounded-[2.5rem] bg-[#3E4633] px-6 py-14 md:px-14 md:py-20">
-          <Reveal>
-            <SectionHeading
-              dark
-              ar="كل ما تحتاجه لمساحتك"
-              en={
-                <>
-                  Everything
-                  <br />
-                  for your space
-                </>
-              }
-            />
-          </Reveal>
-          <div className="mt-12 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-            {SERVICES.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <GridItem key={s.en} index={i}>
-                  <div className="group h-full rounded-[1.5rem] border border-white/10 p-5 transition-colors duration-300 hover:bg-white/10 md:p-6">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white md:h-14 md:w-14">
-                      <Icon size={24} strokeWidth={1.5} />
-                    </div>
-                    <p className="mt-4 text-sm font-semibold text-white md:text-base">{s.en}</p>
-                    <p className={`${AR} mt-1.5 text-xs text-white/60`}>{s.ar}</p>
-                  </div>
-                </GridItem>
-              );
-            })}
-          </div>
-          <Reveal className="mt-12 flex justify-center">
-            <button className="rounded-full bg-[#B4552D] px-9 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#96431F]">
-              All Services
-            </button>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* 6 — NEW PRODUCTS */}
-      <section className={`${CONTAINER} mt-20 md:mt-28`}>
-        <Reveal>
-          <SectionHeading
-            ar="وصل حديثاً"
-            en="New Arrivals"
-            right={
-              <button className="rounded-full border-2 border-[#221D16] px-7 py-3.5 text-xs font-bold uppercase tracking-[0.2em] transition-colors hover:bg-[#221D16] hover:text-white">
-                View All
-              </button>
-            }
-          />
+function NewProducts() {
+  return (
+    <section className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader eyebrow="Featured — 03" ar="وصل حديثاً">
+          New <em>Arrivals</em>
+        </SectionHeader>
+        <Reveal className="mt-10 flex justify-center md:justify-end">
+          <BronzeLink label="View All" />
         </Reveal>
-        <div className="mt-10 grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
+
+        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-4 md:gap-x-8">
           {PRODUCTS.slice(0, 8).map((p, i) => (
-            <GridItem key={p.id} index={i} className="h-full">
-              <div className="group flex h-full flex-col rounded-[1.75rem] bg-white p-3 shadow-[0_20px_60px_rgba(34,29,22,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(34,29,22,0.14)]">
-                <div className="relative overflow-hidden rounded-2xl bg-[#FAF7F0]">
-                  <img
-                    src={p.img}
-                    alt={p.nameEn}
-                    className="aspect-square w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-                  />
+            <Reveal key={p.id} delay={(i % 4) * 0.06}>
+              <div className="group flex h-full flex-col">
+                <div className="relative overflow-hidden border bg-white" style={{ borderColor: HAIR }}>
                   {p.sale && (
-                    <span className="absolute left-3 top-3 rounded-full bg-[#B4552D] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
+                    <span className="absolute left-3 top-3 z-10 text-[9px] uppercase tracking-[0.3em]" style={{ color: BRONZE }}>
                       Sale
                     </span>
                   )}
-                  <button
-                    aria-label="Add to wishlist"
-                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#221D16] shadow-sm transition-colors hover:bg-[#B4552D] hover:text-white"
-                  >
-                    <Heart size={15} />
-                  </button>
+                  <img
+                    src={p.img}
+                    alt={p.nameEn}
+                    className="aspect-square w-full object-contain p-6 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                  />
                 </div>
-                <div className="flex flex-1 flex-col px-2 pb-1 pt-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#221D16]/40">{p.brand}</p>
-                  <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug">{p.nameEn}</h3>
-                  <div className="mt-2 flex items-center justify-between">
+                <div className="flex flex-1 flex-col pt-4">
+                  <p className="text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
+                    {p.brand}
+                  </p>
+                  <h3 className="mt-1.5 text-[14px] font-light leading-snug" style={{ color: INK }}>
+                    {p.nameEn}
+                  </h3>
+                  <div className="mt-2.5">
                     <Stars rating={p.rating} />
-                    <button dir="rtl" className={`${AR} text-xs font-bold text-[#B4552D] hover:underline`}>
-                      جرب AI
-                    </button>
                   </div>
-                  <div className="mb-3 mt-2 flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-lg font-extrabold">{formatSAR(p.price)}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-[#221D16]/50">SAR</span>
+                  <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2">
+                    <span className={`${PLAYFAIR} text-lg`} style={{ color: INK }}>
+                      {formatSAR(p.price)}
+                    </span>
+                    <span className="text-[10px] tracking-[0.15em]" style={{ color: MUTED }}>
+                      SAR
+                    </span>
                     {p.oldPrice && (
-                      <span className="text-xs text-[#221D16]/35 line-through">{formatSAR(p.oldPrice)}</span>
+                      <span className="text-xs line-through" style={{ color: MUTED }}>
+                        {formatSAR(p.oldPrice)}
+                      </span>
                     )}
                   </div>
-                  <button className="mt-auto flex w-full items-center justify-center gap-1.5 rounded-full bg-[#221D16] py-2.5 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#B4552D]">
-                    <Plus size={14} /> Add to Cart
+                  <a
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    className={`${AMIRI} mt-1.5 text-sm transition-opacity hover:opacity-70`}
+                    style={{ color: BRONZE }}
+                  >
+                    جرب AI
+                  </a>
+                  <button className="mt-4 w-full border border-[#2A241C]/30 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD]">
+                    Add to Cart
                   </button>
                 </div>
               </div>
-            </GridItem>
+            </Reveal>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* 7 — CUSTOM FURNITURE MANUFACTURING */}
-      <section className={`${CONTAINER} mt-20 md:mt-28`}>
+function Atelier() {
+  return (
+    <section className="grid lg:grid-cols-[11fr_9fr]">
+      <div className="relative min-h-[420px] overflow-hidden lg:min-h-0">
+        <img src={IMG.workshop} alt="Diyar atelier workshop" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+      <div className="flex items-center px-6 py-24 md:px-16 lg:py-36" style={{ backgroundColor: BG }}>
         <Reveal>
-          <div className="grid overflow-hidden rounded-[2.5rem] bg-white shadow-[0_20px_60px_rgba(34,29,22,0.08)] lg:grid-cols-2">
-            <div className="relative min-h-[280px] lg:min-h-[540px]">
-              <img src={IMG.workshop} alt="Diyar workshop" className="absolute inset-0 h-full w-full object-cover" />
-            </div>
-            <div className="flex flex-col justify-center gap-5 p-8 md:p-12 lg:p-16">
-              <p className={`${AR} text-lg font-bold text-[#B4552D]`}>تنفيذ الأثاث</p>
-              <h2 className="text-4xl font-extrabold uppercase leading-[0.95] tracking-tight md:text-5xl">
-                Custom Furniture Manufacturing
-              </h2>
-              <p className="max-w-md text-base leading-relaxed text-[#221D16]/60">
-                We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and
-                lifestyle.
-              </p>
-              <div className="mt-2">
-                <button className="rounded-full bg-[#B4552D] px-9 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#96431F]">
-                  Start Your Project
-                </button>
-              </div>
-            </div>
+          <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
+          <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em]`} style={{ color: MUTED }}>
+            Atelier
+            <span className="mx-3" style={{ color: BRONZE }}>—</span>
+            <span className={`${AMIRI} text-sm normal-case tracking-normal`} style={{ color: BRONZE }}>
+              تنفيذ الأثاث
+            </span>
+          </p>
+          <h2 className={`${PLAYFAIR} mt-5 text-4xl leading-[1.15] md:text-[2.75rem]`} style={{ color: INK }}>
+            Custom Furniture, <em>Made for You</em>
+          </h2>
+          <p className="mt-6 max-w-md text-[15px] font-light leading-relaxed" style={{ color: MUTED }}>
+            We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and
+            lifestyle.
+          </p>
+          <div className="mt-10">
+            <HairButton label="Start Your Project" />
           </div>
         </Reveal>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* 8 — GET FREE DESIGN ASSISTANCE: hotspot room */}
-      <section className={`${CONTAINER} mt-20 md:mt-28`}>
-        <Reveal>
-          <div className="relative min-h-[65vh] overflow-hidden rounded-[2.5rem]">
-            <img
-              src={IMG.roomHotspots}
-              alt="Styled interior with shoppable pieces"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            {HOTSPOTS.map((h) => (
-              <div key={h.label} className="absolute hidden sm:block" style={{ top: h.top, left: h.left }}>
-                <span className="absolute -inset-1.5 rounded-full bg-[#B4552D] animate-[look3-pulse_2.2s_ease-out_infinite]" />
-                <span className="relative block h-4 w-4 rounded-full bg-[#B4552D] ring-4 ring-white/80" />
-                <span className="absolute left-7 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white/95 px-3.5 py-1.5 text-xs font-bold shadow-lg">
-                  {h.label}
-                </span>
+function DesignAssistance() {
+  return (
+    <section className="relative flex min-h-[75vh] items-end overflow-hidden">
+      <img src={IMG.roomHotspots} alt="Styled dining room" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="pointer-events-none absolute inset-0 bg-black/10" />
+
+      {HOTSPOTS.map((h, i) => (
+        <Hotspot key={h.label} {...h} delay={i * 0.5} />
+      ))}
+
+      <div className={`${CONTAINER} relative z-10 w-full pb-14 pt-44 md:pb-20`}>
+        <Reveal className="max-w-md bg-white p-8 md:p-10">
+          <p className={`${AMIRI} text-lg`} style={{ color: BRONZE }}>
+            استشارة تصميم مجانية لمساحتك
+          </p>
+          <h2 className={`${PLAYFAIR} mt-2 text-3xl leading-[1.15]`} style={{ color: INK }}>
+            Complimentary <em>Design</em> Assistance
+          </h2>
+          <div className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 border-t pt-7" style={{ borderColor: HAIR }}>
+            {DESIGN_ASSIST_ITEMS.map((item) => (
+              <div key={item.en}>
+                <p className="text-[11px] font-light tracking-[0.06em]" style={{ color: INK }}>
+                  {item.en}
+                </p>
+                <p className={`${AMIRI} mt-0.5 text-xs`} style={{ color: MUTED }}>
+                  {item.ar}
+                </p>
               </div>
             ))}
-            <div className="absolute inset-x-0 bottom-0 m-4 flex flex-wrap items-center gap-4 rounded-3xl bg-white/85 p-5 backdrop-blur-md md:m-6 md:gap-5 md:p-6">
-              <div>
-                <p className={`${AR} text-sm font-bold text-[#B4552D]`}>استشارة تصميم مجانية</p>
-                <h3 className="mt-1 text-xl font-extrabold uppercase tracking-tight md:text-2xl">
-                  Get Free Design Assistance
-                </h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {DESIGN_ASSIST_ITEMS.slice(0, 4).map((d) => (
-                  <span
-                    key={d.en}
-                    className="rounded-full border border-[#221D16]/15 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#221D16]/80"
-                  >
-                    {d.en}
-                  </span>
-                ))}
-              </div>
-              <button className="rounded-full bg-[#B4552D] px-7 py-3.5 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#96431F] md:ml-auto">
-                Talk to a Designer
-              </button>
-            </div>
+          </div>
+          <div className="mt-8">
+            <HairButton label="Book a Session" className="w-full text-center" />
           </div>
         </Reveal>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* 9 — FIND YOUR STYLE: snap-scroll row */}
-      <section className="mt-20 md:mt-28">
-        <div className={CONTAINER}>
-          <Reveal>
-            <SectionHeading
-              ar="اكتشف أسلوبك"
-              en="Find Your Style"
-              right={
-                <button
-                  aria-label="Browse all styles"
-                  className="flex h-14 w-14 items-center justify-center rounded-full bg-[#221D16] text-white transition-colors hover:bg-[#B4552D]"
-                >
-                  <ArrowUpRight size={22} />
-                </button>
-              }
-            />
-          </Reveal>
-        </div>
-        <div className={`${CONTAINER} mt-10`}>
-          <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {STYLES.map((s, i) => (
-              <GridItem key={s.en} index={i} className="shrink-0 snap-start">
-                <a
-                  href="#"
-                  className="group relative block aspect-[3/4] w-72 overflow-hidden rounded-[2rem] md:w-80"
-                >
-                  <img
-                    src={s.img}
-                    alt={s.en}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className={`${AR} text-sm font-bold text-white/80`}>{s.ar}</p>
-                    <p className="mt-1 text-2xl font-extrabold uppercase tracking-tight text-white">{s.en}</p>
-                    <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-white/70">
-                      {s.count} Products
+function FindYourStyle() {
+  return (
+    <section className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader eyebrow="Gallery — 04" ar="اكتشف ذوقك">
+          Find Your <em>Style</em>
+        </SectionHeader>
+
+        {/* Asymmetric gallery wall — center tile taller and lifted */}
+        <div className="mt-20 grid grid-cols-2 items-start gap-x-6 gap-y-14 md:mt-28 md:grid-cols-5">
+          {STYLES.map((s, i) => {
+            const isCenter = i === 2;
+            return (
+              <Reveal
+                key={s.en}
+                delay={i * 0.07}
+                className={`${isCenter ? 'md:-mt-12' : ''} ${i === 4 ? 'col-span-2 md:col-span-1' : ''}`}
+              >
+                <a href="#" onClick={(e) => e.preventDefault()} className="group block">
+                  <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+                    <img
+                      src={s.img}
+                      alt={s.en}
+                      className={`w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105 ${
+                        isCenter ? 'aspect-[3/5]' : 'aspect-[3/4]'
+                      }`}
+                    />
+                  </div>
+                  {/* Museum caption */}
+                  <div className="pt-4 text-center">
+                    <h3 className={`${PLAYFAIR} text-xl`} style={{ color: INK }}>
+                      {s.en}
+                    </h3>
+                    <p className="mt-1 text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
+                      {formatSAR(s.count)} pieces
+                    </p>
+                    <p className={`${AMIRI} mt-1 text-sm`} style={{ color: BRONZE }}>
+                      {s.ar}
                     </p>
                   </div>
                 </a>
-              </GridItem>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function B2B() {
+  return (
+    <section className="grid md:grid-cols-2">
+      <div className="relative min-h-[380px] overflow-hidden md:min-h-[560px]">
+        <img src={IMG.restaurant} alt="Hospitality project by Diyar" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+      <div className="flex items-center justify-center px-6 py-24 md:px-16 md:py-32" style={{ backgroundColor: DARK }}>
+        <Reveal className="flex max-w-md flex-col items-center text-center">
+          <span className="h-px w-10" style={{ backgroundColor: GOLDISH }} />
+          <p className={`${MARCELLUS} mt-6 text-[10px] uppercase tracking-[0.4em] text-[#EFE9DD]/50`}>
+            B2B — 05
+          </p>
+          <p className={`${AMIRI} mt-5 text-xl`} style={{ color: GOLDISH }}>
+            حلول متكاملة للشركات والمشاريع
+          </p>
+          <h2 className={`${PLAYFAIR} mt-2 text-4xl leading-[1.15]`} style={{ color: CREAM }}>
+            Turnkey <em>Project</em> Solutions
+          </h2>
+          <p className="mt-5 text-[15px] font-light leading-relaxed text-[#EFE9DD]/55">
+            From concept to handover — furniture, fit-out, and design for hotels, offices, and restaurants.
+          </p>
+          <div className="mt-10">
+            <HairButton label="Request a Consultation" tone="cream" />
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Footer                                                              */
+/* ------------------------------------------------------------------ */
+
+function Footer() {
+  const colTitle = `${MARCELLUS} text-[10px] uppercase tracking-[0.35em] text-[#EFE9DD]/75`;
+  const link = 'text-[13px] font-light text-[#EFE9DD]/55 transition-colors duration-300 hover:text-[#C9B393]';
+
+  return (
+    <footer style={{ backgroundColor: DARK, color: CREAM }}>
+      <div className={`${CONTAINER} grid gap-14 py-20 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr] lg:gap-10`}>
+        {/* Brand */}
+        <div>
+          <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto invert" />
+          <p className="mt-6 max-w-xs text-[13px] font-light leading-relaxed text-[#EFE9DD]/55">
+            {FOOTER_LINKS.about}
+          </p>
+          <p dir="rtl" className={`${AMIRI} mt-4 max-w-xs text-sm leading-relaxed text-[#EFE9DD]/45`}>
+            {FOOTER_LINKS.aboutAr}
+          </p>
+        </div>
+
+        {/* Quick links */}
+        <div>
+          <h3 className={colTitle}>Quick Links</h3>
+          <ul className="mt-6 space-y-3">
+            {FOOTER_LINKS.quick.map((l) => (
+              <li key={l}>
+                <a href="#" onClick={(e) => e.preventDefault()} className={link}>
+                  {l}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Support */}
+        <div>
+          <h3 className={colTitle}>Customer Support</h3>
+          <ul className="mt-6 space-y-3">
+            {FOOTER_LINKS.support.map((l) => (
+              <li key={l}>
+                <a href="#" onClick={(e) => e.preventDefault()} className={link}>
+                  {l}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Contact + subscribe */}
+        <div>
+          <h3 className={colTitle}>Contact</h3>
+          <div className="mt-6 space-y-3">
+            <a href="#" onClick={(e) => e.preventDefault()} className={`${link} block tracking-[0.08em]`}>
+              {FOOTER_LINKS.phone}
+            </a>
+            <a href="#" onClick={(e) => e.preventDefault()} className={`${link} block tracking-[0.08em]`}>
+              {FOOTER_LINKS.email}
+            </a>
+          </div>
+
+          <h3 className={`${colTitle} mt-10`}>Subscribe</h3>
+          <div className="mt-5 flex items-center gap-4 border-b border-[#EFE9DD]/25 pb-3">
+            <input
+              type="email"
+              placeholder="Your email address"
+              className="w-full bg-transparent text-[12px] font-light tracking-[0.08em] text-[#EFE9DD] outline-none placeholder:text-[#EFE9DD]/35"
+            />
+            <button className="shrink-0 text-[10px] uppercase tracking-[0.3em] text-[#C9B393] transition-opacity hover:opacity-70">
+              Submit
+            </button>
+          </div>
+
+          <div className="mt-8 flex items-center gap-3">
+            {[
+              { Icon: Instagram, label: 'Instagram' },
+              { Icon: Facebook, label: 'Facebook' },
+              { Icon: Linkedin, label: 'LinkedIn' },
+            ].map(({ Icon, label }) => (
+              <a
+                key={label}
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                aria-label={label}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#EFE9DD]/25 text-[#EFE9DD]/70 transition-colors duration-300 hover:border-[#EFE9DD]/70 hover:text-[#EFE9DD]"
+              >
+                <Icon size={15} strokeWidth={1.25} />
+              </a>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* 10 — B2B TEASER */}
-      <section className={`${CONTAINER} mt-20 md:mt-28`}>
-        <Reveal>
-          <div className="grid overflow-hidden rounded-[2.5rem] bg-[#3E4633] lg:grid-cols-2">
-            <div className="order-2 flex flex-col justify-center gap-5 p-8 md:p-12 lg:order-1 lg:p-16">
-              <p className={`${AR} text-lg font-bold text-white/80`}>حلول متكاملة للشركات والمشاريع</p>
-              <h2 className="text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-white md:text-6xl">
-                Turnkey Project Solutions
-              </h2>
-              <p className="max-w-md text-base leading-relaxed text-white/60">
-                Design, build &amp; deliver — we manage every stage of your project.
-              </p>
-              <div className="mt-2">
-                <button className="rounded-full bg-white px-9 py-4 text-xs font-bold uppercase tracking-[0.2em] text-[#221D16] transition-colors hover:bg-[#B4552D] hover:text-white">
-                  Request a Consultation
-                </button>
-              </div>
-            </div>
-            <div className="order-1 p-4 md:p-6 lg:order-2">
-              <img
-                src={IMG.restaurant}
-                alt="Hospitality project by Diyar"
-                className="h-64 w-full rounded-[2rem] object-cover lg:h-full lg:min-h-[500px]"
-              />
-            </div>
-          </div>
-        </Reveal>
-      </section>
+      <div className="border-t border-white/10">
+        <p className="py-7 text-center text-[9px] uppercase tracking-[0.35em] text-[#EFE9DD]/40">
+          © 2026 Diyar. All Rights Reserved.
+        </p>
+      </div>
+    </footer>
+  );
+}
 
-      {/* 11 — FOOTER */}
-      <footer className="mt-20 rounded-t-[2.5rem] bg-[#221D16] text-[#F3EDE3] md:mt-28">
-        <div className={`${CONTAINER} pb-10 pt-16 md:pt-20`}>
-          <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1.4fr]">
-            <div>
-              <img src="/logo_diyar.svg" alt="Diyar" className="h-9 w-auto invert" />
-              <p className="mt-6 max-w-sm text-sm leading-relaxed text-[#F3EDE3]/60">{FOOTER_LINKS.about}</p>
-              <p dir="rtl" className={`${AR} mt-3 max-w-sm text-left text-xs leading-relaxed text-[#F3EDE3]/45`}>
-                {FOOTER_LINKS.aboutAr}
-              </p>
-              <div className="mt-7 flex gap-3">
-                {(
-                  [
-                    [Instagram, 'Instagram'],
-                    [Facebook, 'Facebook'],
-                    [Linkedin, 'LinkedIn'],
-                  ] as const
-                ).map(([Icon, label]) => (
-                  <a
-                    key={label}
-                    href="#"
-                    aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-[#F3EDE3]/80 transition-colors hover:border-transparent hover:bg-[#B4552D] hover:text-white"
-                  >
-                    <Icon size={16} />
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-[0.25em] text-[#F3EDE3]/50">Quick Links</h4>
-              <ul className="mt-6 space-y-3.5 text-sm">
-                {FOOTER_LINKS.quick.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-[#F3EDE3]/80 transition-colors hover:text-[#E0764A]">
-                      {l}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-[0.25em] text-[#F3EDE3]/50">Customer Support</h4>
-              <ul className="mt-6 space-y-3.5 text-sm">
-                {FOOTER_LINKS.support.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-[#F3EDE3]/80 transition-colors hover:text-[#E0764A]">
-                      {l}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-[0.25em] text-[#F3EDE3]/50">Contact</h4>
-              <ul className="mt-6 space-y-3.5 text-sm">
-                <li>
-                  <a href="#" dir="ltr" className="text-[#F3EDE3]/80 transition-colors hover:text-[#E0764A]">
-                    {FOOTER_LINKS.phone}
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-[#F3EDE3]/80 transition-colors hover:text-[#E0764A]">
-                    {FOOTER_LINKS.email}
-                  </a>
-                </li>
-              </ul>
-              <h4 className="mt-10 text-xs font-bold uppercase tracking-[0.25em] text-[#F3EDE3]/50">Subscribe</h4>
-              <form className="relative mt-5" onSubmit={(e) => e.preventDefault()}>
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="w-full rounded-full border border-white/15 bg-white/5 py-4 pl-6 pr-14 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#B4552D]"
-                />
-                <button
-                  type="submit"
-                  aria-label="Subscribe"
-                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#B4552D] text-white transition-colors hover:bg-[#96431F]"
-                >
-                  <ArrowRight size={16} />
-                </button>
-              </form>
-            </div>
-          </div>
-          <div className="mt-14 border-t border-white/10 pt-7 text-center text-xs text-white/40">
-            © 2026 Diyar. All Rights Reserved.
-          </div>
-        </div>
-      </footer>
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
 
+export default function LookThree() {
+  return (
+    <div
+      dir="ltr"
+      className="min-h-screen overflow-x-hidden font-['Outfit',sans-serif] antialiased"
+      style={{ backgroundColor: BG, color: INK }}
+    >
+      <Header />
+      <Hero />
+      <FeaturedCategories />
+      <Services />
+      <NewProducts />
+      <Atelier />
+      <DesignAssistance />
+      <FindYourStyle />
+      <B2B />
+      <Footer />
       <LookSwitcher />
     </div>
   );

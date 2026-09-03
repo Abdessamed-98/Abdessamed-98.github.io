@@ -134,9 +134,9 @@ export default function LookOne() {
     return () => clearInterval(t);
   }, [slide]);
 
-  /* sticky header shadow */
+  /* header: transparent over hero → solid chrome after ~60px of scroll */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    const onScroll = () => setScrolled(window.scrollY > 60);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -145,6 +145,14 @@ export default function LookOne() {
   const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
 
+  /* header chrome: white over the hero, ink on the solid bar */
+  const navItemCls = `relative whitespace-nowrap py-2 text-[11.5px] uppercase tracking-[0.2em] transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:transition-all after:duration-300 hover:after:w-full ${
+    scrolled ? 'text-[#171512] after:bg-[#171512]' : 'text-white after:bg-white'
+  }`;
+  const iconBtnCls = `transition-colors duration-300 ${
+    scrolled ? 'text-[#171512] hover:text-[#5A6B4D]' : 'text-white hover:text-white/70'
+  }`;
+
   return (
     <div
       dir="ltr"
@@ -152,41 +160,66 @@ export default function LookOne() {
       style={{ backgroundColor: BG, color: INK }}
     >
       {/* ============================================================ */}
-      {/* 1. ANNOUNCEMENT STRIP + HEADER                                */}
+      {/* 1. HEADER — transparent over hero, solid after scroll         */}
       {/* ============================================================ */}
-      <div className="border-b text-center py-2.5 px-4" style={{ borderColor: HAIR }}>
-        <p className="text-[10px] uppercase tracking-[0.32em] text-neutral-500">
-          Complimentary Delivery Across the Kingdom
-          <span className="mx-3 text-neutral-300">—</span>
-          <span className="font-['Amiri',serif] text-[13px] normal-case tracking-normal">التوصيل المجاني داخل المملكة</span>
-        </p>
-      </div>
-
       <header
-        className={`sticky top-0 z-50 border-b transition-shadow duration-300 ${
-          scrolled ? 'shadow-[0_1px_16px_rgba(23,21,18,0.07)]' : ''
+        className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
+          scrolled
+            ? 'border-[#E8E4DC] bg-[#FDFCF9]/95 shadow-[0_1px_16px_rgba(23,21,18,0.07)] backdrop-blur-md'
+            : 'border-transparent bg-transparent'
         }`}
-        style={{ backgroundColor: BG, borderColor: HAIR }}
       >
-        <div className="mx-auto flex h-[76px] max-w-[1400px] items-center gap-6 px-6 md:px-10">
-          {/* logo */}
+        <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-5 px-6 md:px-10 lg:gap-6">
+          {/* logo — white over hero, black on solid bar */}
           <a href="#" className="shrink-0">
-            <img src="/logo_diyar.svg" alt="Diyar" className="h-8 w-auto" />
+            <img
+              src="/logo_diyar.svg"
+              alt="Diyar"
+              className={`h-8 w-auto transition-all duration-300 ${scrolled ? '' : 'invert'}`}
+            />
           </a>
 
+          {/* search */}
+          <div
+            className={`hidden h-9 w-44 items-center gap-2.5 rounded-full border px-4 transition-colors duration-300 md:flex xl:w-56 ${
+              scrolled ? 'border-[#E8E4DC] bg-white' : 'border-white/40 bg-transparent'
+            }`}
+          >
+            <Search
+              size={15}
+              strokeWidth={1.5}
+              className={`shrink-0 transition-colors duration-300 ${scrolled ? 'text-neutral-400' : 'text-white'}`}
+            />
+            <input
+              type="text"
+              placeholder="SEARCH"
+              className={`w-full min-w-0 bg-transparent text-[11px] uppercase tracking-[0.2em] transition-colors duration-300 focus:outline-none ${
+                scrolled ? 'text-[#171512] placeholder:text-neutral-400' : 'text-white placeholder:text-white/70'
+              }`}
+            />
+            <button
+              type="button"
+              aria-label="Search by photo"
+              className={`shrink-0 transition-colors duration-300 ${
+                scrolled ? 'text-neutral-400 hover:text-[#171512]' : 'text-white hover:text-white/70'
+              }`}
+            >
+              <Camera size={15} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="flex-1" />
+
           {/* nav */}
-          <nav className="ml-6 hidden items-center gap-7 lg:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
             {NAV_LINKS.map((link) =>
               link === 'Shop' ? (
-                /* Shop — hover mega-menu */
+                /* Shop — hover mega-menu (panel keeps its own solid chrome) */
                 <div key={link} className="group relative">
-                  <a
-                    href="#"
-                    className="relative py-2 text-[11.5px] uppercase tracking-[0.2em] text-[#171512] after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[#171512] after:transition-all after:duration-300 hover:after:w-full"
-                  >
+                  <a href="#" className={navItemCls}>
                     {link}
                   </a>
-                  <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-5 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                  <div className="invisible absolute right-0 top-full z-50 pt-5 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
                     <div
                       className="grid w-[620px] grid-cols-3 gap-x-8 gap-y-6 border bg-white p-8 shadow-[0_18px_50px_rgba(23,21,18,0.1)]"
                       style={{ borderColor: HAIR }}
@@ -206,51 +239,40 @@ export default function LookOne() {
                   </div>
                 </div>
               ) : (
-                <a
-                  key={link}
-                  href="#"
-                  className="relative py-2 text-[11.5px] uppercase tracking-[0.2em] text-[#171512] after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[#171512] after:transition-all after:duration-300 hover:after:w-full"
-                >
+                <a key={link} href="#" className={navItemCls}>
                   {link}
                 </a>
               ),
             )}
           </nav>
 
-          <div className="flex-1" />
-
-          {/* search */}
-          <div
-            className="hidden h-10 w-56 items-center gap-2.5 border bg-white px-3.5 md:flex xl:w-64"
-            style={{ borderColor: HAIR }}
-          >
-            <Search size={15} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
-            <input
-              type="text"
-              placeholder="SEARCH"
-              className="w-full bg-transparent text-[11px] uppercase tracking-[0.2em] text-[#171512] placeholder:text-neutral-400 focus:outline-none"
-            />
-            <button type="button" aria-label="Search by photo" className="shrink-0 text-neutral-400 transition-colors hover:text-[#171512]">
-              <Camera size={15} strokeWidth={1.5} />
-            </button>
-          </div>
-
           {/* language toggle (visual only) */}
-          <button type="button" className="hidden shrink-0 items-center gap-2 text-[11px] tracking-[0.18em] sm:flex">
+          <button
+            type="button"
+            className={`hidden shrink-0 items-center gap-2 text-[11px] tracking-[0.18em] transition-colors duration-300 sm:flex ${
+              scrolled ? 'text-[#171512]' : 'text-white'
+            }`}
+          >
             <span className="font-medium">ENG</span>
-            <span className="h-3 w-px" style={{ backgroundColor: HAIR }} />
-            <span className="font-['Amiri',serif] text-[15px] leading-none text-neutral-500 transition-colors hover:text-[#171512]">عربي</span>
+            <span className={`h-3 w-px transition-colors duration-300 ${scrolled ? 'bg-[#E8E4DC]' : 'bg-white/40'}`} />
+            <span
+              className={`font-['Amiri',serif] text-[15px] leading-none transition-colors ${
+                scrolled ? 'text-neutral-500 hover:text-[#171512]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              عربي
+            </span>
           </button>
 
           {/* icons */}
           <div className="flex shrink-0 items-center gap-4 md:gap-5">
-            <button type="button" aria-label="Account" className="transition-colors hover:text-[#5A6B4D]">
+            <button type="button" aria-label="Account" className={iconBtnCls}>
               <User size={20} strokeWidth={1.25} />
             </button>
-            <button type="button" aria-label="Wishlist" className="transition-colors hover:text-[#5A6B4D]">
+            <button type="button" aria-label="Wishlist" className={iconBtnCls}>
               <Heart size={20} strokeWidth={1.25} />
             </button>
-            <button type="button" aria-label="Cart" className="relative transition-colors hover:text-[#5A6B4D]">
+            <button type="button" aria-label="Cart" className={`relative ${iconBtnCls}`}>
               <ShoppingBag size={20} strokeWidth={1.25} />
               <span
                 className="absolute -right-1.5 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-semibold text-white"
