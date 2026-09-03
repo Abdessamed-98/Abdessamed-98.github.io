@@ -96,6 +96,178 @@ export const FOOTER_QUICK: Bi[] = [
   { en: 'Contact Us', ar: 'اتصل بنا' },
 ];
 
+/** A mega-menu column: a category group with its subcategories. */
+export interface MenuGroup {
+  title: Bi;
+  items: Bi[];
+}
+
+/** Shop mega-menu — groups and sub-items from the client's structure PDF. */
+export const SHOP_MENU: MenuGroup[] = [
+  {
+    title: { en: 'Home Furniture', ar: 'الأثاث المنزلي' },
+    items: [
+      { en: 'Bedrooms', ar: 'غرف النوم' },
+      { en: 'Living Rooms', ar: 'غرف المعيشة' },
+      { en: 'Dining Rooms', ar: 'غرف الطعام' },
+      { en: 'Entryway Furniture', ar: 'مداخل المنزل' },
+      { en: 'Walk-In Closets', ar: 'غرف الملابس' },
+      { en: 'Outdoor Seating', ar: 'الجلسات الخارجية' },
+      { en: 'Laundry Rooms', ar: 'غرف الغسيل' },
+    ],
+  },
+  {
+    title: { en: 'Office Furniture', ar: 'الأثاث المكتبي' },
+    items: [
+      { en: 'Office Desks', ar: 'المكاتب' },
+      { en: 'Office Chairs', ar: 'الكراسي المكتبية' },
+      { en: 'Meeting Room Furniture', ar: 'أثاث غرف الاجتماعات' },
+      { en: 'Storage Cabinets', ar: 'الخزائن' },
+      { en: 'Reception Furniture', ar: 'أثاث الاستقبال' },
+      { en: 'Workstations', ar: 'محطات العمل' },
+    ],
+  },
+  {
+    title: { en: 'Lighting', ar: 'الإنارات' },
+    items: [
+      { en: 'Chandeliers', ar: 'الثريات' },
+      { en: 'Pendant Lights', ar: 'الإنارات المعلقة' },
+      { en: 'Wall Lights', ar: 'الإنارات الجدارية' },
+      { en: 'Floor Lamps', ar: 'الإنارات الأرضية' },
+      { en: 'Table Lamps', ar: 'الأباجورات' },
+      { en: 'Outdoor Lighting', ar: 'الإنارات الخارجية' },
+      { en: 'Smart Lighting', ar: 'الإنارات الذكية' },
+    ],
+  },
+  {
+    title: { en: 'Rugs & Carpets', ar: 'السجاد' },
+    items: [
+      { en: 'Area Rugs', ar: 'السجاد' },
+      { en: 'Runner Rugs', ar: 'سجاد الممرات' },
+      { en: 'Bedroom Rugs', ar: 'سجاد غرف النوم' },
+      { en: 'Living Room Rugs', ar: 'سجاد الصالونات' },
+      { en: 'Outdoor Rugs', ar: 'السجاد الخارجي' },
+    ],
+  },
+  {
+    title: { en: 'Bathroom Solutions', ar: 'دورات المياه' },
+    items: [
+      { en: 'Wash Basins', ar: 'المغاسل' },
+      { en: 'Faucets', ar: 'الصنابير' },
+      { en: 'Shower Systems', ar: 'أنظمة الاستحمام' },
+      { en: 'Bathroom Cabinets', ar: 'خزائن الحمام' },
+      { en: 'Mirrors', ar: 'المرايا' },
+      { en: 'Smart Bathroom Solutions', ar: 'حلول الحمامات الذكية' },
+    ],
+  },
+  {
+    title: { en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
+    items: [
+      { en: 'Wall Art', ar: 'اللوحات' },
+      { en: 'Mirrors', ar: 'المرايا' },
+      { en: 'Vases & Decorative Pieces', ar: 'التحف والفازات' },
+      { en: 'Cushions', ar: 'الوسائد' },
+      { en: 'Throws & Blankets', ar: 'البطانيات' },
+      { en: 'Home Fragrances', ar: 'العطور المنزلية' },
+    ],
+  },
+];
+
+/** Services mega-menu — groups and sub-items from the client's structure PDF. */
+export const SERVICES_MENU: MenuGroup[] = [
+  {
+    title: { en: 'Interior Design', ar: 'التصميم الداخلي' },
+    items: [
+      { en: 'Residential Design', ar: 'التصميم السكني' },
+      { en: 'Commercial Design', ar: 'التصميم التجاري' },
+      { en: 'Space Planning', ar: 'تخطيط المساحات' },
+      { en: '3D Visualization', ar: 'التصاميم ثلاثية الأبعاد' },
+      { en: 'Design Consultation', ar: 'الاستشارات التصميمية' },
+    ],
+  },
+  {
+    title: { en: 'Door Solutions', ar: 'حلول الأبواب' },
+    items: [
+      { en: 'Wooden Doors', ar: 'الأبواب الخشبية' },
+      { en: 'WPC Doors', ar: 'أبواب WPC' },
+      { en: 'Sliding Doors', ar: 'الأبواب المنزلقة' },
+      { en: 'Glass Doors', ar: 'الأبواب الزجاجية' },
+      { en: 'Custom Door Manufacturing', ar: 'أبواب حسب الطلب' },
+    ],
+  },
+  {
+    title: { en: 'Custom Furniture', ar: 'تنفيذ الأثاث' },
+    items: [
+      { en: 'Residential Furniture', ar: 'الأثاث السكني' },
+      { en: 'Hotel Furniture', ar: 'أثاث الفنادق' },
+      { en: 'Custom Joinery', ar: 'الأعمال الخشبية المخصصة' },
+      { en: 'Built-In Furniture', ar: 'الأثاث الثابت' },
+      { en: 'Wardrobes & Closets', ar: 'الخزائن وغرف الملابس' },
+    ],
+  },
+  {
+    title: { en: 'Painting & Wall Finishes', ar: 'الدهانات والجداريات' },
+    items: [
+      { en: 'Interior Painting', ar: 'الدهانات الداخلية' },
+      { en: 'Exterior Painting', ar: 'الدهانات الخارجية' },
+      { en: 'Wallpaper Installation', ar: 'تركيب ورق الجدران' },
+      { en: 'Wall Panels', ar: 'ألواح الجدران' },
+      { en: 'Decorative Finishes', ar: 'التشطيبات الديكورية' },
+    ],
+  },
+  {
+    title: { en: 'Flooring Solutions', ar: 'الأرضيات' },
+    items: [
+      { en: 'Porcelain Flooring', ar: 'أرضيات البورسلان' },
+      { en: 'Marble Flooring', ar: 'الأرضيات الرخامية' },
+      { en: 'SPC Flooring', ar: 'أرضيات SPC' },
+      { en: 'Wooden Flooring', ar: 'الأرضيات الخشبية' },
+      { en: 'Carpet Flooring', ar: 'الأرضيات الموكيت' },
+    ],
+  },
+  {
+    title: { en: 'Finishing & Decorative Works', ar: 'التشطيبات والديكورات' },
+    items: [
+      { en: 'Wall Cladding', ar: 'تشطيبات الواجهات' },
+      { en: 'Architectural Details', ar: 'التشطيبات المعمارية' },
+      { en: 'Decorative Finishes', ar: 'التشطيبات الديكورية' },
+      { en: 'Turnkey Finishing', ar: 'التشطيبات المتكاملة' },
+    ],
+  },
+  {
+    title: { en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت' },
+    items: [
+      { en: 'Glass Facades', ar: 'الواجهات الزجاجية' },
+      { en: 'Skurit Systems', ar: 'أنظمة السكوريت' },
+      { en: 'Skylights', ar: 'السكاي لايت' },
+      { en: 'Glass Partitions', ar: 'القواطع الزجاجية' },
+      { en: 'Storefront Systems', ar: 'واجهات المعارض والمحلات' },
+    ],
+  },
+  {
+    title: { en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة' },
+    items: [
+      { en: 'Fire Alarm Systems', ar: 'أنظمة إنذار الحريق' },
+      { en: 'CCTV Systems', ar: 'أنظمة المراقبة' },
+      { en: 'Access Control Systems', ar: 'أنظمة التحكم بالدخول' },
+      { en: 'Safety Signage', ar: 'اللوحات الإرشادية' },
+      { en: 'Safety Compliance', ar: 'حلول ومعايير السلامة' },
+    ],
+  },
+];
+
+/** Featured promo tiles for the rich mega-menu panels. */
+export const MENU_FEATURED = {
+  shop: [
+    { img: IMG.hero, title: { en: 'New Collection', ar: 'التشكيلة الجديدة' } as Bi, cta: { en: 'Shop Now', ar: 'تسوق الآن' } as Bi },
+    { img: IMG.catLighting, title: { en: 'Lighting Edit', ar: 'مختارات الإنارة' } as Bi, cta: { en: 'Discover', ar: 'اكتشف' } as Bi },
+  ],
+  services: [
+    { img: IMG.roomHotspots, title: { en: 'Free Design Assistance', ar: 'مساعدة تصميم مجانية' } as Bi, cta: { en: 'Book a Session', ar: 'احجز جلسة' } as Bi },
+    { img: IMG.workshop, title: { en: 'Custom Manufacturing', ar: 'تصنيع حسب الطلب' } as Bi, cta: { en: 'Start Your Project', ar: 'ابدأ مشروعك' } as Bi },
+  ],
+} as const;
+
 export const FOOTER_SUPPORT: Bi[] = [
   { en: 'FAQ', ar: 'الأسئلة الشائعة' },
   { en: 'Shipping & Delivery', ar: 'الشحن والتوصيل' },

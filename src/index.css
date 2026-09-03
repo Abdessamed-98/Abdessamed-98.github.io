@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Marcellus&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
+/* Redefine rtl:/ltr: to use computed direction (:dir), not ancestor [dir] attributes.
+   The app shell is dir="rtl", so the default [dir="rtl"] * selector would make rtl:
+   utilities fire even inside nested dir="ltr" subtrees (e.g. the /look demo pages). */
+@custom-variant rtl (&:where(:dir(rtl)));
+@custom-variant ltr (&:where(:dir(ltr)));
+
 @theme {
   --font-serif: "Alexandria", "Outfit", "Tajawal", sans-serif;
   --font-sans: "Alexandria", "Tajawal", "Outfit", sans-serif;

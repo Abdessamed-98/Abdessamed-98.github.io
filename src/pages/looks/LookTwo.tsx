@@ -7,7 +7,7 @@
  * Bilingual: Arabic (default, RTL, Amiri/Alexandria/Tajawal) ⇄ English (LTR,
  * Playfair/Marcellus/Outfit). The header ENG | عربي switch is live.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -17,9 +17,10 @@ import {
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
   formatSAR, LookSwitcher,
 } from './lookShared';
-import type { Lang, LookSlide } from './lookShared';
+import type { Bi, Lang, LookSlide, MenuGroup } from './lookShared';
 
 /* ------------------------------------------------------------------ */
 /* Design tokens (class fragments — kept as literal strings so the     */
@@ -85,6 +86,56 @@ function GoldLink({ ar = false, children }: { ar?: boolean; children: ReactNode 
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Mega-menu building blocks (desktop full-width panels)               */
+/* ------------------------------------------------------------------ */
+type MegaMenuId = 'shop' | 'services';
+
+/** One category group column: gold small-caps title + subcategory links. */
+function MegaGroup({ group, ar }: { group: MenuGroup; ar: boolean; key?: string | number }) {
+  return (
+    <div>
+      <p className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} uppercase text-[#C9A86A] mb-4`}>
+        {ar ? group.title.ar : group.title.en}
+      </p>
+      <ul className="space-y-2">
+        {group.items.map((item) => (
+          <li key={item.en}>
+            <a
+              href="#"
+              onClick={stop}
+              className={`${ar ? "font-['Tajawal',sans-serif] tracking-normal" : ''} block text-[12.5px] font-light leading-relaxed text-[#EFE9DD]/60 hover:text-[#C9A86A] transition-colors duration-200`}
+            >
+              {ar ? item.ar : item.en}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Featured promo tile: image in an inset gold hairline frame + caption + CTA. */
+function MegaFeatured({ tile, ar }: { tile: { img: string; title: Bi; cta: Bi }; ar: boolean; key?: string | number }) {
+  return (
+    <a href="#" onClick={stop} className="group block">
+      <div className="border border-[#C9A86A]/30 p-1">
+        <img
+          src={tile.img}
+          alt={ar ? tile.title.ar : tile.title.en}
+          className="w-full aspect-[16/10] object-cover"
+        />
+      </div>
+      <p className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.25em]`} uppercase text-[#EFE9DD] mt-4 mb-2`}>
+        {ar ? tile.title.ar : tile.title.en}
+      </p>
+      <span className={`${ar ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} inline-flex items-center gap-2 uppercase text-[#C9A86A] border-b border-[#C9A86A]/40 pb-1 group-hover:border-[#C9A86A] transition-colors duration-300`}>
+        {ar ? tile.cta.ar : tile.cta.en} <ArrowRight size={10} strokeWidth={1.5} className="rtl:rotate-180" />
+      </span>
+    </a>
+  );
+}
+
 /* Hotspot dots stay physically positioned (top/left track the image). */
 function Hotspot({ top, left, label, ar = false }: { top: string; left: string; label: string; ar?: boolean }) {
   return (
@@ -121,6 +172,30 @@ function Heading({
 export default function LookTwo() {
   const [slide, setSlide] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+
+  /* Mega menus — one panel open at a time; short close delay lets the
+     cursor travel from the trigger into the panel. */
+  const [openMenu, setOpenMenu] = useState<MegaMenuId | null>(null);
+  const closeTimer = useRef<number | null>(null);
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const openMega = (menu: MegaMenuId) => {
+    cancelClose();
+    setOpenMenu(menu);
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 150);
+  };
+  const toggleMega = (menu: MegaMenuId) => {
+    cancelClose();
+    setOpenMenu((m) => (m === menu ? null : menu));
+  };
+  useEffect(() => cancelClose, []);
 
   /* Language — the site is primarily Arabic; Arabic is the default. */
   const [lang, setLang] = useState<Lang>(() =>
@@ -161,12 +236,14 @@ export default function LookTwo() {
   const accent = words[words.length - 1] ?? '';
   const headline = words.slice(0, -1).join(' ');
 
-  /* header chrome: white over the hero, ivory on the solid bar; gold hovers */
+  /* header chrome: white over the hero, ivory on the solid bar; gold hovers.
+     While a mega panel is open the header keeps its solid chrome even at top. */
+  const solid = scrolled || openMenu !== null;
   const navLinkCls = `${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.25em]`} block whitespace-nowrap py-2 uppercase transition-colors duration-300 hover:text-[#C9A86A] ${
-    scrolled ? 'text-[#EFE9DD]/75' : 'text-white'
+    solid ? 'text-[#EFE9DD]/75' : 'text-white'
   }`;
   const headerIconCls = `cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
-    scrolled ? 'text-[#EFE9DD]/75' : 'text-white'
+    solid ? 'text-[#EFE9DD]/75' : 'text-white'
   }`;
 
   return (
@@ -185,8 +262,9 @@ export default function LookTwo() {
       {/* ============================== 1. HEADER ============================== */}
       {/* One line, fixed over the hero: transparent at top, espresso after scroll */}
       <header
+        onMouseLeave={scheduleClose}
         className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
-          scrolled ? 'bg-[#131009]/95 backdrop-blur-md border-white/10' : 'bg-transparent border-transparent'
+          solid ? 'bg-[#131009]/95 backdrop-blur-md border-white/10' : 'bg-transparent border-transparent'
         }`}
       >
         <div className="max-w-[1400px] mx-auto flex h-[72px] items-center gap-5 lg:gap-6 px-6 md:px-10">
@@ -198,59 +276,63 @@ export default function LookTwo() {
           {/* Search */}
           <div
             className={`hidden md:flex items-center gap-3 rounded-full border h-9 w-44 xl:w-60 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60 ${
-              scrolled ? 'border-white/15' : 'border-white/40'
+              solid ? 'border-white/15' : 'border-white/40'
             }`}
           >
             <Search
               size={15}
               strokeWidth={1.25}
-              className={`shrink-0 transition-colors duration-300 ${scrolled ? 'text-[#EFE9DD]/45' : 'text-white'}`}
+              className={`shrink-0 transition-colors duration-300 ${solid ? 'text-[#EFE9DD]/45' : 'text-white'}`}
             />
             <input
               type="text"
               placeholder={t('Search…', 'ابحث…')}
               className={`bg-transparent flex-1 min-w-0 text-[13px] font-light outline-none transition-colors duration-300 ${
-                scrolled ? 'text-[#EFE9DD] placeholder:text-[#EFE9DD]/35' : 'text-white placeholder:text-white/70'
+                solid ? 'text-[#EFE9DD] placeholder:text-[#EFE9DD]/35' : 'text-white placeholder:text-white/70'
               }`}
             />
             <button
               aria-label={t('Search by photo', 'البحث بالصورة')}
               className={`shrink-0 cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
-                scrolled ? 'text-[#C9A86A]/70' : 'text-white'
+                solid ? 'text-[#C9A86A]/70' : 'text-white'
               }`}
             >
               <Camera size={16} strokeWidth={1.25} />
             </button>
           </div>
 
-          {/* Nav — single line (mega-menu panel keeps its own solid chrome) */}
+          {/* Nav — single line; Shop & Services open full-width mega panels */}
           <nav className="hidden lg:block ms-auto">
             <ul className="flex items-center gap-6 xl:gap-8">
-              {NAV_ITEMS.map((item) => (
-                <li key={item.en} className={item.en === 'Shop' ? 'relative group' : undefined}>
-                  <a href="#" onClick={stop} className={navLinkCls}>
-                    {t(item.en, item.ar)}
-                  </a>
-                  {item.en === 'Shop' && (
-                    <div className="absolute end-0 top-full z-50 pt-4 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
-                      <div className="w-[620px] bg-[#1C1610] border border-[#C9A86A]/20 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.85)] p-8">
-                        <p className={`${isAr ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.35em]`} text-[#C9A86A] mb-6`}>
-                          {t('SHOP BY CATEGORY', 'تسوّق حسب التصنيف')}
-                        </p>
-                        <div className="grid grid-cols-3 gap-x-8 gap-y-5">
-                          {CATEGORIES.map((c) => (
-                            <a key={c.en} href="#" onClick={stop} className="group/cat block py-1">
-                              <span className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.15em]`} block uppercase text-[#EFE9DD]/85 group-hover/cat:text-[#C9A86A] transition-colors`}>
-                                {t(c.en, c.ar)}
-                              </span>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </li>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const mega: MegaMenuId | null =
+                  item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
+                return (
+                  <li key={item.en}>
+                    {mega ? (
+                      <a
+                        href="#"
+                        data-testid={`mega-${mega}-trigger`}
+                        aria-haspopup="true"
+                        aria-expanded={openMenu === mega}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleMega(mega);
+                        }}
+                        onMouseEnter={() => openMega(mega)}
+                        onMouseLeave={scheduleClose}
+                        className={navLinkCls}
+                      >
+                        {t(item.en, item.ar)}
+                      </a>
+                    ) : (
+                      <a href="#" onClick={stop} className={navLinkCls}>
+                        {t(item.en, item.ar)}
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
@@ -262,16 +344,16 @@ export default function LookTwo() {
               onClick={toggleLang}
               aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
               className={`${CAPS} flex items-center gap-2 text-[11px] tracking-[0.2em] transition-colors duration-300 cursor-pointer ${
-                scrolled ? 'text-[#EFE9DD]/45' : 'text-white/60'
+                solid ? 'text-[#EFE9DD]/45' : 'text-white/60'
               }`}
             >
               <span className={`transition-colors duration-300 ${!isAr ? 'text-[#C9A86A]' : 'hover:text-[#C9A86A]'}`}>ENG</span>
-              <span className={scrolled ? 'text-[#C9A86A]/60' : 'text-white/60'}>|</span>
+              <span className={solid ? 'text-[#C9A86A]/60' : 'text-white/60'}>|</span>
               <span className={`${AR_DISPLAY} text-[14px] leading-none tracking-normal transition-colors duration-300 ${isAr ? 'text-[#C9A86A]' : 'hover:text-[#C9A86A]'}`}>
                 عربي
               </span>
             </button>
-            <span className={`hidden sm:block h-4 w-px transition-colors duration-300 ${scrolled ? 'bg-white/10' : 'bg-white/30'}`} />
+            <span className={`hidden sm:block h-4 w-px transition-colors duration-300 ${solid ? 'bg-white/10' : 'bg-white/30'}`} />
             <button aria-label="Account" className={headerIconCls}>
               <User size={19} strokeWidth={1.25} />
             </button>
@@ -286,6 +368,75 @@ export default function LookTwo() {
             </button>
           </div>
         </div>
+
+        {/* Full-width mega panels — flush under the bar (no hover gap) */}
+        <AnimatePresence>
+          {openMenu === 'shop' && (
+            <motion.div
+              key="mega-shop"
+              data-testid="mega-shop-panel"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
+              className="hidden lg:block absolute inset-x-0 top-full bg-[#161009] border-y border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+            >
+              <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
+                <div className="grid grid-cols-4 gap-x-10 gap-y-10">
+                  {SHOP_MENU.map((g) => (
+                    <MegaGroup key={g.title.en} group={g} ar={isAr} />
+                  ))}
+                  {/* Featured column — spans both rows beside the 3×2 groups */}
+                  <div className="col-start-4 row-start-1 row-span-2 border-s border-white/10 ps-8 flex flex-col gap-8">
+                    {MENU_FEATURED.shop.map((tile) => (
+                      <MegaFeatured key={tile.title.en} tile={tile} ar={isAr} />
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-10 pt-6 border-t border-white/10">
+                  <GoldLink ar={isAr}>
+                    {t('View All Categories', 'عرض كل التصنيفات')}{' '}
+                    <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
+                  </GoldLink>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {openMenu === 'services' && (
+            <motion.div
+              key="mega-services"
+              data-testid="mega-services-panel"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
+              className="hidden lg:block absolute inset-x-0 top-full bg-[#161009] border-y border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+            >
+              <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
+                <div className="grid grid-cols-5 gap-x-8 gap-y-10">
+                  {SERVICES_MENU.map((g) => (
+                    <MegaGroup key={g.title.en} group={g} ar={isAr} />
+                  ))}
+                  {/* Featured column — spans both rows beside the 4×2 groups */}
+                  <div className="col-start-5 row-start-1 row-span-2 border-s border-white/10 ps-8">
+                    <MegaFeatured tile={MENU_FEATURED.services[0]} ar={isAr} />
+                  </div>
+                </div>
+                <div className="mt-10 pt-6 border-t border-white/10">
+                  <GoldLink ar={isAr}>
+                    {t('Request a Consultation', 'اطلب استشارة')}{' '}
+                    <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
+                  </GoldLink>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ============================ 2. HERO SLIDER ============================ */}

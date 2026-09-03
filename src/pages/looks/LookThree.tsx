@@ -9,16 +9,17 @@
  * between RTL Arabic (Amiri headings, Alexandria labels, Tajawal body — no
  * letterspacing on Arabic script) and the original English look.
  */
-import { useEffect, useState, type Key, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type Key, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Search, Camera, User, Heart, ShoppingBag, Star,
+  Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
   ChevronLeft, ChevronRight, Instagram, Facebook, Linkedin,
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
-  formatSAR, LookSwitcher, type Lang,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
+  formatSAR, LookSwitcher, type Lang, type Bi, type MenuGroup,
 } from './lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -189,12 +190,92 @@ function Hotspot({
 }
 
 /* ------------------------------------------------------------------ */
-/* Header                                                              */
+/* Header + mega menus                                                 */
 /* ------------------------------------------------------------------ */
+
+type MenuKey = 'shop' | 'services';
+
+/** One mega-menu column: serif group title over a thin bronze rule, muted sub-items. */
+function MegaGroup({ group, lang }: { group: MenuGroup; lang: Lang; key?: Key }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <div>
+      <h3
+        className={`${serif(lang)} ${lang === 'ar' ? 'text-[16px] tracking-normal' : 'text-[15px]'}`}
+        style={{ color: INK }}
+      >
+        {t(group.title.en, group.title.ar)}
+      </h3>
+      <span className="mt-3 block h-px w-6" style={{ backgroundColor: BRONZE }} />
+      <ul className="mt-4 space-y-2">
+        {group.items.map((item) => (
+          <li key={item.en}>
+            <a
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              className={`block text-[12.5px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
+                lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
+              }`}
+            >
+              {t(item.en, item.ar)}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Museum-piece promo tile: image above, caption below in small serif, bronze underlined CTA. */
+function MegaFeatured({ tile, lang }: { tile: { img: string; title: Bi; cta: Bi }; lang: Lang; key?: Key }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <a href="#" onClick={(e) => e.preventDefault()} className="group block">
+      <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+        <img
+          src={tile.img}
+          alt={tile.title.en}
+          className="aspect-[4/3] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+        />
+      </div>
+      {/* Museum caption */}
+      <div className="pt-4">
+        <p className={`${serif(lang)} text-[16px] leading-snug`} style={{ color: INK }}>
+          {t(tile.title.en, tile.title.ar)}
+        </p>
+        <span
+          className={`mt-2 inline-flex items-center gap-1.5 border-b border-[#8A6D4F]/35 pb-0.5 text-[#8A6D4F] transition-colors duration-300 group-hover:border-[#8A6D4F] ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+          }`}
+        >
+          {t(tile.cta.en, tile.cta.ar)}
+          <ArrowRight size={11} strokeWidth={1.25} className="rtl:rotate-180" />
+        </span>
+      </div>
+    </a>
+  );
+}
+
+/** Bronze small-caps link closing a mega panel, arrow flips in RTL. */
+function MegaBottomLink({ label, lang }: { label: string; lang: Lang }) {
+  return (
+    <a
+      href="#"
+      onClick={(e) => e.preventDefault()}
+      className={`inline-flex items-center gap-2 text-[#8A6D4F] transition-opacity duration-300 hover:opacity-75 ${
+        lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
+      }`}
+    >
+      {label}
+      <ArrowRight size={12} strokeWidth={1.25} className="rtl:rotate-180" />
+    </a>
+  );
+}
 
 function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
   const [scrolled, setScrolled] = useState(false);
-  const [shopOpen, setShopOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
+  const closeTimer = useRef<number | null>(null);
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
 
   useEffect(() => {
@@ -204,11 +285,31 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const solid = scrolled || shopOpen;
+  /** Cancel a pending close (the cursor made it back into the header or panel). */
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  /** Close after a short grace period so the cursor can travel into the panel. */
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 150);
+  };
+  const openPanel = (menu: MenuKey) => {
+    cancelClose();
+    setOpenMenu(menu);
+  };
+
+  useEffect(() => cancelClose, []);
+
+  const solid = scrolled || openMenu !== null;
 
   return (
     <header
-      onMouseLeave={() => setShopOpen(false)}
+      onMouseEnter={cancelClose}
+      onMouseLeave={scheduleClose}
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
         solid ? 'border-b border-[#DDD6CA] bg-[#F1EDE5] text-[#2A241C]' : 'border-b border-transparent bg-transparent text-white'
       }`}
@@ -244,19 +345,43 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
 
         {/* Nav */}
         <nav className="ms-auto hidden items-center gap-7 lg:flex">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.en}
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              onMouseEnter={() => setShopOpen(item.en === 'Shop')}
-              className={`opacity-90 transition-opacity duration-300 hover:opacity-100 ${
-                lang === 'ar' ? `${ALEXANDRIA} text-[12px] tracking-normal` : 'text-[11px] uppercase tracking-[0.22em]'
-              }`}
-            >
-              {t(item.en, item.ar)}
-            </a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const menuKey: MenuKey | null =
+              item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
+            const navCls = `transition-opacity duration-300 hover:opacity-100 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[12px] tracking-normal` : 'text-[11px] uppercase tracking-[0.22em]'
+            }`;
+            if (menuKey !== null) {
+              return (
+                <a
+                  key={item.en}
+                  href="#"
+                  data-testid={`mega-${menuKey}-trigger`}
+                  aria-haspopup="true"
+                  aria-expanded={openMenu === menuKey}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenMenu((m) => (m === menuKey ? null : menuKey));
+                  }}
+                  onMouseEnter={() => openPanel(menuKey)}
+                  className={`${openMenu === menuKey ? 'opacity-100' : 'opacity-90'} ${navCls}`}
+                >
+                  {t(item.en, item.ar)}
+                </a>
+              );
+            }
+            return (
+              <a
+                key={item.en}
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                onMouseEnter={scheduleClose}
+                className={`opacity-90 ${navCls}`}
+              >
+                {t(item.en, item.ar)}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right utilities */}
@@ -295,33 +420,63 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
         </div>
       </div>
 
-      {/* Shop hover panel */}
+      {/* Mega menus — desktop only, a quiet fade beneath the header */}
       <AnimatePresence>
-        {shopOpen && (
+        {openMenu === 'shop' && (
           <motion.div
-            initial={{ opacity: 0, y: 6 }}
+            key="shop"
+            data-testid="mega-shop-panel"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="absolute inset-x-0 top-full border-b border-[#DDD6CA] bg-white"
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute inset-x-0 top-full hidden border-b border-[#DDD6CA] bg-[#FBFAF7] text-[#2A241C] shadow-[0_24px_60px_rgba(42,36,28,0.09)] lg:block"
           >
-            <div className={`${CONTAINER} grid grid-cols-2 gap-x-12 gap-y-5 py-10 md:grid-cols-3`}>
-              {CATEGORIES.map((c) => (
-                <a
-                  key={c.en}
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                  className="group flex items-baseline justify-between border-b border-[#DDD6CA]/70 pb-3"
-                >
-                  <span
-                    className={`${serif(lang)} ${
-                      lang === 'ar' ? 'text-[16px]' : 'text-[15px]'
-                    } text-[#2A241C] transition-colors duration-300 group-hover:text-[#8A6D4F]`}
-                  >
-                    {t(c.en, c.ar)}
-                  </span>
-                </a>
-              ))}
+            <div className={`${CONTAINER} pb-8 pt-10`}>
+              <div className="flex items-start gap-12">
+                <div className="grid flex-1 grid-cols-3 gap-x-10 gap-y-10">
+                  {SHOP_MENU.map((group) => (
+                    <MegaGroup key={group.title.en} group={group} lang={lang} />
+                  ))}
+                </div>
+                {/* Featured side column — museum pieces */}
+                <div className="grid w-[280px] shrink-0 grid-cols-1 gap-9 border-s ps-10" style={{ borderColor: HAIR }}>
+                  {MENU_FEATURED.shop.map((tile) => (
+                    <MegaFeatured key={tile.title.en} tile={tile} lang={lang} />
+                  ))}
+                </div>
+              </div>
+              <div className="mt-10 border-t pt-5" style={{ borderColor: HAIR }}>
+                <MegaBottomLink lang={lang} label={t('View All Categories', 'عرض كل التصنيفات')} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {openMenu === 'services' && (
+          <motion.div
+            key="services"
+            data-testid="mega-services-panel"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute inset-x-0 top-full hidden border-b border-[#DDD6CA] bg-[#FBFAF7] text-[#2A241C] shadow-[0_24px_60px_rgba(42,36,28,0.09)] lg:block"
+          >
+            <div className={`${CONTAINER} pb-8 pt-10`}>
+              <div className="flex items-start gap-12">
+                <div className="grid flex-1 grid-cols-4 gap-x-10 gap-y-10">
+                  {SERVICES_MENU.map((group) => (
+                    <MegaGroup key={group.title.en} group={group} lang={lang} />
+                  ))}
+                </div>
+                {/* Single featured tile */}
+                <div className="w-[280px] shrink-0 border-s ps-10" style={{ borderColor: HAIR }}>
+                  <MegaFeatured tile={MENU_FEATURED.services[0]} lang={lang} />
+                </div>
+              </div>
+              <div className="mt-10 border-t pt-5" style={{ borderColor: HAIR }}>
+                <MegaBottomLink lang={lang} label={t('Request a Consultation', 'اطلب استشارة')} />
+              </div>
             </div>
           </motion.div>
         )}

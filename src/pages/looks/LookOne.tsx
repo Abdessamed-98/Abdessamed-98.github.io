@@ -5,7 +5,7 @@
  * letterspaced eyebrows, editorial photography, hairline dividers,
  * restrained motion. Bilingual: Arabic (default, RTL) + English.
  */
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
@@ -14,7 +14,8 @@ import {
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
-  type Lang,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
+  type Lang, type MenuGroup, type Bi,
 } from './lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -154,15 +155,97 @@ function Hotspot({ top, left, label, delay = 0 }: { top: string; left: string; l
   );
 }
 
+/** One mega-menu column: group title + subcategory links. */
+function MegaGroup({ group }: { group: MenuGroup; key?: string | number }) {
+  const isAr = useLang() === 'ar';
+  return (
+    <div className="text-start">
+      <p
+        className={`text-[11px] font-bold uppercase text-[#171512] ${
+          isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
+        }`}
+      >
+        {isAr ? group.title.ar : group.title.en}
+      </p>
+      <ul className="mt-3.5 space-y-1">
+        {group.items.map((it) => (
+          <li key={it.en}>
+            <a
+              href="#"
+              className="block text-[12.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline"
+            >
+              {isAr ? it.ar : it.en}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Featured promo tile inside a mega-menu panel. */
+function MegaFeatured({ img, title, cta }: { img: string; title: Bi; cta: Bi; key?: string | number }) {
+  const isAr = useLang() === 'ar';
+  return (
+    <a href="#" className="group/mf block text-start">
+      <div className="aspect-[4/3] overflow-hidden">
+        <img
+          src={img}
+          alt={isAr ? title.ar : title.en}
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/mf:scale-105"
+        />
+      </div>
+      <p
+        className={`mt-3.5 text-[12px] font-bold uppercase text-[#171512] ${
+          isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
+        }`}
+      >
+        {isAr ? title.ar : title.en}
+      </p>
+      <span
+        className={`mt-2 inline-flex items-center gap-2 border-b border-[#171512]/25 pb-1 text-[10.5px] uppercase text-[#171512] transition-colors group-hover/mf:border-[#171512] ${
+          isAr ? 'tracking-normal' : 'tracking-[0.24em]'
+        }`}
+      >
+        {isAr ? cta.ar : cta.en}
+        <ArrowRight
+          size={11}
+          strokeWidth={1.5}
+          className="rtl:rotate-180 transition-transform duration-300 group-hover/mf:translate-x-1 rtl:group-hover/mf:-translate-x-1"
+        />
+      </span>
+    </a>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 export default function LookOne() {
   const [slide, setSlide] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const [openMenu, setOpenMenu] = useState<'shop' | 'services' | null>(null);
+  const closeTimer = useRef<number | null>(null);
   const [lang, setLang] = useState<Lang>(() =>
     typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
   );
+
+  /* mega menu hover intent: ~150ms close delay so the cursor can travel into the panel */
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 150);
+  };
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    };
+  }, []);
 
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   const isAr = lang === 'ar';
@@ -190,12 +273,14 @@ export default function LookOne() {
   const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
 
-  /* header chrome: white over the hero, ink on the solid bar */
+  /* header chrome: white over the hero, ink on the solid bar.
+     While a mega-menu panel is open the header always shows its solid chrome. */
+  const solid = scrolled || openMenu !== null;
   const navItemCls = `relative whitespace-nowrap py-2 text-[11.5px] uppercase transition-colors duration-300 after:absolute after:bottom-0 after:start-0 after:h-px after:w-0 after:transition-all after:duration-300 hover:after:w-full ${
     isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-  } ${scrolled ? 'text-[#171512] after:bg-[#171512]' : 'text-white after:bg-white'}`;
+  } ${solid ? 'text-[#171512] after:bg-[#171512]' : 'text-white after:bg-white'}`;
   const iconBtnCls = `transition-colors duration-300 ${
-    scrolled ? 'text-[#171512] hover:text-[#5A6B4D]' : 'text-white hover:text-white/70'
+    solid ? 'text-[#171512] hover:text-[#5A6B4D]' : 'text-white hover:text-white/70'
   }`;
 
   return (
@@ -211,8 +296,12 @@ export default function LookOne() {
         {/* 1. HEADER — transparent over hero, solid after scroll         */}
         {/* ============================================================ */}
         <header
+          onMouseEnter={cancelClose}
+          onMouseLeave={() => {
+            if (openMenu !== null) scheduleClose();
+          }}
           className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
-            scrolled
+            solid
               ? 'border-[#E8E4DC] bg-[#FDFCF9]/95 shadow-[0_1px_16px_rgba(23,21,18,0.07)] backdrop-blur-md'
               : 'border-transparent bg-transparent'
           }`}
@@ -223,20 +312,20 @@ export default function LookOne() {
               <img
                 src="/logo_diyar.svg"
                 alt="Diyar"
-                className={`h-8 w-auto transition-all duration-300 ${scrolled ? '' : 'invert'}`}
+                className={`h-8 w-auto transition-all duration-300 ${solid ? '' : 'invert'}`}
               />
             </a>
 
             {/* search */}
             <div
               className={`hidden h-9 w-44 items-center gap-2.5 rounded-full border px-4 transition-colors duration-300 md:flex xl:w-56 ${
-                scrolled ? 'border-[#E8E4DC] bg-white' : 'border-white/40 bg-transparent'
+                solid ? 'border-[#E8E4DC] bg-white' : 'border-white/40 bg-transparent'
               }`}
             >
               <Search
                 size={15}
                 strokeWidth={1.5}
-                className={`shrink-0 transition-colors duration-300 ${scrolled ? 'text-neutral-400' : 'text-white'}`}
+                className={`shrink-0 transition-colors duration-300 ${solid ? 'text-neutral-400' : 'text-white'}`}
               />
               <input
                 type="text"
@@ -244,14 +333,14 @@ export default function LookOne() {
                 className={`w-full min-w-0 bg-transparent text-[11px] uppercase transition-colors duration-300 focus:outline-none ${
                   isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                 } ${
-                  scrolled ? 'text-[#171512] placeholder:text-neutral-400' : 'text-white placeholder:text-white/70'
+                  solid ? 'text-[#171512] placeholder:text-neutral-400' : 'text-white placeholder:text-white/70'
                 }`}
               />
               <button
                 type="button"
                 aria-label={t('Search by photo', 'البحث بالصورة')}
                 className={`shrink-0 transition-colors duration-300 ${
-                  scrolled ? 'text-neutral-400 hover:text-[#171512]' : 'text-white hover:text-white/70'
+                  solid ? 'text-neutral-400 hover:text-[#171512]' : 'text-white hover:text-white/70'
                 }`}
               >
                 <Camera size={15} strokeWidth={1.5} />
@@ -260,43 +349,36 @@ export default function LookOne() {
 
             <div className="flex-1" />
 
-            {/* nav */}
+            {/* nav — Shop & Services open full-width mega menus (panels are siblings below) */}
             <nav className="hidden items-center gap-6 lg:flex">
-              {NAV_ITEMS.map((item) =>
-                item.en === 'Shop' ? (
-                  /* Shop — hover mega-menu (panel keeps its own solid chrome) */
-                  <div key={item.en} className="group relative">
-                    <a href="#" className={navItemCls}>
-                      {t(item.en, item.ar)}
-                    </a>
-                    <div className="invisible absolute end-0 top-full z-50 pt-5 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      <div
-                        className="grid w-[620px] grid-cols-3 gap-x-8 gap-y-6 border bg-white p-8 shadow-[0_18px_50px_rgba(23,21,18,0.1)]"
-                        style={{ borderColor: HAIR }}
-                      >
-                        {CATEGORIES.map((c) => (
-                          <a key={c.en} href="#" className="group/cat block">
-                            <span
-                              className={`block text-[11px] uppercase text-[#171512] transition-colors group-hover/cat:text-[#5A6B4D] ${
-                                isAr ? 'tracking-normal' : 'tracking-[0.18em]'
-                              }`}
-                            >
-                              {t(c.en, c.ar)}
-                            </span>
-                          </a>
-                        ))}
-                        <div className="col-span-3 border-t pt-5" style={{ borderColor: HAIR }}>
-                          <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              {NAV_ITEMS.map((item) => {
+                const mega =
+                  item.en === 'Shop' ? ('shop' as const) : item.en === 'Services' ? ('services' as const) : null;
+                return mega !== null ? (
+                  <button
+                    key={item.en}
+                    type="button"
+                    data-testid={`mega-${mega}-trigger`}
+                    aria-haspopup="true"
+                    aria-expanded={openMenu === mega}
+                    onMouseEnter={() => {
+                      cancelClose();
+                      setOpenMenu(mega);
+                    }}
+                    onClick={() => {
+                      cancelClose();
+                      setOpenMenu((m) => (m === mega ? null : mega));
+                    }}
+                    className={`${navItemCls} cursor-pointer ${openMenu === mega ? 'after:w-full' : ''}`}
+                  >
+                    {t(item.en, item.ar)}
+                  </button>
                 ) : (
                   <a key={item.en} href="#" className={navItemCls}>
                     {t(item.en, item.ar)}
                   </a>
-                ),
-              )}
+                );
+              })}
             </nav>
 
             {/* language toggle — active language emphasized */}
@@ -307,25 +389,25 @@ export default function LookOne() {
               aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
               className={`hidden shrink-0 items-center gap-2 text-[11px] transition-colors duration-300 sm:flex ${
                 isAr ? 'tracking-normal' : 'tracking-[0.18em]'
-              } ${scrolled ? 'text-[#171512]' : 'text-white'}`}
+              } ${solid ? 'text-[#171512]' : 'text-white'}`}
             >
               <span
                 className={`transition-colors duration-300 ${
                   !isAr
-                    ? `font-bold ${scrolled ? 'text-[#171512]' : 'text-white'}`
+                    ? `font-bold ${solid ? 'text-[#171512]' : 'text-white'}`
                     : `font-medium ${
-                        scrolled ? 'text-neutral-400 hover:text-[#171512]' : 'text-white/55 hover:text-white'
+                        solid ? 'text-neutral-400 hover:text-[#171512]' : 'text-white/55 hover:text-white'
                       }`
                 }`}
               >
                 ENG
               </span>
-              <span className={`h-3 w-px transition-colors duration-300 ${scrolled ? 'bg-[#E8E4DC]' : 'bg-white/40'}`} />
+              <span className={`h-3 w-px transition-colors duration-300 ${solid ? 'bg-[#E8E4DC]' : 'bg-white/40'}`} />
               <span
                 className={`font-['Amiri',serif] text-[15px] leading-none transition-colors ${
                   isAr
-                    ? `font-bold ${scrolled ? 'text-[#171512]' : 'text-white'}`
-                    : scrolled
+                    ? `font-bold ${solid ? 'text-[#171512]' : 'text-white'}`
+                    : solid
                       ? 'text-neutral-500 hover:text-[#171512]'
                       : 'text-white/70 hover:text-white'
                 }`}
@@ -353,6 +435,78 @@ export default function LookOne() {
               </button>
             </div>
           </div>
+
+          {/* mega menu panels — full viewport width, flush under the header (desktop only) */}
+          <AnimatePresence>
+            {openMenu === 'shop' && (
+              <motion.div
+                key="mega-shop"
+                data-testid="mega-shop-panel"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                onMouseEnter={cancelClose}
+                className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
+                style={{ borderColor: HAIR, color: INK }}
+              >
+                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                  <div className="grid grid-cols-12 gap-x-10">
+                    {/* 6 category groups, 3 × 2 */}
+                    <div className="col-span-9 grid grid-cols-3 gap-x-8 gap-y-10">
+                      {SHOP_MENU.map((group) => (
+                        <MegaGroup key={group.title.en} group={group} />
+                      ))}
+                    </div>
+                    {/* featured side column */}
+                    <div className="col-span-3 space-y-8 border-s ps-8" style={{ borderColor: HAIR }}>
+                      {MENU_FEATURED.shop.map((f) => (
+                        <MegaFeatured key={f.title.en} img={f.img} title={f.title} cta={f.cta} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
+                    <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            {openMenu === 'services' && (
+              <motion.div
+                key="mega-services"
+                data-testid="mega-services-panel"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                onMouseEnter={cancelClose}
+                className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
+                style={{ borderColor: HAIR, color: INK }}
+              >
+                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                  <div className="grid grid-cols-12 gap-x-10">
+                    {/* 8 service groups, 4 × 2 */}
+                    <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10">
+                      {SERVICES_MENU.map((group) => (
+                        <MegaGroup key={group.title.en} group={group} />
+                      ))}
+                    </div>
+                    {/* single featured tile */}
+                    <div className="col-span-3 border-s ps-8" style={{ borderColor: HAIR }}>
+                      <MegaFeatured
+                        img={MENU_FEATURED.services[0].img}
+                        title={MENU_FEATURED.services[0].title}
+                        cta={MENU_FEATURED.services[0].cta}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
+                    <ViewMore label={t('Request a Consultation', 'اطلب استشارة')} />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </header>
 
         {/* ============================================================ */}
