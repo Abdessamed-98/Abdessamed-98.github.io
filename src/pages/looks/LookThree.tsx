@@ -19,7 +19,9 @@ import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
   ROOM_HOTSPOTS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
-  formatSAR, LookSwitcher, type Lang, type Bi, type MenuGroup, type RoomHotspot,
+  ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS, PARTNER, APP_PROMO,
+  formatSAR, LookSwitcher,
+  type Lang, type Bi, type MenuGroup, type RoomHotspot, type LookProduct,
 } from './lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -57,10 +59,12 @@ function Reveal({
   children,
   delay = 0,
   className,
+  style,
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
+  style?: CSSProperties;
   key?: Key; // allow list usage — no @types/react, so `key` is checked structurally
 }) {
   return (
@@ -70,26 +74,36 @@ function Reveal({
       viewport={{ once: true, margin: '-70px' }}
       transition={{ duration: 0.7, ease: 'easeOut', delay }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
   );
 }
 
-/** Centered museum-catalog section header: thin bronze rule, Marcellus eyebrow, Playfair Title Case. */
-function SectionHeader({ eyebrow, lang, children }: { eyebrow: string; lang: Lang; children: ReactNode }) {
+/**
+ * Centered museum-catalog section header: thin rule, Marcellus eyebrow, Playfair Title Case.
+ * `tone="cream"` is the same header re-lit for the dark #1B1712 bands.
+ */
+function SectionHeader({
+  eyebrow, lang, tone = 'ink', children,
+}: { eyebrow: string; lang: Lang; tone?: 'ink' | 'cream'; children: ReactNode }) {
+  const dark = tone === 'cream';
   return (
     <Reveal className="flex flex-col items-center text-center">
-      <span className="h-px w-10" style={{ backgroundColor: BRONZE }} />
+      <span className="h-px w-10" style={{ backgroundColor: dark ? GOLDISH : BRONZE }} />
       <p
         className={`mt-6 ${
           lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
-        }`}
-        style={{ color: MUTED }}
+        } ${dark ? 'text-[#EFE9DD]/50' : ''}`}
+        style={dark ? undefined : { color: MUTED }}
       >
         {eyebrow}
       </p>
-      <h2 className={`${serif(lang)} mt-5 text-4xl md:text-5xl ${headingLeading(lang, 'leading-[1.12]')}`} style={{ color: INK }}>
+      <h2
+        className={`${serif(lang)} mt-5 text-4xl md:text-5xl ${headingLeading(lang, 'leading-[1.12]')}`}
+        style={{ color: dark ? CREAM : INK }}
+      >
         {children}
       </h2>
     </Reveal>
@@ -126,13 +140,19 @@ function HairButton({
   );
 }
 
-/** Bronze small-caps link with a thin underline. */
-function BronzeLink({ label, className = '', lang = 'en' }: { label: string; className?: string; lang?: Lang }) {
+/** Bronze small-caps link with a thin underline — `tone="gold"` for the dark bands. */
+function BronzeLink({
+  label, className = '', lang = 'en', tone = 'bronze',
+}: { label: string; className?: string; lang?: Lang; tone?: 'bronze' | 'gold' }) {
+  const tones = {
+    bronze: 'border-[#8A6D4F]/35 text-[#8A6D4F] hover:border-[#8A6D4F]',
+    gold: 'border-[#C9B393]/35 text-[#C9B393] hover:border-[#C9B393]',
+  } as const;
   return (
     <a
       href="#"
       onClick={(e) => e.preventDefault()}
-      className={`inline-block border-b border-[#8A6D4F]/35 pb-1 text-[#8A6D4F] transition-colors duration-300 hover:border-[#8A6D4F] ${
+      className={`inline-block border-b pb-1 transition-colors duration-300 ${tones[tone]} ${
         lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
       } ${className}`}
     >
@@ -153,6 +173,85 @@ function Stars({ rating }: { rating: number }) {
           className={i < Math.round(rating) ? 'fill-[#8A6D4F] text-[#8A6D4F]' : 'fill-transparent text-[#DDD6CA]'}
         />
       ))}
+    </div>
+  );
+}
+
+/** Two-digit catalogue numeral — the page's recurring ghost-Playfair motif. */
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * The page's product tile: white plate, museum caption below, bronze stars,
+ * Playfair price. Shared by New Arrivals and Best Sellers — the latter passes a
+ * `rank`, which prints a ghost Playfair numeral on the plate.
+ */
+function ProductTile({ p, lang, rank }: { p: LookProduct; lang: Lang; rank?: number; key?: Key }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <div className="group flex h-full flex-col">
+      <div className="relative overflow-hidden border bg-white" style={{ borderColor: HAIR }}>
+        {p.sale && (
+          <span
+            className={`absolute start-3 top-3 z-10 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+            }`}
+            style={{ color: BRONZE }}
+          >
+            {t('Sale', 'تخفيض')}
+          </span>
+        )}
+        {rank !== undefined && (
+          <span
+            aria-hidden
+            dir="ltr"
+            className={`${PLAYFAIR} pointer-events-none absolute end-3 top-1 z-10 select-none text-5xl leading-none text-[#2A241C14]`}
+          >
+            {pad2(rank)}
+          </span>
+        )}
+        <img
+          src={p.img}
+          alt={p.nameEn}
+          className="aspect-square w-full object-contain p-6 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+        />
+      </div>
+      <div className="flex flex-1 flex-col pt-4">
+        <p className="text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
+          {p.brand}
+        </p>
+        <h3 className="mt-1.5 text-[14px] font-light leading-snug" style={{ color: INK }}>
+          {t(p.nameEn, p.nameAr)}
+        </h3>
+        <div className="mt-2.5">
+          <Stars rating={p.rating} />
+        </div>
+        <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2">
+          <span className={`${PLAYFAIR} text-lg`} style={{ color: INK }}>
+            {formatSAR(p.price)}
+          </span>
+          <span
+            className={lang === 'ar' ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.15em]'}
+            style={{ color: MUTED }}
+          >
+            {t('SAR', 'ر.س')}
+          </span>
+          {p.oldPrice && (
+            <span className="text-xs line-through" style={{ color: MUTED }}>
+              {formatSAR(p.oldPrice)}
+            </span>
+          )}
+        </div>
+        <div className="mt-2.5">
+          <BronzeLink lang={lang} label={t('Try with AI', 'جرب AI')} />
+        </div>
+        <button
+          className={`mt-4 w-full border border-[#2A241C]/30 py-3 transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+          }`}
+        >
+          {t('Add to Cart', 'أضف إلى السلة')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -744,9 +843,9 @@ function FeaturedCategories({ lang }: { lang: Lang }) {
 function Services({ lang }: { lang: Lang }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
-    <section className="py-28">
+    <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader lang={lang} eyebrow={t('Practice — 02', 'الحرفة — 02')}>
+        <SectionHeader lang={lang} eyebrow={t('Practice — 03', 'الحرفة — 03')}>
           {t('Our Services', 'خدماتنا')}
         </SectionHeader>
 
@@ -781,9 +880,9 @@ function Services({ lang }: { lang: Lang }) {
 function NewProducts({ lang }: { lang: Lang }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
-    <section className="py-28" style={{ backgroundColor: ALT }}>
+    <section className="py-28">
       <div className={CONTAINER}>
-        <SectionHeader lang={lang} eyebrow={t('Featured — 03', 'مختارات — 03')}>
+        <SectionHeader lang={lang} eyebrow={t('Featured — 04', 'مختارات — 04')}>
           {lang === 'ar' ? <>وصل <em>حديثاً</em></> : <>New <em>Arrivals</em></>}
         </SectionHeader>
         <Reveal className="mt-10 flex justify-center md:justify-end">
@@ -793,62 +892,7 @@ function NewProducts({ lang }: { lang: Lang }) {
         <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-4 md:gap-x-8">
           {PRODUCTS.slice(0, 8).map((p, i) => (
             <Reveal key={p.id} delay={(i % 4) * 0.06}>
-              <div className="group flex h-full flex-col">
-                <div className="relative overflow-hidden border bg-white" style={{ borderColor: HAIR }}>
-                  {p.sale && (
-                    <span
-                      className={`absolute start-3 top-3 z-10 ${
-                        lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
-                      }`}
-                      style={{ color: BRONZE }}
-                    >
-                      {t('Sale', 'تخفيض')}
-                    </span>
-                  )}
-                  <img
-                    src={p.img}
-                    alt={p.nameEn}
-                    className="aspect-square w-full object-contain p-6 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col pt-4">
-                  <p className="text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
-                    {p.brand}
-                  </p>
-                  <h3 className="mt-1.5 text-[14px] font-light leading-snug" style={{ color: INK }}>
-                    {t(p.nameEn, p.nameAr)}
-                  </h3>
-                  <div className="mt-2.5">
-                    <Stars rating={p.rating} />
-                  </div>
-                  <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2">
-                    <span className={`${PLAYFAIR} text-lg`} style={{ color: INK }}>
-                      {formatSAR(p.price)}
-                    </span>
-                    <span
-                      className={lang === 'ar' ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.15em]'}
-                      style={{ color: MUTED }}
-                    >
-                      {t('SAR', 'ر.س')}
-                    </span>
-                    {p.oldPrice && (
-                      <span className="text-xs line-through" style={{ color: MUTED }}>
-                        {formatSAR(p.oldPrice)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-2.5">
-                    <BronzeLink lang={lang} label={t('Try with AI', 'جرب AI')} />
-                  </div>
-                  <button
-                    className={`mt-4 w-full border border-[#2A241C]/30 py-3 transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
-                      lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
-                    }`}
-                  >
-                    {t('Add to Cart', 'أضف إلى السلة')}
-                  </button>
-                </div>
-              </div>
+              <ProductTile p={p} lang={lang} />
             </Reveal>
           ))}
         </div>
@@ -873,7 +917,7 @@ function Atelier({ lang }: { lang: Lang }) {
             }`}
             style={{ color: MUTED }}
           >
-            {t('Atelier', 'المشغل')}
+            {t('Atelier — 06', 'المشغل — 06')}
           </p>
           <h2
             className={`${serif(lang)} mt-5 text-4xl md:text-[2.75rem] ${headingLeading(lang, 'leading-[1.15]')}`}
@@ -938,7 +982,7 @@ function ShopTheLook({ lang }: { lang: Lang }) {
   return (
     <section data-testid="shop-the-look" className="pt-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader lang={lang} eyebrow={t('The Room — 05', 'الغرفة — 05')}>
+        <SectionHeader lang={lang} eyebrow={t('The Room — 07', 'الغرفة — 07')}>
           {lang === 'ar' ? <>تسوق <em>الغرفة</em></> : <>Shop the <em>Look</em></>}
         </SectionHeader>
         <Reveal delay={0.08} className="mx-auto mt-6 max-w-md text-center">
@@ -1001,7 +1045,7 @@ function FindYourStyle({ lang }: { lang: Lang }) {
   return (
     <section className="py-28" style={{ backgroundColor: ALT }}>
       <div className={CONTAINER}>
-        <SectionHeader lang={lang} eyebrow={t('Gallery — 04', 'المعرض — 04')}>
+        <SectionHeader lang={lang} eyebrow={t('Gallery — 09', 'المعرض — 09')}>
           {lang === 'ar' ? <>اكتشف <em>أسلوبك</em></> : <>Find Your <em>Style</em></>}
         </SectionHeader>
 
@@ -1047,6 +1091,600 @@ function FindYourStyle({ lang }: { lang: Lang }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Sections carried over from the previous site                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Shop by Room — landscape plates in an even three-up. Deliberately the opposite
+ * of "Find Your Style": that wall is asymmetric and portrait (shopping by
+ * aesthetic), this one is a calm, regular catalogue page (shopping by place).
+ */
+function ShopByRoom({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="shop-by-room" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Rooms — 02', 'الغرف — 02')}>
+          {lang === 'ar' ? <>تسوق حسب <em>الغرفة</em></> : <>Shop by <em>Room</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 md:mt-20 md:grid-cols-3 md:gap-x-10">
+          {ROOMS.map((r, i) => (
+            <Reveal key={r.en} delay={(i % 3) * 0.07}>
+              <a href="#" onClick={(e) => e.preventDefault()} className="group block">
+                <div className="overflow-hidden" style={{ backgroundColor: ALT }}>
+                  <img
+                    src={r.img}
+                    alt={r.en}
+                    className="aspect-[3/2] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption */}
+                <div className="flex flex-col items-center pt-5 text-center">
+                  <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
+                    {t(r.en, r.ar)}
+                  </h3>
+                  <span className="mt-3 block h-px w-6" style={{ backgroundColor: BRONZE }} />
+                  <p
+                    className={`mt-3 ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {lang === 'ar' ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} pieces`}
+                  </p>
+                </div>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * AI Studio — the page's one modern moment, held to the same museum manners:
+ * a dark band, a single wide full-bleed plate, then three numbered steps below it.
+ */
+function AiStudio({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="ai-studio" className="py-28" style={{ backgroundColor: DARK }}>
+      <div className={CONTAINER}>
+        <SectionHeader
+          lang={lang}
+          tone="cream"
+          eyebrow={`${t(AI_STUDIO.eyebrow.en, AI_STUDIO.eyebrow.ar)} — 05`}
+        >
+          {t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
+        </SectionHeader>
+      </div>
+
+      {/* One wide plate, edge to edge */}
+      <Reveal delay={0.06} className="mt-14 md:mt-16">
+        <div className="relative aspect-[16/9] w-full overflow-hidden md:aspect-[21/9]">
+          <img
+            src={AI_STUDIO.img}
+            alt={AI_STUDIO.title.en}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
+      </Reveal>
+
+      <div className={CONTAINER}>
+        {/* Caption below the image, as everywhere else on the page */}
+        <Reveal delay={0.08} className="mx-auto mt-12 max-w-xl text-center">
+          <p
+            className={`text-[15px] font-light leading-relaxed text-[#EFE9DD]/60 ${
+              lang === 'ar' ? 'tracking-normal' : ''
+            }`}
+          >
+            {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
+          </p>
+        </Reveal>
+
+        <div className="mt-14 grid grid-cols-1 gap-x-10 gap-y-10 sm:grid-cols-3">
+          {AI_STUDIO.steps.map((s, i) => (
+            <Reveal key={s.en} delay={i * 0.07}>
+              <div className="relative border-t pt-8" style={{ borderColor: 'rgba(239,233,221,0.18)' }}>
+                <span
+                  aria-hidden
+                  dir="ltr"
+                  className={`${PLAYFAIR} pointer-events-none absolute end-0 top-5 select-none text-5xl leading-none text-[#EFE9DD1F]`}
+                >
+                  {pad2(i + 1)}
+                </span>
+                <h3
+                  className={`${serif(lang)} max-w-[16ch] text-xl ${headingLeading(lang, 'leading-snug')}`}
+                  style={{ color: CREAM }}
+                >
+                  {t(s.en, s.ar)}
+                </h3>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.12} className="mt-14 flex justify-center">
+          <HairButton lang={lang} tone="cream" label={t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)} />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/** Best Sellers — the same product tiles as New Arrivals, ranked 01–04. */
+function BestSellers({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="best-sellers" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Ranking — 08', 'الأكثر طلباً — 08')}>
+          {lang === 'ar' ? <>الأكثر <em>مبيعاً</em></> : <>Best <em>Sellers</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-14 md:mt-20 md:grid-cols-4 md:gap-x-8">
+          {PRODUCTS.slice(0, 4).map((p, i) => (
+            <Reveal key={p.id} delay={(i % 4) * 0.07}>
+              <ProductTile p={p} lang={lang} rank={i + 1} />
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.1} className="mt-14 flex justify-center">
+          <BronzeLink lang={lang} label={t('View All Best Sellers', 'عرض كل الأكثر مبيعاً')} />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/** Why Diyar — a hairline grid, four cells, one line of copy each. */
+function WhyDiyar({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="why-diyar" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Assurance — 10', 'ضماناتنا — 10')}>
+          {lang === 'ar' ? <>لماذا <em>ديار</em></> : <>Why <em>Diyar</em></>}
+        </SectionHeader>
+
+        {/* gap-px over a hairline background draws the rules between cells — RTL-safe */}
+        <div
+          className="mt-16 grid grid-cols-1 gap-px border sm:grid-cols-2 md:mt-20 md:grid-cols-4"
+          style={{ backgroundColor: HAIR, borderColor: HAIR }}
+        >
+          {WHY_DIYAR.map((u, i) => {
+            const Icon = u.icon;
+            return (
+              <Reveal key={u.title.en} delay={(i % 4) * 0.07} className="px-8 py-12" style={{ backgroundColor: BG }}>
+                <Icon size={30} strokeWidth={1} className="text-[#8A6D4F]" />
+                <h3
+                  className={`${serif(lang)} mt-7 text-xl ${headingLeading(lang, 'leading-snug')}`}
+                  style={{ color: INK }}
+                >
+                  {t(u.title.en, u.title.ar)}
+                </h3>
+                <p
+                  className={`mt-3 text-[13.5px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                  style={{ color: MUTED }}
+                >
+                  {t(u.body.en, u.body.ar)}
+                </p>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Featured Stores — the marketplace's vendors, each as a plate with a monogram plaque. */
+function FeaturedStores({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="featured-stores" className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('The Makers — 11', 'المتاجر — 11')}>
+          {lang === 'ar' ? <>متاجر <em>مختارة</em></> : <>Featured <em>Stores</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 md:mt-20 md:grid-cols-4">
+          {STORES.map((s, i) => (
+            <Reveal key={s.name.en} delay={(i % 4) * 0.07}>
+              <div className="group flex h-full flex-col">
+                <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+                  <img
+                    src={s.cover}
+                    alt={s.name.en}
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption — monogram plaque, then the plate's label */}
+                <div className="flex flex-1 flex-col items-center pt-5 text-center">
+                  <span
+                    dir="ltr"
+                    aria-hidden
+                    className={`${PLAYFAIR} flex h-11 w-11 items-center justify-center border text-[14px] tracking-[0.12em]`}
+                    style={{ borderColor: HAIR, color: BRONZE }}
+                  >
+                    {s.initials}
+                  </span>
+                  <h3 className={`${serif(lang)} mt-4 text-xl`} style={{ color: INK }}>
+                    {t(s.name.en, s.name.ar)}
+                  </h3>
+                  <p
+                    className={`mt-2 text-[13px] font-light ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(s.specialty.en, s.specialty.ar)}
+                  </p>
+                  <div className="mt-3 flex justify-center">
+                    <Stars rating={s.rating} />
+                  </div>
+                  <p
+                    className={`mt-3 ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {lang === 'ar' ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} products`}
+                  </p>
+                  <div className="mt-auto pt-5">
+                    <BronzeLink lang={lang} label={t('Visit Store', 'زيارة المتجر')} />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Loyalty — one quiet bordered plate holding the offer and its three perks. */
+function Loyalty({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="loyalty" className="py-28">
+      <div className={CONTAINER}>
+        <div className="border" style={{ borderColor: HAIR, backgroundColor: ALT }}>
+          <div className="px-6 py-16 md:px-16">
+            <SectionHeader lang={lang} eyebrow={`${t(LOYALTY.eyebrow.en, LOYALTY.eyebrow.ar)} — 12`}>
+              {t(LOYALTY.title.en, LOYALTY.title.ar)}
+            </SectionHeader>
+            <Reveal delay={0.06} className="mx-auto mt-6 max-w-xl text-center">
+              <p
+                className={`text-[15px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                style={{ color: MUTED }}
+              >
+                {t(LOYALTY.body.en, LOYALTY.body.ar)}
+              </p>
+            </Reveal>
+            <Reveal delay={0.1} className="mt-10 flex justify-center">
+              <HairButton lang={lang} label={t(LOYALTY.cta.en, LOYALTY.cta.ar)} />
+            </Reveal>
+          </div>
+
+          <div
+            className="grid grid-cols-1 gap-px border-t sm:grid-cols-3"
+            style={{ backgroundColor: HAIR, borderColor: HAIR }}
+          >
+            {LOYALTY.perks.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <Reveal
+                  key={p.title.en}
+                  delay={i * 0.07}
+                  className="flex flex-col items-center px-8 py-12 text-center"
+                  style={{ backgroundColor: ALT }}
+                >
+                  <Icon size={26} strokeWidth={1} className="text-[#8A6D4F]" />
+                  <h3
+                    className={`${serif(lang)} mt-6 text-lg ${headingLeading(lang, 'leading-snug')}`}
+                    style={{ color: INK }}
+                  >
+                    {t(p.title.en, p.title.ar)}
+                  </h3>
+                  <p
+                    className={`mt-2.5 max-w-[34ch] text-[13.5px] font-light leading-relaxed ${
+                      lang === 'ar' ? 'tracking-normal' : ''
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(p.body.en, p.body.ar)}
+                  </p>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Reviews — testimonials hung like gallery placards: stars, the quote, then the credit line. */
+function Reviews({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="reviews" className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Visitors — 13', 'آراء العملاء — 13')}>
+          {lang === 'ar' ? <>ما يقوله <em>عملاؤنا</em></> : <>What Our <em>Clients</em> Say</>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-8 md:mt-20 md:grid-cols-2 lg:grid-cols-4">
+          {REVIEWS.map((r, i) => (
+            <Reveal key={r.name.en} delay={(i % 4) * 0.07}>
+              <figure
+                className="flex h-full flex-col items-center border px-7 py-10 text-center"
+                style={{ borderColor: HAIR, backgroundColor: BG }}
+              >
+                <Stars rating={r.rating} />
+                <blockquote
+                  className={`${serif(lang)} mt-6 text-[17px] ${headingLeading(lang, 'leading-[1.6]')}`}
+                  style={{ color: INK }}
+                >
+                  {t(r.text.en, r.text.ar)}
+                </blockquote>
+                <div className="mt-auto flex flex-col items-center pt-7">
+                  <span className="block h-px w-6" style={{ backgroundColor: BRONZE }} />
+                  <figcaption
+                    className={`mt-4 ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(r.name.en, r.name.ar)} — {t(r.city.en, r.city.ar)}
+                  </figcaption>
+                </div>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Design Blog — three editorial plates, captions underneath. */
+function DesignBlog({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="design-blog" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Journal — 14', 'المجلة — 14')}>
+          {lang === 'ar' ? <>مجلة <em>التصميم</em></> : <>The Design <em>Journal</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-x-10 gap-y-14 md:mt-20 md:grid-cols-3">
+          {BLOG_POSTS.map((post, i) => (
+            <Reveal key={post.title.en} delay={i * 0.07}>
+              <article className="group flex h-full flex-col">
+                <div className="overflow-hidden" style={{ backgroundColor: ALT }}>
+                  <img
+                    src={post.img}
+                    alt={post.title.en}
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption */}
+                <div className="flex flex-1 flex-col pt-5">
+                  <p
+                    className={
+                      lang === 'ar'
+                        ? `${ALEXANDRIA} text-[10px] tracking-normal`
+                        : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+                    }
+                    style={{ color: BRONZE }}
+                  >
+                    {t(post.category.en, post.category.ar)}
+                  </p>
+                  <h3
+                    className={`${serif(lang)} mt-3 text-[22px] ${headingLeading(lang, 'leading-snug')}`}
+                    style={{ color: INK }}
+                  >
+                    {t(post.title.en, post.title.ar)}
+                  </h3>
+                  <p
+                    className={`mt-3 text-[14px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(post.excerpt.en, post.excerpt.ar)}
+                  </p>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-6">
+                    <BronzeLink lang={lang} label={t('Read Article', 'اقرأ المقال')} />
+                    <span
+                      className={
+                        lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                      }
+                      style={{ color: MUTED }}
+                    >
+                      {lang === 'ar' ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Become a Partner — the supply side, on the dark band so it reads as a separate address. */
+function Partner({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="partner" className="py-28" style={{ backgroundColor: DARK }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} tone="cream" eyebrow={`${t(PARTNER.eyebrow.en, PARTNER.eyebrow.ar)} — 16`}>
+          {lang === 'ar' ? <>انضم إلى <em>المنصة</em></> : <>Join the <em>Marketplace</em></>}
+        </SectionHeader>
+        <Reveal delay={0.06} className="mx-auto mt-6 max-w-xl text-center">
+          <p
+            className={`text-[15px] font-light leading-relaxed text-[#EFE9DD]/60 ${
+              lang === 'ar' ? 'tracking-normal' : ''
+            }`}
+          >
+            {t(PARTNER.body.en, PARTNER.body.ar)}
+          </p>
+        </Reveal>
+
+        <div className="mt-16 grid grid-cols-1 gap-8 md:mt-20 md:grid-cols-3">
+          {PARTNER.roles.map((role, i) => {
+            const Icon = role.icon;
+            return (
+              <Reveal key={role.title.en} delay={i * 0.07}>
+                <div className="relative flex h-full flex-col border border-[#EFE9DD]/18 px-8 py-12">
+                  <span
+                    aria-hidden
+                    dir="ltr"
+                    className={`${PLAYFAIR} pointer-events-none absolute end-6 top-7 select-none text-5xl leading-none text-[#EFE9DD1F]`}
+                  >
+                    {pad2(i + 1)}
+                  </span>
+                  <Icon size={28} strokeWidth={1} className="text-[#C9B393]" />
+                  <h3
+                    className={`${serif(lang)} mt-7 text-xl ${headingLeading(lang, 'leading-snug')}`}
+                    style={{ color: CREAM }}
+                  >
+                    {t(role.title.en, role.title.ar)}
+                  </h3>
+                  <p
+                    className={`mt-3 text-[13.5px] font-light leading-relaxed text-[#EFE9DD]/55 ${
+                      lang === 'ar' ? 'tracking-normal' : ''
+                    }`}
+                  >
+                    {t(role.body.en, role.body.ar)}
+                  </p>
+                  <div className="mt-auto pt-8">
+                    <BronzeLink lang={lang} tone="gold" label={t(role.cta.en, role.cta.ar)} />
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        {/* Dashboard strip */}
+        <Reveal delay={0.14} className="mt-8">
+          <div className="flex flex-col items-center gap-6 border border-[#EFE9DD]/18 px-8 py-10 text-center md:flex-row md:justify-between md:text-start">
+            <div>
+              <h3 className={`${serif(lang)} text-xl ${headingLeading(lang, 'leading-snug')}`} style={{ color: CREAM }}>
+                {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
+              </h3>
+              <p
+                className={`mt-2 text-[13.5px] font-light leading-relaxed text-[#EFE9DD]/55 ${
+                  lang === 'ar' ? 'tracking-normal' : ''
+                }`}
+              >
+                {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
+              </p>
+            </div>
+            <HairButton
+              lang={lang}
+              tone="cream"
+              className="shrink-0"
+              label={t(PARTNER.dashboard.cta.en, PARTNER.dashboard.cta.ar)}
+            />
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/** App Promo — a plate on one side, four capabilities and two store buttons on the other. */
+function AppPromo({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="app-promo" className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+          <Reveal>
+            <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+              <img
+                src={APP_PROMO.img}
+                alt={APP_PROMO.title.en}
+                className="aspect-[4/5] w-full object-cover md:aspect-[4/3] lg:aspect-[4/5]"
+              />
+            </div>
+          </Reveal>
+
+          <div>
+            <Reveal delay={0.06}>
+              <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
+              <p
+                className={`mt-6 ${
+                  lang === 'ar'
+                    ? `${ALEXANDRIA} text-[11px] tracking-normal`
+                    : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+                }`}
+                style={{ color: MUTED }}
+              >
+                {`${t(APP_PROMO.eyebrow.en, APP_PROMO.eyebrow.ar)} — 17`}
+              </p>
+              <h2
+                className={`${serif(lang)} mt-5 text-4xl md:text-[2.75rem] ${headingLeading(lang, 'leading-[1.15]')}`}
+                style={{ color: INK }}
+              >
+                {t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+              </h2>
+              <p
+                className={`mt-6 max-w-md text-[15px] font-light leading-relaxed ${
+                  lang === 'ar' ? 'tracking-normal' : ''
+                }`}
+                style={{ color: MUTED }}
+              >
+                {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
+              </p>
+            </Reveal>
+
+            <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-9 sm:grid-cols-2">
+              {APP_PROMO.features.map((f, i) => {
+                const Icon = f.icon;
+                return (
+                  <Reveal key={f.title.en} delay={(i % 2) * 0.07}>
+                    <div className="border-t pt-6" style={{ borderColor: HAIR }}>
+                      <Icon size={24} strokeWidth={1} className="text-[#8A6D4F]" />
+                      <h3
+                        className={`${serif(lang)} mt-4 text-lg ${headingLeading(lang, 'leading-snug')}`}
+                        style={{ color: INK }}
+                      >
+                        {t(f.title.en, f.title.ar)}
+                      </h3>
+                      <p
+                        className={`mt-2 text-[13px] font-light leading-relaxed ${
+                          lang === 'ar' ? 'tracking-normal' : ''
+                        }`}
+                        style={{ color: MUTED }}
+                      >
+                        {t(f.body.en, f.body.ar)}
+                      </p>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+
+            <Reveal delay={0.12} className="mt-12 flex flex-wrap gap-4">
+              <HairButton lang={lang} label={t('App Store', 'آب ستور')} />
+              <HairButton lang={lang} label={t('Google Play', 'جوجل بلاي')} />
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function B2B({ lang }: { lang: Lang }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   return (
@@ -1062,7 +1700,7 @@ function B2B({ lang }: { lang: Lang }) {
               lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
             }`}
           >
-            {t('B2B — 05', 'قطاع الأعمال — 05')}
+            {t('B2B — 15', 'قطاع الأعمال — 15')}
           </p>
           <h2 className={`${serif(lang)} mt-5 text-4xl ${headingLeading(lang, 'leading-[1.15]')}`} style={{ color: CREAM }}>
             {lang === 'ar' ? <>حلول <em>متكاملة</em> للشركات والمشاريع</> : <>Turnkey <em>Project</em> Solutions</>}
@@ -1220,12 +1858,22 @@ export default function LookThree() {
       <Header lang={lang} onToggle={toggleLang} />
       <Hero lang={lang} />
       <FeaturedCategories lang={lang} />
+      <ShopByRoom lang={lang} />
       <Services lang={lang} />
       <NewProducts lang={lang} />
+      <AiStudio lang={lang} />
       <Atelier lang={lang} />
       <ShopTheLook lang={lang} />
+      <BestSellers lang={lang} />
       <FindYourStyle lang={lang} />
+      <WhyDiyar lang={lang} />
+      <FeaturedStores lang={lang} />
+      <Loyalty lang={lang} />
+      <Reviews lang={lang} />
+      <DesignBlog lang={lang} />
       <B2B lang={lang} />
+      <Partner lang={lang} />
+      <AppPromo lang={lang} />
       <Footer lang={lang} />
       <LookSwitcher />
     </div>

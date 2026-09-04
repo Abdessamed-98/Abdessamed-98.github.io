@@ -18,7 +18,8 @@ import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
-  type Lang, type MenuGroup, type Bi, type RoomHotspot,
+  ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS, PARTNER, APP_PROMO,
+  type Lang, type MenuGroup, type Bi, type RoomHotspot, type LookProduct,
 } from './lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -30,6 +31,9 @@ const OLIVE = '#5A6B4D';   // accent
 const HAIR = '#E8E4DC';    // hairlines
 const RED = '#B03A2E';     // sale / AI link
 const TILE = '#F6F3EC';    // product image tile
+const OLIVE_LT = '#A7B894'; // olive lifted for the dark bands
+const CREAM = '#F6F3EC';   // type colour on the dark bands
+const NIGHT = '#14120F';   // dark band ground (same as the footer)
 
 /* ------------------------------------------------------------------ */
 /* Language context                                                    */
@@ -64,8 +68,11 @@ function Reveal({
   );
 }
 
-/** Tiny letterspaced eyebrow over a huge bold uppercase title. */
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+/**
+ * Tiny letterspaced eyebrow over a huge bold uppercase title.
+ * `light` lifts both tones so the same component works on the dark bands.
+ */
+function SectionHeading({ eyebrow, title, light = false }: { eyebrow: string; title: string; light?: boolean }) {
   const isAr = useLang() === 'ar';
   return (
     <div>
@@ -73,7 +80,7 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
         className={`mb-4 text-[11px] uppercase ${
           isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
         }`}
-        style={{ color: OLIVE }}
+        style={{ color: light ? OLIVE_LT : OLIVE }}
       >
         {eyebrow}
       </p>
@@ -83,7 +90,7 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
             ? "font-['Alexandria',sans-serif] leading-[1.15] tracking-normal"
             : "font-['Outfit',sans-serif] leading-[0.95] tracking-tight"
         }`}
-        style={{ color: INK }}
+        style={{ color: light ? CREAM : INK }}
       >
         {title}
       </h2>
@@ -118,18 +125,113 @@ function ViewMore({ label, light = false }: { label?: string; light?: boolean })
   );
 }
 
-/** Rating stars, size 12, filled per rating. */
-function Stars({ rating }: { rating: number }) {
+/** Rating stars, size 12, filled per rating. `light` inverts them for the dark bands. */
+function Stars({ rating, light = false }: { rating: number; light?: boolean }) {
   return (
     <div className="flex items-center gap-[3px]" aria-label={`Rated ${rating} out of 5`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          size={12}
-          strokeWidth={1}
-          className={i < Math.round(rating) ? 'fill-[#171512] text-[#171512]' : 'fill-transparent text-[#D9D3C7]'}
+      {Array.from({ length: 5 }).map((_, i) => {
+        const on = i < Math.round(rating);
+        return (
+          <Star
+            key={i}
+            size={12}
+            strokeWidth={1}
+            className={
+              on
+                ? light
+                  ? 'fill-[#F6F3EC] text-[#F6F3EC]'
+                  : 'fill-[#171512] text-[#171512]'
+                : light
+                  ? 'fill-transparent text-white/30'
+                  : 'fill-transparent text-[#D9D3C7]'
+            }
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The page's product card — image tile, brand, name, stars, price, actions.
+ * Shared by "New Products" (full) and "Best Sellers" (`rank` shows 01–04 and
+ * drops the add-to-cart button so the rail stays compact).
+ */
+function ProductCard({ p, rank }: { p: LookProduct; rank?: number }) {
+  const isAr = useLang() === 'ar';
+  const t = (en: string, ar: string) => (isAr ? ar : en);
+
+  return (
+    <div className="group flex h-full flex-col">
+      {/* image tile */}
+      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
+        {p.sale && (
+          <span
+            className={`absolute start-4 top-4 z-10 text-[10px] font-semibold uppercase ${
+              isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+            }`}
+            style={{ color: RED }}
+          >
+            {t('Sale', 'تخفيض')}
+          </span>
+        )}
+        {rank !== undefined && (
+          <span
+            className="absolute end-4 top-2 z-10 font-['Outfit',sans-serif] text-[42px] font-extrabold leading-none text-[#171512]/15"
+            aria-hidden="true"
+          >
+            {String(rank).padStart(2, '0')}
+          </span>
+        )}
+        <img
+          src={p.img}
+          alt={isAr ? p.nameAr : p.nameEn}
+          className="h-full w-full object-contain p-7 transition-transform duration-700 ease-out group-hover:scale-105"
         />
-      ))}
+      </div>
+
+      {/* info */}
+      <p className={`mt-5 text-[10px] uppercase text-neutral-400 ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+        {isAr && p.brand === 'DIYAR HOME' ? 'ديار هوم' : p.brand}
+      </p>
+      <h3 className="mt-1.5 truncate text-sm font-medium" title={isAr ? p.nameAr : p.nameEn}>
+        {isAr ? p.nameAr : p.nameEn}
+      </h3>
+      <div className="mt-2">
+        <Stars rating={p.rating} />
+      </div>
+
+      {/* price row */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <div className="flex items-baseline gap-2 overflow-hidden">
+          <span className="text-[15px] font-bold">{formatSAR(p.price)}</span>
+          <span className={`text-[10px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
+            {t('SAR', 'ر.س')}
+          </span>
+          {p.oldPrice && <span className="text-xs text-neutral-400 line-through">{formatSAR(p.oldPrice)}</span>}
+        </div>
+        <a
+          href="#"
+          className={`shrink-0 text-[10px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
+            isAr ? 'tracking-normal' : 'tracking-[0.24em]'
+          }`}
+          style={{ color: RED }}
+        >
+          {t('Try with AI', 'جرب AI')}
+        </a>
+      </div>
+
+      {/* add to cart — full card only; the rail stays quiet */}
+      {rank === undefined && (
+        <button
+          type="button"
+          className={`mt-5 w-full border border-[#171512] py-3.5 text-[10px] font-medium uppercase transition-colors duration-300 hover:bg-[#171512] hover:text-white ${
+            isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+          }`}
+        >
+          {t('Add to Cart', 'أضف إلى السلة')}
+        </button>
+      )}
     </div>
   );
 }
@@ -807,12 +909,70 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 4. SERVICES                                                   */}
+        {/* 4. SHOP BY ROOM — landscape tiles with an overlapping plaque  */}
+        {/* ============================================================ */}
+        <section data-testid="shop-by-room" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <SectionHeading eyebrow={t('Rooms — 02', 'الغرف — 02')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
+                <div className="pb-2">
+                  <ViewMore label={t('All Rooms', 'كل الغرف')} />
+                </div>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 md:mt-16 md:gap-x-6 lg:grid-cols-3">
+              {ROOMS.map((r, i) => (
+                <motion.a
+                  key={r.en}
+                  href="#"
+                  className="group block"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 3) * 0.05 }}
+                >
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={r.img}
+                      alt={isAr ? r.ar : r.en}
+                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                    />
+                  </div>
+                  {/* white plaque sitting over the bottom edge of the photo */}
+                  <div
+                    className="relative z-10 -mt-9 flex items-baseline justify-between gap-3 border bg-white px-5 py-4 transition-colors duration-300 group-hover:border-[#5A6B4D] ms-5 me-5"
+                    style={{ borderColor: HAIR }}
+                  >
+                    <span
+                      className={`min-w-0 truncate font-bold uppercase ${
+                        isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
+                      }`}
+                    >
+                      {t(r.en, r.ar)}
+                    </span>
+                    <span
+                      className={`shrink-0 text-[10px] uppercase text-neutral-400 ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                      }`}
+                    >
+                      {isAr ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} Pieces`}
+                    </span>
+                  </div>
+                </motion.a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 5. SERVICES                                                   */}
         {/* ============================================================ */}
         <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <Reveal>
-              <SectionHeading eyebrow={t('Services — 02', 'الخدمات — 02')} title={t('Our Services', 'خدماتنا')} />
+              <SectionHeading eyebrow={t('Services — 03', 'الخدمات — 03')} title={t('Our Services', 'خدماتنا')} />
             </Reveal>
 
             {/* hairline matrix: the cells give the small items structure so they
@@ -853,13 +1013,13 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 5. NEW PRODUCTS                                               */}
+        {/* 6. NEW PRODUCTS                                               */}
         {/* ============================================================ */}
         <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <Reveal>
               <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading eyebrow={t('New In — 03', 'جديدنا — 03')} title={t('New Products', 'وصل حديثاً')} />
+                <SectionHeading eyebrow={t('New In — 04', 'جديدنا — 04')} title={t('New Products', 'وصل حديثاً')} />
                 <div className="pb-2">
                   <ViewMore label={t('View All', 'عرض الكل')} />
                 </div>
@@ -875,77 +1035,7 @@ export default function LookOne() {
                   viewport={{ once: true, margin: '-80px' }}
                   transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 4) * 0.05 }}
                 >
-                  <div className="group flex h-full flex-col">
-                    {/* image tile */}
-                    <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
-                      {p.sale && (
-                        <span
-                          className={`absolute start-4 top-4 z-10 text-[10px] font-semibold uppercase ${
-                            isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                          }`}
-                          style={{ color: RED }}
-                        >
-                          {t('Sale', 'تخفيض')}
-                        </span>
-                      )}
-                      <img
-                        src={p.img}
-                        alt={isAr ? p.nameAr : p.nameEn}
-                        className="h-full w-full object-contain p-7 transition-transform duration-700 ease-out group-hover:scale-105"
-                      />
-                    </div>
-
-                    {/* info */}
-                    <p
-                      className={`mt-5 text-[10px] uppercase text-neutral-400 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                      }`}
-                    >
-                      {isAr && p.brand === 'DIYAR HOME' ? 'ديار هوم' : p.brand}
-                    </p>
-                    <h3 className="mt-1.5 truncate text-sm font-medium" title={isAr ? p.nameAr : p.nameEn}>
-                      {isAr ? p.nameAr : p.nameEn}
-                    </h3>
-                    <div className="mt-2">
-                      <Stars rating={p.rating} />
-                    </div>
-
-                    {/* price row */}
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <div className="flex items-baseline gap-2 overflow-hidden">
-                        <span className="text-[15px] font-bold">{formatSAR(p.price)}</span>
-                        <span
-                          className={`text-[10px] uppercase text-neutral-500 ${
-                            isAr ? 'tracking-normal' : 'tracking-[0.1em]'
-                          }`}
-                        >
-                          {t('SAR', 'ر.س')}
-                        </span>
-                        {p.oldPrice && (
-                          <span className="text-xs text-neutral-400 line-through">{formatSAR(p.oldPrice)}</span>
-                        )}
-                      </div>
-                      <a
-                        href="#"
-                        className={`shrink-0 text-[10px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.24em]'
-                        }`}
-                        style={{ color: RED }}
-                      >
-                        {t('Try with AI', 'جرب AI')}
-                      </a>
-                    </div>
-
-                    {/* add to cart */}
-                    <button
-                      type="button"
-                      className={`mt-5 w-full border border-[#171512] py-3.5 text-[10px] font-medium uppercase transition-colors duration-300 hover:bg-[#171512] hover:text-white ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                      }`}
-                    >
-                      {t('Add to Cart', 'أضف إلى السلة')}
-                    </button>
-                  </div>
+                  <ProductCard p={p} />
                 </motion.div>
               ))}
             </div>
@@ -953,7 +1043,74 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 6. CUSTOM FURNITURE MANUFACTURING                             */}
+        {/* 7. AI STUDIO — the page's one modern, dark, image-led moment   */}
+        {/* ============================================================ */}
+        <section data-testid="ai-studio" style={{ backgroundColor: INK, color: CREAM }}>
+          <div className="grid lg:grid-cols-2">
+            {/* visual */}
+            <Reveal className="relative overflow-hidden">
+              <img
+                src={AI_STUDIO.img}
+                alt={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
+                className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[680px]"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#171512] via-[#171512]/10 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
+              {/* floating "before → after" chip, purely decorative */}
+              <div className="absolute bottom-6 start-6 flex items-center gap-3 border border-white/25 bg-black/35 px-4 py-2.5 backdrop-blur-sm">
+                <span className="block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: OLIVE_LT }} />
+                <span
+                  className={`text-[10px] uppercase text-white ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
+                >
+                  {t('AI Preview', 'معاينة ذكية')}
+                </span>
+              </div>
+            </Reveal>
+
+            {/* copy */}
+            <div className="flex items-center">
+              <Reveal className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24" delay={0.1}>
+                <SectionHeading
+                  light
+                  eyebrow={t(`${AI_STUDIO.eyebrow.en} — 05`, `${AI_STUDIO.eyebrow.ar} — 05`)}
+                  title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
+                />
+                <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
+                  {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
+                </p>
+
+                {/* three numbered steps */}
+                <ol className="mt-10 max-w-md">
+                  {AI_STUDIO.steps.map((s, i) => (
+                    <li
+                      key={s.en}
+                      className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
+                    >
+                      <span
+                        className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
+                        style={{ color: OLIVE_LT }}
+                      >
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
+                    </li>
+                  ))}
+                </ol>
+
+                <button
+                  type="button"
+                  className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                  }`}
+                >
+                  {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
+                </button>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 8. CUSTOM FURNITURE MANUFACTURING                             */}
         {/* ============================================================ */}
         <section className="border-t" style={{ borderColor: HAIR }}>
           <div className="grid lg:grid-cols-2">
@@ -972,7 +1129,7 @@ export default function LookOne() {
                   }`}
                   style={{ color: OLIVE }}
                 >
-                  {t('Craftsmanship — 04', 'الحرفية — 04')}
+                  {t('Craftsmanship — 06', 'الحرفية — 06')}
                 </p>
                 <h2
                   className={`mt-4 text-4xl font-extrabold uppercase md:text-5xl ${
@@ -998,13 +1155,13 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 7. SHOP THE LOOK — interactive room with product hotspots     */}
+        {/* 9. SHOP THE LOOK — interactive room with product hotspots     */}
         {/* ============================================================ */}
         <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
           {/* heading */}
           <div className="mx-auto max-w-[1400px] px-6 py-20 pb-10 md:px-10 md:py-28 md:pb-14">
             <Reveal>
-              <SectionHeading eyebrow={t('The Room — 05', 'الغرفة — 05')} title={t('Shop the Look', 'تسوق الغرفة')} />
+              <SectionHeading eyebrow={t('The Room — 07', 'الغرفة — 07')} title={t('Shop the Look', 'تسوق الغرفة')} />
               <p
                 className={`mt-6 max-w-xl text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
                   isAr ? 'tracking-normal' : 'tracking-[0.02em]'
@@ -1111,12 +1268,49 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 8. FIND YOUR STYLE                                            */}
+        {/* 10. BEST SELLERS — compact ranked rail of the product card    */}
+        {/* ============================================================ */}
+        <section data-testid="best-sellers" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <SectionHeading
+                  eyebrow={t('Most Loved — 08', 'الأكثر تفضيلاً — 08')}
+                  title={t('Best Sellers', 'الأكثر مبيعاً')}
+                />
+                <div className="pb-2">
+                  <ViewMore label={t('View All', 'عرض الكل')} />
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* rail: scrolls on small screens, settles into a row from lg */}
+          <div className="mx-auto mt-12 max-w-[1400px] px-6 md:mt-16 md:px-10">
+            <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
+              {PRODUCTS.slice(0, 4).map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                >
+                  <ProductCard p={p} rank={i + 1} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 11. FIND YOUR STYLE                                           */}
         {/* ============================================================ */}
         <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <Reveal>
-              <SectionHeading eyebrow={t('Styles — 06', 'الأساليب — 06')} title={t('Find Your Style', 'اكتشف أسلوبك')} />
+              <SectionHeading eyebrow={t('Styles — 09', 'الأساليب — 09')} title={t('Find Your Style', 'اكتشف أسلوبك')} />
             </Reveal>
 
             {/* uneven editorial grid — middle tiles taller */}
@@ -1169,7 +1363,308 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 9. B2B TEASER                                                 */}
+        {/* 12. WHY DIYAR — type-led trust row on hairline rules          */}
+        {/* ============================================================ */}
+        <section data-testid="why-diyar" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <SectionHeading eyebrow={t('Our Promise — 10', 'وعدنا — 10')} title={t('Why Diyar', 'لماذا ديار')} />
+            </Reveal>
+
+            <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
+              {WHY_DIYAR.map((u, i) => (
+                <motion.div
+                  key={u.title.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                  className="border-t border-[#171512]/15 pt-8"
+                >
+                  <u.icon size={30} strokeWidth={1} className="text-[#5A6B4D]" />
+                  <h3
+                    className={`mt-6 font-bold uppercase ${
+                      isAr ? 'text-[14px] leading-relaxed tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
+                    }`}
+                  >
+                    {t(u.title.en, u.title.ar)}
+                  </h3>
+                  <p className="mt-3 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                    {t(u.body.en, u.body.ar)}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 13. FEATURED STORES — the marketplace supply side              */}
+        {/* ============================================================ */}
+        <section data-testid="featured-stores" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <SectionHeading
+                  eyebrow={t('Marketplace — 11', 'المنصة — 11')}
+                  title={t('Featured Stores', 'متاجر مختارة')}
+                />
+                <div className="pb-2">
+                  <ViewMore label={t('All Stores', 'كل المتاجر')} />
+                </div>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 md:mt-16 md:gap-6 lg:grid-cols-4">
+              {STORES.map((s, i) => (
+                <motion.div
+                  key={s.name.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                >
+                  <div
+                    className="group flex h-full flex-col border bg-white transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)]"
+                    style={{ borderColor: HAIR }}
+                  >
+                    <div className="aspect-[3/2] overflow-hidden">
+                      <img
+                        src={s.cover}
+                        alt={isAr ? s.name.ar : s.name.en}
+                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                      />
+                    </div>
+
+                    <div className="relative flex flex-1 flex-col px-6 pb-6">
+                      {/* monogram badge overlapping the cover */}
+                      <span
+                        dir="ltr"
+                        className="absolute -top-7 start-6 flex h-14 w-14 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[15px] font-bold tracking-[0.06em] text-white"
+                        aria-hidden="true"
+                      >
+                        {s.initials}
+                      </span>
+
+                      <h3
+                        className={`mt-10 font-bold uppercase ${
+                          isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
+                        }`}
+                      >
+                        {t(s.name.en, s.name.ar)}
+                      </h3>
+                      <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
+                        {t(s.specialty.en, s.specialty.ar)}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <Stars rating={s.rating} />
+                        <span className="text-[12px] font-medium text-neutral-500">{s.rating}</span>
+                        <span
+                          className={`text-[10px] uppercase text-neutral-400 ${
+                            isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                          }`}
+                        >
+                          {isAr ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} Products`}
+                        </span>
+                      </div>
+
+                      <div className="mt-6 pt-1">
+                        <ViewMore label={t('Visit Store', 'زيارة المتجر')} />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 14. LOYALTY — calm tinted band, no photography                */}
+        {/* ============================================================ */}
+        <section
+          data-testid="loyalty"
+          className="border-t py-20 md:py-28"
+          style={{ borderColor: HAIR, backgroundColor: TILE }}
+        >
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+              <Reveal className="lg:col-span-5">
+                <SectionHeading
+                  eyebrow={t(`${LOYALTY.eyebrow.en} — 12`, `${LOYALTY.eyebrow.ar} — 12`)}
+                  title={t(LOYALTY.title.en, LOYALTY.title.ar)}
+                />
+                <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
+                  {t(LOYALTY.body.en, LOYALTY.body.ar)}
+                </p>
+                <button
+                  type="button"
+                  className={`mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                  }`}
+                >
+                  {t(LOYALTY.cta.en, LOYALTY.cta.ar)}
+                </button>
+              </Reveal>
+
+              <div className="lg:col-span-7 lg:pt-3">
+                {LOYALTY.perks.map((p, i) => (
+                  <motion.div
+                    key={p.title.en}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-80px' }}
+                    transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                    className="flex items-start gap-5 border-t py-7 last:border-b sm:gap-7"
+                    style={{ borderColor: '#DED8CB' }}
+                  >
+                    <p.icon size={26} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
+                    <div className="min-w-0">
+                      <h3
+                        className={`font-bold uppercase ${
+                          isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
+                        }`}
+                      >
+                        {t(p.title.en, p.title.ar)}
+                      </h3>
+                      <p className="mt-2 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                        {t(p.body.en, p.body.ar)}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 15. REVIEWS — dark typographic band, no avatars               */}
+        {/* ============================================================ */}
+        <section
+          data-testid="reviews"
+          className="py-20 md:py-28"
+          style={{ backgroundColor: NIGHT, color: CREAM }}
+        >
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <SectionHeading
+                light
+                eyebrow={t('Customers — 13', 'عملاؤنا — 13')}
+                title={t('What They Say', 'ماذا يقولون')}
+              />
+            </Reveal>
+
+            <div className="mt-12 grid gap-x-6 gap-y-8 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
+              {REVIEWS.map((r, i) => (
+                <motion.div
+                  key={r.name.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                  className="flex h-full flex-col border border-white/12 p-7"
+                >
+                  <Stars light rating={r.rating} />
+                  <p className="mt-6 flex-1 text-[14px] font-light leading-relaxed text-[#F6F3EC]/75">
+                    {t(r.text.en, r.text.ar)}
+                  </p>
+                  <div className="mt-7 border-t border-white/12 pt-5">
+                    <p
+                      className={`font-bold uppercase ${
+                        isAr ? 'text-[13px] tracking-normal' : 'text-[11.5px] tracking-[0.18em]'
+                      }`}
+                    >
+                      {t(r.name.en, r.name.ar)}
+                    </p>
+                    <p
+                      className={`mt-1.5 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.24em]'}`}
+                      style={{ color: OLIVE_LT }}
+                    >
+                      {t(r.city.en, r.city.ar)}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 16. DESIGN BLOG — editorial cards                             */}
+        {/* ============================================================ */}
+        <section data-testid="design-blog" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <SectionHeading
+                  eyebrow={t('Journal — 14', 'المدونة — 14')}
+                  title={t('The Design Blog', 'مدونة التصميم')}
+                />
+                <div className="pb-2">
+                  <ViewMore label={t('All Articles', 'كل المقالات')} />
+                </div>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid gap-x-6 gap-y-12 md:mt-16 md:grid-cols-3">
+              {BLOG_POSTS.map((post, i) => (
+                <motion.article
+                  key={post.title.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                  className="group flex h-full flex-col"
+                >
+                  <a href="#" className="block overflow-hidden">
+                    <div className="aspect-[4/3] overflow-hidden">
+                      <img
+                        src={post.img}
+                        alt={isAr ? post.title.ar : post.title.en}
+                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                      />
+                    </div>
+                  </a>
+                  <p
+                    className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                    style={{ color: OLIVE }}
+                  >
+                    {t(post.category.en, post.category.ar)}
+                  </p>
+                  <h3
+                    className={`mt-3 text-2xl ${
+                      isAr
+                        ? "font-['Alexandria',sans-serif] font-bold leading-snug"
+                        : "font-['Marcellus',serif] leading-tight"
+                    }`}
+                  >
+                    <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
+                      {t(post.title.en, post.title.ar)}
+                    </a>
+                  </h3>
+                  <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                    {t(post.excerpt.en, post.excerpt.ar)}
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                    <ViewMore label={t('Read Article', 'اقرأ المقال')} />
+                    <span
+                      className={`text-[10px] uppercase text-neutral-400 ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.22em]'
+                      }`}
+                    >
+                      {isAr ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
+                    </span>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 17. B2B TEASER                                                */}
         {/* ============================================================ */}
         <section className="relative overflow-hidden">
           <img
@@ -1221,7 +1716,176 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 10. FOOTER                                                    */}
+        {/* 18. BECOME A PARTNER — three roles + a dark dashboard strip    */}
+        {/* ============================================================ */}
+        <section data-testid="partner" className="py-20 md:py-28">
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <Reveal>
+              <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
+                <div className="lg:col-span-7">
+                  <SectionHeading
+                    eyebrow={t(`${PARTNER.eyebrow.en} — 15`, `${PARTNER.eyebrow.ar} — 15`)}
+                    title={t(PARTNER.title.en, PARTNER.title.ar)}
+                  />
+                </div>
+                <p className="max-w-md self-end text-[15px] font-light leading-relaxed text-neutral-600 lg:col-span-5">
+                  {t(PARTNER.body.en, PARTNER.body.ar)}
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid gap-5 md:mt-16 md:gap-6 lg:grid-cols-3">
+              {PARTNER.roles.map((role, i) => (
+                <motion.div
+                  key={role.title.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                >
+                  <div
+                    className="flex h-full flex-col border bg-white p-8 transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)] md:p-10"
+                    style={{ borderColor: HAIR }}
+                  >
+                    <role.icon size={32} strokeWidth={1} className="text-[#5A6B4D]" />
+                    <h3
+                      className={`mt-7 font-bold uppercase ${
+                        isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
+                      }`}
+                    >
+                      {t(role.title.en, role.title.ar)}
+                    </h3>
+                    <p className="mt-3 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                      {t(role.body.en, role.body.ar)}
+                    </p>
+                    <div className="mt-7">
+                      <ViewMore label={t(role.cta.en, role.cta.ar)} />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* dashboard strip — one dark note to close the pitch */}
+            <Reveal delay={0.1}>
+              <div
+                className="mt-6 flex flex-col gap-7 p-8 md:flex-row md:items-center md:justify-between md:gap-10 md:p-12"
+                style={{ backgroundColor: INK, color: CREAM }}
+              >
+                <div className="max-w-xl">
+                  <h3
+                    className={`font-extrabold uppercase ${
+                      isAr
+                        ? "font-['Alexandria',sans-serif] text-2xl leading-snug tracking-normal"
+                        : "font-['Outfit',sans-serif] text-2xl leading-tight tracking-tight md:text-3xl"
+                    }`}
+                  >
+                    {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
+                  </h3>
+                  <p className="mt-3 text-[14px] font-light leading-relaxed text-[#F6F3EC]/65">
+                    {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                  }`}
+                >
+                  {t(PARTNER.dashboard.cta.en, PARTNER.dashboard.cta.ar)}
+                </button>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 19. APP PROMO                                                 */}
+        {/* ============================================================ */}
+        <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+              <Reveal className="lg:col-span-5">
+                <div className="overflow-hidden" style={{ backgroundColor: TILE }}>
+                  <img
+                    src={APP_PROMO.img}
+                    alt={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+                    className="aspect-[4/5] h-full w-full object-cover"
+                  />
+                </div>
+              </Reveal>
+
+              <Reveal className="lg:col-span-7" delay={0.1}>
+                <SectionHeading
+                  eyebrow={t(`${APP_PROMO.eyebrow.en} — 16`, `${APP_PROMO.eyebrow.ar} — 16`)}
+                  title={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+                />
+                <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-neutral-600">
+                  {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
+                </p>
+
+                <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+                  {APP_PROMO.features.map((f, i) => (
+                    <motion.div
+                      key={f.title.en}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-80px' }}
+                      transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                      className="flex items-start gap-4"
+                    >
+                      <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
+                      <div className="min-w-0">
+                        <h3
+                          className={`font-bold uppercase ${
+                            isAr ? 'text-[13.5px] tracking-normal' : 'text-[12px] tracking-[0.18em]'
+                          }`}
+                        >
+                          {t(f.title.en, f.title.ar)}
+                        </h3>
+                        <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
+                          {t(f.body.en, f.body.ar)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="mt-11 flex flex-wrap gap-4">
+                  {[
+                    { label: 'App Store', sub: t('Download on the', 'حمّله من') },
+                    { label: 'Google Play', sub: t('Get it on', 'احصل عليه من') },
+                  ].map((store) => (
+                    <button
+                      key={store.label}
+                      type="button"
+                      className="bg-[#171512] px-9 py-3.5 text-start text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
+                    >
+                      <span
+                        className={`block text-[9px] uppercase text-white/60 ${
+                          isAr ? 'tracking-normal' : 'tracking-[0.22em]'
+                        }`}
+                      >
+                        {store.sub}
+                      </span>
+                      <span
+                        dir="ltr"
+                        className={`mt-1 block font-['Outfit',sans-serif] text-[13px] font-semibold uppercase ${
+                          isAr ? 'tracking-normal' : 'tracking-[0.14em]'
+                        }`}
+                      >
+                        {store.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 20. FOOTER                                                    */}
         {/* ============================================================ */}
         <footer style={{ backgroundColor: '#14120F', color: '#EFE9DD' }}>
           <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-10 md:py-20">

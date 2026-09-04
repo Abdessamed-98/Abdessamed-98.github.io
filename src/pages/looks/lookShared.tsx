@@ -7,7 +7,12 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   PenTool, DoorOpen, Armchair, PaintRoller, Layers, Sparkles, PanelTop, ShieldCheck,
+  Boxes, ScanLine, Truck, CreditCard, Coins, RefreshCw, Gift,
+  Camera, Smartphone, Bell, Store, Megaphone, Wrench,
 } from 'lucide-react';
+
+/** Icon component shape used across the shared data. */
+export type LookIcon = React.ComponentType<{ size?: number | string; className?: string; strokeWidth?: number }>;
 
 export interface LookProduct {
   id: number;
@@ -394,6 +399,261 @@ export const FOOTER_LINKS = {
   about: 'Diyar is your destination for furniture, interior design, and integrated solutions that bring comfort, functionality, and style to every space.',
   aboutAr: 'ديار وجهتك للأثاث والتصميم الداخلي والحلول المتكاملة التي تضيف الراحة والأناقة لكل مساحة.',
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* Sections carried over from the original marketplace site            */
+/* ------------------------------------------------------------------ */
+
+/** Shop by room — complements "Find Your Style" (which shops by aesthetic). */
+export interface LookRoom { img: string; en: string; ar: string; count: number }
+
+export const ROOMS: LookRoom[] = [
+  { img: IMG.catHome, en: 'Living Rooms', ar: 'غرف المعيشة', count: 1284 },
+  { img: IMG.bedroom, en: 'Bedrooms', ar: 'غرف النوم', count: 962 },
+  { img: IMG.restaurant, en: 'Dining Rooms', ar: 'غرف الطعام', count: 738 },
+  { img: IMG.loungeDark, en: 'Majlis', ar: 'المجالس', count: 611 },
+  { img: IMG.catOffice, en: 'Home Office', ar: 'المكاتب المنزلية', count: 455 },
+  { img: IMG.hero, en: 'Outdoor', ar: 'الجلسات الخارجية', count: 327 },
+];
+
+/** Trust row — answers "why buy here" before the customer has to ask. */
+export interface LookUsp { icon: LookIcon; title: Bi; body: Bi }
+
+export const WHY_DIYAR: LookUsp[] = [
+  {
+    icon: Boxes,
+    title: { en: 'Unlimited Choice', ar: 'خيارات لا محدودة' },
+    body: {
+      en: 'Thousands of pieces from Diyar and its partner stores, in one place.',
+      ar: 'آلاف القطع من ديار ومتاجرها الشريكة، في مكان واحد.',
+    },
+  },
+  {
+    icon: ScanLine,
+    title: { en: 'See It In Your Room', ar: 'جرّبه في غرفتك' },
+    body: {
+      en: 'Augmented reality and AI let you place any piece before you buy.',
+      ar: 'الواقع المعزز والذكاء الاصطناعي يضعان أي قطعة في مساحتك قبل الشراء.',
+    },
+  },
+  {
+    icon: Truck,
+    title: { en: 'Delivery & Installation', ar: 'توصيل وتركيب' },
+    body: {
+      en: 'Kingdom-wide delivery with professional assembly by our own crews.',
+      ar: 'توصيل لكل مناطق المملكة مع تركيب احترافي على يد فرقنا.',
+    },
+  },
+  {
+    icon: CreditCard,
+    title: { en: 'Secure, Flexible Payment', ar: 'دفع آمن ومرن' },
+    body: {
+      en: 'Mada, Apple Pay and split payments — with a warranty on every order.',
+      ar: 'مدى وأبل باي والتقسيط — مع ضمان على كل طلب.',
+    },
+  },
+];
+
+/** Customer testimonials. */
+export interface LookReview { name: Bi; city: Bi; rating: number; text: Bi }
+
+export const REVIEWS: LookReview[] = [
+  {
+    name: { en: 'Noura Al-Otaibi', ar: 'نورة العتيبي' },
+    city: { en: 'Riyadh', ar: 'الرياض' },
+    rating: 5,
+    text: {
+      en: 'I furnished the whole majlis through Diyar. The designer helped me pick everything and the installation crew finished in one afternoon.',
+      ar: 'أثثت المجلس بالكامل عبر ديار. المصممة ساعدتني في اختيار كل قطعة، وفريق التركيب أنهى العمل في عصر واحد.',
+    },
+  },
+  {
+    name: { en: 'Abdullah Al-Shammari', ar: 'عبدالله الشمري' },
+    city: { en: 'Jeddah', ar: 'جدة' },
+    rating: 5,
+    text: {
+      en: 'The AI room preview saved me from a mistake — the sofa I wanted was far too large for the space. Ordered the right one instead.',
+      ar: 'معاينة الغرفة بالذكاء الاصطناعي جنّبتني خطأ كبير — الأريكة التي أردتها كانت أكبر من المساحة. طلبت المقاس المناسب بدلاً منها.',
+    },
+  },
+  {
+    name: { en: 'Sara Al-Qahtani', ar: 'سارة القحطاني' },
+    city: { en: 'Dammam', ar: 'الدمام' },
+    rating: 4.8,
+    text: {
+      en: 'Custom wardrobes built to my measurements, delivered in three weeks. The finish matches the samples exactly.',
+      ar: 'خزائن مفصلة على مقاساتي، وصلت خلال ثلاثة أسابيع. التشطيب مطابق تماماً للعينات.',
+    },
+  },
+  {
+    name: { en: 'Fahad Al-Dosari', ar: 'فهد الدوسري' },
+    city: { en: 'Khobar', ar: 'الخبر' },
+    rating: 5,
+    text: {
+      en: 'We fitted out our café through Diyar Business. One team handled design, manufacturing and installation.',
+      ar: 'جهزنا المقهى عبر خدمات الشركات من ديار. فريق واحد تولى التصميم والتصنيع والتركيب.',
+    },
+  },
+];
+
+/** AI room designer — the feature behind the "جرب AI" link on product cards. */
+export const AI_STUDIO = {
+  eyebrow: { en: 'Diyar AI Studio', ar: 'استوديو ديار الذكي' },
+  title: { en: 'Design Your Room in One Tap', ar: 'صمم غرفتك بلمسة خيال' },
+  body: {
+    en: 'Upload a photo of your space, choose a style, and see it refurnished with pieces you can actually buy — then order the whole room in one click.',
+    ar: 'ارفع صورة لمساحتك، اختر الأسلوب، وشاهدها مؤثثة بقطع يمكنك شراؤها فعلاً — ثم اطلب الغرفة كاملة بضغطة واحدة.',
+  },
+  cta: { en: 'Try Your Room Now', ar: 'جرب غرفتك الآن' },
+  steps: [
+    { en: 'Upload your room photo', ar: 'ارفع صورة غرفتك' },
+    { en: 'Pick a style you love', ar: 'اختر الأسلوب الذي يعجبك' },
+    { en: 'Shop the result instantly', ar: 'تسوق النتيجة فوراً' },
+  ] as Bi[],
+  img: IMG.roomHotspots,
+};
+
+/** Editorial content — pairs with Design Consultation in the nav. */
+export interface LookPost { img: string; category: Bi; title: Bi; excerpt: Bi; readMins: number }
+
+export const BLOG_POSTS: LookPost[] = [
+  {
+    img: IMG.catLighting,
+    category: { en: 'Lighting', ar: 'الإنارة' },
+    title: { en: 'How to Layer Light in Three Levels', ar: 'كيف تنسق الإضاءة على ثلاث طبقات' },
+    excerpt: {
+      en: 'Ambient, task and accent — the simple rule that makes a room feel finished after dark.',
+      ar: 'إضاءة عامة ووظيفية ومركزة — القاعدة البسيطة التي تجعل الغرفة مكتملة بعد الغروب.',
+    },
+    readMins: 4,
+  },
+  {
+    img: IMG.roomHotspots,
+    category: { en: 'Styling', ar: 'التنسيق' },
+    title: { en: 'Five Rules for Choosing a Living Room Rug', ar: 'خمس قواعد لاختيار سجادة غرفة المعيشة' },
+    excerpt: {
+      en: 'Size first, texture second, colour last — why most rugs are bought a size too small.',
+      ar: 'المقاس أولاً، ثم الملمس، واللون أخيراً — لماذا تُشترى معظم السجاد بمقاس أصغر مما يجب.',
+    },
+    readMins: 3,
+  },
+  {
+    img: IMG.loungeDark,
+    category: { en: 'Interiors', ar: 'التصميم الداخلي' },
+    title: { en: 'The Majlis Guide: Heritage Meets Modern', ar: 'دليل المجالس: بين الأصالة والحداثة' },
+    excerpt: {
+      en: 'Keeping the warmth of a traditional majlis while letting contemporary furniture breathe.',
+      ar: 'كيف تحافظ على دفء المجلس التقليدي وتترك للأثاث المعاصر مساحته.',
+    },
+    readMins: 6,
+  },
+];
+
+/** Featured partner stores — Diyar is a multi-vendor marketplace. */
+export interface LookStore { name: Bi; specialty: Bi; initials: string; rating: number; products: number; cover: string }
+
+export const STORES: LookStore[] = [
+  {
+    name: { en: 'Bayt Al-Khashab', ar: 'بيت الخشب' },
+    specialty: { en: 'Solid wood & custom joinery', ar: 'الخشب الصلب والنجارة المخصصة' },
+    initials: 'BK', rating: 4.9, products: 412, cover: IMG.workshop,
+  },
+  {
+    name: { en: 'Lamsat Daw', ar: 'لمسة ضوء' },
+    specialty: { en: 'Designer lighting', ar: 'إنارات مصممة' },
+    initials: 'LD', rating: 4.8, products: 268, cover: IMG.catLighting,
+  },
+  {
+    name: { en: 'Diwan', ar: 'ديوان' },
+    specialty: { en: 'Majlis & seating', ar: 'المجالس والجلسات' },
+    initials: 'DW', rating: 4.7, products: 531, cover: IMG.loungeDark,
+  },
+  {
+    name: { en: 'Naseej', ar: 'نسيج' },
+    specialty: { en: 'Rugs & textiles', ar: 'السجاد والمنسوجات' },
+    initials: 'NS', rating: 4.9, products: 349, cover: IMG.bedroom,
+  },
+];
+
+/** Loyalty programme. */
+export const LOYALTY = {
+  eyebrow: { en: 'Diyar Rewards', ar: 'برنامج ولاء ديار' },
+  title: { en: 'Every Purchase Earns You More', ar: 'كل عملية شراء تكسبك أكثر' },
+  body: {
+    en: 'Collect points on everything you buy, on services and on design consultations — then spend them however you like.',
+    ar: 'اجمع نقاطاً على كل ما تشتريه، وعلى الخدمات والاستشارات التصميمية — ثم استبدلها كما تشاء.',
+  },
+  cta: { en: 'Explore Rewards', ar: 'استكشف عروض الولاء' },
+  perks: [
+    {
+      icon: Coins,
+      title: { en: 'Shop & Earn', ar: 'تسوق واربح' },
+      body: { en: 'One point for every 10 SAR you spend across the marketplace.', ar: 'نقطة واحدة على كل 10 ر.س تنفقها في المتجر.' },
+    },
+    {
+      icon: RefreshCw,
+      title: { en: 'Flexible Redemption', ar: 'استبدال مرن' },
+      body: { en: 'Turn points into discounts, free delivery or an installation visit.', ar: 'حوّل نقاطك إلى خصومات أو توصيل مجاني أو زيارة تركيب.' },
+    },
+    {
+      icon: Gift,
+      title: { en: 'Member Privileges', ar: 'مزايا الأعضاء' },
+      body: { en: 'Early access to new collections and members-only offers.', ar: 'أسبقية في التشكيلات الجديدة وعروض خاصة بالأعضاء.' },
+    },
+  ] as LookUsp[],
+};
+
+/** Mobile app. */
+export const APP_PROMO = {
+  eyebrow: { en: 'The Diyar App', ar: 'تطبيق ديار' },
+  title: { en: 'Your Home, In Your Pocket', ar: 'منزلك في جيبك' },
+  body: {
+    en: 'Everything on the site, plus the tools that only work with a camera in your hand.',
+    ar: 'كل ما في الموقع، إضافة إلى أدوات لا تعمل إلا وبيدك كاميرا.',
+  },
+  img: IMG.catHome,
+  features: [
+    { icon: ScanLine, title: { en: 'Augmented Reality', ar: 'الواقع المعزز' }, body: { en: 'Place any piece in your room to scale.', ar: 'ضع أي قطعة في غرفتك بمقاسها الحقيقي.' } },
+    { icon: Camera, title: { en: 'Search by Photo', ar: 'البحث بالصور' }, body: { en: 'Point the camera at a piece you like.', ar: 'وجّه الكاميرا نحو أي قطعة تعجبك.' } },
+    { icon: Bell, title: { en: 'Order Tracking', ar: 'تتبع الطلبات' }, body: { en: 'Live delivery and installation updates.', ar: 'تحديثات مباشرة للتوصيل والتركيب.' } },
+    { icon: Smartphone, title: { en: 'App-Only Offers', ar: 'عروض التطبيق' }, body: { en: 'Deals released to app users first.', ar: 'عروض تصل مستخدمي التطبيق أولاً.' } },
+  ] as LookUsp[],
+};
+
+/** Partner recruitment — the marketplace supply side. */
+export const PARTNER = {
+  eyebrow: { en: 'Grow With Diyar', ar: 'انمُ مع ديار' },
+  title: { en: 'Join the Marketplace', ar: 'انضم إلى المنصة' },
+  body: {
+    en: 'Sell your products, refer customers, or offer your trade to thousands of homeowners across the Kingdom.',
+    ar: 'بع منتجاتك، أو رشّح عملاء، أو قدّم حرفتك لآلاف الأسر في جميع أنحاء المملكة.',
+  },
+  roles: [
+    {
+      icon: Store,
+      title: { en: 'Sell as a Store', ar: 'سجل كتاجر' },
+      body: { en: 'List your catalogue and reach buyers already shopping for furniture.', ar: 'اعرض منتجاتك وصل إلى مشترين يبحثون عن الأثاث فعلاً.' },
+      cta: { en: 'Register a Store', ar: 'سجل متجرك' },
+    },
+    {
+      icon: Megaphone,
+      title: { en: 'Earn as an Affiliate', ar: 'مسوق بالعمولة' },
+      body: { en: 'Share what you love and take a commission on every sale.', ar: 'شارك ما يعجبك واحصل على عمولة عن كل عملية بيع.' },
+      cta: { en: 'Join the Programme', ar: 'انضم كمسوق' },
+    },
+    {
+      icon: Wrench,
+      title: { en: 'Offer a Service', ar: 'مقدم خدمات' },
+      body: { en: 'Carpenters, painters, installers — get matched with nearby jobs.', ar: 'نجارون ودهانون وفنيو تركيب — استقبل طلبات قريبة منك.' },
+      cta: { en: 'Register Your Trade', ar: 'سجل مهنتك' },
+    },
+  ],
+  dashboard: {
+    title: { en: 'A Full Dashboard, Included', ar: 'لوحة تحكم متكاملة' },
+    body: { en: 'Orders, inventory, payouts and performance — in one place.', ar: 'الطلبات والمخزون والمستحقات والأداء — في مكان واحد.' },
+    cta: { en: 'See the Demo', ar: 'شاهد العرض التجريبي' },
+  },
+};
 
 export const formatSAR = (n: number) => n.toLocaleString('en-US');
 
