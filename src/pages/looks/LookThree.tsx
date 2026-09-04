@@ -13,7 +13,7 @@ import { useEffect, useRef, useState, type CSSProperties, type Key, type ReactNo
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
-  ChevronLeft, ChevronRight, Instagram, Facebook, Linkedin,
+  ChevronLeft, ChevronRight, Instagram, Facebook, Linkedin, Sparkles,
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
@@ -1162,7 +1162,9 @@ function AiStudio({ lang }: { lang: Lang }) {
         </SectionHeader>
       </div>
 
-      {/* One wide plate, edge to edge */}
+      {/* One wide plate, edge to edge — split so the plate itself shows what the
+          studio does: the room as it is on one side, as it is proposed on the other.
+          Halves are physical (left = before) and must not mirror in RTL. */}
       <Reveal delay={0.06} className="mt-14 md:mt-16">
         <div className="relative aspect-[16/9] w-full overflow-hidden md:aspect-[21/9]">
           <img
@@ -1170,6 +1172,41 @@ function AiStudio({ lang }: { lang: Lang }) {
             alt={AI_STUDIO.title.en}
             className="absolute inset-0 h-full w-full object-cover"
           />
+          <img
+            src={AI_STUDIO.img}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ clipPath: 'inset(0 50% 0 0)', filter: 'grayscale(0.92) brightness(0.55) contrast(0.95)' }}
+          />
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
+            style={{ backgroundColor: GOLDISH }}
+          />
+          <span
+            aria-hidden
+            className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-sm"
+            style={{ borderColor: GOLDISH, backgroundColor: 'rgba(27,23,18,0.55)' }}
+          >
+            <Sparkles size={15} strokeWidth={1} style={{ color: GOLDISH }} />
+          </span>
+          <span
+            className={`absolute bottom-5 left-5 px-3 py-1.5 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+            }`}
+            style={{ backgroundColor: 'rgba(27,23,18,0.72)', color: 'rgba(239,233,221,0.75)' }}
+          >
+            {t('Before', 'قبل')}
+          </span>
+          <span
+            className={`absolute bottom-5 right-5 px-3 py-1.5 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+            }`}
+            style={{ backgroundColor: 'rgba(27,23,18,0.72)', color: GOLDISH }}
+          >
+            {t('After — Diyar AI', 'بعد — ديار الذكي')}
+          </span>
         </div>
       </Reveal>
 
@@ -1188,16 +1225,15 @@ function AiStudio({ lang }: { lang: Lang }) {
         <div className="mt-14 grid grid-cols-1 gap-x-10 gap-y-10 sm:grid-cols-3">
           {AI_STUDIO.steps.map((s, i) => (
             <Reveal key={s.en} delay={i * 0.07}>
-              <div className="relative border-t pt-8" style={{ borderColor: 'rgba(239,233,221,0.18)' }}>
+              <div className="flex h-full flex-col border-t pt-7" style={{ borderColor: 'rgba(239,233,221,0.18)' }}>
                 <span
-                  aria-hidden
-                  dir="ltr"
-                  className={`${PLAYFAIR} pointer-events-none absolute end-0 top-5 select-none text-5xl leading-none text-[#EFE9DD1F]`}
+                  className={`${PLAYFAIR} block text-[13px] tracking-[0.25em] text-start`}
+                  style={{ color: GOLDISH }}
                 >
                   {pad2(i + 1)}
                 </span>
                 <h3
-                  className={`${serif(lang)} max-w-[16ch] text-xl ${headingLeading(lang, 'leading-snug')}`}
+                  className={`${serif(lang)} mt-3 text-xl ${headingLeading(lang, 'leading-snug')}`}
                   style={{ color: CREAM }}
                 >
                   {t(s.en, s.ar)}
