@@ -815,7 +815,12 @@ export default function LookOne() {
               <SectionHeading eyebrow={t('Services — 02', 'الخدمات — 02')} title={t('Our Services', 'خدماتنا')} />
             </Reveal>
 
-            <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-16 md:mt-20 lg:grid-cols-4 lg:gap-x-12">
+            {/* hairline matrix: the cells give the small items structure so they
+                don't float in the whitespace under the oversized section title */}
+            <div
+              className="mt-14 grid grid-cols-2 border-t border-s md:mt-20 lg:grid-cols-4"
+              style={{ borderColor: HAIR }}
+            >
               {SERVICES.map((s, i) => (
                 <motion.div
                   key={s.en}
@@ -823,17 +828,21 @@ export default function LookOne() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-80px' }}
                   transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                  className="border-b border-e"
+                  style={{ borderColor: HAIR }}
                 >
-                  <div className="flex flex-col items-center text-center">
-                    <s.icon size={34} strokeWidth={1.25} className="text-[#5A6B4D]" />
+                  <div className="flex h-full flex-col items-center px-5 py-12 text-center md:px-8 md:py-14">
+                    <s.icon size={44} strokeWidth={1} className="text-[#5A6B4D]" />
                     <h3
-                      className={`mt-6 text-[12px] font-bold uppercase leading-relaxed ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                      className={`mt-7 font-bold uppercase ${
+                        isAr
+                          ? 'text-[15px] leading-relaxed tracking-normal'
+                          : 'text-[13.5px] leading-relaxed tracking-[0.18em]'
                       }`}
                     >
                       {t(s.en, s.ar)}
                     </h3>
-                    <div className="mt-6">
+                    <div className="mt-5">
                       <ViewMore />
                     </div>
                   </div>

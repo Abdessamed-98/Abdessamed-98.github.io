@@ -753,15 +753,20 @@ function Services({ lang }: { lang: Lang }) {
         <div className="mt-16 grid grid-cols-2 gap-x-8 md:mt-20 md:grid-cols-4 md:gap-x-12">
           {SERVICES.map((s, i) => (
             <Reveal key={s.en} delay={(i % 4) * 0.07}>
-              <div className="relative border-t pt-9 pb-14" style={{ borderColor: HAIR }}>
+              <div className="relative border-t pt-10 pb-12" style={{ borderColor: HAIR }}>
+                {/* ghost numeral sits behind the name — kept lighter so it never
+                    outweighs the service it labels */}
                 <span
                   aria-hidden
-                  className={`${PLAYFAIR} pointer-events-none absolute end-0 top-5 select-none text-6xl leading-none text-[#2A241C14]`}
+                  className={`${PLAYFAIR} pointer-events-none absolute end-0 top-6 select-none text-5xl leading-none text-[#2A241C0F]`}
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <s.icon size={26} strokeWidth={1} className="text-[#8A6D4F]" />
-                <h3 className={`${serif(lang)} mt-6 text-lg leading-snug`} style={{ color: INK }}>
+                <s.icon size={36} strokeWidth={1} className="text-[#8A6D4F]" />
+                <h3
+                  className={`${serif(lang)} mt-7 leading-snug ${lang === 'ar' ? 'text-2xl leading-[1.5]' : 'text-xl'}`}
+                  style={{ color: INK }}
+                >
                   {t(s.en, s.ar)}
                 </h3>
               </div>

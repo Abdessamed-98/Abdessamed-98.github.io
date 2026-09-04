@@ -770,11 +770,11 @@ export default function LookTwo() {
             <div className="grid grid-cols-2 lg:grid-cols-4">
               {SERVICES.map((s, i) => (
                 <Reveal key={s.en} delay={(i % 4) * 0.06} className="h-full">
-                  <div className="group h-full flex flex-col items-center gap-5 px-5 py-10 md:py-14 border-r border-b border-white/10 text-center">
-                    <span className="w-16 h-16 rounded-full border border-[#C9A86A]/35 flex items-center justify-center text-[#C9A86A] transition-all duration-500 group-hover:border-[#C9A86A] group-hover:bg-[#C9A86A]/5">
-                      <s.icon size={26} strokeWidth={1} />
+                  <div className="group h-full flex flex-col items-center gap-6 px-5 py-12 md:py-16 border-r border-b border-white/10 text-center">
+                    <span className="w-[76px] h-[76px] rounded-full border border-[#C9A86A]/35 flex items-center justify-center text-[#C9A86A] transition-all duration-500 group-hover:border-[#C9A86A] group-hover:bg-[#C9A86A]/5">
+                      <s.icon size={32} strokeWidth={1} />
                     </span>
-                    <span className={`${isAr ? `${AR_LABEL} text-[13px] md:text-sm tracking-normal` : `${CAPS} text-[11px] md:text-xs tracking-[0.2em]`} block uppercase text-[#EFE9DD]`}>
+                    <span className={`${isAr ? `${AR_LABEL} text-[15px] leading-relaxed tracking-normal` : `${CAPS} text-[13px] leading-relaxed tracking-[0.18em]`} block uppercase text-[#EFE9DD]`}>
                       {t(s.en, s.ar)}
                     </span>
                   </div>
