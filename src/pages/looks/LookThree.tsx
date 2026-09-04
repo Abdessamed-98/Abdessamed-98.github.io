@@ -531,7 +531,16 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
         solid ? 'border-b border-[#DDD6CA] bg-[#F1EDE5] text-[#2A241C]' : 'border-b border-transparent bg-transparent text-white'
       }`}
     >
-      <div className={`${CONTAINER} flex h-[72px] items-center gap-6`}>
+      {/* Scrim behind the transparent bar: the header renders white content over
+          the hero, so a bright slide would otherwise swallow it. Fades out below
+          the bar and disappears once the solid chrome takes over. */}
+      {!solid && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[150px] bg-gradient-to-b from-black/55 via-black/25 to-transparent"
+        />
+      )}
+      <div className={`${CONTAINER} relative flex h-[72px] items-center gap-6`}>
         {/* Logo */}
         <a href="#" onClick={(e) => e.preventDefault()} className="shrink-0">
           <img
@@ -741,11 +750,13 @@ function Hero({ lang }: { lang: Lang }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Soft dark gradient, bottom third */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+      {/* Even scrim so centred type stays legible over any slide, plus a
+          bottom gradient to seat the indicators */}
+      <div className="pointer-events-none absolute inset-0 bg-black/25" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
 
-      {/* Copy — bottom start */}
-      <div className={`${CONTAINER} absolute inset-x-0 bottom-0 pb-20 md:pb-24`}>
+      {/* Copy — centred, matching the centred section headers used page-wide */}
+      <div className="absolute inset-0 flex items-center justify-center px-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide}
@@ -753,8 +764,9 @@ function Hero({ lang }: { lang: Lang }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
-            className="max-w-2xl"
+            className="flex max-w-3xl flex-col items-center text-center"
           >
+            <span className="mb-6 block h-px w-10 bg-white/50" />
             <p
               className={`text-white/80 ${
                 lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
@@ -762,17 +774,20 @@ function Hero({ lang }: { lang: Lang }) {
             >
               {lang === 'ar' ? current.tagAr : current.tag}
             </p>
-            <h1 className={`${serif(lang)} mt-5 text-5xl text-white md:text-6xl ${headingLeading(lang, 'leading-[1.12]')}`}>
+            <h1 className={`${serif(lang)} mt-5 text-5xl text-white md:text-6xl lg:text-7xl ${headingLeading(lang, 'leading-[1.12]')}`}>
               {lang === 'ar' ? current.ar : current.en}
             </h1>
+            <div className="mt-9">
+              <HairButton lang={lang} label={t('Discover', 'اكتشف')} tone="white" />
+            </div>
           </motion.div>
         </AnimatePresence>
-        <div className="mt-8">
-          <HairButton lang={lang} label={t('Discover', 'اكتشف')} tone="white" />
-        </div>
+      </div>
 
-        {/* Indicators — bottom end. Numerals stay Latin in both languages. */}
-        <div className="absolute bottom-20 end-6 hidden items-center gap-5 md:end-10 md:bottom-24 md:flex">
+      <div className={`${CONTAINER} pointer-events-none absolute inset-x-0 bottom-10 md:bottom-12`}>
+        {/* Indicators — centred on mobile, bottom end on desktop.
+            Numerals stay Latin in both languages. */}
+        <div className="pointer-events-auto flex items-center justify-center gap-5 md:justify-end">
           <span dir="ltr" className={`${PLAYFAIR} text-sm tracking-[0.2em] text-white/90`}>
             {pad(slide + 1)} <span className="text-white/40">/ {pad(HERO_SLIDES.length)}</span>
           </span>

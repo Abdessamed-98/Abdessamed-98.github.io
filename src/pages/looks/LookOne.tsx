@@ -552,7 +552,16 @@ export default function LookOne() {
               : 'border-transparent bg-transparent'
           }`}
         >
-          <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-5 px-6 md:px-10 lg:gap-6">
+          {/* Scrim behind the transparent bar: the header renders white content over
+              the hero, so a bright slide would otherwise swallow it. Fades out below
+              the bar and disappears once the solid chrome takes over. */}
+          {!solid && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-[150px] bg-gradient-to-b from-black/55 via-black/25 to-transparent"
+            />
+          )}
+          <div className="relative mx-auto flex h-[72px] max-w-[1400px] items-center gap-5 px-6 md:px-10 lg:gap-6">
             {/* logo — white over hero, black on solid bar */}
             <a href="#" className="shrink-0">
               <img

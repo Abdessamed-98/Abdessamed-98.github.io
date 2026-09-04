@@ -561,7 +561,16 @@ export default function LookTwo() {
           solid ? 'bg-[#131009]/95 backdrop-blur-md border-white/10' : 'bg-transparent border-transparent'
         }`}
       >
-        <div className="max-w-[1400px] mx-auto flex h-[72px] items-center gap-5 lg:gap-6 px-6 md:px-10">
+        {/* Scrim behind the transparent bar: the header renders white content over
+            the hero, so a bright slide would otherwise swallow it. Fades out below
+            the bar and disappears once the solid chrome takes over. */}
+        {!solid && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-[150px] bg-gradient-to-b from-black/55 via-black/25 to-transparent"
+          />
+        )}
+        <div className="relative max-w-[1400px] mx-auto flex h-[72px] items-center gap-5 lg:gap-6 px-6 md:px-10">
           {/* Logo — page is dark, stays inverted in both states */}
           <a href="#" onClick={stop} className="shrink-0" aria-label="Diyar home">
             <img src="/logo_diyar.svg" alt="Diyar" className="h-8 invert" />
