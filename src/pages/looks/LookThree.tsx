@@ -48,10 +48,11 @@ const serif = (lang: Lang) => (lang === 'ar' ? AMIRI : PLAYFAIR);
 /** Arabic headings breathe more — letterforms and marks need taller lines than Playfair's tight leading. */
 const headingLeading = (lang: Lang, en: string) => (lang === 'ar' ? 'leading-[1.35]' : en);
 
+/* Positions track features in /looks/room-hotspots.jpg: floor lamp, wall tapestry, table vases. */
 const HOTSPOTS = [
-  { en: 'Lighting', ar: 'الإنارة', top: '38%', left: '15%' },
-  { en: 'Dining Tables', ar: 'طاولات الطعام', top: '66%', left: '58%' },
-  { en: 'Vases & Vessels', ar: 'المزهريات والأواني', top: '46%', left: '42%' },
+  { en: 'Lighting', ar: 'الإنارة', top: '33%', left: '83%' },
+  { en: 'Wall Art', ar: 'اللوحات', top: '29%', left: '61%' },
+  { en: 'Vases & Vessels', ar: 'المزهريات والأواني', top: '70%', left: '47%' },
 ];
 
 /* ------------------------------------------------------------------ */

@@ -722,9 +722,10 @@ export default function LookTwo() {
         />
         <div className={`absolute inset-0 ${isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-[#131009]/90 via-[#131009]/40 to-[#131009]/25`} />
 
-        <Hotspot ar={isAr} top="19%" left="58%" label={t('Lighting', 'الإنارة')} />
-        <Hotspot ar={isAr} top="47%" left="74%" label={t('Dining Tables', 'طاولات الطعام')} />
-        <Hotspot ar={isAr} top="64%" left="52%" label={t('Vases & Vessels', 'المزهريات والأواني')} />
+        {/* positions track features in room-hotspots.jpg: floor lamp, wall tapestry, table vases */}
+        <Hotspot ar={isAr} top="33%" left="83%" label={t('Lighting', 'الإنارة')} />
+        <Hotspot ar={isAr} top="29%" left="61%" label={t('Wall Art', 'اللوحات')} />
+        <Hotspot ar={isAr} top="70%" left="47%" label={t('Vases & Vessels', 'المزهريات والأواني')} />
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 md:px-10 py-24 md:py-32">
           <Reveal className="max-w-xl bg-[#131009]/80 backdrop-blur-md border border-[#C9A86A]/25 p-8 md:p-12">

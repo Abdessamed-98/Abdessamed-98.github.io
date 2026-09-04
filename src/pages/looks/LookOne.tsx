@@ -856,9 +856,10 @@ export default function LookOne() {
           <div className="absolute inset-0 bg-black/30" />
 
           {/* decorative hotspots */}
-          <Hotspot top="26%" left="30%" label={t('Lighting', 'الإنارة')} />
-          <Hotspot top="56%" left="50%" label={t('Dining Tables', 'طاولات الطعام')} delay={0.7} />
-          <Hotspot top="42%" left="76%" label={t('Vases & Vessels', 'المزهريات والأواني')} delay={1.4} />
+          {/* positions track features in room-hotspots.jpg: floor lamp, wall tapestry, table vases */}
+          <Hotspot top="33%" left="83%" label={t('Lighting', 'الإنارة')} />
+          <Hotspot top="29%" left="61%" label={t('Wall Art', 'اللوحات')} delay={0.7} />
+          <Hotspot top="70%" left="47%" label={t('Vases & Vessels', 'المزهريات والأواني')} delay={1.4} />
 
           <div className="relative mx-auto flex min-h-[70vh] max-w-[1400px] flex-col justify-end gap-10 px-6 py-16 md:px-10 md:py-20 lg:flex-row lg:items-end lg:justify-between">
             {/* headline panel — bottom-start */}

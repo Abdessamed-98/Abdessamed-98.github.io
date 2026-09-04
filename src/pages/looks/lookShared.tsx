@@ -67,7 +67,6 @@ export const IMG = {
   catHome: '/looks/cat-home.jpg',
   catOffice: '/looks/cat-office.jpg',
   catLighting: '/looks/cat-lighting.jpg',
-  b2bWide: '/looks/b2b-wide.jpg',
 } as const;
 
 export const HERO_SLIDES: LookSlide[] = [
