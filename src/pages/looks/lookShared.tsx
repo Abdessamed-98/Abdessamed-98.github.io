@@ -255,6 +255,68 @@ export const SERVICES_MENU: MenuGroup[] = [
   },
 ];
 
+/**
+ * Shoppable "Shop the Look" hotspots.
+ * `top`/`left` are physical percentages tracking real objects inside
+ * /looks/room-hotspots.jpg, so they must NOT be mirrored in RTL.
+ * `align`/`vAlign` say which way the product card should open so it
+ * never runs off the edge of the image.
+ */
+export interface RoomHotspot {
+  id: string;
+  thumb: string;
+  name: Bi;
+  category: Bi;
+  price: number;
+  top: string;
+  left: string;
+  align: 'left' | 'right';
+  vAlign: 'top' | 'bottom';
+}
+
+export const ROOM_HOTSPOTS: RoomHotspot[] = [
+  {
+    id: 'lamp',
+    thumb: '/looks/shop/lamp.jpg',
+    name: { en: 'Brass Floor Lamp with Linen Shade', ar: 'مصباح أرضي نحاسي بغطاء كتان' },
+    category: { en: 'Lighting', ar: 'الإنارات' },
+    price: 1450,
+    top: '33%', left: '83%', align: 'left', vAlign: 'bottom',
+  },
+  {
+    id: 'tapestry',
+    thumb: '/looks/shop/tapestry.jpg',
+    name: { en: 'Vintage Woven Wall Tapestry', ar: 'سجادة جدارية منسوجة' },
+    category: { en: 'Wall Art', ar: 'اللوحات' },
+    price: 2300,
+    top: '29%', left: '61%', align: 'left', vAlign: 'bottom',
+  },
+  {
+    id: 'vases',
+    thumb: '/looks/shop/vases.jpg',
+    name: { en: 'Stoneware Vase Set', ar: 'طقم مزهريات حجرية' },
+    category: { en: 'Vases & Vessels', ar: 'المزهريات والأواني' },
+    price: 480,
+    top: '70%', left: '47%', align: 'right', vAlign: 'top',
+  },
+  {
+    id: 'chair',
+    thumb: '/looks/shop/chair.jpg',
+    name: { en: 'Olive Boucle Lounge Chair', ar: 'كرسي استرخاء بقماش البوكليه' },
+    category: { en: 'Home Furniture', ar: 'الأثاث المنزلي' },
+    price: 3150,
+    top: '77%', left: '66%', align: 'left', vAlign: 'top',
+  },
+  {
+    id: 'planter',
+    thumb: '/looks/shop/planter.jpg',
+    name: { en: 'Aged Terracotta Planter', ar: 'أصيص فخاري عتيق' },
+    category: { en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
+    price: 620,
+    top: '74%', left: '28%', align: 'right', vAlign: 'top',
+  },
+];
+
 /** Featured promo tiles for the rich mega-menu panels. */
 export const MENU_FEATURED = {
   shop: [

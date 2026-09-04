@@ -5,7 +5,10 @@
  * letterspaced eyebrows, editorial photography, hairline dividers,
  * restrained motion. Bilingual: Arabic (default, RTL) + English.
  */
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext, useContext, useEffect, useRef, useState,
+  type CSSProperties, type ReactNode,
+} from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
@@ -14,8 +17,8 @@ import {
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
-  SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
-  type Lang, type MenuGroup, type Bi,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
+  type Lang, type MenuGroup, type Bi, type RoomHotspot,
 } from './lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -131,25 +134,131 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-/** Decorative pulsing hotspot dot with a tiny label (pinned to image features — stays physical). */
-function Hotspot({ top, left, label, delay = 0 }: { top: string; left: string; label: string; delay?: number }) {
+/**
+ * Shop-the-look hotspot: a pulsing dot pinned to a real object in the room photo
+ * that opens a small product card on hover / tap.
+ * Dot AND card use PHYSICAL offsets (inline top/left/right/bottom) so they keep
+ * tracking the photo in RTL — only the card's text follows the language.
+ */
+function ShopHotspot({
+  h,
+  open,
+  delay = 0,
+  onOpen,
+  onScheduleClose,
+  onToggle,
+}: {
+  h: RoomHotspot;
+  open: boolean;
+  delay?: number;
+  onOpen: () => void;
+  onScheduleClose: () => void;
+  onToggle: () => void;
+  key?: string | number;
+}) {
   const isAr = useLang() === 'ar';
+  const name = isAr ? h.name.ar : h.name.en;
+
+  /* open the card away from the nearest image edge — physical, never mirrored */
+  const cardPos: CSSProperties = {
+    ...(h.align === 'left' ? { right: '-6px' } : { left: '-6px' }),
+    ...(h.vAlign === 'top' ? { bottom: 'calc(100% + 14px)' } : { top: 'calc(100% + 14px)' }),
+  };
+
   return (
-    <div className="absolute z-10" style={{ top, left }}>
+    <div
+      className="absolute z-10"
+      style={{ top: h.top, left: h.left }}
+      onMouseEnter={onOpen}
+      onMouseLeave={onScheduleClose}
+    >
       <div className="relative h-3.5 w-3.5">
+        {/* slow pulsing halo */}
         <motion.span
-          className="absolute inset-0 rounded-full bg-white/60"
+          className="pointer-events-none absolute inset-0 rounded-full bg-white/60"
           animate={{ scale: [1, 2.6], opacity: [0.7, 0] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut', delay }}
         />
-        <span className="absolute inset-0 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.15)]" />
-        <span
-          className={`absolute left-6 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] uppercase text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.6)] ${
-            isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+        {/* the control itself */}
+        <button
+          type="button"
+          data-testid={`hotspot-${h.id}`}
+          aria-label={name}
+          aria-expanded={open}
+          onClick={onToggle}
+          onFocus={onOpen}
+          className={`absolute inset-0 rounded-full border border-[#5A6B4D] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.25)] transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+            open ? 'scale-[1.35]' : 'hover:scale-[1.35]'
           }`}
-        >
-          {label}
-        </span>
+        />
+
+        {/* product card */}
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              key="card"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              style={{ ...cardPos, borderColor: HAIR }}
+              className={`absolute z-20 w-[212px] cursor-default border bg-white text-start shadow-[0_18px_44px_rgba(23,21,18,0.22)] sm:w-[260px] ${
+                isAr ? "font-['Tajawal',sans-serif]" : "font-['Outfit',sans-serif]"
+              }`}
+            >
+              <div className="flex gap-3.5 p-3.5">
+                <img
+                  src={h.thumb}
+                  alt={name}
+                  className="h-[72px] w-[72px] shrink-0 object-cover sm:h-[80px] sm:w-[80px]"
+                  style={{ backgroundColor: TILE }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`text-[9px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.22em]'}`}
+                    style={{ color: OLIVE }}
+                  >
+                    {isAr ? h.category.ar : h.category.en}
+                  </p>
+                  <h3 className="mt-1 line-clamp-2 text-[12.5px] font-medium leading-snug" style={{ color: INK }}>
+                    {name}
+                  </h3>
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-[14px] font-bold" style={{ color: INK }}>
+                      {formatSAR(h.price)}
+                    </span>
+                    <span
+                      className={`text-[9.5px] uppercase text-neutral-500 ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.1em]'
+                      }`}
+                    >
+                      {isAr ? 'ر.س' : 'SAR'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-3.5 pb-3.5">
+                <button
+                  type="button"
+                  className={`w-full bg-[#171512] py-2.5 text-[9.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.24em]'
+                  }`}
+                >
+                  {isAr ? 'عرض المنتج' : 'View Product'}
+                </button>
+                <a
+                  href="#"
+                  className={`mt-2.5 block text-center text-[9.5px] uppercase text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.18em]'
+                  }`}
+                >
+                  {isAr ? 'أضف إلى السلة' : '+ Add to Cart'}
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -246,6 +355,41 @@ export default function LookOne() {
       if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
     };
   }, []);
+
+  /* shop-the-look: one open product card at a time, with a small close grace period */
+  const [openSpot, setOpenSpot] = useState<string | null>(null);
+  const spotTimer = useRef<number | null>(null);
+  const cancelSpotClose = () => {
+    if (spotTimer.current !== null) {
+      window.clearTimeout(spotTimer.current);
+      spotTimer.current = null;
+    }
+  };
+  const scheduleSpotClose = () => {
+    cancelSpotClose();
+    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 120);
+  };
+  const openSpotNow = (id: string) => {
+    cancelSpotClose();
+    setOpenSpot(id);
+  };
+  const toggleSpot = (id: string) => {
+    cancelSpotClose();
+    setOpenSpot((s) => (s === id ? null : id));
+  };
+  useEffect(() => {
+    return () => {
+      if (spotTimer.current !== null) window.clearTimeout(spotTimer.current);
+    };
+  }, []);
+  useEffect(() => {
+    if (openSpot === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenSpot(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openSpot]);
 
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
   const isAr = lang === 'ar';
@@ -845,92 +989,122 @@ export default function LookOne() {
         </section>
 
         {/* ============================================================ */}
-        {/* 7. GET FREE DESIGN ASSISTANCE                                 */}
+        {/* 7. SHOP THE LOOK — interactive room with product hotspots     */}
         {/* ============================================================ */}
-        <section className="relative overflow-hidden">
-          <img
-            src={IMG.roomHotspots}
-            alt={t('Styled interior', 'مساحة داخلية منسقة')}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/30" />
-
-          {/* decorative hotspots */}
-          {/* positions track features in room-hotspots.jpg: floor lamp, wall tapestry, table vases */}
-          <Hotspot top="33%" left="83%" label={t('Lighting', 'الإنارة')} />
-          <Hotspot top="29%" left="61%" label={t('Wall Art', 'اللوحات')} delay={0.7} />
-          <Hotspot top="70%" left="47%" label={t('Vases & Vessels', 'المزهريات والأواني')} delay={1.4} />
-
-          <div className="relative mx-auto flex min-h-[70vh] max-w-[1400px] flex-col justify-end gap-10 px-6 py-16 md:px-10 md:py-20 lg:flex-row lg:items-end lg:justify-between">
-            {/* headline panel — bottom-start */}
-            <Reveal className="max-w-xl text-white">
+        <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
+          {/* heading */}
+          <div className="mx-auto max-w-[1400px] px-6 py-20 pb-10 md:px-10 md:py-28 md:pb-14">
+            <Reveal>
+              <SectionHeading eyebrow={t('The Room — 05', 'الغرفة — 05')} title={t('Shop the Look', 'تسوق الغرفة')} />
               <p
-                className={`text-[11px] uppercase text-white/85 ${isAr ? 'tracking-normal' : 'tracking-[0.32em]'}`}
-              >
-                {t('Design Studio — 05', 'استوديو التصميم — 05')}
-              </p>
-              <a
-                href="#"
-                className={`group/da mt-4 inline-flex flex-wrap items-center gap-4 text-3xl font-extrabold uppercase md:text-5xl ${
-                  isAr
-                    ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                    : "font-['Outfit',sans-serif] leading-[1.02] tracking-tight"
-                }`}
-              >
-                {t('Get Free Design Assistance', 'احصل على مساعدة التصميم مجاناً')}
-                <ArrowRight
-                  size={34}
-                  strokeWidth={1.5}
-                  className={`transition-transform duration-300 ${
-                    isAr ? 'rotate-180 group-hover/da:-translate-x-2' : 'group-hover/da:translate-x-2'
-                  }`}
-                />
-              </a>
-              <p
-                className={`mt-5 text-sm font-light text-white/85 md:text-base ${
-                  isAr ? 'tracking-normal' : 'tracking-[0.04em]'
+                className={`mt-6 max-w-xl text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.02em]'
                 }`}
               >
                 {t(
-                  'Our designers help you plan, style and furnish every room — at no cost.',
-                  'مصممونا يساعدونك في تخطيط كل غرفة وتنسيقها وتأثيثها — دون أي تكلفة.',
+                  'Hover any point to explore the products in this space.',
+                  'مرّر المؤشر على أي نقطة لاستكشاف منتجات هذه المساحة.',
                 )}
               </p>
             </Reveal>
+          </div>
 
-            {/* checklist card */}
-            <Reveal className="w-full lg:max-w-sm" delay={0.15}>
-              <div className="bg-white p-8 shadow-[0_24px_60px_rgba(0,0,0,0.18)] md:p-10">
+          {/* the shoppable image — hero of the section */}
+          <div className="relative min-h-[75vh] w-full overflow-hidden">
+            <img
+              src={IMG.roomHotspots}
+              alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            {/* very light scrim so the white dots read on bright areas */}
+            <div className="pointer-events-none absolute inset-0 bg-black/10" />
+            {/* keeps the container at min-h even though the image is absolute */}
+            <div className="relative min-h-[75vh] w-full" />
+
+            {ROOM_HOTSPOTS.map((h, i) => (
+              <ShopHotspot
+                key={h.id}
+                h={h}
+                delay={i * 0.55}
+                open={openSpot === h.id}
+                onOpen={() => openSpotNow(h.id)}
+                onScheduleClose={scheduleSpotClose}
+                onToggle={() => toggleSpot(h.id)}
+              />
+            ))}
+          </div>
+
+          {/* design assistance panel — kept, now sitting under the shoppable image */}
+          <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
+            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+              <Reveal className="lg:col-span-6">
                 <p
-                  className={`text-[10px] uppercase text-neutral-400 ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.3em]'
+                  className={`text-[11px] uppercase ${
+                    isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
+                  }`}
+                  style={{ color: OLIVE }}
+                >
+                  {t('Design Studio', 'استوديو التصميم')}
+                </p>
+                <a
+                  href="#"
+                  className={`group/da mt-4 inline-flex flex-wrap items-center gap-4 text-3xl font-extrabold uppercase md:text-4xl ${
+                    isAr
+                      ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
+                      : "font-['Outfit',sans-serif] leading-[1.02] tracking-tight"
                   }`}
                 >
-                  {t("What's included", 'ما الذي تشمله الخدمة')}
+                  {t('Get Free Design Assistance', 'احصل على مساعدة التصميم مجاناً')}
+                  <ArrowRight
+                    size={30}
+                    strokeWidth={1.5}
+                    className={`transition-transform duration-300 ${
+                      isAr ? 'rotate-180 group-hover/da:-translate-x-2' : 'group-hover/da:translate-x-2'
+                    }`}
+                  />
+                </a>
+                <p
+                  className={`mt-6 max-w-md text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.04em]'
+                  }`}
+                >
+                  {t(
+                    'Our designers help you plan, style and furnish every room — at no cost.',
+                    'مصممونا يساعدونك في تخطيط كل غرفة وتنسيقها وتأثيثها — دون أي تكلفة.',
+                  )}
                 </p>
-                <ul className="mt-4">
-                  {DESIGN_ASSIST_ITEMS.map((item, i) => (
-                    <li
-                      key={item.en}
-                      className={`py-3.5 ${i < DESIGN_ASSIST_ITEMS.length - 1 ? 'border-b' : ''}`}
-                      style={{ borderColor: HAIR }}
-                    >
-                      <span className="text-[13px] font-medium">{t(item.en, item.ar)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-7">
+                <div className="mt-8">
                   <ViewMore label={t('Book a Free Session', 'احجز جلسة مجانية')} />
                 </div>
-              </div>
-            </Reveal>
+              </Reveal>
+
+              {/* what's included */}
+              <Reveal className="lg:col-span-6" delay={0.15}>
+                <div className="border bg-white p-8 md:p-10" style={{ borderColor: HAIR }}>
+                  <p
+                    className={`text-[10px] uppercase text-neutral-400 ${
+                      isAr ? 'tracking-normal' : 'tracking-[0.3em]'
+                    }`}
+                  >
+                    {t("What's included", 'ما الذي تشمله الخدمة')}
+                  </p>
+                  <ul className="mt-4 sm:grid sm:grid-cols-2 sm:gap-x-8">
+                    {DESIGN_ASSIST_ITEMS.map((item) => (
+                      <li key={item.en} className="border-b py-3.5" style={{ borderColor: HAIR }}>
+                        <span className="text-[13px] font-medium">{t(item.en, item.ar)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
+            </div>
           </div>
         </section>
 
         {/* ============================================================ */}
         {/* 8. FIND YOUR STYLE                                            */}
         {/* ============================================================ */}
-        <section className="py-20 md:py-28">
+        <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <Reveal>
               <SectionHeading eyebrow={t('Styles — 06', 'الأساليب — 06')} title={t('Find Your Style', 'اكتشف أسلوبك')} />

@@ -7,8 +7,8 @@
  * Bilingual: Arabic (default, RTL, Amiri/Alexandria/Tajawal) ⇄ English (LTR,
  * Playfair/Marcellus/Outfit). The header ENG | عربي switch is live.
  */
-import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
@@ -16,11 +16,11 @@ import {
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
-  DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
+  ROOM_HOTSPOTS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
   formatSAR, LookSwitcher,
 } from './lookShared';
-import type { Bi, Lang, LookSlide, MenuGroup } from './lookShared';
+import type { Bi, Lang, LookSlide, MenuGroup, RoomHotspot } from './lookShared';
 
 /* ------------------------------------------------------------------ */
 /* Design tokens (class fragments — kept as literal strings so the     */
@@ -136,21 +136,212 @@ function MegaFeatured({ tile, ar }: { tile: { img: string; title: Bi; cta: Bi };
   );
 }
 
-/* Hotspot dots stay physically positioned (top/left track the image). */
-function Hotspot({ top, left, label, ar = false }: { top: string; left: string; label: string; ar?: boolean }) {
+/* ------------------------------------------------------------------ */
+/* Shop the Look — shoppable room image                                */
+/* ------------------------------------------------------------------ */
+
+/** Motion preset shared by every product card (fade + 6px rise). */
+const CARD_MOTION = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 6 },
+  transition: { duration: 0.18, ease: 'easeOut' as const },
+};
+
+const CARD_SHELL =
+  'bg-[#1C1610] border border-[#C9A86A]/25 shadow-[0_24px_60px_rgba(0,0,0,0.65)] p-4';
+
+/** Card contents — thumbnail, category, name, price and the actions. */
+function HotspotCardBody({ h, ar }: { h: RoomHotspot; ar: boolean }) {
+  const label = ar ? h.name.ar : h.name.en;
   return (
-    <div className="absolute z-[5] flex items-center gap-3" style={{ top, left }}>
-      <span className="relative flex w-3 h-3 shrink-0">
-        <span
-          className="absolute inset-0 rounded-full bg-[#C9A86A]"
-          style={{ animation: 'lt-pulse 2.6s ease-out infinite' }}
+    <>
+      <div className="flex items-start gap-3.5">
+        <span className="shrink-0 border border-[#C9A86A]/40 p-[3px]">
+          <img src={h.thumb} alt={label} className="block w-[72px] h-[72px] object-cover" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className={`${ar ? `${AR_LABEL} text-[10px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} uppercase text-[#C9A86A] mb-1.5`}>
+            {ar ? h.category.ar : h.category.en}
+          </p>
+          <h3 className={`${ar ? `${AR_DISPLAY} text-[16px] leading-[1.5]` : `${DISPLAY} text-[14px] leading-snug`} text-[#EFE9DD] line-clamp-2`}>
+            {label}
+          </h3>
+          <p className="flex items-baseline gap-1.5 mt-2">
+            <span className={`${DISPLAY} text-[18px] leading-none text-[#C9A86A]`}>{formatSAR(h.price)}</span>
+            <span className={`${ar ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.2em]'} text-[#C9A86A]/70`}>
+              {ar ? 'ر.س' : 'SAR'}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.28em]`} mt-4 w-full border border-[#C9A86A]/60 py-2.5 uppercase text-[#C9A86A] hover:bg-[#C9A86A] hover:text-[#131009] transition-colors duration-300 cursor-pointer`}
+      >
+        {ar ? 'عرض المنتج' : 'VIEW PRODUCT'}
+      </button>
+      <button
+        type="button"
+        className={`${ar ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} mt-2.5 w-full uppercase text-[#EFE9DD]/55 hover:text-[#C9A86A] transition-colors duration-300 cursor-pointer`}
+      >
+        {ar ? 'أضف إلى السلة' : 'ADD TO CART'}
+      </button>
+    </>
+  );
+}
+
+/** Physical (never mirrored) offsets that open the card away from the image edge. */
+function cardOffset(h: RoomHotspot): CSSProperties {
+  return {
+    ...(h.align === 'left' ? { right: '26px' } : { left: '26px' }),
+    ...(h.vAlign === 'top' ? { bottom: '8px' } : { top: '8px' }),
+  };
+}
+
+function ShopTheLook({ ar }: { ar: boolean }) {
+  const tt = (en: string, arText: string) => (ar ? arText : en);
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  /* Below md the anchored card would run off-screen, so it docks to the
+     bottom of the image instead. Rendered once either way, never twice. */
+  const [compact, setCompact] = useState(false);
+  const timer = useRef<number | null>(null);
+
+  const cancel = useCallback(() => {
+    if (timer.current !== null) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }, []);
+  const open = useCallback((id: string) => {
+    cancel();
+    setActiveId(id);
+  }, [cancel]);
+  /* ~120ms grace so the cursor can travel from the dot into the card */
+  const scheduleClose = useCallback(() => {
+    cancel();
+    timer.current = window.setTimeout(() => setActiveId(null), 120);
+  }, [cancel]);
+  const toggle = useCallback((id: string) => {
+    cancel();
+    setActiveId((cur) => (cur === id ? null : id));
+  }, [cancel]);
+
+  useEffect(() => cancel, [cancel]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const sync = () => setCompact(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const activeSpot = ROOM_HOTSPOTS.find((h) => h.id === activeId) ?? null;
+
+  return (
+    <section data-testid="shop-the-look" className="py-24 md:py-32 border-t border-white/5">
+      <Reveal className="max-w-[1400px] mx-auto px-6 md:px-10 mb-12 md:mb-16 text-center">
+        <Heading ar={ar} eyebrow={tt('Shoppable Room', 'غرفة قابلة للتسوق')} center>
+          {ar ? <>تسوق الغرفة</> : <>Shop the <em className="italic">Look</em></>}
+        </Heading>
+        <p className={`${ar ? `${AR_LABEL} tracking-normal` : ''} text-[#EFE9DD]/60 font-light leading-relaxed max-w-xl mx-auto mt-8`}>
+          {tt(
+            'Hover any point to explore the pieces in this space.',
+            'مرّر المؤشر على أي نقطة لاستكشاف قطع هذه المساحة.',
+          )}
+        </p>
+      </Reveal>
+
+      {/* Full-bleed shoppable image — kept legible: light wash only */}
+      <div
+        className="relative w-full min-h-[75vh] overflow-hidden bg-[#1C1610]"
+        onMouseLeave={scheduleClose}
+      >
+        <img
+          src={IMG.roomHotspots}
+          alt={tt('Shoppable Diyar room setting', 'غرفة ديار قابلة للتسوق')}
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <span className="relative w-3 h-3 rounded-full bg-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.8)]" />
-      </span>
-      <span className={`${ar ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} hidden sm:block bg-[#131009]/75 backdrop-blur-sm border border-[#C9A86A]/30 px-3 py-1.5 uppercase text-[#EFE9DD] whitespace-nowrap`}>
-        {label}
-      </span>
-    </div>
+        {/* subtle vignette so gold dots read, without hiding the products */}
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(120%_90%_at_50%_45%,transparent_35%,rgba(19,16,9,0.55)_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-24 pointer-events-none bg-gradient-to-b from-[#131009]/60 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 pointer-events-none bg-gradient-to-t from-[#131009]/70 to-transparent" />
+
+        {ROOM_HOTSPOTS.map((h) => {
+          const isActive = activeId === h.id;
+          return (
+            <div key={h.id} className="absolute z-10 w-0 h-0" style={{ top: h.top, left: h.left }}>
+              <button
+                type="button"
+                data-testid={`hotspot-${h.id}`}
+                aria-label={ar ? h.name.ar : h.name.en}
+                aria-expanded={isActive}
+                onMouseEnter={() => open(h.id)}
+                onMouseLeave={scheduleClose}
+                onFocus={() => open(h.id)}
+                onClick={() => toggle(h.id)}
+                className="group absolute flex items-center justify-center w-10 h-10 cursor-pointer"
+                style={{ top: 0, left: 0, transform: 'translate(-50%, -50%)' }}
+              >
+                <span className="relative block w-3.5 h-3.5">
+                  <span
+                    className="absolute inset-0 rounded-full bg-[#C9A86A]"
+                    style={{ animation: 'lt-pulse 2.6s ease-out infinite' }}
+                  />
+                  <span
+                    className={`relative block w-3.5 h-3.5 rounded-full bg-[#C9A86A] ring-1 ring-[#131009]/60 shadow-[0_0_14px_rgba(201,168,106,0.85)] transition-transform duration-300 ${
+                      isActive ? 'scale-125' : 'group-hover:scale-125'
+                    }`}
+                  />
+                </span>
+              </button>
+
+              {/* Desktop: card anchored to its dot, opening away from the edge */}
+              <AnimatePresence>
+                {isActive && !compact && (
+                  <motion.div
+                    key={`card-${h.id}`}
+                    {...CARD_MOTION}
+                    data-testid={`hotspot-card-${h.id}`}
+                    onMouseEnter={cancel}
+                    onMouseLeave={scheduleClose}
+                    style={cardOffset(h)}
+                    className={`absolute z-20 w-[260px] ${CARD_SHELL}`}
+                  >
+                    <HotspotCardBody h={h} ar={ar} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+
+        {/* Mobile: one docked card, always inside the viewport */}
+        <AnimatePresence>
+          {activeSpot && compact && (
+            <motion.div
+              key={`card-compact-${activeSpot.id}`}
+              {...CARD_MOTION}
+              data-testid="hotspot-card-compact"
+              className={`absolute z-20 bottom-4 left-1/2 -translate-x-1/2 w-[min(280px,calc(100%-2rem))] ${CARD_SHELL}`}
+            >
+              <HotspotCardBody h={activeSpot} ar={ar} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </section>
   );
 }
 
@@ -713,45 +904,8 @@ export default function LookTwo() {
         </div>
       </section>
 
-      {/* =================== 7. GET FREE DESIGN ASSISTANCE =================== */}
-      <section className="relative min-h-[70vh] flex items-center overflow-hidden">
-        <img
-          src={IMG.roomHotspots}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover brightness-75"
-        />
-        <div className={`absolute inset-0 ${isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-[#131009]/90 via-[#131009]/40 to-[#131009]/25`} />
-
-        {/* positions track features in room-hotspots.jpg: floor lamp, wall tapestry, table vases */}
-        <Hotspot ar={isAr} top="33%" left="83%" label={t('Lighting', 'الإنارة')} />
-        <Hotspot ar={isAr} top="29%" left="61%" label={t('Wall Art', 'اللوحات')} />
-        <Hotspot ar={isAr} top="70%" left="47%" label={t('Vases & Vessels', 'المزهريات والأواني')} />
-
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 md:px-10 py-24 md:py-32">
-          <Reveal className="max-w-xl bg-[#131009]/80 backdrop-blur-md border border-[#C9A86A]/25 p-8 md:p-12">
-            <p className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.4em]`} uppercase text-[#C9A86A] mb-5`}>
-              {t('Complimentary Service', 'خدمة مجانية')}
-            </p>
-            <h2 className={`${isAr ? `${AR_DISPLAY} leading-[1.35]` : `${DISPLAY} leading-[1.1]`} text-3xl md:text-5xl text-[#EFE9DD] mb-8`}>
-              {isAr ? (
-                <>احصل على مساعدة <span className="text-[#C9A86A]">التصميم</span> مجاناً</>
-              ) : (
-                <>Get Free <em className="italic">Design</em> Assistance</>
-              )}
-            </h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mb-10">
-              {DESIGN_ASSIST_ITEMS.map((item) => (
-                <li key={item.en} className="border-b border-white/10 pb-3">
-                  <span className="block text-sm text-[#EFE9DD] font-light">{t(item.en, item.ar)}</span>
-                </li>
-              ))}
-            </ul>
-            <button className={goldBtn(isAr)}>
-              {t('BOOK A CONSULTATION', 'احجز استشارة')} <ArrowRight size={13} strokeWidth={1.5} className="rtl:rotate-180" />
-            </button>
-          </Reveal>
-        </div>
-      </section>
+      {/* ========================= 7. SHOP THE LOOK ========================= */}
+      <ShopTheLook ar={isAr} />
 
       {/* ========================= 8. FIND YOUR STYLE ========================= */}
       <section className="py-24 md:py-32">
