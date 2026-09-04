@@ -40,6 +40,16 @@ const LOOKS = [
     img: IMG.roomHotspots,
     palette: ['#F1EDE5', '#2A241C', '#8A6D4F'],
   },
+  {
+    to: '/',
+    num: '04',
+    name: 'Current Site',
+    nameAr: 'الموقع الحالي',
+    desc: 'The existing design, included for comparison — open it side by side with the three new directions.',
+    descAr: 'التصميم الحالي للموقع، مضاف للمقارنة — افتحه بجانب الاتجاهات الثلاثة الجديدة.',
+    img: '/looks/original-site.png',
+    palette: ['#1f3d3a', '#f3ecdb', '#947961'],
+  },
 ];
 
 export default function LooksIndex() {
@@ -94,7 +104,7 @@ export default function LooksIndex() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
           {LOOKS.map((look, i) => (
             <motion.div
               key={look.to}

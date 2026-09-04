@@ -46,6 +46,7 @@ import AIDesignerPage from './pages/AIDesignerPage.tsx';
 import ChatPage from './pages/ChatPage.tsx';
 
 import LooksIndex from './pages/looks/LooksIndex.tsx';
+import { LookSwitcher } from './pages/looks/lookShared.tsx';
 import LookOne from './pages/looks/LookOne.tsx';
 import LookTwo from './pages/looks/LookTwo.tsx';
 import LookThree from './pages/looks/LookThree.tsx';
@@ -328,6 +329,8 @@ export default function App() {
         </Route>
       </Routes>
 
+      {/* Redesign review: the original site is "look 4" — keep the switcher reachable on it */}
+      {isHomePage && <LookSwitcher raiseOnMobile />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <FloatingContactBar />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <Footer />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <MobileBottomNav onOpenCart={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} />}

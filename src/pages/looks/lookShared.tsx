@@ -336,16 +336,17 @@ export const FOOTER_LINKS = {
 
 export const formatSAR = (n: number) => n.toLocaleString('en-US');
 
-/** Floating switcher shown on every look page so the client can flip between directions. */
-export function LookSwitcher() {
+/** Floating switcher shown on every look page (and the original site) so the client can flip between directions. */
+export function LookSwitcher({ raiseOnMobile = false }: { raiseOnMobile?: boolean } = {}) {
   const { pathname } = useLocation();
   const looks = [
     { to: '/look/1', label: '1' },
     { to: '/look/2', label: '2' },
     { to: '/look/3', label: '3' },
+    { to: '/', label: '4' },
   ];
   return (
-    <div dir="ltr" className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-1 rounded-full bg-black/80 backdrop-blur-md px-2 py-1.5 shadow-2xl border border-white/10">
+    <div dir="ltr" className={`fixed left-1/2 -translate-x-1/2 z-[90] flex items-center gap-1 rounded-full bg-black/80 backdrop-blur-md px-2 py-1.5 shadow-2xl border border-white/10 ${raiseOnMobile ? 'bottom-[86px] md:bottom-5' : 'bottom-5'}`}>
       <Link to="/looks" className="text-white/60 hover:text-white text-[11px] tracking-[0.15em] uppercase px-3 py-1.5 transition-colors">
         Looks
       </Link>
