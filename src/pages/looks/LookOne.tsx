@@ -1114,14 +1114,17 @@ export default function LookOne() {
         {/* ============================================================ */}
         <section className="border-t" style={{ borderColor: HAIR }}>
           <div className="grid lg:grid-cols-2">
-            <Reveal className="overflow-hidden">
+            {/* image sits on the opposite side to the AI Studio section above it,
+                so two consecutive split sections don't stack the same way.
+                Mobile keeps image-first; only the desktop columns swap. */}
+            <Reveal className="overflow-hidden lg:order-2">
               <img
                 src={IMG.workshop}
                 alt={t('Diyar furniture workshop', 'ورشة ديار للأثاث')}
                 className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[620px]"
               />
             </Reveal>
-            <div className="flex items-center bg-white">
+            <div className="flex items-center bg-white lg:order-1">
               <Reveal className="px-6 py-16 md:px-16 lg:px-20 lg:py-24 xl:px-24" delay={0.1}>
                 <p
                   className={`text-[11px] uppercase ${
