@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
   Instagram, Facebook, Linkedin, ChevronLeft, ChevronRight,
+  Menu, X, ChevronDown, Phone, Mail,
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
@@ -22,7 +23,7 @@ import {
   PARTNER, APP_PROMO,
   formatSAR, LookSwitcher,
 } from './lookShared';
-import type { Bi, Lang, LookProduct, LookSlide, MenuGroup, RoomHotspot } from './lookShared';
+import type { Bi, Lang, LookIcon, LookProduct, LookSlide, MenuGroup, RoomHotspot } from './lookShared';
 
 /* ------------------------------------------------------------------ */
 /* Design tokens (class fragments — kept as literal strings so the     */
@@ -448,6 +449,309 @@ function ShopTheLook({ ar }: { ar: boolean }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Mobile navigation drawer (below lg)                                 */
+/* ------------------------------------------------------------------ */
+const DRAWER_ID = 'look-two-mobile-drawer';
+
+type DrawerMenuId = 'shop' | 'services';
+
+/** The two desktop mega menus, re-cast as mobile accordions. */
+const DRAWER_MENUS: { id: DrawerMenuId; title: Bi; groups: MenuGroup[] }[] = [
+  { id: 'shop', title: { en: 'Shop', ar: 'المتجر' }, groups: SHOP_MENU },
+  { id: 'services', title: { en: 'Services', ar: 'الخدمات' }, groups: SERVICES_MENU },
+];
+
+/** Account shortcuts the phone-width bar has no room for. */
+const DRAWER_ACCOUNT: { Icon: LookIcon; en: string; ar: string; badge?: string }[] = [
+  { Icon: User, en: 'Account', ar: 'حسابي' },
+  { Icon: Heart, en: 'Wishlist', ar: 'المفضلة' },
+  { Icon: ShoppingBag, en: 'Cart', ar: 'السلة', badge: '2' },
+];
+
+/** Expand/collapse preset shared by both accordion levels. */
+const COLLAPSE = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: 'auto', opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+  transition: { duration: 0.28, ease: 'easeOut' as const },
+};
+
+/**
+ * Slide-in navigation for phones and tablets. The header hides its nav,
+ * search and language controls below lg, so this drawer is the only route
+ * to them — it carries the mega menus as nested accordions.
+ */
+function MobileDrawer({
+  open, onClose, isAr, onToggleLang,
+}: { open: boolean; onClose: () => void; isAr: boolean; onToggleLang: () => void }) {
+  const t = (en: string, ar: string) => (isAr ? ar : en);
+
+  /* One section expanded at a time, and one group inside it. */
+  const [section, setSection] = useState<DrawerMenuId | null>(null);
+  const [group, setGroup] = useState<string | null>(null);
+
+  /* Escape closes; the page behind the drawer must not scroll. */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  /* Reopening always starts from a fully collapsed menu. */
+  useEffect(() => {
+    if (!open) {
+      setSection(null);
+      setGroup(null);
+    }
+  }, [open]);
+
+  /* Nothing in this demo navigates — tapping a destination just dismisses. */
+  const followLink = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    onClose();
+  };
+
+  /* `start-0` anchors the panel to the reading-start edge (the RIGHT in
+     Arabic), but the slide is a PHYSICAL x offset, so its sign has to flip
+     with the language or the drawer enters from the wrong side. */
+  const off = isAr ? '100%' : '-100%';
+
+  const sectionLabel = `${isAr ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.32em]`} uppercase`;
+  const navItemCls = `${isAr ? `${AR_DISPLAY} text-[19px] leading-[1.7] tracking-normal` : `${DISPLAY} text-[17px]`} block py-3 text-[#EFE9DD] hover:text-[#C9A86A] transition-colors duration-300`;
+
+  return (
+    /* Never rendered from lg up — the desktop header owns navigation there. */
+    <div className="lg:hidden">
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              key="drawer-scrim"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              onClick={onClose}
+              aria-hidden
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-[2px]"
+            />
+
+            <motion.aside
+              key="drawer-panel"
+              id={DRAWER_ID}
+              data-testid="mobile-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('Menu', 'القائمة')}
+              initial={{ x: off, opacity: 0.35 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: off, opacity: 0.2 }}
+              transition={{ duration: 0.36, ease: 'easeOut' }}
+              className="fixed top-0 start-0 z-[70] flex h-dvh w-[86vw] max-w-[380px] flex-col border-e border-[#C9A86A]/25 bg-[#131009] shadow-[0_0_70px_rgba(0,0,0,0.85)]"
+            >
+              {/* Brand row */}
+              <div className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b border-white/10 px-5">
+                <img src="/logo_diyar.svg" alt="Diyar" className="h-7 invert" />
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label={t('Close menu', 'إغلاق القائمة')}
+                  className="-me-2 cursor-pointer p-2 text-[#EFE9DD]/70 transition-colors duration-300 hover:text-[#C9A86A]"
+                >
+                  <X size={20} strokeWidth={1.25} />
+                </button>
+              </div>
+
+              {/* Scrollable body */}
+              <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain px-5 py-6">
+                {/* Search */}
+                <div className="flex h-11 items-center gap-3 border border-white/15 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60">
+                  <Search size={15} strokeWidth={1.25} className="shrink-0 text-[#EFE9DD]/45" />
+                  <input
+                    type="text"
+                    placeholder={t('Search…', 'ابحث…')}
+                    className="min-w-0 flex-1 bg-transparent text-[13px] font-light text-[#EFE9DD] outline-none placeholder:text-[#EFE9DD]/35"
+                  />
+                  <button
+                    type="button"
+                    aria-label={t('Search by photo', 'البحث بالصورة')}
+                    className="shrink-0 cursor-pointer text-[#C9A86A]/70 transition-colors duration-300 hover:text-[#C9A86A]"
+                  >
+                    <Camera size={16} strokeWidth={1.25} />
+                  </button>
+                </div>
+
+                {/* Primary nav */}
+                <p className={`${sectionLabel} mt-8 mb-2 text-[#C9A86A]/70`}>{t('Browse', 'تصفح')}</p>
+                <ul className="border-t border-white/10">
+                  {NAV_ITEMS.map((item) => (
+                    <li key={item.en} className="border-b border-white/10">
+                      <a href="#" onClick={followLink} className={navItemCls}>
+                        {t(item.en, item.ar)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* The mega menus, folded into two accordions */}
+                <p className={`${sectionLabel} mt-8 mb-2 text-[#C9A86A]/70`}>{t('Categories', 'التصنيفات')}</p>
+                <div className="border-t border-[#C9A86A]/25">
+                  {DRAWER_MENUS.map((menu) => {
+                    const openSection = section === menu.id;
+                    return (
+                      <div key={menu.id} className="border-b border-[#C9A86A]/25">
+                        <button
+                          type="button"
+                          aria-expanded={openSection}
+                          onClick={() => {
+                            setSection(openSection ? null : menu.id);
+                            setGroup(null);
+                          }}
+                          className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-start uppercase transition-colors duration-300 ${
+                            openSection ? 'text-[#C9A86A]' : 'text-[#EFE9DD] hover:text-[#C9A86A]'
+                          }`}
+                        >
+                          {t(menu.title.en, menu.title.ar)}
+                          <ChevronDown
+                            size={15}
+                            strokeWidth={1.25}
+                            className={`shrink-0 text-[#C9A86A]/70 transition-transform duration-300 ${openSection ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+
+                        <AnimatePresence initial={false}>
+                          {openSection && (
+                            <motion.div key={`sec-${menu.id}`} {...COLLAPSE} className="overflow-hidden">
+                              <ul className="ms-1 border-s border-[#C9A86A]/25 ps-4 pb-4">
+                                {menu.groups.map((g) => {
+                                  const gid = `${menu.id}:${g.title.en}`;
+                                  const openGroup = group === gid;
+                                  return (
+                                    <li key={g.title.en}>
+                                      <button
+                                        type="button"
+                                        aria-expanded={openGroup}
+                                        onClick={() => setGroup(openGroup ? null : gid)}
+                                        className={`${isAr ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.22em]`} flex w-full cursor-pointer items-center justify-between gap-3 py-2.5 text-start uppercase transition-colors duration-300 ${
+                                          openGroup ? 'text-[#C9A86A]' : 'text-[#EFE9DD]/75 hover:text-[#C9A86A]'
+                                        }`}
+                                      >
+                                        {t(g.title.en, g.title.ar)}
+                                        <ChevronDown
+                                          size={13}
+                                          strokeWidth={1.25}
+                                          className={`shrink-0 text-[#C9A86A]/60 transition-transform duration-300 ${openGroup ? 'rotate-180' : ''}`}
+                                        />
+                                      </button>
+
+                                      <AnimatePresence initial={false}>
+                                        {openGroup && (
+                                          <motion.ul key={`grp-${gid}`} {...COLLAPSE} className="overflow-hidden pb-2">
+                                            {g.items.map((item) => (
+                                              <li key={item.en}>
+                                                <a
+                                                  href="#"
+                                                  onClick={followLink}
+                                                  className={`${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : ''} block py-1.5 ps-3 text-[13px] font-light leading-relaxed text-[#EFE9DD]/55 transition-colors duration-200 hover:text-[#C9A86A]`}
+                                                >
+                                                  {t(item.en, item.ar)}
+                                                </a>
+                                              </li>
+                                            ))}
+                                          </motion.ul>
+                                        )}
+                                      </AnimatePresence>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Language — the same switch (and persistence) as the bar */}
+                <div className="mt-8 flex items-center justify-between gap-4 border-t border-white/10 pt-6">
+                  <span className={`${sectionLabel} text-[#EFE9DD]/45`}>{t('Language', 'اللغة')}</span>
+                  <button
+                    type="button"
+                    data-testid="drawer-lang-toggle"
+                    dir="ltr"
+                    onClick={onToggleLang}
+                    aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+                    className={`${CAPS} flex cursor-pointer items-center gap-2.5 border border-white/15 px-4 py-2 text-[11px] tracking-[0.2em] transition-colors duration-300 hover:border-[#C9A86A]/60`}
+                  >
+                    <span className={!isAr ? 'text-[#C9A86A]' : 'text-[#EFE9DD]/50'}>ENG</span>
+                    <span className="text-[#C9A86A]/50">|</span>
+                    <span className={`${AR_DISPLAY} text-[14px] leading-none tracking-normal ${isAr ? 'text-[#C9A86A]' : 'text-[#EFE9DD]/50'}`}>
+                      عربي
+                    </span>
+                  </button>
+                </div>
+
+                {/* Account shortcuts moved out of the mobile bar */}
+                <ul className="mt-6 border-t border-white/10">
+                  {DRAWER_ACCOUNT.map((row) => (
+                    <li key={row.en} className="border-b border-white/10">
+                      <a
+                        href="#"
+                        onClick={followLink}
+                        className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.22em]`} flex items-center gap-3.5 py-3.5 uppercase text-[#EFE9DD]/80 transition-colors duration-300 hover:text-[#C9A86A]`}
+                      >
+                        <row.Icon size={17} strokeWidth={1.25} className="shrink-0 text-[#C9A86A]" />
+                        <span className="min-w-0 flex-1">{t(row.en, row.ar)}</span>
+                        {row.badge && (
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#C9A86A] text-[9px] font-medium text-[#131009]">
+                            {row.badge}
+                          </span>
+                        )}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Contact — pinned below the scroll area. The extra bottom
+                  padding keeps it clear of the floating LookSwitcher pill. */}
+              <div className="shrink-0 border-t border-[#C9A86A]/25 bg-[#1C1610] px-5 pt-5 pb-16">
+                <p className={`${sectionLabel} mb-3 text-[#C9A86A]/70`}>{t('Contact', 'تواصل معنا')}</p>
+                <a
+                  href="#"
+                  onClick={followLink}
+                  className="flex items-center gap-3 text-[#EFE9DD]/80 transition-colors duration-300 hover:text-[#C9A86A]"
+                >
+                  <Phone size={14} strokeWidth={1.25} className="shrink-0 text-[#C9A86A]" />
+                  <span dir="ltr" className={`${DISPLAY} text-[14px] tracking-wide`}>{FOOTER_LINKS.phone}</span>
+                </a>
+                <a
+                  href="#"
+                  onClick={followLink}
+                  className="mt-2.5 flex items-center gap-3 text-[#EFE9DD]/80 transition-colors duration-300 hover:text-[#C9A86A]"
+                >
+                  <Mail size={14} strokeWidth={1.25} className="shrink-0 text-[#C9A86A]" />
+                  <span className="min-w-0 truncate text-[13px] font-light">{FOOTER_LINKS.email}</span>
+                </a>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function Heading({
   eyebrow, center = false, ar = false, children,
 }: { eyebrow: string; center?: boolean; ar?: boolean; children: ReactNode }) {
@@ -502,6 +806,20 @@ export default function LookTwo() {
     localStorage.setItem('diyar-look-lang', next);
     setLang(next);
   };
+
+  /* Mobile drawer — a phone's only route to nav, search and language. */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  /* Below-lg affordance only: never leave it open behind the desktop header. */
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const sync = () => {
+      if (mq.matches) setDrawerOpen(false);
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   /* header: transparent over hero → solid chrome after ~60px of scroll */
   useEffect(() => {
@@ -656,11 +974,12 @@ export default function LookTwo() {
                 عربي
               </span>
             </button>
-            <span className={`hidden sm:block h-4 w-px transition-colors duration-300 ${solid ? 'bg-white/10' : 'bg-white/30'}`} />
-            <button aria-label="Account" className={headerIconCls}>
+            <span className={`hidden lg:block h-4 w-px transition-colors duration-300 ${solid ? 'bg-white/10' : 'bg-white/30'}`} />
+            {/* Account + wishlist live in the drawer below lg */}
+            <button aria-label="Account" className={`hidden lg:block ${headerIconCls}`}>
               <User size={19} strokeWidth={1.25} />
             </button>
-            <button aria-label="Wishlist" className={headerIconCls}>
+            <button aria-label="Wishlist" className={`hidden lg:block ${headerIconCls}`}>
               <Heart size={19} strokeWidth={1.25} />
             </button>
             <button aria-label="Shopping bag" className={`relative ${headerIconCls}`}>
@@ -668,6 +987,19 @@ export default function LookTwo() {
               <span className="absolute -top-1.5 -end-1.5 w-3.5 h-3.5 rounded-full bg-[#C9A86A] text-[#131009] text-[8px] font-medium flex items-center justify-center">
                 2
               </span>
+            </button>
+
+            {/* Hamburger — the only way into navigation below lg */}
+            <button
+              type="button"
+              data-testid="mobile-menu-trigger"
+              aria-label={drawerOpen ? t('Close menu', 'إغلاق القائمة') : t('Open menu', 'فتح القائمة')}
+              aria-expanded={drawerOpen}
+              aria-controls={DRAWER_ID}
+              onClick={() => setDrawerOpen((o) => !o)}
+              className={`lg:hidden -me-1 ${headerIconCls}`}
+            >
+              <Menu size={22} strokeWidth={1.25} />
             </button>
           </div>
         </div>
@@ -741,6 +1073,14 @@ export default function LookTwo() {
           )}
         </AnimatePresence>
       </header>
+
+      {/* Mobile navigation drawer — sits above the header, below lg only */}
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={closeDrawer}
+        isAr={isAr}
+        onToggleLang={toggleLang}
+      />
 
       {/* ============================ 2. HERO SLIDER ============================ */}
       <section className="relative h-[90vh] min-h-[620px] overflow-hidden">

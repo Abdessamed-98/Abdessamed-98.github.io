@@ -6,13 +6,14 @@
  * restrained motion. Bilingual: Arabic (default, RTL) + English.
  */
 import {
-  createContext, useContext, useEffect, useRef, useState,
+  createContext, useCallback, useContext, useEffect, useRef, useState,
   type CSSProperties, type ReactNode,
 } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
   Instagram, Facebook, Linkedin, ChevronLeft, ChevronRight,
+  Menu, X, ChevronDown, Phone, Mail,
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
@@ -430,12 +431,408 @@ function MegaFeatured({ img, title, cta }: { img: string; title: Bi; cta: Bi; ke
 }
 
 /* ------------------------------------------------------------------ */
+/* Mobile navigation drawer                                            */
+/* ------------------------------------------------------------------ */
+
+/** One expandable category group inside a drawer accordion section. */
+function DrawerGroup({
+  group,
+  open,
+  onToggle,
+  onNavigate,
+}: {
+  group: MenuGroup;
+  open: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+  key?: string | number;
+}) {
+  const isAr = useLang() === 'ar';
+  return (
+    <li className="border-t" style={{ borderColor: HAIR }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 py-3 text-start"
+      >
+        <span className={`text-[12.5px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
+          {isAr ? group.title.ar : group.title.en}
+        </span>
+        <ChevronDown
+          size={15}
+          strokeWidth={1.5}
+          className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+          style={{ color: OLIVE }}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.ul
+            key="sub"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.24, ease: 'easeOut' }}
+            className="overflow-hidden"
+          >
+            {group.items.map((it) => (
+              <li key={it.en}>
+                <a
+                  href="#"
+                  onClick={onNavigate}
+                  className="block py-2 ps-4 text-[12.5px] leading-relaxed text-neutral-500 transition-colors hover:text-[#171512]"
+                >
+                  {isAr ? it.ar : it.en}
+                </a>
+              </li>
+            ))}
+            <li className="h-2" aria-hidden />
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </li>
+  );
+}
+
+/** A drawer accordion section — the mobile equivalent of one desktop mega menu. */
+function DrawerSection({
+  label,
+  groups,
+  open,
+  onToggle,
+  openGroup,
+  onToggleGroup,
+  onNavigate,
+}: {
+  label: string;
+  groups: MenuGroup[];
+  open: boolean;
+  onToggle: () => void;
+  openGroup: string | null;
+  onToggleGroup: (title: string) => void;
+  onNavigate: () => void;
+}) {
+  const isAr = useLang() === 'ar';
+  return (
+    <div className="border-t" style={{ borderColor: HAIR }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 py-4 text-start transition-colors hover:text-[#5A6B4D]"
+      >
+        <span
+          className={`text-[13px] font-bold uppercase ${
+            isAr ? "font-['Alexandria',sans-serif] tracking-normal" : "font-['Outfit',sans-serif] tracking-[0.18em]"
+          }`}
+        >
+          {label}
+        </span>
+        <ChevronDown
+          size={17}
+          strokeWidth={1.5}
+          className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+          style={{ color: OLIVE }}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
+            className="overflow-hidden"
+          >
+            <ul className="pb-3">
+              {groups.map((g) => (
+                <DrawerGroup
+                  key={g.title.en}
+                  group={g}
+                  open={openGroup === g.title.en}
+                  onToggle={() => onToggleGroup(g.title.en)}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * Slide-in navigation for phones and tablets (below `lg`).
+ * The bar only has room for the logo, the cart and the hamburger, so everything
+ * else — search, nav, both mega menus, the language toggle, account links and
+ * contact details — lives in here.
+ */
+function MobileDrawer({
+  open,
+  onClose,
+  lang,
+  onToggleLang,
+}: {
+  open: boolean;
+  onClose: () => void;
+  lang: Lang;
+  onToggleLang: () => void;
+}) {
+  const isAr = lang === 'ar';
+  const t = (en: string, ar: string) => (isAr ? ar : en);
+
+  /* The panel is anchored to the inline-START edge, which is the RIGHT in Arabic.
+     motion's x is physical, so the sign of the offset has to follow the language
+     for the drawer to always slide in from that same start edge. */
+  const off = isAr ? '100%' : '-100%';
+
+  const [section, setSection] = useState<'shop' | 'services' | null>(null);
+  const [group, setGroup] = useState<string | null>(null);
+
+  /* Escape closes */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  /* lock the page behind the drawer while it is open */
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
+  /* small-screen affordance only: dismiss it if the viewport grows to the desktop header */
+  useEffect(() => {
+    if (!open) return;
+    const mq = window.matchMedia('(min-width: 1024px)');
+    if (mq.matches) onClose();
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) onClose();
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [open, onClose]);
+
+  /* collapse the accordions again once it is closed */
+  useEffect(() => {
+    if (open) return;
+    setSection(null);
+    setGroup(null);
+  }, [open]);
+
+  const toggleSection = (s: 'shop' | 'services') => {
+    setSection((cur) => (cur === s ? null : s));
+    setGroup(null);
+  };
+  const toggleGroup = (g: string) => setGroup((cur) => (cur === g ? null : g));
+
+  const eyebrowCls = `text-[10px] uppercase text-neutral-400 ${isAr ? 'tracking-normal' : 'tracking-[0.3em]'}`;
+  const navCls = `block w-full py-4 text-start text-[13px] font-bold uppercase transition-colors hover:text-[#5A6B4D] ${
+    isAr ? "font-['Alexandria',sans-serif] tracking-normal" : "font-['Outfit',sans-serif] tracking-[0.18em]"
+  }`;
+  const rowCls =
+    'flex w-full items-center gap-3.5 py-3 text-start text-[13px] font-medium transition-colors hover:text-[#5A6B4D]';
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="drawer-backdrop"
+            aria-hidden
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="fixed inset-0 z-[60] bg-[#171512]/50 lg:hidden"
+          />
+
+          <motion.aside
+            key="drawer-panel"
+            id="mobile-drawer"
+            data-testid="mobile-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('Menu', 'القائمة')}
+            initial={{ x: off, opacity: 0.4 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: off, opacity: 0 }}
+            transition={{ duration: 0.32, ease: 'easeOut' }}
+            className="fixed start-0 top-0 z-[70] flex h-full w-[86vw] max-w-[380px] flex-col shadow-[0_0_60px_rgba(23,21,18,0.3)] lg:hidden"
+            style={{ backgroundColor: BG, color: INK }}
+          >
+            {/* logo + close */}
+            <div
+              className="flex shrink-0 items-center justify-between gap-4 border-b px-5 py-4"
+              style={{ borderColor: HAIR }}
+            >
+              <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto" />
+              <button
+                type="button"
+                data-testid="drawer-close"
+                onClick={onClose}
+                aria-label={t('Close menu', 'إغلاق القائمة')}
+                className="-me-1 p-1 transition-colors hover:text-[#5A6B4D]"
+              >
+                <X size={22} strokeWidth={1.25} />
+              </button>
+            </div>
+
+            {/* scrollable body */}
+            <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain px-5 pb-6">
+              {/* search */}
+              <div className="py-5">
+                <div className="flex h-11 items-center gap-2.5 border bg-white px-3.5" style={{ borderColor: HAIR }}>
+                  <Search size={15} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
+                  <input
+                    type="text"
+                    placeholder={t('SEARCH', 'ابحث')}
+                    className={`w-full min-w-0 bg-transparent text-[11px] uppercase text-[#171512] placeholder:text-neutral-400 focus:outline-none ${
+                      isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    aria-label={t('Search by photo', 'البحث بالصورة')}
+                    className="shrink-0 text-neutral-400 transition-colors hover:text-[#171512]"
+                  >
+                    <Camera size={15} strokeWidth={1.5} />
+                  </button>
+                </div>
+              </div>
+
+              {/* primary nav — Shop & Services become the two accordions below */}
+              <p className={eyebrowCls}>{t('Menu', 'القائمة')}</p>
+              <nav className="mt-2">
+                <ul>
+                  {NAV_ITEMS.filter((i) => i.en !== 'Shop' && i.en !== 'Services').map((item) => (
+                    <li key={item.en} className="border-t" style={{ borderColor: HAIR }}>
+                      <a href="#" onClick={onClose} className={navCls}>
+                        {t(item.en, item.ar)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <DrawerSection
+                label={t('Shop', 'المتجر')}
+                groups={SHOP_MENU}
+                open={section === 'shop'}
+                onToggle={() => toggleSection('shop')}
+                openGroup={group}
+                onToggleGroup={toggleGroup}
+                onNavigate={onClose}
+              />
+              <DrawerSection
+                label={t('Services', 'الخدمات')}
+                groups={SERVICES_MENU}
+                open={section === 'services'}
+                onToggle={() => toggleSection('services')}
+                openGroup={group}
+                onToggleGroup={toggleGroup}
+                onNavigate={onClose}
+              />
+
+              {/* language */}
+              <div
+                className="flex items-center justify-between gap-4 border-t py-4"
+                style={{ borderColor: HAIR }}
+              >
+                <span className={eyebrowCls}>{t('Language', 'اللغة')}</span>
+                <button
+                  type="button"
+                  data-testid="drawer-lang-toggle"
+                  onClick={onToggleLang}
+                  aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+                  className={`flex shrink-0 items-center gap-2.5 text-[11px] ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.18em]'
+                  }`}
+                >
+                  <span className={!isAr ? 'font-bold text-[#171512]' : 'font-medium text-neutral-400'}>ENG</span>
+                  <span className="h-3 w-px" style={{ backgroundColor: HAIR }} />
+                  <span
+                    className={`font-['Amiri',serif] text-[15px] leading-none ${
+                      isAr ? 'font-bold text-[#171512]' : 'text-neutral-500'
+                    }`}
+                  >
+                    عربي
+                  </span>
+                </button>
+              </div>
+
+              {/* account / wishlist / cart */}
+              <ul className="border-t py-2" style={{ borderColor: HAIR }}>
+                <li>
+                  <button type="button" onClick={onClose} className={rowCls}>
+                    <User size={18} strokeWidth={1.25} style={{ color: OLIVE }} />
+                    {t('Account', 'الحساب')}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={onClose} className={rowCls}>
+                    <Heart size={18} strokeWidth={1.25} style={{ color: OLIVE }} />
+                    {t('Wishlist', 'المفضلة')}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={onClose} className={rowCls}>
+                    <ShoppingBag size={18} strokeWidth={1.25} style={{ color: OLIVE }} />
+                    {t('Cart', 'السلة')}
+                    <span
+                      className="ms-auto flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-semibold text-white"
+                      style={{ backgroundColor: OLIVE }}
+                    >
+                      2
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* contact — pinned to the bottom of the panel. The extra bottom
+                padding keeps it clear of the floating LookSwitcher pill. */}
+            <div className="shrink-0 border-t px-5 pt-5 pb-16" style={{ borderColor: HAIR }}>
+              <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
+              <a href="#" className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
+                <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
+                <span dir="ltr">{FOOTER_LINKS.phone}</span>
+              </a>
+              <a href="#" className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
+                <Mail size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
+                <span dir="ltr" className="truncate">
+                  {FOOTER_LINKS.email}
+                </span>
+              </a>
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 export default function LookOne() {
   const [slide, setSlide] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<'shop' | 'services' | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const closeTimer = useRef<number | null>(null);
   const [lang, setLang] = useState<Lang>(() =>
     typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
@@ -673,10 +1070,12 @@ export default function LookOne() {
 
             {/* icons */}
             <div className="flex shrink-0 items-center gap-4 md:gap-5">
-              <button type="button" aria-label={t('Account', 'الحساب')} className={iconBtnCls}>
+              {/* account & wishlist live in the drawer below lg — the mobile bar
+                  stays down to logo · cart · hamburger */}
+              <button type="button" aria-label={t('Account', 'الحساب')} className={`hidden lg:block ${iconBtnCls}`}>
                 <User size={20} strokeWidth={1.25} />
               </button>
-              <button type="button" aria-label={t('Wishlist', 'المفضلة')} className={iconBtnCls}>
+              <button type="button" aria-label={t('Wishlist', 'المفضلة')} className={`hidden lg:block ${iconBtnCls}`}>
                 <Heart size={20} strokeWidth={1.25} />
               </button>
               <button type="button" aria-label={t('Cart', 'السلة')} className={`relative ${iconBtnCls}`}>
@@ -687,6 +1086,19 @@ export default function LookOne() {
                 >
                   2
                 </span>
+              </button>
+
+              {/* hamburger — the only way into navigation below lg */}
+              <button
+                type="button"
+                data-testid="mobile-menu-trigger"
+                onClick={() => setDrawerOpen(true)}
+                aria-label={t('Open menu', 'فتح القائمة')}
+                aria-expanded={drawerOpen}
+                aria-controls="mobile-drawer"
+                className={`lg:hidden ${iconBtnCls}`}
+              >
+                <Menu size={22} strokeWidth={1.25} />
               </button>
             </div>
           </div>
@@ -763,6 +1175,9 @@ export default function LookOne() {
             )}
           </AnimatePresence>
         </header>
+
+        {/* mobile navigation drawer — sits above the header */}
+        <MobileDrawer open={drawerOpen} onClose={closeDrawer} lang={lang} onToggleLang={toggleLang} />
 
         {/* ============================================================ */}
         {/* 2. HERO SLIDER                                                */}

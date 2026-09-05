@@ -13,7 +13,8 @@ import { useEffect, useRef, useState, type CSSProperties, type Key, type ReactNo
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
-  ChevronLeft, ChevronRight, Instagram, Facebook, Linkedin, Sparkles,
+  ChevronLeft, ChevronRight, ChevronDown, Menu, X,
+  Instagram, Facebook, Linkedin, Sparkles,
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
@@ -489,9 +490,389 @@ function MegaBottomLink({ label, lang }: { label: string; lang: Lang }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Mobile drawer                                                       */
+/* ------------------------------------------------------------------ */
+
+/** The drawer's easing — a long, quiet decelerate in the page's slow register. */
+const DRAWER_EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
+
+/**
+ * One category group inside a drawer accordion: a small-caps title on a hairline
+ * that expands to its subcategories. The mobile stand-in for a mega-menu column.
+ */
+function DrawerGroup({
+  group, lang, isOpen, onToggle, onNavigate,
+}: {
+  group: MenuGroup;
+  lang: Lang;
+  isOpen: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+  key?: Key;
+}) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <div className="border-t" style={{ borderColor: HAIR }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between gap-3 py-3 text-start"
+      >
+        <span
+          className={
+            lang === 'ar'
+              ? `${ALEXANDRIA} text-[12px] tracking-normal`
+              : `${MARCELLUS} text-[11px] uppercase tracking-[0.2em]`
+          }
+          style={{ color: isOpen ? BRONZE : INK }}
+        >
+          {t(group.title.en, group.title.ar)}
+        </span>
+        <ChevronDown
+          size={13}
+          strokeWidth={1.25}
+          className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+          style={{ color: BRONZE }}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="items"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: DRAWER_EASE }}
+            className="overflow-hidden"
+          >
+            <ul className="pb-3 ps-4">
+              {group.items.map((item) => (
+                <li key={item.en}>
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); onNavigate(); }}
+                    className={`block py-2 text-[13px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
+                      lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
+                    }`}
+                  >
+                    {t(item.en, item.ar)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * Below `lg` the bar has no room for the nav, the search or the mega menus, so
+ * all of it moves in here: a slim slide-in panel in the same museum-catalog
+ * language — hairlines, sharp corners, bronze only as a whisper.
+ *
+ * RTL: the panel is anchored with the logical `start-0`, but a translate is
+ * PHYSICAL, so the offset flips with the language — otherwise the Arabic drawer
+ * would fly in from the wrong edge.
+ */
+function MobileDrawer({
+  lang, open, onClose, onToggleLang,
+}: {
+  lang: Lang;
+  open: boolean;
+  onClose: () => void;
+  onToggleLang: () => void;
+}) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const [openSection, setOpenSection] = useState<MenuKey | null>(null);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+  /* A closed drawer forgets where it was — it always reopens at the top level. */
+  useEffect(() => {
+    if (open) return;
+    setOpenSection(null);
+    setOpenGroup(null);
+  }, [open]);
+
+  /* Lock the page behind the drawer. */
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [open]);
+
+  /* Escape closes it; so does growing past `lg`, where the drawer stops rendering. */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onResize = () => { if (window.innerWidth >= 1024) onClose(); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open, onClose]);
+
+  /** Physical slide offset — in RTL the start edge is the right one. */
+  const off = lang === 'ar' ? '100%' : '-100%';
+
+  /** Marcellus small-caps section label; Arabic script is never letterspaced. */
+  const labelCls =
+    lang === 'ar'
+      ? `${ALEXANDRIA} text-[10px] tracking-normal`
+      : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`;
+
+  /** Nothing in this demo navigates — a tapped link just closes the drawer. */
+  const closeOnTap = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    onClose();
+  };
+
+  const utilities = [
+    { Icon: User, label: t('Account', 'حسابي') },
+    { Icon: Heart, label: t('Wishlist', 'المفضلة') },
+    { Icon: ShoppingBag, label: t('Cart', 'السلة') },
+  ];
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="drawer-scrim"
+          aria-hidden
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35, ease: DRAWER_EASE }}
+          className="fixed inset-0 z-[60] bg-[#1B1712]/45 lg:hidden"
+        />
+      )}
+      {open && (
+        <motion.div
+          key="drawer-panel"
+          id="mobile-drawer"
+          data-testid="mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('Menu', 'القائمة')}
+          initial={{ x: off, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: off, opacity: 0 }}
+          transition={{ duration: 0.35, ease: DRAWER_EASE }}
+          className="fixed bottom-0 start-0 top-0 z-[61] flex w-[86vw] max-w-[380px] flex-col border-e lg:hidden"
+          style={{ backgroundColor: ALT, borderColor: HAIR, color: INK }}
+        >
+          {/* Plaque: the mark, and the way out */}
+          <div className="flex shrink-0 items-center justify-between border-b px-6 py-5" style={{ borderColor: HAIR }}>
+            <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto" />
+            <button
+              type="button"
+              onClick={onClose}
+              data-testid="mobile-drawer-close"
+              aria-label={t('Close menu', 'إغلاق القائمة')}
+              className="-me-2 p-2 transition-opacity duration-300 hover:opacity-60"
+            >
+              <X size={18} strokeWidth={1.25} />
+            </button>
+          </div>
+
+          <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain pb-10">
+            {/* Search — the bar's slim hairline field, squared off for the drawer */}
+            <div className="px-6 pt-6">
+              <div className="flex h-11 items-center gap-3 border px-4" style={{ borderColor: HAIR }}>
+                <Search size={15} strokeWidth={1.5} className="shrink-0 text-[#8B8378]" />
+                <input
+                  type="text"
+                  placeholder={t('Search', 'ابحث')}
+                  className={`w-full min-w-0 bg-transparent text-[12px] outline-none placeholder:text-[#8B8378] ${
+                    lang === 'ar' ? 'tracking-normal' : 'tracking-[0.12em]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  aria-label={t('Visual search', 'البحث بالصورة')}
+                  className="shrink-0 text-[#8A6D4F] transition-opacity duration-300 hover:opacity-60"
+                >
+                  <Camera size={15} strokeWidth={1.5} />
+                </button>
+              </div>
+            </div>
+
+            {/* Primary nav — Shop and Services open into the mega menus' contents */}
+            <nav className="px-6 pt-8">
+              <p className={labelCls} style={{ color: MUTED }}>
+                {t('Menu', 'القائمة')}
+              </p>
+              <div className="mt-4">
+                {NAV_ITEMS.map((item) => {
+                  const menuKey: MenuKey | null =
+                    item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
+
+                  if (menuKey === null) {
+                    return (
+                      <a
+                        key={item.en}
+                        href="#"
+                        onClick={closeOnTap}
+                        className={`${serif(lang)} block border-b py-4 text-[17px] transition-colors duration-300 hover:text-[#8A6D4F]`}
+                        style={{ borderColor: HAIR }}
+                      >
+                        {t(item.en, item.ar)}
+                      </a>
+                    );
+                  }
+
+                  const groups = menuKey === 'shop' ? SHOP_MENU : SERVICES_MENU;
+                  const sectionOpen = openSection === menuKey;
+                  return (
+                    <div key={item.en} className="border-b" style={{ borderColor: HAIR }}>
+                      <button
+                        type="button"
+                        data-testid={`drawer-${menuKey}-toggle`}
+                        aria-expanded={sectionOpen}
+                        aria-controls={`drawer-${menuKey}-panel`}
+                        onClick={() => {
+                          setOpenSection((s) => (s === menuKey ? null : menuKey));
+                          setOpenGroup(null);
+                        }}
+                        className="flex w-full items-center justify-between gap-3 py-4 text-start"
+                      >
+                        <span className={`${serif(lang)} text-[17px]`} style={{ color: sectionOpen ? BRONZE : INK }}>
+                          {t(item.en, item.ar)}
+                        </span>
+                        <ChevronDown
+                          size={15}
+                          strokeWidth={1.25}
+                          className={`shrink-0 transition-transform duration-300 ${sectionOpen ? 'rotate-180' : ''}`}
+                          style={{ color: BRONZE }}
+                        />
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {sectionOpen && (
+                          <motion.div
+                            key="section"
+                            id={`drawer-${menuKey}-panel`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: DRAWER_EASE }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pb-4">
+                              {groups.map((g) => {
+                                const groupKey = `${menuKey}:${g.title.en}`;
+                                return (
+                                  <DrawerGroup
+                                    key={groupKey}
+                                    group={g}
+                                    lang={lang}
+                                    isOpen={openGroup === groupKey}
+                                    onToggle={() => setOpenGroup((k) => (k === groupKey ? null : groupKey))}
+                                    onNavigate={onClose}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </nav>
+
+            {/* Language — the header switch, restated where a phone can reach it */}
+            <div className="mt-8 border-t px-6 pt-6" style={{ borderColor: HAIR }}>
+              <p className={labelCls} style={{ color: MUTED }}>
+                {t('Language', 'اللغة')}
+              </p>
+              <button
+                type="button"
+                data-testid="drawer-lang-toggle"
+                onClick={onToggleLang}
+                aria-label={t('Switch language to Arabic', 'التبديل إلى الإنجليزية')}
+                className="mt-4 flex items-center gap-2 text-[12px]"
+              >
+                <span
+                  className={`tracking-[0.15em] transition-opacity duration-300 ${
+                    lang === 'en' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50'
+                  }`}
+                >
+                  ENG
+                </span>
+                <span className="opacity-40">|</span>
+                <span
+                  className={`${AMIRI} text-[14px] tracking-normal transition-opacity duration-300 ${
+                    lang === 'ar' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50'
+                  }`}
+                >
+                  عربي
+                </span>
+              </button>
+            </div>
+
+            {/* Account utilities — moved off the bar so the phone header stays quiet */}
+            <div className="mt-8 border-t px-6 pt-6" style={{ borderColor: HAIR }}>
+              <p className={labelCls} style={{ color: MUTED }}>
+                {t('Your Account', 'حسابك')}
+              </p>
+              <div className="mt-4 flex flex-col">
+                {utilities.map(({ Icon, label }) => (
+                  <a
+                    key={label}
+                    href="#"
+                    onClick={closeOnTap}
+                    className={`flex items-center gap-3.5 py-3 text-[14px] font-light transition-colors duration-300 hover:text-[#8A6D4F] ${
+                      lang === 'ar' ? 'tracking-normal' : ''
+                    }`}
+                  >
+                    <Icon size={16} strokeWidth={1.25} className="shrink-0 text-[#8A6D4F]" />
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Contact — pinned to the foot of the panel, like a gallery's info plate */}
+          <div className="shrink-0 border-t px-6 pb-24 pt-5" style={{ borderColor: HAIR }}>
+            <p className={labelCls} style={{ color: MUTED }}>
+              {t('Contact', 'تواصل معنا')}
+            </p>
+            <a
+              href="#"
+              onClick={closeOnTap}
+              className="mt-3 block text-[13px] font-light transition-colors duration-300 hover:text-[#8A6D4F]"
+            >
+              <span dir="ltr">{FOOTER_LINKS.phone}</span>
+            </a>
+            <a
+              href="#"
+              onClick={closeOnTap}
+              className="mt-1.5 block text-[13px] font-light text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F]"
+            >
+              {FOOTER_LINKS.email}
+            </a>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
 
@@ -634,17 +1015,37 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
               عربي
             </span>
           </button>
-          <button aria-label="Account" className="transition-opacity hover:opacity-70">
+          {/* Account and wishlist live in the drawer below `lg` — the phone bar
+              keeps only the mark, the cart and the way into the menu. */}
+          <button aria-label="Account" className="hidden transition-opacity hover:opacity-70 lg:block">
             <User size={17} strokeWidth={1.25} />
           </button>
-          <button aria-label="Wishlist" className="transition-opacity hover:opacity-70">
+          <button aria-label="Wishlist" className="hidden transition-opacity hover:opacity-70 lg:block">
             <Heart size={17} strokeWidth={1.25} />
           </button>
           <button aria-label="Cart" className="transition-opacity hover:opacity-70">
             <ShoppingBag size={17} strokeWidth={1.25} />
           </button>
+          <button
+            type="button"
+            data-testid="mobile-menu-trigger"
+            onClick={() => setDrawerOpen(true)}
+            aria-label={t('Open menu', 'فتح القائمة')}
+            aria-expanded={drawerOpen}
+            aria-controls="mobile-drawer"
+            className="transition-opacity hover:opacity-70 lg:hidden"
+          >
+            <Menu size={19} strokeWidth={1.25} />
+          </button>
         </div>
       </div>
+
+      <MobileDrawer
+        lang={lang}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onToggleLang={onToggle}
+      />
 
       {/* Mega menus — desktop only, a quiet fade beneath the header */}
       <AnimatePresence>
