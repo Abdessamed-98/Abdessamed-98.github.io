@@ -9,10 +9,11 @@
  * between RTL Arabic (Amiri headings, Alexandria labels, Tajawal body — no
  * letterspacing on Arabic script) and the original English look.
  */
-import { useEffect, useRef, useState, type CSSProperties, type Key, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type Key, type ReactNode } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
+  Search, Camera, User, Heart, ShoppingBag, ArrowRight,
   ChevronLeft, ChevronRight, ChevronDown, Menu, X,
   Instagram, Facebook, Linkedin, Sparkles,
 } from 'lucide-react';
@@ -21,241 +22,23 @@ import {
   ROOM_HOTSPOTS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
   ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS, PARTNER, APP_PROMO,
-  formatSAR, LookSwitcher,
-  type Lang, type Bi, type MenuGroup, type RoomHotspot, type LookProduct,
+  formatSAR, LookSwitcher, lookBase, searchPath, productPath,
+  type Lang, type Bi, type MenuGroup, type RoomHotspot,
 } from './lookShared';
+import {
+  BG, ALT, INK, MUTED, BRONZE, HAIR, DARK, CREAM, GOLDISH, CONTAINER,
+  PLAYFAIR, MARCELLUS, AMIRI, ALEXANDRIA, TAJAWAL, DRAWER_EASE,
+  serif, headingLeading, pad2,
+  LookProvider, useLook, Reveal, SectionHeader, HairButton, BronzeLink, Stars, ProductTile,
+} from './three/ui';
+import SearchPage from './three/SearchPage';
+import ProductPage from './three/ProductPage';
 
 /* ------------------------------------------------------------------ */
-/* Palette                                                             */
+/* The look's palette, type and museum-catalog primitives (Reveal,     */
+/* SectionHeader, HairButton, BronzeLink, Stars, ProductTile) live in  */
+/* ./three/ui so the search and product pages share them.             */
 /* ------------------------------------------------------------------ */
-const BG = '#F1EDE5';       // warm greige canvas
-const ALT = '#FBFAF7';      // alternating section white
-const INK = '#2A241C';      // warm ink
-const MUTED = '#8B8378';    // warm grey
-const BRONZE = '#8A6D4F';   // sparing accent
-const HAIR = '#DDD6CA';     // hairlines
-const DARK = '#1B1712';     // footer / B2B brown-black
-const CREAM = '#EFE9DD';    // text on dark
-const GOLDISH = '#C9B393';  // accent on dark
-
-const CONTAINER = 'mx-auto w-full max-w-[1360px] px-6 md:px-10';
-
-const PLAYFAIR = "font-['Playfair_Display',serif]";
-const MARCELLUS = "font-['Marcellus',serif]";
-const AMIRI = "font-['Amiri',serif]";
-const ALEXANDRIA = "font-['Alexandria',sans-serif]";
-const TAJAWAL = "font-['Tajawal',sans-serif]";
-
-/** Serif display face per language — Amiri's calligraphic tone stands in for Playfair in Arabic. */
-const serif = (lang: Lang) => (lang === 'ar' ? AMIRI : PLAYFAIR);
-/** Arabic headings breathe more — letterforms and marks need taller lines than Playfair's tight leading. */
-const headingLeading = (lang: Lang, en: string) => (lang === 'ar' ? 'leading-[1.35]' : en);
-
-/* ------------------------------------------------------------------ */
-/* Small shared pieces                                                 */
-/* ------------------------------------------------------------------ */
-
-/** Calm scroll reveal — fade and rise, nothing more. */
-function Reveal({
-  children,
-  delay = 0,
-  className,
-  style,
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-  style?: CSSProperties;
-  key?: Key; // allow list usage — no @types/react, so `key` is checked structurally
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-70px' }}
-      transition={{ duration: 0.7, ease: 'easeOut', delay }}
-      className={className}
-      style={style}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/**
- * Centered museum-catalog section header: thin rule, Marcellus eyebrow, Playfair Title Case.
- * `tone="cream"` is the same header re-lit for the dark #1B1712 bands.
- */
-function SectionHeader({
-  eyebrow, lang, tone = 'ink', children,
-}: { eyebrow: string; lang: Lang; tone?: 'ink' | 'cream'; children: ReactNode }) {
-  const dark = tone === 'cream';
-  return (
-    <Reveal className="flex flex-col items-center text-center">
-      <span className="h-px w-10" style={{ backgroundColor: dark ? GOLDISH : BRONZE }} />
-      <p
-        className={`mt-6 ${
-          lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
-        } ${dark ? 'text-[#EFE9DD]/50' : ''}`}
-        style={dark ? undefined : { color: MUTED }}
-      >
-        {eyebrow}
-      </p>
-      <h2
-        className={`${serif(lang)} mt-5 text-4xl md:text-5xl ${headingLeading(lang, 'leading-[1.12]')}`}
-        style={{ color: dark ? CREAM : INK }}
-      >
-        {children}
-      </h2>
-    </Reveal>
-  );
-}
-
-/** Hairline-bordered rectangle button. Sharp corners, letterspaced caps, slow fill on hover. */
-function HairButton({
-  label,
-  tone = 'ink',
-  className = '',
-  lang = 'en',
-}: {
-  label: string;
-  tone?: 'ink' | 'white' | 'cream';
-  className?: string;
-  lang?: Lang;
-}) {
-  const tones = {
-    ink: 'border-[#2A241C]/40 text-[#2A241C] hover:bg-[#2A241C] hover:border-[#2A241C] hover:text-[#EFE9DD]',
-    white: 'border-white/60 text-white hover:bg-white hover:border-white hover:text-[#2A241C]',
-    cream: 'border-[#EFE9DD]/50 text-[#EFE9DD] hover:bg-[#EFE9DD] hover:border-[#EFE9DD] hover:text-[#1B1712]',
-  } as const;
-  return (
-    <a
-      href="#"
-      onClick={(e) => e.preventDefault()}
-      className={`inline-block border px-10 py-4 transition-colors duration-300 ${
-        lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
-      } ${tones[tone]} ${className}`}
-    >
-      {label}
-    </a>
-  );
-}
-
-/** Bronze small-caps link with a thin underline — `tone="gold"` for the dark bands. */
-function BronzeLink({
-  label, className = '', lang = 'en', tone = 'bronze',
-}: { label: string; className?: string; lang?: Lang; tone?: 'bronze' | 'gold' }) {
-  const tones = {
-    bronze: 'border-[#8A6D4F]/35 text-[#8A6D4F] hover:border-[#8A6D4F]',
-    gold: 'border-[#C9B393]/35 text-[#C9B393] hover:border-[#C9B393]',
-  } as const;
-  return (
-    <a
-      href="#"
-      onClick={(e) => e.preventDefault()}
-      className={`inline-block border-b pb-1 transition-colors duration-300 ${tones[tone]} ${
-        lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
-      } ${className}`}
-    >
-      {label}
-    </a>
-  );
-}
-
-/** Rating stars — size 11, filled in bronze. */
-function Stars({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-[3px]" aria-label={`Rated ${rating} out of 5`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          size={11}
-          strokeWidth={1}
-          className={i < Math.round(rating) ? 'fill-[#8A6D4F] text-[#8A6D4F]' : 'fill-transparent text-[#DDD6CA]'}
-        />
-      ))}
-    </div>
-  );
-}
-
-/** Two-digit catalogue numeral — the page's recurring ghost-Playfair motif. */
-const pad2 = (n: number) => String(n).padStart(2, '0');
-
-/**
- * The page's product tile: white plate, museum caption below, bronze stars,
- * Playfair price. Shared by New Arrivals and Best Sellers — the latter passes a
- * `rank`, which prints a ghost Playfair numeral on the plate.
- */
-function ProductTile({ p, lang, rank }: { p: LookProduct; lang: Lang; rank?: number; key?: Key }) {
-  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
-  return (
-    <div className="group flex h-full flex-col">
-      <div className="relative overflow-hidden border bg-white" style={{ borderColor: HAIR }}>
-        {p.sale && (
-          <span
-            className={`absolute start-3 top-3 z-10 ${
-              lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
-            }`}
-            style={{ color: BRONZE }}
-          >
-            {t('Sale', 'تخفيض')}
-          </span>
-        )}
-        {rank !== undefined && (
-          <span
-            aria-hidden
-            dir="ltr"
-            className={`${PLAYFAIR} pointer-events-none absolute end-3 top-1 z-10 select-none text-5xl leading-none text-[#2A241C14]`}
-          >
-            {pad2(rank)}
-          </span>
-        )}
-        <img
-          src={p.img}
-          alt={p.nameEn}
-          className="aspect-square w-full object-contain p-6 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-        />
-      </div>
-      <div className="flex flex-1 flex-col pt-4">
-        <p className="text-[9px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
-          {p.brand}
-        </p>
-        <h3 className="mt-1.5 text-[14px] font-light leading-snug" style={{ color: INK }}>
-          {t(p.nameEn, p.nameAr)}
-        </h3>
-        <div className="mt-2.5">
-          <Stars rating={p.rating} />
-        </div>
-        <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2">
-          <span className={`${PLAYFAIR} text-lg`} style={{ color: INK }}>
-            {formatSAR(p.price)}
-          </span>
-          <span
-            className={lang === 'ar' ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.15em]'}
-            style={{ color: MUTED }}
-          >
-            {t('SAR', 'ر.س')}
-          </span>
-          {p.oldPrice && (
-            <span className="text-xs line-through" style={{ color: MUTED }}>
-              {formatSAR(p.oldPrice)}
-            </span>
-          )}
-        </div>
-        <div className="mt-2.5">
-          <BronzeLink lang={lang} label={t('Try with AI', 'جرب AI')} />
-        </div>
-        <button
-          className={`mt-4 w-full border border-[#2A241C]/30 py-3 transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
-            lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
-          }`}
-        >
-          {t('Add to Cart', 'أضف إلى السلة')}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Museum-catalog product card for a shop-the-look hotspot.
@@ -314,15 +97,16 @@ function ProductCard({
         </div>
       </div>
 
-      {/* Hairline action — same rectangle language as HairButton */}
-      <button
-        type="button"
-        className={`mt-4 w-full border border-[#2A241C]/40 py-2.5 text-[#2A241C] transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
+      {/* Hairline action — same rectangle language as HairButton; opens the product page */}
+      <Link
+        to={productPath(3, spot.productId)}
+        data-testid={`hotspot-view-${spot.id}`}
+        className={`mt-4 block w-full border border-[#2A241C]/40 py-2.5 text-center text-[#2A241C] transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
           lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
         }`}
       >
         {t('View Product', 'عرض المنتج')}
-      </button>
+      </Link>
       <div className="mt-3 text-center">
         <button
           type="button"
@@ -413,30 +197,42 @@ function HotspotPoint({
 
 type MenuKey = 'shop' | 'services';
 
-/** One mega-menu column: serif group title over a thin bronze rule, muted sub-items. */
-function MegaGroup({ group, lang }: { group: MenuGroup; lang: Lang; key?: Key }) {
+/**
+ * One mega-menu column: serif group title over a thin bronze rule, muted sub-items.
+ * Given `to` (the Shop menu's category search), the title and its items navigate there.
+ */
+function MegaGroup({
+  group, lang, to, onNavigate,
+}: { group: MenuGroup; lang: Lang; to?: string; onNavigate?: () => void; key?: Key }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const titleCls = `${serif(lang)} ${lang === 'ar' ? 'text-[16px] tracking-normal' : 'text-[15px]'}`;
+  const itemCls = `block text-[12.5px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
+    lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
+  }`;
   return (
     <div>
-      <h3
-        className={`${serif(lang)} ${lang === 'ar' ? 'text-[16px] tracking-normal' : 'text-[15px]'}`}
-        style={{ color: INK }}
-      >
-        {t(group.title.en, group.title.ar)}
+      <h3 className={titleCls} style={{ color: INK }}>
+        {to ? (
+          <Link to={to} onClick={onNavigate} className="transition-colors duration-300 hover:text-[#8A6D4F]">
+            {t(group.title.en, group.title.ar)}
+          </Link>
+        ) : (
+          t(group.title.en, group.title.ar)
+        )}
       </h3>
       <span className="mt-3 block h-px w-6" style={{ backgroundColor: BRONZE }} />
       <ul className="mt-4 space-y-2">
         {group.items.map((item) => (
           <li key={item.en}>
-            <a
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              className={`block text-[12.5px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
-                lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
-              }`}
-            >
-              {t(item.en, item.ar)}
-            </a>
+            {to ? (
+              <Link to={to} onClick={onNavigate} className={itemCls}>
+                {t(item.en, item.ar)}
+              </Link>
+            ) : (
+              <a href="#" onClick={(e) => e.preventDefault()} className={itemCls}>
+                {t(item.en, item.ar)}
+              </a>
+            )}
           </li>
         ))}
       </ul>
@@ -445,10 +241,19 @@ function MegaGroup({ group, lang }: { group: MenuGroup; lang: Lang; key?: Key })
 }
 
 /** Museum-piece promo tile: image above, caption below in small serif, bronze underlined CTA. */
-function MegaFeatured({ tile, lang }: { tile: { img: string; title: Bi; cta: Bi }; lang: Lang; key?: Key }) {
+function MegaFeatured({
+  tile, lang, to, onNavigate,
+}: { tile: { img: string; title: Bi; cta: Bi }; lang: Lang; to?: string; onNavigate?: () => void; key?: Key }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const Wrap = to
+    ? ({ children }: { children: ReactNode }) => (
+        <Link to={to} onClick={onNavigate} className="group block">{children}</Link>
+      )
+    : ({ children }: { children: ReactNode }) => (
+        <a href="#" onClick={(e) => e.preventDefault()} className="group block">{children}</a>
+      );
   return (
-    <a href="#" onClick={(e) => e.preventDefault()} className="group block">
+    <Wrap>
       <div className="overflow-hidden" style={{ backgroundColor: BG }}>
         <img
           src={tile.img}
@@ -470,22 +275,33 @@ function MegaFeatured({ tile, lang }: { tile: { img: string; title: Bi; cta: Bi 
           <ArrowRight size={11} strokeWidth={1.25} className="rtl:rotate-180" />
         </span>
       </div>
-    </a>
+    </Wrap>
   );
 }
 
 /** Bronze small-caps link closing a mega panel, arrow flips in RTL. */
-function MegaBottomLink({ label, lang }: { label: string; lang: Lang }) {
-  return (
-    <a
-      href="#"
-      onClick={(e) => e.preventDefault()}
-      className={`inline-flex items-center gap-2 text-[#8A6D4F] transition-opacity duration-300 hover:opacity-75 ${
-        lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
-      }`}
-    >
+function MegaBottomLink({
+  label, lang, to, onNavigate,
+}: { label: string; lang: Lang; to?: string; onNavigate?: () => void }) {
+  const cls = `inline-flex items-center gap-2 text-[#8A6D4F] transition-opacity duration-300 hover:opacity-75 ${
+    lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
+  }`;
+  const inner = (
+    <>
       {label}
       <ArrowRight size={12} strokeWidth={1.25} className="rtl:rotate-180" />
+    </>
+  );
+  if (to) {
+    return (
+      <Link to={to} onClick={onNavigate} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <a href="#" onClick={(e) => e.preventDefault()} className={cls}>
+      {inner}
     </a>
   );
 }
@@ -494,49 +310,74 @@ function MegaBottomLink({ label, lang }: { label: string; lang: Lang }) {
 /* Mobile drawer                                                       */
 /* ------------------------------------------------------------------ */
 
-/** The drawer's easing — a long, quiet decelerate in the page's slow register. */
-const DRAWER_EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
-
 /**
  * One category group inside a drawer accordion: a small-caps title on a hairline
  * that expands to its subcategories. The mobile stand-in for a mega-menu column.
  */
 function DrawerGroup({
-  group, lang, isOpen, onToggle, onNavigate,
+  group, lang, isOpen, onToggle, onNavigate, to,
 }: {
   group: MenuGroup;
   lang: Lang;
   isOpen: boolean;
   onToggle: () => void;
   onNavigate: () => void;
+  /** Where the group (and its items) navigate — the Shop menu's category search. */
+  to?: string;
   key?: Key;
 }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const titleCls =
+    lang === 'ar'
+      ? `${ALEXANDRIA} text-[12px] tracking-normal`
+      : `${MARCELLUS} text-[11px] uppercase tracking-[0.2em]`;
+  const itemCls = `block py-2 text-[13px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
+    lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
+  }`;
+  const chevron = (
+    <ChevronDown
+      size={13}
+      strokeWidth={1.25}
+      className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+      style={{ color: BRONZE }}
+    />
+  );
   return (
     <div className="border-t" style={{ borderColor: HAIR }}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-3 py-3 text-start"
-      >
-        <span
-          className={
-            lang === 'ar'
-              ? `${ALEXANDRIA} text-[12px] tracking-normal`
-              : `${MARCELLUS} text-[11px] uppercase tracking-[0.2em]`
-          }
-          style={{ color: isOpen ? BRONZE : INK }}
+      {to ? (
+        /* The title navigates; only the chevron expands the sub-items. */
+        <div className="flex w-full items-center justify-between gap-3">
+          <Link
+            to={to}
+            onClick={onNavigate}
+            className={`${titleCls} flex-1 py-3`}
+            style={{ color: isOpen ? BRONZE : INK }}
+          >
+            {t(group.title.en, group.title.ar)}
+          </Link>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={isOpen}
+            aria-label={t(`Expand ${group.title.en}`, `توسيع ${group.title.ar}`)}
+            className="-me-2 shrink-0 p-2 py-3"
+          >
+            {chevron}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          className="flex w-full items-center justify-between gap-3 py-3 text-start"
         >
-          {t(group.title.en, group.title.ar)}
-        </span>
-        <ChevronDown
-          size={13}
-          strokeWidth={1.25}
-          className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-          style={{ color: BRONZE }}
-        />
-      </button>
+          <span className={titleCls} style={{ color: isOpen ? BRONZE : INK }}>
+            {t(group.title.en, group.title.ar)}
+          </span>
+          {chevron}
+        </button>
+      )}
 
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -551,15 +392,15 @@ function DrawerGroup({
             <ul className="pb-3 ps-4">
               {group.items.map((item) => (
                 <li key={item.en}>
-                  <a
-                    href="#"
-                    onClick={(e) => { e.preventDefault(); onNavigate(); }}
-                    className={`block py-2 text-[13px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
-                      lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
-                    }`}
-                  >
-                    {t(item.en, item.ar)}
-                  </a>
+                  {to ? (
+                    <Link to={to} onClick={onNavigate} className={itemCls}>
+                      {t(item.en, item.ar)}
+                    </Link>
+                  ) : (
+                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate(); }} className={itemCls}>
+                      {t(item.en, item.ar)}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -588,15 +429,25 @@ function MobileDrawer({
   onToggleLang: () => void;
 }) {
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const navigate = useNavigate();
   const [openSection, setOpenSection] = useState<MenuKey | null>(null);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [q, setQ] = useState('');
 
   /* A closed drawer forgets where it was — it always reopens at the top level. */
   useEffect(() => {
     if (open) return;
     setOpenSection(null);
     setOpenGroup(null);
+    setQ('');
   }, [open]);
+
+  /** Enter in the drawer's search field opens the listing page for that query. */
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    onClose();
+    navigate(searchPath(3, { q: q.trim() }));
+  };
 
   /* Lock the page behind the drawer. */
   useEffect(() => {
@@ -628,7 +479,7 @@ function MobileDrawer({
       ? `${ALEXANDRIA} text-[10px] tracking-normal`
       : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`;
 
-  /** Nothing in this demo navigates — a tapped link just closes the drawer. */
+  /** Demo-only links (account, contact, unwired nav) just close the drawer. */
   const closeOnTap = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     onClose();
@@ -686,11 +537,20 @@ function MobileDrawer({
           <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain pb-10">
             {/* Search — the bar's slim hairline field, squared off for the drawer */}
             <div className="px-6 pt-6">
-              <div className="flex h-11 items-center gap-3 border px-4" style={{ borderColor: HAIR }}>
+              <form
+                role="search"
+                onSubmit={submitSearch}
+                className="flex h-11 items-center gap-3 border px-4"
+                style={{ borderColor: HAIR }}
+              >
                 <Search size={15} strokeWidth={1.5} className="shrink-0 text-[#8B8378]" />
                 <input
                   type="text"
+                  data-testid="drawer-search-input"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
                   placeholder={t('Search', 'ابحث')}
+                  aria-label={t('Search', 'ابحث')}
                   className={`w-full min-w-0 bg-transparent text-[12px] outline-none placeholder:text-[#8B8378] ${
                     lang === 'ar' ? 'tracking-normal' : 'tracking-[0.12em]'
                   }`}
@@ -702,7 +562,7 @@ function MobileDrawer({
                 >
                   <Camera size={15} strokeWidth={1.5} />
                 </button>
-              </div>
+              </form>
             </div>
 
             {/* Primary nav — Shop and Services open into the mega menus' contents */}
@@ -715,15 +575,17 @@ function MobileDrawer({
                   const menuKey: MenuKey | null =
                     item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
 
+                  const rowCls = `${serif(lang)} block border-b py-4 text-[17px] transition-colors duration-300 hover:text-[#8A6D4F]`;
                   if (menuKey === null) {
+                    if (item.en === 'Home') {
+                      return (
+                        <Link key={item.en} to={lookBase(3)} onClick={onClose} className={rowCls} style={{ borderColor: HAIR }}>
+                          {t(item.en, item.ar)}
+                        </Link>
+                      );
+                    }
                     return (
-                      <a
-                        key={item.en}
-                        href="#"
-                        onClick={closeOnTap}
-                        className={`${serif(lang)} block border-b py-4 text-[17px] transition-colors duration-300 hover:text-[#8A6D4F]`}
-                        style={{ borderColor: HAIR }}
-                      >
+                      <a key={item.en} href="#" onClick={closeOnTap} className={rowCls} style={{ borderColor: HAIR }}>
                         {t(item.en, item.ar)}
                       </a>
                     );
@@ -731,29 +593,57 @@ function MobileDrawer({
 
                   const groups = menuKey === 'shop' ? SHOP_MENU : SERVICES_MENU;
                   const sectionOpen = openSection === menuKey;
+                  const toggleSection = () => {
+                    setOpenSection((s) => (s === menuKey ? null : menuKey));
+                    setOpenGroup(null);
+                  };
+                  const chevron = (
+                    <ChevronDown
+                      size={15}
+                      strokeWidth={1.25}
+                      className={`shrink-0 transition-transform duration-300 ${sectionOpen ? 'rotate-180' : ''}`}
+                      style={{ color: BRONZE }}
+                    />
+                  );
                   return (
                     <div key={item.en} className="border-b" style={{ borderColor: HAIR }}>
-                      <button
-                        type="button"
-                        data-testid={`drawer-${menuKey}-toggle`}
-                        aria-expanded={sectionOpen}
-                        aria-controls={`drawer-${menuKey}-panel`}
-                        onClick={() => {
-                          setOpenSection((s) => (s === menuKey ? null : menuKey));
-                          setOpenGroup(null);
-                        }}
-                        className="flex w-full items-center justify-between gap-3 py-4 text-start"
-                      >
-                        <span className={`${serif(lang)} text-[17px]`} style={{ color: sectionOpen ? BRONZE : INK }}>
-                          {t(item.en, item.ar)}
-                        </span>
-                        <ChevronDown
-                          size={15}
-                          strokeWidth={1.25}
-                          className={`shrink-0 transition-transform duration-300 ${sectionOpen ? 'rotate-180' : ''}`}
-                          style={{ color: BRONZE }}
-                        />
-                      </button>
+                      {/* Shop itself navigates to the listing; the chevron expands its categories.
+                          Services has no page of its own, so the whole row toggles. */}
+                      <div className="flex w-full items-center justify-between gap-3">
+                        {menuKey === 'shop' ? (
+                          <Link
+                            to={searchPath(3)}
+                            onClick={onClose}
+                            data-testid="drawer-shop-link"
+                            className={`${serif(lang)} flex-1 py-4 text-[17px] transition-colors duration-300 hover:text-[#8A6D4F]`}
+                            style={{ color: sectionOpen ? BRONZE : INK }}
+                          >
+                            {t(item.en, item.ar)}
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={toggleSection}
+                            aria-expanded={sectionOpen}
+                            aria-controls={`drawer-${menuKey}-panel`}
+                            className={`${serif(lang)} flex-1 py-4 text-start text-[17px]`}
+                            style={{ color: sectionOpen ? BRONZE : INK }}
+                          >
+                            {t(item.en, item.ar)}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          data-testid={`drawer-${menuKey}-toggle`}
+                          aria-expanded={sectionOpen}
+                          aria-controls={`drawer-${menuKey}-panel`}
+                          aria-label={t(`Expand ${item.en}`, `توسيع ${item.ar}`)}
+                          onClick={toggleSection}
+                          className="-me-2 shrink-0 p-2 py-4"
+                        >
+                          {chevron}
+                        </button>
+                      </div>
 
                       <AnimatePresence initial={false}>
                         {sectionOpen && (
@@ -767,8 +657,10 @@ function MobileDrawer({
                             className="overflow-hidden"
                           >
                             <div className="pb-4">
-                              {groups.map((g) => {
+                              {groups.map((g, i) => {
                                 const groupKey = `${menuKey}:${g.title.en}`;
+                                /* Shop groups follow CATEGORIES order — each opens its category search. */
+                                const category = menuKey === 'shop' ? CATEGORIES[i] : undefined;
                                 return (
                                   <DrawerGroup
                                     key={groupKey}
@@ -777,6 +669,7 @@ function MobileDrawer({
                                     isOpen={openGroup === groupKey}
                                     onToggle={() => setOpenGroup((k) => (k === groupKey ? null : groupKey))}
                                     onNavigate={onClose}
+                                    to={category ? searchPath(3, { category: category.key }) : undefined}
                                   />
                                 );
                               })}
@@ -869,12 +762,36 @@ function MobileDrawer({
   );
 }
 
-function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
+/**
+ * The fixed bar. `transparent` is true only over the home hero — everywhere
+ * else the chrome is solid from the first pixel.
+ */
+function Header({
+  lang, onToggle, transparent,
+}: { lang: Lang; onToggle: () => void; transparent: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const [q, setQ] = useState('');
+
+  /* A route change closes whatever was open; the field mirrors the page's current query. */
+  useEffect(() => {
+    setOpenMenu(null);
+    setDrawerOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    setQ(new URLSearchParams(search).get('q') ?? '');
+  }, [search]);
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    setOpenMenu(null);
+    navigate(searchPath(3, { q: q.trim() }));
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -902,7 +819,7 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
 
   useEffect(() => cancelClose, []);
 
-  const solid = scrolled || openMenu !== null;
+  const solid = !transparent || scrolled || openMenu !== null;
 
   return (
     <header
@@ -922,17 +839,19 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
         />
       )}
       <div className={`${CONTAINER} relative flex h-[72px] items-center gap-6`}>
-        {/* Logo */}
-        <a href="#" onClick={(e) => e.preventDefault()} className="shrink-0">
+        {/* Logo — home */}
+        <Link to={lookBase(3)} data-testid="header-logo" aria-label={t('Diyar home', 'ديار — الرئيسية')} className="shrink-0">
           <img
             src="/logo_diyar.svg"
             alt="Diyar"
             className={`h-7 w-auto transition-all duration-300 ${solid ? '' : 'invert'}`}
           />
-        </a>
+        </Link>
 
-        {/* Slim search */}
-        <div
+        {/* Slim search — Enter opens the listing page */}
+        <form
+          role="search"
+          onSubmit={submitSearch}
           className={`hidden h-10 w-60 items-center gap-3 rounded-full border px-4 transition-colors duration-300 lg:flex ${
             solid ? 'border-[#DDD6CA]' : 'border-white/40'
           }`}
@@ -940,15 +859,19 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
           <Search size={14} strokeWidth={1.5} className="shrink-0 opacity-80" />
           <input
             type="text"
+            data-testid="header-search-input"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
             placeholder={t('Search', 'ابحث')}
+            aria-label={t('Search', 'ابحث')}
             className={`w-full bg-transparent text-[11px] outline-none placeholder:text-inherit placeholder:opacity-50 ${
               lang === 'ar' ? 'tracking-normal' : 'tracking-[0.12em]'
             }`}
           />
-          <button aria-label="Visual search" className="shrink-0 opacity-80 transition-opacity hover:opacity-100">
+          <button type="button" aria-label="Visual search" className="shrink-0 opacity-80 transition-opacity hover:opacity-100">
             <Camera size={14} strokeWidth={1.5} />
           </button>
-        </div>
+        </form>
 
         {/* Nav */}
         <nav className="ms-auto hidden items-center gap-7 lg:flex">
@@ -958,6 +881,23 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
             const navCls = `transition-opacity duration-300 hover:opacity-100 ${
               lang === 'ar' ? `${ALEXANDRIA} text-[12px] tracking-normal` : 'text-[11px] uppercase tracking-[0.22em]'
             }`;
+            if (menuKey === 'shop') {
+              /* Hover opens the mega menu; a click goes to the listing page. */
+              return (
+                <Link
+                  key={item.en}
+                  to={searchPath(3)}
+                  data-testid="mega-shop-trigger"
+                  aria-haspopup="true"
+                  aria-expanded={openMenu === 'shop'}
+                  onClick={() => setOpenMenu(null)}
+                  onMouseEnter={() => openPanel('shop')}
+                  className={`${openMenu === 'shop' ? 'opacity-100' : 'opacity-90'} ${navCls}`}
+                >
+                  {t(item.en, item.ar)}
+                </Link>
+              );
+            }
             if (menuKey !== null) {
               return (
                 <a
@@ -975,6 +915,13 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
                 >
                   {t(item.en, item.ar)}
                 </a>
+              );
+            }
+            if (item.en === 'Home') {
+              return (
+                <Link key={item.en} to={lookBase(3)} onMouseEnter={scheduleClose} className={`opacity-90 ${navCls}`}>
+                  {t(item.en, item.ar)}
+                </Link>
               );
             }
             return (
@@ -1062,19 +1009,37 @@ function Header({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
             <div className={`${CONTAINER} pb-8 pt-10`}>
               <div className="flex items-start gap-12">
                 <div className="grid flex-1 grid-cols-3 gap-x-10 gap-y-10">
-                  {SHOP_MENU.map((group) => (
-                    <MegaGroup key={group.title.en} group={group} lang={lang} />
+                  {/* Shop groups follow CATEGORIES order — each column opens its category search */}
+                  {SHOP_MENU.map((group, i) => (
+                    <MegaGroup
+                      key={group.title.en}
+                      group={group}
+                      lang={lang}
+                      to={CATEGORIES[i] ? searchPath(3, { category: CATEGORIES[i].key }) : searchPath(3)}
+                      onNavigate={() => setOpenMenu(null)}
+                    />
                   ))}
                 </div>
                 {/* Featured side column — museum pieces */}
                 <div className="grid w-[280px] shrink-0 grid-cols-1 gap-9 border-s ps-10" style={{ borderColor: HAIR }}>
-                  {MENU_FEATURED.shop.map((tile) => (
-                    <MegaFeatured key={tile.title.en} tile={tile} lang={lang} />
+                  {MENU_FEATURED.shop.map((tile, i) => (
+                    <MegaFeatured
+                      key={tile.title.en}
+                      tile={tile}
+                      lang={lang}
+                      to={i === 1 ? searchPath(3, { category: 'lighting' }) : searchPath(3, { sort: 'newest' })}
+                      onNavigate={() => setOpenMenu(null)}
+                    />
                   ))}
                 </div>
               </div>
               <div className="mt-10 border-t pt-5" style={{ borderColor: HAIR }}>
-                <MegaBottomLink lang={lang} label={t('View All Categories', 'عرض كل التصنيفات')} />
+                <MegaBottomLink
+                  lang={lang}
+                  to={searchPath(3)}
+                  onNavigate={() => setOpenMenu(null)}
+                  label={t('View All Categories', 'عرض كل التصنيفات')}
+                />
               </div>
             </div>
           </motion.div>
@@ -1230,21 +1195,26 @@ function FeaturedCategories({ lang }: { lang: Lang }) {
         <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-14 md:mt-20 md:grid-cols-3 md:gap-x-10">
           {CATEGORIES.map((c, i) => (
             <Reveal key={c.en} delay={(i % 3) * 0.08}>
-              <div className="group block cursor-pointer">
-                <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+              <div className="group block">
+                <Link
+                  to={searchPath(3, { category: c.key })}
+                  aria-label={t(c.en, c.ar)}
+                  className="block overflow-hidden"
+                  style={{ backgroundColor: BG }}
+                >
                   <img
                     src={c.img}
                     alt={c.en}
                     className="aspect-[4/5] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
                   />
-                </div>
+                </Link>
                 {/* Museum caption */}
                 <div className="pt-5 text-center">
                   <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
                     {t(c.en, c.ar)}
                   </h3>
                   <div className="mt-3">
-                    <BronzeLink lang={lang} label={t('View More', 'عرض المزيد')} />
+                    <BronzeLink lang={lang} to={searchPath(3, { category: c.key })} label={t('View More', 'عرض المزيد')} />
                   </div>
                 </div>
               </div>
@@ -1302,7 +1272,7 @@ function NewProducts({ lang }: { lang: Lang }) {
           {lang === 'ar' ? <>وصل <em>حديثاً</em></> : <>New <em>Arrivals</em></>}
         </SectionHeader>
         <Reveal className="mt-10 flex justify-center md:justify-end">
-          <BronzeLink lang={lang} label={t('View All', 'عرض الكل')} />
+          <BronzeLink lang={lang} to={searchPath(3, { sort: 'newest' })} label={t('View All', 'عرض الكل')} />
         </Reveal>
 
         <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-4 md:gap-x-8">
@@ -1475,7 +1445,7 @@ function FindYourStyle({ lang }: { lang: Lang }) {
                 delay={i * 0.07}
                 className={`${isCenter ? 'md:-mt-12' : ''} ${i === 4 ? 'col-span-2 md:col-span-1' : ''}`}
               >
-                <a href="#" onClick={(e) => e.preventDefault()} className="group block">
+                <Link to={searchPath(3, { style: s.key })} className="group block">
                   <div className="overflow-hidden" style={{ backgroundColor: BG }}>
                     <img
                       src={s.img}
@@ -1497,7 +1467,7 @@ function FindYourStyle({ lang }: { lang: Lang }) {
                       {lang === 'ar' ? `${formatSAR(s.count)} قطعة` : `${formatSAR(s.count)} pieces`}
                     </p>
                   </div>
-                </a>
+                </Link>
               </Reveal>
             );
           })}
@@ -1528,7 +1498,7 @@ function ShopByRoom({ lang }: { lang: Lang }) {
         <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 md:mt-20 md:grid-cols-3 md:gap-x-10">
           {ROOMS.map((r, i) => (
             <Reveal key={r.en} delay={(i % 3) * 0.07}>
-              <a href="#" onClick={(e) => e.preventDefault()} className="group block">
+              <Link to={searchPath(3, { room: r.key })} className="group block">
                 <div className="overflow-hidden" style={{ backgroundColor: ALT }}>
                   <img
                     src={r.img}
@@ -1551,7 +1521,7 @@ function ShopByRoom({ lang }: { lang: Lang }) {
                     {lang === 'ar' ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} pieces`}
                   </p>
                 </div>
-              </a>
+              </Link>
             </Reveal>
           ))}
         </div>
@@ -1686,7 +1656,7 @@ function BestSellers({ lang }: { lang: Lang }) {
         </div>
 
         <Reveal delay={0.1} className="mt-14 flex justify-center">
-          <BronzeLink lang={lang} label={t('View All Best Sellers', 'عرض كل الأكثر مبيعاً')} />
+          <BronzeLink lang={lang} to={searchPath(3)} label={t('View All Best Sellers', 'عرض كل الأكثر مبيعاً')} />
         </Reveal>
       </div>
     </section>
@@ -1786,7 +1756,7 @@ function FeaturedStores({ lang }: { lang: Lang }) {
                     {lang === 'ar' ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} products`}
                   </p>
                   <div className="mt-auto pt-5">
-                    <BronzeLink lang={lang} label={t('Visit Store', 'زيارة المتجر')} />
+                    <BronzeLink lang={lang} to={searchPath(3, { store: s.key })} label={t('Visit Store', 'زيارة المتجر')} />
                   </div>
                 </div>
               </div>
@@ -2199,13 +2169,22 @@ function Footer({ lang }: { lang: Lang }) {
         <div>
           <h3 className={colTitle}>{t('Quick Links', 'روابط سريعة')}</h3>
           <ul className="mt-6 space-y-3">
-            {FOOTER_QUICK.map((l) => (
-              <li key={l.en}>
-                <a href="#" onClick={(e) => e.preventDefault()} className={link}>
-                  {t(l.en, l.ar)}
-                </a>
-              </li>
-            ))}
+            {FOOTER_QUICK.map((l) => {
+              const to = l.en === 'Home' ? lookBase(3) : l.en === 'Shop' ? searchPath(3) : undefined;
+              return (
+                <li key={l.en}>
+                  {to ? (
+                    <Link to={to} className={link}>
+                      {t(l.en, l.ar)}
+                    </Link>
+                  ) : (
+                    <a href="#" onClick={(e) => e.preventDefault()} className={link}>
+                      {t(l.en, l.ar)}
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -2287,27 +2266,62 @@ function Footer({ lang }: { lang: Lang }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Page                                                                */
+/* Layout                                                              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The look's layout: owns the language (persisted, Arabic by default) and
+ * wraps every route — home, search, product — in the same header, drawer,
+ * footer and look switcher. Pages read `lang`/`t` through `useLook()`.
+ */
 export default function LookThree() {
-  const [lang, setLang] = useState<Lang>(() =>
+  const [lang, setLangState] = useState<Lang>(() =>
     typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
   );
+  const { pathname } = useLocation();
 
-  const toggleLang = () => {
-    const next: Lang = lang === 'ar' ? 'en' : 'ar';
+  const setLang = (next: Lang) => {
     if (typeof localStorage !== 'undefined') localStorage.setItem('diyar-look-lang', next);
-    setLang(next);
+    setLangState(next);
   };
+  const toggleLang = () => setLang(lang === 'ar' ? 'en' : 'ar');
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+
+  /* A new page opens at the top; query changes on the same page must not scroll. */
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  /* Only the home page has a hero for the bar to sit over. */
+  const isHome = pathname.replace(/\/+$/, '') === lookBase(3);
 
   return (
-    <div
-      dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      className={`min-h-screen overflow-x-hidden antialiased ${lang === 'ar' ? TAJAWAL : "font-['Outfit',sans-serif]"}`}
-      style={{ backgroundColor: BG, color: INK }}
-    >
-      <Header lang={lang} onToggle={toggleLang} />
+    <LookProvider value={{ lang, setLang, t }}>
+      <div
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        className={`min-h-screen overflow-x-hidden antialiased ${lang === 'ar' ? TAJAWAL : "font-['Outfit',sans-serif]"}`}
+        style={{ backgroundColor: BG, color: INK }}
+      >
+        <Header lang={lang} onToggle={toggleLang} transparent={isHome} />
+        <main>
+          <Outlet />
+        </main>
+        <Footer lang={lang} />
+        <LookSwitcher />
+      </div>
+    </LookProvider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Route pages                                                         */
+/* ------------------------------------------------------------------ */
+
+/** The homepage — every section, in the original order. */
+export function LookThreeHome() {
+  const { lang } = useLook();
+  return (
+    <>
       <Hero lang={lang} />
       <FeaturedCategories lang={lang} />
       <ShopByRoom lang={lang} />
@@ -2326,8 +2340,16 @@ export default function LookThree() {
       <B2B lang={lang} />
       <Partner lang={lang} />
       <AppPromo lang={lang} />
-      <Footer lang={lang} />
-      <LookSwitcher />
-    </div>
+    </>
   );
+}
+
+/** Search / listing — see ./three/SearchPage. */
+export function LookThreeSearch() {
+  return <SearchPage />;
+}
+
+/** Product detail — see ./three/ProductPage. */
+export function LookThreeProduct() {
+  return <ProductPage />;
 }

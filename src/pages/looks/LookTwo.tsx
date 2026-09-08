@@ -6,12 +6,17 @@
  *
  * Bilingual: Arabic (default, RTL, Amiri/Alexandria/Tajawal) ⇄ English (LTR,
  * Playfair/Marcellus/Outfit). The header ENG | عربي switch is live.
+ *
+ * Structure: the default export is a LAYOUT (header, mobile drawer, footer,
+ * language) around an <Outlet />; LookTwoHome / LookTwoSearch / LookTwoProduct
+ * are the routed pages. Shared primitives live in ./two/ui.tsx.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, FormEvent } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
+  Search, Camera, User, Heart, ShoppingBag, ArrowRight,
   Instagram, Facebook, Linkedin, ChevronLeft, ChevronRight,
   Menu, X, ChevronDown, Phone, Mail,
 } from 'lucide-react';
@@ -21,30 +26,20 @@ import {
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
   ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS,
   PARTNER, APP_PROMO,
-  formatSAR, LookSwitcher,
+  formatSAR, LookSwitcher, lookBase, searchPath, productPath,
 } from './lookShared';
-import type { Bi, Lang, LookIcon, LookProduct, LookSlide, MenuGroup, RoomHotspot } from './lookShared';
+import type { Bi, Lang, LookIcon, LookSlide, MenuGroup, RoomHotspot } from './lookShared';
+import {
+  LOOK, DISPLAY, CAPS, AR_DISPLAY, AR_LABEL, goldBtn, stop,
+  LookProvider, useLook, Reveal, GoldLink, Stars, Heading, ProductCard,
+  accentLast, eyebrowCls, metaCls,
+} from './two/ui';
+import type { LookCtx } from './two/ui';
+import SearchPage from './two/SearchPage';
+import ProductPage from './two/ProductPage';
 
-/* ------------------------------------------------------------------ */
-/* Design tokens (class fragments — kept as literal strings so the     */
-/* Tailwind scanner picks them up)                                     */
-/* ------------------------------------------------------------------ */
-const DISPLAY = "font-['Playfair_Display',serif]";
-const CAPS = "font-['Marcellus',serif]";
-/* Arabic counterparts: Amiri serif for display, Alexandria for labels.
-   CRITICAL: Arabic text must never carry letterspacing — every AR label
-   fragment below uses tracking-normal where the EN one tracks out. */
-const AR_DISPLAY = "font-['Amiri',serif]";
-const AR_LABEL = "font-['Alexandria',sans-serif]";
-
-const GOLD_BTN_BASE =
-  'inline-flex items-center justify-center gap-3 border border-[#C9A86A]/70 px-9 py-4 ' +
-  'uppercase text-[#C9A86A] ' +
-  'transition-all duration-300 hover:bg-[#C9A86A] hover:text-[#131009] cursor-pointer';
-const goldBtn = (ar: boolean) =>
-  ar
-    ? `${GOLD_BTN_BASE} ${AR_LABEL} text-[13px] tracking-normal`
-    : `${GOLD_BTN_BASE} ${CAPS} text-[11px] tracking-[0.3em]`;
+/* Routed pages — App.tsx mounts these under the LookTwo layout. */
+export { SearchPage as LookTwoSearch, ProductPage as LookTwoProduct };
 
 const ROMAN = ['I', 'II', 'III'] as const;
 
@@ -56,139 +51,15 @@ const STYLE_PLACEMENT: readonly string[] = [
   'md:col-start-4 md:row-start-2',
 ];
 
-const stop = (e: { preventDefault: () => void }) => e.preventDefault();
+/** Where a nav / footer label goes — Home and Shop route; the rest stay demo. */
+const routeFor = (en: string): string | null =>
+  en === 'Home' ? lookBase(LOOK) : en === 'Shop' ? searchPath(LOOK) : null;
 
-/* ------------------------------------------------------------------ */
-/* Small building blocks                                               */
-/* ------------------------------------------------------------------ */
-function Reveal({
-  children, delay = 0, className = '',
-}: { children: ReactNode; delay?: number; className?: string; key?: string | number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.7, ease: 'easeOut', delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function GoldLink({ ar = false, children }: { ar?: boolean; children: ReactNode }) {
-  return (
-    <a
-      href="#"
-      onClick={stop}
-      className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} inline-flex items-center gap-2.5 uppercase text-[#C9A86A] border-b border-[#C9A86A]/40 pb-1.5 hover:border-[#C9A86A] transition-colors duration-300`}
-    >
-      {children}
-    </a>
-  );
-}
-
-/** Five gold stars, filled to `rating`. Shared by products, stores and reviews. */
-function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
-  return (
-    <span className="flex gap-0.5">
-      {[0, 1, 2, 3, 4].map((n) => (
-        <Star
-          key={n}
-          size={size}
-          className={n < Math.round(rating) ? 'text-[#C9A86A] fill-[#C9A86A]' : 'text-[#C9A86A]/25 fill-[#C9A86A]/20'}
-        />
-      ))}
-    </span>
-  );
-}
-
-/** Section titles read "Plain words + gold accent" — italic in EN, upright in AR. */
-function accentLast(text: string, ar: boolean) {
-  const parts = text.trim().split(' ');
-  const last = parts.pop() ?? '';
-  const head = parts.join(' ');
-  return (
-    <>
-      {head}
-      {head && ' '}
-      <em className={`text-[#C9A86A] ${ar ? 'not-italic' : 'italic'}`}>{last}</em>
-    </>
-  );
-}
-
-/** Gold small-caps eyebrow — the same rule the Heading component uses. */
-const eyebrowCls = (ar: boolean) =>
-  `${ar ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.4em]`} uppercase text-[#C9A86A]`;
-
-/** Small gold label used for counts, categories and metadata. */
-const metaCls = (ar: boolean) =>
-  ar ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.25em]`;
-
-/**
- * One product tile — ivory cutout tile, gold stars, Playfair price.
- * Shared by "The New Collection" and the ranked "Best Sellers" rail.
- */
-function ProductCard({
-  p, ar, rank, panel = 'bg-[#1C1610] border-white/5',
-}: { p: LookProduct; ar: boolean; rank?: string; panel?: string; key?: string | number }) {
-  const tt = (en: string, arText: string) => (ar ? arText : en);
-  return (
-    <article
-      className={`group h-full flex flex-col border p-3 transition-colors duration-500 hover:border-[#C9A86A]/25 ${panel}`}
-    >
-      {rank && (
-        <div className="flex items-center gap-3 pb-3">
-          <span className={`${DISPLAY} text-2xl leading-none text-[#C9A86A]`}>{rank}</span>
-          <span className="flex-1 h-px bg-[#C9A86A]/25" />
-        </div>
-      )}
-
-      {/* White-cutout imagery sits on a warm ivory tile */}
-      <div className="relative aspect-square overflow-hidden bg-[#F4EFE6]">
-        {p.sale && (
-          <span className={`${ar ? `${AR_LABEL} text-[10px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} absolute top-3 start-3 z-10 bg-[#C9A86A] text-[#131009] px-2.5 py-1`}>
-            {tt('SALE', 'تخفيض')}
-          </span>
-        )}
-        <img
-          src={p.img}
-          alt={ar ? p.nameAr : p.nameEn}
-          className="w-full h-full object-contain mix-blend-multiply p-3 transition-transform duration-700 ease-out group-hover:scale-105"
-        />
-      </div>
-
-      <div className="flex flex-col flex-1 pt-4 px-1 pb-1">
-        <span className="text-[9px] tracking-[0.3em] text-[#EFE9DD]/50">{p.brand}</span>
-        <h3 className="text-sm text-[#EFE9DD] font-light leading-snug mt-1.5">{ar ? p.nameAr : p.nameEn}</h3>
-
-        <div className="flex items-center justify-between gap-2 mt-2.5">
-          <Stars rating={p.rating} />
-          <a href="#" onClick={stop} className={`${ar ? `${AR_LABEL} text-[10px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} uppercase text-[#C9A86A] hover:underline underline-offset-4`}>
-            {tt('TRY WITH AI', 'جرب AI')}
-          </a>
-        </div>
-
-        <div className="flex items-baseline gap-2 mt-2.5">
-          <span className={`${DISPLAY} text-lg text-[#C9A86A]`}>{formatSAR(p.price)}</span>
-          <span className={`${ar ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.2em]'} text-[#C9A86A]/70`}>
-            {tt('SAR', 'ر.س')}
-          </span>
-          {p.oldPrice !== undefined && (
-            <span className={`${DISPLAY} text-xs line-through text-[#EFE9DD]/40`}>{formatSAR(p.oldPrice)}</span>
-          )}
-        </div>
-
-        <button className={`${ar ? AR_LABEL : CAPS} mt-auto pt-3`}>
-          <span className={`w-full flex items-center justify-center gap-2 border border-[#C9A86A]/50 text-[#C9A86A] ${ar ? 'text-[12px] tracking-normal' : 'text-[10px] tracking-[0.25em]'} py-2.5 hover:bg-[#C9A86A] hover:text-[#131009] transition-colors duration-300 cursor-pointer`}>
-            <ShoppingBag size={13} strokeWidth={1.25} /> {tt('ADD TO CART', 'أضف إلى السلة')}
-          </span>
-        </button>
-      </div>
-    </article>
-  );
-}
+/** SHOP_MENU groups are in CATEGORIES order — map a group index to its category search. */
+const categorySearch = (i: number): string | undefined => {
+  const c = CATEGORIES[i];
+  return c ? searchPath(LOOK, { category: c.key }) : undefined;
+};
 
 /* ------------------------------------------------------------------ */
 /* Mega-menu building blocks (desktop full-width panels)               */
@@ -196,22 +67,25 @@ function ProductCard({
 type MegaMenuId = 'shop' | 'services';
 
 /** One category group column: gold small-caps title + subcategory links. */
-function MegaGroup({ group, ar }: { group: MenuGroup; ar: boolean; key?: string | number }) {
+function MegaGroup({ group, ar, to }: { group: MenuGroup; ar: boolean; to?: string; key?: string | number }) {
+  const titleCls = `${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} block uppercase text-[#C9A86A] mb-4`;
+  const itemCls = `${ar ? "font-['Tajawal',sans-serif] tracking-normal" : ''} block text-[12.5px] font-light leading-relaxed text-[#EFE9DD]/60 hover:text-[#C9A86A] transition-colors duration-200`;
+  const title = ar ? group.title.ar : group.title.en;
   return (
     <div>
-      <p className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} uppercase text-[#C9A86A] mb-4`}>
-        {ar ? group.title.ar : group.title.en}
-      </p>
+      {to ? (
+        <Link to={to} className={`${titleCls} hover:text-[#EFE9DD] transition-colors duration-300`}>{title}</Link>
+      ) : (
+        <p className={titleCls}>{title}</p>
+      )}
       <ul className="space-y-2">
         {group.items.map((item) => (
           <li key={item.en}>
-            <a
-              href="#"
-              onClick={stop}
-              className={`${ar ? "font-['Tajawal',sans-serif] tracking-normal" : ''} block text-[12.5px] font-light leading-relaxed text-[#EFE9DD]/60 hover:text-[#C9A86A] transition-colors duration-200`}
-            >
-              {ar ? item.ar : item.en}
-            </a>
+            {to ? (
+              <Link to={to} className={itemCls}>{ar ? item.ar : item.en}</Link>
+            ) : (
+              <a href="#" onClick={stop} className={itemCls}>{ar ? item.ar : item.en}</a>
+            )}
           </li>
         ))}
       </ul>
@@ -220,9 +94,9 @@ function MegaGroup({ group, ar }: { group: MenuGroup; ar: boolean; key?: string 
 }
 
 /** Featured promo tile: image in an inset gold hairline frame + caption + CTA. */
-function MegaFeatured({ tile, ar }: { tile: { img: string; title: Bi; cta: Bi }; ar: boolean; key?: string | number }) {
-  return (
-    <a href="#" onClick={stop} className="group block">
+function MegaFeatured({ tile, ar, to }: { tile: { img: string; title: Bi; cta: Bi }; ar: boolean; to?: string; key?: string | number }) {
+  const inner = (
+    <>
       <div className="border border-[#C9A86A]/30 p-1">
         <img
           src={tile.img}
@@ -236,7 +110,12 @@ function MegaFeatured({ tile, ar }: { tile: { img: string; title: Bi; cta: Bi };
       <span className={`${ar ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} inline-flex items-center gap-2 uppercase text-[#C9A86A] border-b border-[#C9A86A]/40 pb-1 group-hover:border-[#C9A86A] transition-colors duration-300`}>
         {ar ? tile.cta.ar : tile.cta.en} <ArrowRight size={10} strokeWidth={1.5} className="rtl:rotate-180" />
       </span>
-    </a>
+    </>
+  );
+  return to ? (
+    <Link to={to} className="group block">{inner}</Link>
+  ) : (
+    <a href="#" onClick={stop} className="group block">{inner}</a>
   );
 }
 
@@ -280,12 +159,13 @@ function HotspotCardBody({ h, ar }: { h: RoomHotspot; ar: boolean }) {
         </div>
       </div>
 
-      <button
-        type="button"
-        className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.28em]`} mt-4 w-full border border-[#C9A86A]/60 py-2.5 uppercase text-[#C9A86A] hover:bg-[#C9A86A] hover:text-[#131009] transition-colors duration-300 cursor-pointer`}
+      <Link
+        to={productPath(LOOK, h.productId)}
+        data-testid={`hotspot-view-${h.id}`}
+        className={`${ar ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.28em]`} mt-4 flex w-full items-center justify-center border border-[#C9A86A]/60 py-2.5 uppercase text-[#C9A86A] hover:bg-[#C9A86A] hover:text-[#131009] transition-colors duration-300 cursor-pointer`}
       >
         {ar ? 'عرض المنتج' : 'VIEW PRODUCT'}
-      </button>
+      </Link>
       <button
         type="button"
         className={`${ar ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[9px] tracking-[0.25em]`} mt-2.5 w-full uppercase text-[#EFE9DD]/55 hover:text-[#C9A86A] transition-colors duration-300 cursor-pointer`}
@@ -486,10 +366,12 @@ function MobileDrawer({
   open, onClose, isAr, onToggleLang,
 }: { open: boolean; onClose: () => void; isAr: boolean; onToggleLang: () => void }) {
   const t = (en: string, ar: string) => (isAr ? ar : en);
+  const navigate = useNavigate();
 
   /* One section expanded at a time, and one group inside it. */
   const [section, setSection] = useState<DrawerMenuId | null>(null);
   const [group, setGroup] = useState<string | null>(null);
+  const [q, setQ] = useState('');
 
   /* Escape closes; the page behind the drawer must not scroll. */
   useEffect(() => {
@@ -514,9 +396,15 @@ function MobileDrawer({
     }
   }, [open]);
 
-  /* Nothing in this demo navigates — tapping a destination just dismisses. */
+  /* Demo destinations just dismiss the drawer. */
   const followLink = (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    onClose();
+  };
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    navigate(searchPath(LOOK, { q: q.trim() }));
     onClose();
   };
 
@@ -527,6 +415,7 @@ function MobileDrawer({
 
   const sectionLabel = `${isAr ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.32em]`} uppercase`;
   const navItemCls = `${isAr ? `${AR_DISPLAY} text-[19px] leading-[1.7] tracking-normal` : `${DISPLAY} text-[17px]`} block py-3 text-[#EFE9DD] hover:text-[#C9A86A] transition-colors duration-300`;
+  const subItemCls = `${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : ''} block py-1.5 ps-3 text-[13px] font-light leading-relaxed text-[#EFE9DD]/55 transition-colors duration-200 hover:text-[#C9A86A]`;
 
   return (
     /* Never rendered from lg up — the desktop header owns navigation there. */
@@ -560,7 +449,9 @@ function MobileDrawer({
             >
               {/* Brand row */}
               <div className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b border-white/10 px-5">
-                <img src="/logo_diyar.svg" alt="Diyar" className="h-7 invert" />
+                <Link to={lookBase(LOOK)} onClick={onClose} aria-label="Diyar home">
+                  <img src="/logo_diyar.svg" alt="Diyar" className="h-7 invert" />
+                </Link>
                 <button
                   type="button"
                   onClick={onClose}
@@ -574,10 +465,17 @@ function MobileDrawer({
               {/* Scrollable body */}
               <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain px-5 py-6">
                 {/* Search */}
-                <div className="flex h-11 items-center gap-3 border border-white/15 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60">
+                <form
+                  role="search"
+                  onSubmit={submitSearch}
+                  className="flex h-11 items-center gap-3 border border-white/15 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60"
+                >
                   <Search size={15} strokeWidth={1.25} className="shrink-0 text-[#EFE9DD]/45" />
                   <input
                     type="text"
+                    data-testid="drawer-search"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
                     placeholder={t('Search…', 'ابحث…')}
                     className="min-w-0 flex-1 bg-transparent text-[13px] font-light text-[#EFE9DD] outline-none placeholder:text-[#EFE9DD]/35"
                   />
@@ -588,18 +486,23 @@ function MobileDrawer({
                   >
                     <Camera size={16} strokeWidth={1.25} />
                   </button>
-                </div>
+                </form>
 
                 {/* Primary nav */}
                 <p className={`${sectionLabel} mt-8 mb-2 text-[#C9A86A]/70`}>{t('Browse', 'تصفح')}</p>
                 <ul className="border-t border-white/10">
-                  {NAV_ITEMS.map((item) => (
-                    <li key={item.en} className="border-b border-white/10">
-                      <a href="#" onClick={followLink} className={navItemCls}>
-                        {t(item.en, item.ar)}
-                      </a>
-                    </li>
-                  ))}
+                  {NAV_ITEMS.map((item) => {
+                    const to = routeFor(item.en);
+                    return (
+                      <li key={item.en} className="border-b border-white/10">
+                        {to ? (
+                          <Link to={to} onClick={onClose} className={navItemCls}>{t(item.en, item.ar)}</Link>
+                        ) : (
+                          <a href="#" onClick={followLink} className={navItemCls}>{t(item.en, item.ar)}</a>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
 
                 {/* The mega menus, folded into two accordions */}
@@ -632,9 +535,11 @@ function MobileDrawer({
                           {openSection && (
                             <motion.div key={`sec-${menu.id}`} {...COLLAPSE} className="overflow-hidden">
                               <ul className="ms-1 border-s border-[#C9A86A]/25 ps-4 pb-4">
-                                {menu.groups.map((g) => {
+                                {menu.groups.map((g, gi) => {
                                   const gid = `${menu.id}:${g.title.en}`;
                                   const openGroup = group === gid;
+                                  /* Shop groups route to their category listing */
+                                  const to = menu.id === 'shop' ? categorySearch(gi) : undefined;
                                   return (
                                     <li key={g.title.en}>
                                       <button
@@ -656,15 +561,20 @@ function MobileDrawer({
                                       <AnimatePresence initial={false}>
                                         {openGroup && (
                                           <motion.ul key={`grp-${gid}`} {...COLLAPSE} className="overflow-hidden pb-2">
+                                            {to && (
+                                              <li>
+                                                <Link to={to} onClick={onClose} className={`${subItemCls} text-[#C9A86A]/90`}>
+                                                  {t(`All ${g.title.en}`, `كل ${g.title.ar}`)}
+                                                </Link>
+                                              </li>
+                                            )}
                                             {g.items.map((item) => (
                                               <li key={item.en}>
-                                                <a
-                                                  href="#"
-                                                  onClick={followLink}
-                                                  className={`${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : ''} block py-1.5 ps-3 text-[13px] font-light leading-relaxed text-[#EFE9DD]/55 transition-colors duration-200 hover:text-[#C9A86A]`}
-                                                >
-                                                  {t(item.en, item.ar)}
-                                                </a>
+                                                {to ? (
+                                                  <Link to={to} onClick={onClose} className={subItemCls}>{t(item.en, item.ar)}</Link>
+                                                ) : (
+                                                  <a href="#" onClick={followLink} className={subItemCls}>{t(item.en, item.ar)}</a>
+                                                )}
                                               </li>
                                             ))}
                                           </motion.ul>
@@ -752,23 +662,15 @@ function MobileDrawer({
   );
 }
 
-function Heading({
-  eyebrow, center = false, ar = false, children,
-}: { eyebrow: string; center?: boolean; ar?: boolean; children: ReactNode }) {
-  return (
-    <div className={center ? 'text-center' : ''}>
-      <p className={`${ar ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.4em]`} uppercase text-[#C9A86A] mb-5`}>{eyebrow}</p>
-      <h2 className={`${ar ? `${AR_DISPLAY} leading-[1.35]` : `${DISPLAY} leading-[1.08]`} text-4xl md:text-6xl text-[#EFE9DD]`}>{children}</h2>
-      {center && <span className="block w-16 h-px bg-[#C9A86A]/60 mx-auto mt-8" />}
-    </div>
-  );
-}
-
 /* ------------------------------------------------------------------ */
-/* Page                                                                */
+/* Layout — header / drawer / <Outlet /> / footer / switcher           */
 /* ------------------------------------------------------------------ */
 export default function LookTwo() {
-  const [slide, setSlide] = useState(0);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const isHome = pathname.replace(/\/+$/, '') === lookBase(LOOK);
+  const isProduct = pathname.includes('/product/');
+
   const [scrolled, setScrolled] = useState(false);
 
   /* Mega menus — one panel open at a time; short close delay lets the
@@ -796,16 +698,20 @@ export default function LookTwo() {
   useEffect(() => cancelClose, []);
 
   /* Language — the site is primarily Arabic; Arabic is the default. */
-  const [lang, setLang] = useState<Lang>(() =>
+  const [lang, setLangState] = useState<Lang>(() =>
     typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
   );
+  const setLang = useCallback((next: Lang) => {
+    localStorage.setItem('diyar-look-lang', next);
+    setLangState(next);
+  }, []);
   const isAr = lang === 'ar';
   const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
-  const toggleLang = () => {
-    const next: Lang = lang === 'ar' ? 'en' : 'ar';
-    localStorage.setItem('diyar-look-lang', next);
-    setLang(next);
-  };
+  const toggleLang = () => setLang(lang === 'ar' ? 'en' : 'ar');
+  const ctx = useMemo<LookCtx>(
+    () => ({ lang, setLang, isAr: lang === 'ar', t: (en, ar) => (lang === 'ar' ? ar : en) }),
+    [lang, setLang],
+  );
 
   /* Mobile drawer — a phone's only route to nav, search and language. */
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -829,6 +735,396 @@ export default function LookTwo() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  /* New page → top of page, panels closed. (Search-param changes don't count.) */
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    setOpenMenu(null);
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  /* Header search — submits to the listing page */
+  const [hq, setHq] = useState('');
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    navigate(searchPath(LOOK, { q: hq.trim() }));
+  };
+
+  /* header chrome: white over the hero, ivory on the solid bar; gold hovers.
+     Only the home page has a hero — every other page gets the solid bar, and
+     while a mega panel is open the header keeps its solid chrome even at top. */
+  const solid = scrolled || openMenu !== null || !isHome;
+  const navLinkCls = `${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.25em]`} block whitespace-nowrap py-2 uppercase transition-colors duration-300 hover:text-[#C9A86A] ${
+    solid ? 'text-[#EFE9DD]/75' : 'text-white'
+  }`;
+  const headerIconCls = `cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
+    solid ? 'text-[#EFE9DD]/75' : 'text-white'
+  }`;
+  const footerHeadCls = `${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} text-[#C9A86A] mb-6`;
+  const footerLinkCls = 'text-sm font-light text-[#EFE9DD]/60 hover:text-[#C9A86A] transition-colors';
+
+  return (
+    <LookProvider value={ctx}>
+      <div
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        className={`min-h-screen bg-[#131009] text-[#EFE9DD] ${isAr ? "font-['Tajawal',sans-serif]" : "font-['Outfit',sans-serif]"} font-light antialiased overflow-x-clip selection:bg-[#C9A86A]/30`}
+      >
+        <style>{`
+          @keyframes lt-pulse {
+            0%   { transform: scale(1);   opacity: 0.85; }
+            70%  { transform: scale(2.6); opacity: 0; }
+            100% { transform: scale(2.6); opacity: 0; }
+          }
+        `}</style>
+
+        {/* ============================== 1. HEADER ============================== */}
+        {/* One line, fixed over the hero: transparent at top, espresso after scroll */}
+        <header
+          onMouseLeave={scheduleClose}
+          className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
+            solid ? 'bg-[#131009]/95 backdrop-blur-md border-white/10' : 'bg-transparent border-transparent'
+          }`}
+        >
+          {/* Scrim behind the transparent bar: the header renders white content over
+              the hero, so a bright slide would otherwise swallow it. Fades out below
+              the bar and disappears once the solid chrome takes over. */}
+          {!solid && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-[150px] bg-gradient-to-b from-black/55 via-black/25 to-transparent"
+            />
+          )}
+          <div className="relative max-w-[1400px] mx-auto flex h-[72px] items-center gap-5 lg:gap-6 px-6 md:px-10">
+            {/* Logo — page is dark, stays inverted in both states */}
+            <Link to={lookBase(LOOK)} className="shrink-0" aria-label="Diyar home">
+              <img src="/logo_diyar.svg" alt="Diyar" className="h-8 invert" />
+            </Link>
+
+            {/* Search */}
+            <form
+              role="search"
+              onSubmit={submitSearch}
+              className={`hidden md:flex items-center gap-3 rounded-full border h-9 w-44 xl:w-60 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60 ${
+                solid ? 'border-white/15' : 'border-white/40'
+              }`}
+            >
+              <Search
+                size={15}
+                strokeWidth={1.25}
+                className={`shrink-0 transition-colors duration-300 ${solid ? 'text-[#EFE9DD]/45' : 'text-white'}`}
+              />
+              <input
+                type="text"
+                data-testid="header-search"
+                value={hq}
+                onChange={(e) => setHq(e.target.value)}
+                placeholder={t('Search…', 'ابحث…')}
+                className={`bg-transparent flex-1 min-w-0 text-[13px] font-light outline-none transition-colors duration-300 ${
+                  solid ? 'text-[#EFE9DD] placeholder:text-[#EFE9DD]/35' : 'text-white placeholder:text-white/70'
+                }`}
+              />
+              <button
+                type="button"
+                aria-label={t('Search by photo', 'البحث بالصورة')}
+                className={`shrink-0 cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
+                  solid ? 'text-[#C9A86A]/70' : 'text-white'
+                }`}
+              >
+                <Camera size={16} strokeWidth={1.25} />
+              </button>
+            </form>
+
+            {/* Nav — single line; Shop & Services open full-width mega panels */}
+            <nav className="hidden lg:block ms-auto">
+              <ul className="flex items-center gap-6 xl:gap-8">
+                {NAV_ITEMS.map((item) => {
+                  const mega: MegaMenuId | null =
+                    item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
+                  const to = routeFor(item.en);
+                  return (
+                    <li key={item.en}>
+                      {mega === 'shop' && to ? (
+                        /* Hover opens the panel; click goes to the listing */
+                        <Link
+                          to={to}
+                          data-testid="mega-shop-trigger"
+                          aria-haspopup="true"
+                          aria-expanded={openMenu === 'shop'}
+                          onMouseEnter={() => openMega('shop')}
+                          onMouseLeave={scheduleClose}
+                          onClick={() => setOpenMenu(null)}
+                          className={navLinkCls}
+                        >
+                          {t(item.en, item.ar)}
+                        </Link>
+                      ) : mega ? (
+                        <a
+                          href="#"
+                          data-testid={`mega-${mega}-trigger`}
+                          aria-haspopup="true"
+                          aria-expanded={openMenu === mega}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleMega(mega);
+                          }}
+                          onMouseEnter={() => openMega(mega)}
+                          onMouseLeave={scheduleClose}
+                          className={navLinkCls}
+                        >
+                          {t(item.en, item.ar)}
+                        </a>
+                      ) : to ? (
+                        <Link to={to} className={navLinkCls}>{t(item.en, item.ar)}</Link>
+                      ) : (
+                        <a href="#" onClick={stop} className={navLinkCls}>{t(item.en, item.ar)}</a>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* Language + account icons */}
+            <div className="flex items-center gap-4 md:gap-5 shrink-0 ms-auto lg:ms-0">
+              <button
+                data-testid="lang-toggle"
+                dir="ltr"
+                onClick={toggleLang}
+                aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+                className={`${CAPS} flex items-center gap-2 text-[11px] tracking-[0.2em] transition-colors duration-300 cursor-pointer ${
+                  solid ? 'text-[#EFE9DD]/45' : 'text-white/60'
+                }`}
+              >
+                <span className={`transition-colors duration-300 ${!isAr ? 'text-[#C9A86A]' : 'hover:text-[#C9A86A]'}`}>ENG</span>
+                <span className={solid ? 'text-[#C9A86A]/60' : 'text-white/60'}>|</span>
+                <span className={`${AR_DISPLAY} text-[14px] leading-none tracking-normal transition-colors duration-300 ${isAr ? 'text-[#C9A86A]' : 'hover:text-[#C9A86A]'}`}>
+                  عربي
+                </span>
+              </button>
+              <span className={`hidden lg:block h-4 w-px transition-colors duration-300 ${solid ? 'bg-white/10' : 'bg-white/30'}`} />
+              {/* Account + wishlist live in the drawer below lg */}
+              <button aria-label="Account" className={`hidden lg:block ${headerIconCls}`}>
+                <User size={19} strokeWidth={1.25} />
+              </button>
+              <button aria-label="Wishlist" className={`hidden lg:block ${headerIconCls}`}>
+                <Heart size={19} strokeWidth={1.25} />
+              </button>
+              <button aria-label="Shopping bag" className={`relative ${headerIconCls}`}>
+                <ShoppingBag size={19} strokeWidth={1.25} />
+                <span className="absolute -top-1.5 -end-1.5 w-3.5 h-3.5 rounded-full bg-[#C9A86A] text-[#131009] text-[8px] font-medium flex items-center justify-center">
+                  2
+                </span>
+              </button>
+
+              {/* Hamburger — the only way into navigation below lg */}
+              <button
+                type="button"
+                data-testid="mobile-menu-trigger"
+                aria-label={drawerOpen ? t('Close menu', 'إغلاق القائمة') : t('Open menu', 'فتح القائمة')}
+                aria-expanded={drawerOpen}
+                aria-controls={DRAWER_ID}
+                onClick={() => setDrawerOpen((o) => !o)}
+                className={`lg:hidden -me-1 ${headerIconCls}`}
+              >
+                <Menu size={22} strokeWidth={1.25} />
+              </button>
+            </div>
+          </div>
+
+          {/* Full-width mega panels — flush under the bar (no hover gap) */}
+          <AnimatePresence>
+            {openMenu === 'shop' && (
+              <motion.div
+                key="mega-shop"
+                data-testid="mega-shop-panel"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                onMouseEnter={cancelClose}
+                onMouseLeave={scheduleClose}
+                className="hidden lg:block absolute inset-x-0 top-full bg-[#161009] border-y border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+              >
+                <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
+                  <div className="grid grid-cols-4 gap-x-10 gap-y-10">
+                    {SHOP_MENU.map((g, i) => (
+                      <MegaGroup key={g.title.en} group={g} ar={isAr} to={categorySearch(i)} />
+                    ))}
+                    {/* Featured column — spans both rows beside the 3×2 groups */}
+                    <div className="col-start-4 row-start-1 row-span-2 border-s border-white/10 ps-8 flex flex-col gap-8">
+                      {MENU_FEATURED.shop.map((tile, i) => (
+                        <MegaFeatured
+                          key={tile.title.en}
+                          tile={tile}
+                          ar={isAr}
+                          to={i === 0 ? searchPath(LOOK, { sort: 'newest' }) : searchPath(LOOK, { category: 'lighting' })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-10 pt-6 border-t border-white/10">
+                    <GoldLink ar={isAr} to={searchPath(LOOK)}>
+                      {t('View All Categories', 'عرض كل التصنيفات')}{' '}
+                      <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
+                    </GoldLink>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {openMenu === 'services' && (
+              <motion.div
+                key="mega-services"
+                data-testid="mega-services-panel"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                onMouseEnter={cancelClose}
+                onMouseLeave={scheduleClose}
+                className="hidden lg:block absolute inset-x-0 top-full bg-[#161009] border-y border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+              >
+                <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
+                  <div className="grid grid-cols-5 gap-x-8 gap-y-10">
+                    {SERVICES_MENU.map((g) => (
+                      <MegaGroup key={g.title.en} group={g} ar={isAr} />
+                    ))}
+                    {/* Featured column — spans both rows beside the 4×2 groups */}
+                    <div className="col-start-5 row-start-1 row-span-2 border-s border-white/10 ps-8">
+                      <MegaFeatured tile={MENU_FEATURED.services[0]} ar={isAr} />
+                    </div>
+                  </div>
+                  <div className="mt-10 pt-6 border-t border-white/10">
+                    <GoldLink ar={isAr}>
+                      {t('Request a Consultation', 'اطلب استشارة')}{' '}
+                      <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
+                    </GoldLink>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </header>
+
+        {/* Mobile navigation drawer — sits above the header, below lg only */}
+        <MobileDrawer
+          open={drawerOpen}
+          onClose={closeDrawer}
+          isAr={isAr}
+          onToggleLang={toggleLang}
+        />
+
+        {/* Routed page. The home hero runs under the fixed bar; other pages clear it. */}
+        <main className={isHome ? '' : 'pt-[72px]'}>
+          <Outlet />
+        </main>
+
+        {/* ============================== FOOTER ============================== */}
+        <footer className="bg-black/40 border-t border-[#C9A86A]/25">
+          {/* Product pages raise the LookSwitcher above their sticky bar — leave room for it */}
+          <div className={`max-w-[1400px] mx-auto px-6 md:px-10 pt-16 md:pt-20 ${isProduct ? 'pb-36 lg:pb-24' : 'pb-24'}`}>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] gap-12 lg:gap-16">
+              {/* Brand */}
+              <div>
+                <img src="/logo_diyar.svg" alt="Diyar" className="h-9 invert mb-6" />
+                <p className="text-sm text-[#EFE9DD]/60 font-light leading-relaxed max-w-sm mb-8">
+                  {isAr ? FOOTER_LINKS.aboutAr : FOOTER_LINKS.about}
+                </p>
+                <div className="flex items-center gap-3">
+                  {[
+                    { Icon: Instagram, label: 'Instagram' },
+                    { Icon: Facebook, label: 'Facebook' },
+                    { Icon: Linkedin, label: 'LinkedIn' },
+                  ].map(({ Icon, label }) => (
+                    <a
+                      key={label}
+                      href="#"
+                      onClick={stop}
+                      aria-label={label}
+                      className="w-10 h-10 rounded-full border border-white/15 flex items-center justify-center text-[#EFE9DD]/70 hover:border-[#C9A86A] hover:text-[#C9A86A] transition-colors duration-300"
+                    >
+                      <Icon size={16} strokeWidth={1.25} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick links */}
+              <div>
+                <h4 className={footerHeadCls}>{t('QUICK LINKS', 'روابط سريعة')}</h4>
+                <ul className="space-y-3">
+                  {FOOTER_QUICK.map((l) => {
+                    const to = routeFor(l.en);
+                    return (
+                      <li key={l.en}>
+                        {to ? (
+                          <Link to={to} className={footerLinkCls}>{t(l.en, l.ar)}</Link>
+                        ) : (
+                          <a href="#" onClick={stop} className={footerLinkCls}>{t(l.en, l.ar)}</a>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h4 className={footerHeadCls}>{t('CUSTOMER SUPPORT', 'خدمة العملاء')}</h4>
+                <ul className="space-y-3">
+                  {FOOTER_SUPPORT.map((l) => (
+                    <li key={l.en}>
+                      <a href="#" onClick={stop} className={footerLinkCls}>{t(l.en, l.ar)}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Contact + subscribe */}
+              <div>
+                <h4 className={footerHeadCls}>{t('CONTACT', 'تواصل معنا')}</h4>
+                <ul className="space-y-3 mb-10">
+                  <li className={`${DISPLAY} text-sm text-[#C9A86A] tracking-wide`}>
+                    <span dir="ltr">{FOOTER_LINKS.phone}</span>
+                  </li>
+                  <li className="text-sm font-light text-[#C9A86A]">{FOOTER_LINKS.email}</li>
+                </ul>
+                <h4 className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} text-[#C9A86A] mb-5`}>
+                  {t('SUBSCRIBE', 'النشرة البريدية')}
+                </h4>
+                <div className="flex items-center gap-3 border-b border-[#C9A86A]/40 pb-2.5 focus-within:border-[#C9A86A] transition-colors">
+                  <input
+                    type="email"
+                    placeholder={t('Your email address', 'بريدك الإلكتروني')}
+                    className="bg-transparent flex-1 min-w-0 text-sm font-light outline-none text-[#EFE9DD] placeholder:text-[#EFE9DD]/30"
+                  />
+                  <button className={`${isAr ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} text-[#C9A86A] hover:text-[#EFE9DD] transition-colors cursor-pointer shrink-0`}>
+                    {t('SUBMIT', 'اشترك')}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-14 pt-8 border-t border-white/10 text-center">
+              <p className={`${isAr ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} text-[#EFE9DD]/40`}>
+                {t('© 2026 DIYAR. ALL RIGHTS RESERVED.', 'جميع الحقوق محفوظة لديار © 2026')}
+              </p>
+            </div>
+          </div>
+        </footer>
+
+        <LookSwitcher raiseOnMobile={isProduct} />
+      </div>
+    </LookProvider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Home page                                                           */
+/* ------------------------------------------------------------------ */
+export function LookTwoHome() {
+  const { isAr, t } = useLook();
+  const [slide, setSlide] = useState(0);
+
   useEffect(() => {
     const id = window.setInterval(
       () => setSlide((s) => (s + 1) % HERO_SLIDES.length),
@@ -848,240 +1144,8 @@ export default function LookTwo() {
   const accent = words[words.length - 1] ?? '';
   const headline = words.slice(0, -1).join(' ');
 
-  /* header chrome: white over the hero, ivory on the solid bar; gold hovers.
-     While a mega panel is open the header keeps its solid chrome even at top. */
-  const solid = scrolled || openMenu !== null;
-  const navLinkCls = `${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.25em]`} block whitespace-nowrap py-2 uppercase transition-colors duration-300 hover:text-[#C9A86A] ${
-    solid ? 'text-[#EFE9DD]/75' : 'text-white'
-  }`;
-  const headerIconCls = `cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
-    solid ? 'text-[#EFE9DD]/75' : 'text-white'
-  }`;
-
   return (
-    <div
-      dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      className={`min-h-screen bg-[#131009] text-[#EFE9DD] ${isAr ? "font-['Tajawal',sans-serif]" : "font-['Outfit',sans-serif]"} font-light antialiased overflow-x-clip selection:bg-[#C9A86A]/30`}
-    >
-      <style>{`
-        @keyframes lt-pulse {
-          0%   { transform: scale(1);   opacity: 0.85; }
-          70%  { transform: scale(2.6); opacity: 0; }
-          100% { transform: scale(2.6); opacity: 0; }
-        }
-      `}</style>
-
-      {/* ============================== 1. HEADER ============================== */}
-      {/* One line, fixed over the hero: transparent at top, espresso after scroll */}
-      <header
-        onMouseLeave={scheduleClose}
-        className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
-          solid ? 'bg-[#131009]/95 backdrop-blur-md border-white/10' : 'bg-transparent border-transparent'
-        }`}
-      >
-        {/* Scrim behind the transparent bar: the header renders white content over
-            the hero, so a bright slide would otherwise swallow it. Fades out below
-            the bar and disappears once the solid chrome takes over. */}
-        {!solid && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-[150px] bg-gradient-to-b from-black/55 via-black/25 to-transparent"
-          />
-        )}
-        <div className="relative max-w-[1400px] mx-auto flex h-[72px] items-center gap-5 lg:gap-6 px-6 md:px-10">
-          {/* Logo — page is dark, stays inverted in both states */}
-          <a href="#" onClick={stop} className="shrink-0" aria-label="Diyar home">
-            <img src="/logo_diyar.svg" alt="Diyar" className="h-8 invert" />
-          </a>
-
-          {/* Search */}
-          <div
-            className={`hidden md:flex items-center gap-3 rounded-full border h-9 w-44 xl:w-60 px-4 transition-colors duration-300 focus-within:border-[#C9A86A]/60 ${
-              solid ? 'border-white/15' : 'border-white/40'
-            }`}
-          >
-            <Search
-              size={15}
-              strokeWidth={1.25}
-              className={`shrink-0 transition-colors duration-300 ${solid ? 'text-[#EFE9DD]/45' : 'text-white'}`}
-            />
-            <input
-              type="text"
-              placeholder={t('Search…', 'ابحث…')}
-              className={`bg-transparent flex-1 min-w-0 text-[13px] font-light outline-none transition-colors duration-300 ${
-                solid ? 'text-[#EFE9DD] placeholder:text-[#EFE9DD]/35' : 'text-white placeholder:text-white/70'
-              }`}
-            />
-            <button
-              aria-label={t('Search by photo', 'البحث بالصورة')}
-              className={`shrink-0 cursor-pointer transition-colors duration-300 hover:text-[#C9A86A] ${
-                solid ? 'text-[#C9A86A]/70' : 'text-white'
-              }`}
-            >
-              <Camera size={16} strokeWidth={1.25} />
-            </button>
-          </div>
-
-          {/* Nav — single line; Shop & Services open full-width mega panels */}
-          <nav className="hidden lg:block ms-auto">
-            <ul className="flex items-center gap-6 xl:gap-8">
-              {NAV_ITEMS.map((item) => {
-                const mega: MegaMenuId | null =
-                  item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
-                return (
-                  <li key={item.en}>
-                    {mega ? (
-                      <a
-                        href="#"
-                        data-testid={`mega-${mega}-trigger`}
-                        aria-haspopup="true"
-                        aria-expanded={openMenu === mega}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          toggleMega(mega);
-                        }}
-                        onMouseEnter={() => openMega(mega)}
-                        onMouseLeave={scheduleClose}
-                        className={navLinkCls}
-                      >
-                        {t(item.en, item.ar)}
-                      </a>
-                    ) : (
-                      <a href="#" onClick={stop} className={navLinkCls}>
-                        {t(item.en, item.ar)}
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {/* Language + account icons */}
-          <div className="flex items-center gap-4 md:gap-5 shrink-0 ms-auto lg:ms-0">
-            <button
-              data-testid="lang-toggle"
-              dir="ltr"
-              onClick={toggleLang}
-              aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
-              className={`${CAPS} flex items-center gap-2 text-[11px] tracking-[0.2em] transition-colors duration-300 cursor-pointer ${
-                solid ? 'text-[#EFE9DD]/45' : 'text-white/60'
-              }`}
-            >
-              <span className={`transition-colors duration-300 ${!isAr ? 'text-[#C9A86A]' : 'hover:text-[#C9A86A]'}`}>ENG</span>
-              <span className={solid ? 'text-[#C9A86A]/60' : 'text-white/60'}>|</span>
-              <span className={`${AR_DISPLAY} text-[14px] leading-none tracking-normal transition-colors duration-300 ${isAr ? 'text-[#C9A86A]' : 'hover:text-[#C9A86A]'}`}>
-                عربي
-              </span>
-            </button>
-            <span className={`hidden lg:block h-4 w-px transition-colors duration-300 ${solid ? 'bg-white/10' : 'bg-white/30'}`} />
-            {/* Account + wishlist live in the drawer below lg */}
-            <button aria-label="Account" className={`hidden lg:block ${headerIconCls}`}>
-              <User size={19} strokeWidth={1.25} />
-            </button>
-            <button aria-label="Wishlist" className={`hidden lg:block ${headerIconCls}`}>
-              <Heart size={19} strokeWidth={1.25} />
-            </button>
-            <button aria-label="Shopping bag" className={`relative ${headerIconCls}`}>
-              <ShoppingBag size={19} strokeWidth={1.25} />
-              <span className="absolute -top-1.5 -end-1.5 w-3.5 h-3.5 rounded-full bg-[#C9A86A] text-[#131009] text-[8px] font-medium flex items-center justify-center">
-                2
-              </span>
-            </button>
-
-            {/* Hamburger — the only way into navigation below lg */}
-            <button
-              type="button"
-              data-testid="mobile-menu-trigger"
-              aria-label={drawerOpen ? t('Close menu', 'إغلاق القائمة') : t('Open menu', 'فتح القائمة')}
-              aria-expanded={drawerOpen}
-              aria-controls={DRAWER_ID}
-              onClick={() => setDrawerOpen((o) => !o)}
-              className={`lg:hidden -me-1 ${headerIconCls}`}
-            >
-              <Menu size={22} strokeWidth={1.25} />
-            </button>
-          </div>
-        </div>
-
-        {/* Full-width mega panels — flush under the bar (no hover gap) */}
-        <AnimatePresence>
-          {openMenu === 'shop' && (
-            <motion.div
-              key="mega-shop"
-              data-testid="mega-shop-panel"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              onMouseEnter={cancelClose}
-              onMouseLeave={scheduleClose}
-              className="hidden lg:block absolute inset-x-0 top-full bg-[#161009] border-y border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
-            >
-              <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
-                <div className="grid grid-cols-4 gap-x-10 gap-y-10">
-                  {SHOP_MENU.map((g) => (
-                    <MegaGroup key={g.title.en} group={g} ar={isAr} />
-                  ))}
-                  {/* Featured column — spans both rows beside the 3×2 groups */}
-                  <div className="col-start-4 row-start-1 row-span-2 border-s border-white/10 ps-8 flex flex-col gap-8">
-                    {MENU_FEATURED.shop.map((tile) => (
-                      <MegaFeatured key={tile.title.en} tile={tile} ar={isAr} />
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-10 pt-6 border-t border-white/10">
-                  <GoldLink ar={isAr}>
-                    {t('View All Categories', 'عرض كل التصنيفات')}{' '}
-                    <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
-                  </GoldLink>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {openMenu === 'services' && (
-            <motion.div
-              key="mega-services"
-              data-testid="mega-services-panel"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              onMouseEnter={cancelClose}
-              onMouseLeave={scheduleClose}
-              className="hidden lg:block absolute inset-x-0 top-full bg-[#161009] border-y border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
-            >
-              <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
-                <div className="grid grid-cols-5 gap-x-8 gap-y-10">
-                  {SERVICES_MENU.map((g) => (
-                    <MegaGroup key={g.title.en} group={g} ar={isAr} />
-                  ))}
-                  {/* Featured column — spans both rows beside the 4×2 groups */}
-                  <div className="col-start-5 row-start-1 row-span-2 border-s border-white/10 ps-8">
-                    <MegaFeatured tile={MENU_FEATURED.services[0]} ar={isAr} />
-                  </div>
-                </div>
-                <div className="mt-10 pt-6 border-t border-white/10">
-                  <GoldLink ar={isAr}>
-                    {t('Request a Consultation', 'اطلب استشارة')}{' '}
-                    <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
-                  </GoldLink>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </header>
-
-      {/* Mobile navigation drawer — sits above the header, below lg only */}
-      <MobileDrawer
-        open={drawerOpen}
-        onClose={closeDrawer}
-        isAr={isAr}
-        onToggleLang={toggleLang}
-      />
-
+    <>
       {/* ============================ 2. HERO SLIDER ============================ */}
       <section className="relative h-[90vh] min-h-[620px] overflow-hidden">
         <AnimatePresence initial={false}>
@@ -1129,9 +1193,9 @@ export default function LookTwo() {
                 {headline}{headline && ' '}
                 <em className={`text-[#C9A86A] ${isAr ? 'not-italic' : 'italic'}`}>{accent}</em>
               </h1>
-              <button className={goldBtn(isAr)}>
+              <Link to={searchPath(LOOK)} className={goldBtn(isAr)}>
                 {t('EXPLORE', 'استكشف')} <ArrowRight size={14} strokeWidth={1.5} className="rtl:rotate-180" />
-              </button>
+              </Link>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -1184,7 +1248,7 @@ export default function LookTwo() {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {CATEGORIES.map((c, i) => (
               <Reveal key={c.en} delay={(i % 3) * 0.06}>
-                <a href="#" onClick={stop} className="group relative block aspect-[4/5] overflow-hidden bg-[#1C1610]">
+                <Link to={searchPath(LOOK, { category: c.key })} className="group relative block aspect-[4/5] overflow-hidden bg-[#1C1610]">
                   <img
                     src={c.img}
                     alt={t(c.en, c.ar)}
@@ -1200,7 +1264,7 @@ export default function LookTwo() {
                       {t('VIEW MORE', 'عرض المزيد')} <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
                     </span>
                   </div>
-                </a>
+                </Link>
               </Reveal>
             ))}
           </div>
@@ -1221,7 +1285,7 @@ export default function LookTwo() {
                 ? <>تسوق حسب <em className="not-italic text-[#C9A86A]">الغرفة</em></>
                 : <>Shop by <em className="italic">Room</em></>}
             </Heading>
-            <GoldLink ar={isAr}>
+            <GoldLink ar={isAr} to={searchPath(LOOK)}>
               {t('ALL ROOMS', 'كل الغرف')} <ArrowRight size={12} strokeWidth={1.5} className="rtl:rotate-180" />
             </GoldLink>
           </Reveal>
@@ -1229,7 +1293,7 @@ export default function LookTwo() {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
             {ROOMS.map((r, i) => (
               <Reveal key={r.en} delay={(i % 3) * 0.06}>
-                <a href="#" onClick={stop} className="group block">
+                <Link to={searchPath(LOOK, { room: r.key })} className="group block">
                   <div className="border border-[#C9A86A]/30 p-1">
                     <div className="relative aspect-[3/2] overflow-hidden bg-[#131009]">
                       <img
@@ -1248,7 +1312,7 @@ export default function LookTwo() {
                       {formatSAR(r.count)} {t('PIECES', 'قطعة')}
                     </span>
                   </div>
-                </a>
+                </Link>
               </Reveal>
             ))}
           </div>
@@ -1294,7 +1358,7 @@ export default function LookTwo() {
                 ? <>التشكيلة <em className="not-italic text-[#C9A86A]">الجديدة</em></>
                 : <>The New <em className="italic">Collection</em></>}
             </Heading>
-            <GoldLink ar={isAr}>
+            <GoldLink ar={isAr} to={searchPath(LOOK, { sort: 'newest' })}>
               {t('VIEW ALL', 'عرض الكل')} <ArrowRight size={12} strokeWidth={1.5} className="rtl:rotate-180" />
             </GoldLink>
           </Reveal>
@@ -1302,7 +1366,7 @@ export default function LookTwo() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
             {PRODUCTS.slice(0, 8).map((p, i) => (
               <Reveal key={p.id} delay={(i % 4) * 0.06} className="h-full">
-                <ProductCard p={p} ar={isAr} />
+                <ProductCard p={p} testId="home-product-card" />
               </Reveal>
             ))}
           </div>
@@ -1428,9 +1492,9 @@ export default function LookTwo() {
               <Reveal key={p.id} delay={(i % 4) * 0.06} className="h-full">
                 <ProductCard
                   p={p}
-                  ar={isAr}
                   rank={`0${i + 1}`}
                   panel="bg-[#131009] border-[#C9A86A]/20"
+                  testId="home-product-card"
                 />
               </Reveal>
             ))}
@@ -1452,7 +1516,7 @@ export default function LookTwo() {
           <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[190px] md:auto-rows-[255px] gap-3 md:gap-5">
             {STYLES.map((st, i) => (
               <Reveal key={st.en} delay={i * 0.06} className={STYLE_PLACEMENT[i] ?? ''}>
-                <a href="#" onClick={stop} className="group relative block w-full h-full overflow-hidden bg-[#1C1610]">
+                <Link to={searchPath(LOOK, { style: st.key })} className="group relative block w-full h-full overflow-hidden bg-[#1C1610]">
                   <img
                     src={st.img}
                     alt={t(st.en, st.ar)}
@@ -1466,7 +1530,7 @@ export default function LookTwo() {
                       {formatSAR(st.count)} {t('PRODUCTS', 'منتج')}
                     </p>
                   </div>
-                </a>
+                </Link>
               </Reveal>
             ))}
           </div>
@@ -1517,7 +1581,7 @@ export default function LookTwo() {
                 ? <>متاجر <em className="not-italic text-[#C9A86A]">مختارة</em></>
                 : <>Featured <em className="italic">Stores</em></>}
             </Heading>
-            <GoldLink ar={isAr}>
+            <GoldLink ar={isAr} to={searchPath(LOOK)}>
               {t('ALL STORES', 'كل المتاجر')} <ArrowRight size={12} strokeWidth={1.5} className="rtl:rotate-180" />
             </GoldLink>
           </Reveal>
@@ -1526,7 +1590,7 @@ export default function LookTwo() {
             {STORES.map((s, i) => (
               <Reveal key={s.name.en} delay={(i % 4) * 0.06} className="h-full">
                 <article className="group h-full flex flex-col bg-[#1C1610] border border-[#C9A86A]/20 p-4 pb-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.45)] hover:border-[#C9A86A]/45 transition-colors duration-500">
-                  <div className="border border-[#C9A86A]/30 p-1">
+                  <Link to={searchPath(LOOK, { store: s.key })} className="block border border-[#C9A86A]/30 p-1">
                     <div className="relative aspect-[4/3] overflow-hidden bg-[#131009]">
                       <img
                         src={s.cover}
@@ -1535,7 +1599,7 @@ export default function LookTwo() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#131009]/70 to-transparent" />
                     </div>
-                  </div>
+                  </Link>
 
                   <span
                     dir="ltr"
@@ -1559,7 +1623,7 @@ export default function LookTwo() {
                   </p>
 
                   <span className="mt-auto pt-7 flex justify-center">
-                    <GoldLink ar={isAr}>
+                    <GoldLink ar={isAr} to={searchPath(LOOK, { store: s.key })}>
                       {t('VISIT STORE', 'زيارة المتجر')} <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
                     </GoldLink>
                   </span>
@@ -1856,104 +1920,6 @@ export default function LookTwo() {
           </Reveal>
         </div>
       </section>
-
-      {/* ============================== 20. FOOTER ============================== */}
-      <footer className="bg-black/40 border-t border-[#C9A86A]/25">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 md:pt-20 pb-24">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] gap-12 lg:gap-16">
-            {/* Brand */}
-            <div>
-              <img src="/logo_diyar.svg" alt="Diyar" className="h-9 invert mb-6" />
-              <p className="text-sm text-[#EFE9DD]/60 font-light leading-relaxed max-w-sm mb-8">
-                {isAr ? FOOTER_LINKS.aboutAr : FOOTER_LINKS.about}
-              </p>
-              <div className="flex items-center gap-3">
-                {[
-                  { Icon: Instagram, label: 'Instagram' },
-                  { Icon: Facebook, label: 'Facebook' },
-                  { Icon: Linkedin, label: 'LinkedIn' },
-                ].map(({ Icon, label }) => (
-                  <a
-                    key={label}
-                    href="#"
-                    onClick={stop}
-                    aria-label={label}
-                    className="w-10 h-10 rounded-full border border-white/15 flex items-center justify-center text-[#EFE9DD]/70 hover:border-[#C9A86A] hover:text-[#C9A86A] transition-colors duration-300"
-                  >
-                    <Icon size={16} strokeWidth={1.25} />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick links */}
-            <div>
-              <h4 className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} text-[#C9A86A] mb-6`}>
-                {t('QUICK LINKS', 'روابط سريعة')}
-              </h4>
-              <ul className="space-y-3">
-                {FOOTER_QUICK.map((l) => (
-                  <li key={l.en}>
-                    <a href="#" onClick={stop} className="text-sm font-light text-[#EFE9DD]/60 hover:text-[#C9A86A] transition-colors">
-                      {t(l.en, l.ar)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} text-[#C9A86A] mb-6`}>
-                {t('CUSTOMER SUPPORT', 'خدمة العملاء')}
-              </h4>
-              <ul className="space-y-3">
-                {FOOTER_SUPPORT.map((l) => (
-                  <li key={l.en}>
-                    <a href="#" onClick={stop} className="text-sm font-light text-[#EFE9DD]/60 hover:text-[#C9A86A] transition-colors">
-                      {t(l.en, l.ar)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Contact + subscribe */}
-            <div>
-              <h4 className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} text-[#C9A86A] mb-6`}>
-                {t('CONTACT', 'تواصل معنا')}
-              </h4>
-              <ul className="space-y-3 mb-10">
-                <li className={`${DISPLAY} text-sm text-[#C9A86A] tracking-wide`}>
-                  <span dir="ltr">{FOOTER_LINKS.phone}</span>
-                </li>
-                <li className="text-sm font-light text-[#C9A86A]">{FOOTER_LINKS.email}</li>
-              </ul>
-              <h4 className={`${isAr ? `${AR_LABEL} text-[13px] tracking-normal` : `${CAPS} text-[11px] tracking-[0.3em]`} text-[#C9A86A] mb-5`}>
-                {t('SUBSCRIBE', 'النشرة البريدية')}
-              </h4>
-              <div className="flex items-center gap-3 border-b border-[#C9A86A]/40 pb-2.5 focus-within:border-[#C9A86A] transition-colors">
-                <input
-                  type="email"
-                  placeholder={t('Your email address', 'بريدك الإلكتروني')}
-                  className="bg-transparent flex-1 min-w-0 text-sm font-light outline-none text-[#EFE9DD] placeholder:text-[#EFE9DD]/30"
-                />
-                <button className={`${isAr ? `${AR_LABEL} text-[12px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} text-[#C9A86A] hover:text-[#EFE9DD] transition-colors cursor-pointer shrink-0`}>
-                  {t('SUBMIT', 'اشترك')}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-14 pt-8 border-t border-white/10 text-center">
-            <p className={`${isAr ? `${AR_LABEL} text-[11px] tracking-normal` : `${CAPS} text-[10px] tracking-[0.3em]`} text-[#EFE9DD]/40`}>
-              {t('© 2026 DIYAR. ALL RIGHTS RESERVED.', 'جميع الحقوق محفوظة لديار © 2026')}
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      <LookSwitcher />
-    </div>
+    </>
   );
 }

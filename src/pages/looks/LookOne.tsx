@@ -4,14 +4,18 @@
  * Near-white warm canvas, huge bold uppercase section titles with tiny
  * letterspaced eyebrows, editorial photography, hairline dividers,
  * restrained motion. Bilingual: Arabic (default, RTL) + English.
+ *
+ * The default export is the LAYOUT (header, drawer, footer, language) around
+ * the look's pages: `LookOneHome`, `LookOneSearch`, `LookOneProduct`.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useRef, useState,
-  type CSSProperties, type ReactNode,
+  useCallback, useEffect, useRef, useState,
+  type CSSProperties, type FormEvent,
 } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Search, Camera, User, Heart, ShoppingBag, Star, ArrowRight,
+  Search, Camera, User, Heart, ShoppingBag, ArrowRight,
   Instagram, Facebook, Linkedin, ChevronLeft, ChevronRight,
   Menu, X, ChevronDown, Phone, Mail,
 } from 'lucide-react';
@@ -20,226 +24,34 @@ import {
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
   ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS, PARTNER, APP_PROMO,
-  type Lang, type MenuGroup, type Bi, type RoomHotspot, type LookProduct,
+  lookBase, searchPath, productPath,
+  type Lang, type MenuGroup, type Bi, type RoomHotspot, type CategoryKey,
 } from './lookShared';
+import {
+  BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
+  LookContext, useLook, useLang,
+  Reveal, SectionHeading, ViewMore, Stars, ProductCard,
+} from './one/ui';
+
+export { LookOneSearch } from './one/SearchPage';
+export { LookOneProduct } from './one/ProductPage';
+export {
+  BG, INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM, NIGHT,
+  useLook, useLang, Reveal, SectionHeading, ViewMore, Stars, ProductCard, Breadcrumb,
+} from './one/ui';
+
+/** Mega-menu / drawer shop groups map 1:1 onto the catalog categories, in order. */
+const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
+
+const LANG_KEY = 'diyar-look-lang';
 
 /* ------------------------------------------------------------------ */
-/* Palette                                                             */
+/* Shop-the-look hotspot                                               */
 /* ------------------------------------------------------------------ */
-const BG = '#FDFCF9';      // near-white warm canvas
-const INK = '#171512';     // text
-const OLIVE = '#5A6B4D';   // accent
-const HAIR = '#E8E4DC';    // hairlines
-const RED = '#B03A2E';     // sale / AI link
-const TILE = '#F6F3EC';    // product image tile
-const OLIVE_LT = '#A7B894'; // olive lifted for the dark bands
-const CREAM = '#F6F3EC';   // type colour on the dark bands
-const NIGHT = '#14120F';   // dark band ground (same as the footer)
-
-/* ------------------------------------------------------------------ */
-/* Language context                                                    */
-/* ------------------------------------------------------------------ */
-const LangContext = createContext<Lang>('ar');
-const useLang = () => useContext(LangContext);
-
-/* ------------------------------------------------------------------ */
-/* Small shared pieces                                                 */
-/* ------------------------------------------------------------------ */
-
-/** Restrained scroll-reveal wrapper. */
-function Reveal({
-  children,
-  delay = 0,
-  className,
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.6, ease: 'easeOut', delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 /**
- * Tiny letterspaced eyebrow over a huge bold uppercase title.
- * `light` lifts both tones so the same component works on the dark bands.
- */
-function SectionHeading({ eyebrow, title, light = false }: { eyebrow: string; title: string; light?: boolean }) {
-  const isAr = useLang() === 'ar';
-  return (
-    <div>
-      <p
-        className={`mb-4 text-[11px] uppercase ${
-          isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
-        }`}
-        style={{ color: light ? OLIVE_LT : OLIVE }}
-      >
-        {eyebrow}
-      </p>
-      <h2
-        className={`font-extrabold uppercase text-4xl md:text-5xl lg:text-6xl ${
-          isAr
-            ? "font-['Alexandria',sans-serif] leading-[1.15] tracking-normal"
-            : "font-['Outfit',sans-serif] leading-[0.95] tracking-tight"
-        }`}
-        style={{ color: light ? CREAM : INK }}
-      >
-        {title}
-      </h2>
-    </div>
-  );
-}
-
-/** Tiny letterspaced uppercase "VIEW MORE →" link with hairline underline. */
-function ViewMore({ label, light = false }: { label?: string; light?: boolean }) {
-  const isAr = useLang() === 'ar';
-  const text = label ?? (isAr ? 'عرض المزيد' : 'View More');
-  return (
-    <a
-      href="#"
-      className={`group/vm inline-flex items-center gap-2.5 pb-1.5 border-b text-[11px] uppercase transition-colors ${
-        isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-      } ${
-        light
-          ? 'text-white border-white/50 hover:border-white'
-          : 'text-[#171512] border-[#171512]/25 hover:border-[#171512]'
-      }`}
-    >
-      {text}
-      <ArrowRight
-        size={12}
-        strokeWidth={1.5}
-        className={`transition-transform duration-300 ${
-          isAr ? 'rotate-180 group-hover/vm:-translate-x-1' : 'group-hover/vm:translate-x-1'
-        }`}
-      />
-    </a>
-  );
-}
-
-/** Rating stars, size 12, filled per rating. `light` inverts them for the dark bands. */
-function Stars({ rating, light = false }: { rating: number; light?: boolean }) {
-  return (
-    <div className="flex items-center gap-[3px]" aria-label={`Rated ${rating} out of 5`}>
-      {Array.from({ length: 5 }).map((_, i) => {
-        const on = i < Math.round(rating);
-        return (
-          <Star
-            key={i}
-            size={12}
-            strokeWidth={1}
-            className={
-              on
-                ? light
-                  ? 'fill-[#F6F3EC] text-[#F6F3EC]'
-                  : 'fill-[#171512] text-[#171512]'
-                : light
-                  ? 'fill-transparent text-white/30'
-                  : 'fill-transparent text-[#D9D3C7]'
-            }
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * The page's product card — image tile, brand, name, stars, price, actions.
- * Shared by "New Products" (full) and "Best Sellers" (`rank` shows 01–04 and
- * drops the add-to-cart button so the rail stays compact).
- */
-function ProductCard({ p, rank }: { p: LookProduct; rank?: number }) {
-  const isAr = useLang() === 'ar';
-  const t = (en: string, ar: string) => (isAr ? ar : en);
-
-  return (
-    <div className="group flex h-full flex-col">
-      {/* image tile */}
-      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
-        {p.sale && (
-          <span
-            className={`absolute start-4 top-4 z-10 text-[10px] font-semibold uppercase ${
-              isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-            }`}
-            style={{ color: RED }}
-          >
-            {t('Sale', 'تخفيض')}
-          </span>
-        )}
-        {rank !== undefined && (
-          <span
-            className="absolute end-4 top-2 z-10 font-['Outfit',sans-serif] text-[42px] font-extrabold leading-none text-[#171512]/15"
-            aria-hidden="true"
-          >
-            {String(rank).padStart(2, '0')}
-          </span>
-        )}
-        <img
-          src={p.img}
-          alt={isAr ? p.nameAr : p.nameEn}
-          className="h-full w-full object-contain p-7 transition-transform duration-700 ease-out group-hover:scale-105"
-        />
-      </div>
-
-      {/* info */}
-      <p className={`mt-5 text-[10px] uppercase text-neutral-400 ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
-        {isAr && p.brand === 'DIYAR HOME' ? 'ديار هوم' : p.brand}
-      </p>
-      <h3 className="mt-1.5 truncate text-sm font-medium" title={isAr ? p.nameAr : p.nameEn}>
-        {isAr ? p.nameAr : p.nameEn}
-      </h3>
-      <div className="mt-2">
-        <Stars rating={p.rating} />
-      </div>
-
-      {/* price row */}
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="flex items-baseline gap-2 overflow-hidden">
-          <span className="text-[15px] font-bold">{formatSAR(p.price)}</span>
-          <span className={`text-[10px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
-            {t('SAR', 'ر.س')}
-          </span>
-          {p.oldPrice && <span className="text-xs text-neutral-400 line-through">{formatSAR(p.oldPrice)}</span>}
-        </div>
-        <a
-          href="#"
-          className={`shrink-0 text-[10px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
-            isAr ? 'tracking-normal' : 'tracking-[0.24em]'
-          }`}
-          style={{ color: RED }}
-        >
-          {t('Try with AI', 'جرب AI')}
-        </a>
-      </div>
-
-      {/* add to cart — full card only; the rail stays quiet */}
-      {rank === undefined && (
-        <button
-          type="button"
-          className={`mt-5 w-full border border-[#171512] py-3.5 text-[10px] font-medium uppercase transition-colors duration-300 hover:bg-[#171512] hover:text-white ${
-            isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-          }`}
-        >
-          {t('Add to Cart', 'أضف إلى السلة')}
-        </button>
-      )}
-    </div>
-  );
-}
-
-/**
- * Shop-the-look hotspot: a pulsing dot pinned to a real object in the room photo
- * that opens a small product card on hover / tap.
+ * A pulsing dot pinned to a real object in the room photo that opens a small
+ * product card on hover / tap.
  * Dot AND card use PHYSICAL offsets (inline top/left/right/bottom) so they keep
  * tracking the photo in RTL — only the card's text follows the language.
  */
@@ -342,22 +154,23 @@ function ShopHotspot({
               </div>
 
               <div className="px-3.5 pb-3.5">
-                <button
-                  type="button"
-                  className={`w-full bg-[#171512] py-2.5 text-[9.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                <Link
+                  to={productPath(1, h.productId)}
+                  data-testid={`hotspot-${h.id}-view`}
+                  className={`block w-full bg-[#171512] py-2.5 text-center text-[9.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                     isAr ? 'tracking-normal' : 'tracking-[0.24em]'
                   }`}
                 >
                   {isAr ? 'عرض المنتج' : 'View Product'}
-                </button>
-                <a
-                  href="#"
-                  className={`mt-2.5 block text-center text-[9.5px] uppercase text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
+                </Link>
+                <button
+                  type="button"
+                  className={`mt-2.5 block w-full text-center text-[9.5px] uppercase text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
                     isAr ? 'tracking-normal' : 'tracking-[0.18em]'
                   }`}
                 >
                   {isAr ? 'أضف إلى السلة' : '+ Add to Cart'}
-                </a>
+                </button>
               </div>
             </motion.div>
           )}
@@ -367,27 +180,40 @@ function ShopHotspot({
   );
 }
 
-/** One mega-menu column: group title + subcategory links. */
-function MegaGroup({ group }: { group: MenuGroup; key?: string | number }) {
+/* ------------------------------------------------------------------ */
+/* Mega menu pieces                                                    */
+/* ------------------------------------------------------------------ */
+
+/** One mega-menu column: group title + subcategory links. `to` makes them real links. */
+function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; onNavigate?: () => void; key?: string | number }) {
   const isAr = useLang() === 'ar';
+  const titleCls = `text-[11px] font-bold uppercase text-[#171512] ${
+    isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
+  }`;
+  const itemCls =
+    'block text-[12.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
+  const title = isAr ? group.title.ar : group.title.en;
   return (
     <div className="text-start">
-      <p
-        className={`text-[11px] font-bold uppercase text-[#171512] ${
-          isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
-        }`}
-      >
-        {isAr ? group.title.ar : group.title.en}
-      </p>
+      {to ? (
+        <Link to={to} onClick={onNavigate} className={`${titleCls} decoration-[#5A6B4D] underline-offset-4 hover:underline`}>
+          {title}
+        </Link>
+      ) : (
+        <p className={titleCls}>{title}</p>
+      )}
       <ul className="mt-3.5 space-y-1">
         {group.items.map((it) => (
           <li key={it.en}>
-            <a
-              href="#"
-              className="block text-[12.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline"
-            >
-              {isAr ? it.ar : it.en}
-            </a>
+            {to ? (
+              <Link to={to} onClick={onNavigate} className={itemCls}>
+                {isAr ? it.ar : it.en}
+              </Link>
+            ) : (
+              <a href="#" className={itemCls}>
+                {isAr ? it.ar : it.en}
+              </a>
+            )}
           </li>
         ))}
       </ul>
@@ -396,10 +222,10 @@ function MegaGroup({ group }: { group: MenuGroup; key?: string | number }) {
 }
 
 /** Featured promo tile inside a mega-menu panel. */
-function MegaFeatured({ img, title, cta }: { img: string; title: Bi; cta: Bi; key?: string | number }) {
+function MegaFeatured({ img, title, cta, to, onNavigate }: { img: string; title: Bi; cta: Bi; to: string; onNavigate?: () => void }) {
   const isAr = useLang() === 'ar';
   return (
-    <a href="#" className="group/mf block text-start">
+    <Link to={to} onClick={onNavigate} className="group/mf block text-start">
       <div className="aspect-[4/3] overflow-hidden">
         <img
           src={img}
@@ -426,7 +252,7 @@ function MegaFeatured({ img, title, cta }: { img: string; title: Bi; cta: Bi; ke
           className="rtl:rotate-180 transition-transform duration-300 group-hover/mf:translate-x-1 rtl:group-hover/mf:-translate-x-1"
         />
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -438,16 +264,20 @@ function MegaFeatured({ img, title, cta }: { img: string; title: Bi; cta: Bi; ke
 function DrawerGroup({
   group,
   open,
+  to,
   onToggle,
   onNavigate,
 }: {
   group: MenuGroup;
   open: boolean;
+  /** Destination for the group's items (the category search). */
+  to?: string;
   onToggle: () => void;
   onNavigate: () => void;
   key?: string | number;
 }) {
   const isAr = useLang() === 'ar';
+  const itemCls = 'block py-2 ps-4 text-[12.5px] leading-relaxed text-neutral-500 transition-colors hover:text-[#171512]';
   return (
     <li className="border-t" style={{ borderColor: HAIR }}>
       <button
@@ -476,15 +306,24 @@ function DrawerGroup({
             transition={{ duration: 0.24, ease: 'easeOut' }}
             className="overflow-hidden"
           >
+            {to && (
+              <li>
+                <Link to={to} onClick={onNavigate} className={`${itemCls} font-semibold text-[#171512]`}>
+                  {isAr ? `كل ${group.title.ar}` : `All ${group.title.en}`}
+                </Link>
+              </li>
+            )}
             {group.items.map((it) => (
               <li key={it.en}>
-                <a
-                  href="#"
-                  onClick={onNavigate}
-                  className="block py-2 ps-4 text-[12.5px] leading-relaxed text-neutral-500 transition-colors hover:text-[#171512]"
-                >
-                  {isAr ? it.ar : it.en}
-                </a>
+                {to ? (
+                  <Link to={to} onClick={onNavigate} className={itemCls}>
+                    {isAr ? it.ar : it.en}
+                  </Link>
+                ) : (
+                  <a href="#" onClick={onNavigate} className={itemCls}>
+                    {isAr ? it.ar : it.en}
+                  </a>
+                )}
               </li>
             ))}
             <li className="h-2" aria-hidden />
@@ -504,6 +343,8 @@ function DrawerSection({
   openGroup,
   onToggleGroup,
   onNavigate,
+  groupTo,
+  allLink,
 }: {
   label: string;
   groups: MenuGroup[];
@@ -512,6 +353,10 @@ function DrawerSection({
   openGroup: string | null;
   onToggleGroup: (title: string) => void;
   onNavigate: () => void;
+  /** Destination per group index (category search); omitted for the services menu. */
+  groupTo?: (i: number) => string | undefined;
+  /** Optional "Shop all" row at the top of the section. */
+  allLink?: { to: string; label: string };
 }) {
   const isAr = useLang() === 'ar';
   return (
@@ -547,10 +392,25 @@ function DrawerSection({
             className="overflow-hidden"
           >
             <ul className="pb-3">
-              {groups.map((g) => (
+              {allLink && (
+                <li className="border-t" style={{ borderColor: HAIR }}>
+                  <Link
+                    to={allLink.to}
+                    onClick={onNavigate}
+                    data-testid="drawer-shop-all"
+                    className={`flex items-center gap-2 py-3 text-[12.5px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}
+                    style={{ color: OLIVE }}
+                  >
+                    {allLink.label}
+                    <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+                  </Link>
+                </li>
+              )}
+              {groups.map((g, i) => (
                 <DrawerGroup
                   key={g.title.en}
                   group={g}
+                  to={groupTo?.(i)}
                   open={openGroup === g.title.en}
                   onToggle={() => onToggleGroup(g.title.en)}
                   onNavigate={onNavigate}
@@ -575,11 +435,13 @@ function MobileDrawer({
   onClose,
   lang,
   onToggleLang,
+  onSearch,
 }: {
   open: boolean;
   onClose: () => void;
   lang: Lang;
   onToggleLang: () => void;
+  onSearch: (q: string) => void;
 }) {
   const isAr = lang === 'ar';
   const t = (en: string, ar: string) => (isAr ? ar : en);
@@ -591,6 +453,7 @@ function MobileDrawer({
 
   const [section, setSection] = useState<'shop' | 'services' | null>(null);
   const [group, setGroup] = useState<string | null>(null);
+  const [q, setQ] = useState('');
 
   /* Escape closes */
   useEffect(() => {
@@ -629,6 +492,7 @@ function MobileDrawer({
     if (open) return;
     setSection(null);
     setGroup(null);
+    setQ('');
   }, [open]);
 
   const toggleSection = (s: 'shop' | 'services') => {
@@ -636,6 +500,12 @@ function MobileDrawer({
     setGroup(null);
   };
   const toggleGroup = (g: string) => setGroup((cur) => (cur === g ? null : g));
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    onSearch(q);
+    onClose();
+  };
 
   const eyebrowCls = `text-[10px] uppercase text-neutral-400 ${isAr ? 'tracking-normal' : 'tracking-[0.3em]'}`;
   const navCls = `block w-full py-4 text-start text-[13px] font-bold uppercase transition-colors hover:text-[#5A6B4D] ${
@@ -678,7 +548,9 @@ function MobileDrawer({
               className="flex shrink-0 items-center justify-between gap-4 border-b px-5 py-4"
               style={{ borderColor: HAIR }}
             >
-              <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto" />
+              <Link to={lookBase(1)} onClick={onClose} aria-label="Diyar">
+                <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto" />
+              </Link>
               <button
                 type="button"
                 data-testid="drawer-close"
@@ -693,12 +565,16 @@ function MobileDrawer({
             {/* scrollable body */}
             <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain px-5 pb-6">
               {/* search */}
-              <div className="py-5">
+              <form className="py-5" onSubmit={submitSearch} role="search">
                 <div className="flex h-11 items-center gap-2.5 border bg-white px-3.5" style={{ borderColor: HAIR }}>
                   <Search size={15} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
                   <input
                     type="text"
+                    data-testid="drawer-search-input"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
                     placeholder={t('SEARCH', 'ابحث')}
+                    aria-label={t('Search', 'بحث')}
                     className={`w-full min-w-0 bg-transparent text-[11px] uppercase text-[#171512] placeholder:text-neutral-400 focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
@@ -711,7 +587,7 @@ function MobileDrawer({
                     <Camera size={15} strokeWidth={1.5} />
                   </button>
                 </div>
-              </div>
+              </form>
 
               {/* primary nav — Shop & Services become the two accordions below */}
               <p className={eyebrowCls}>{t('Menu', 'القائمة')}</p>
@@ -719,9 +595,15 @@ function MobileDrawer({
                 <ul>
                   {NAV_ITEMS.filter((i) => i.en !== 'Shop' && i.en !== 'Services').map((item) => (
                     <li key={item.en} className="border-t" style={{ borderColor: HAIR }}>
-                      <a href="#" onClick={onClose} className={navCls}>
-                        {t(item.en, item.ar)}
-                      </a>
+                      {item.en === 'Home' ? (
+                        <Link to={lookBase(1)} onClick={onClose} className={navCls}>
+                          {t(item.en, item.ar)}
+                        </Link>
+                      ) : (
+                        <a href="#" onClick={onClose} className={navCls}>
+                          {t(item.en, item.ar)}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -735,6 +617,11 @@ function MobileDrawer({
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
+                groupTo={(i) => {
+                  const key = shopGroupKey(i);
+                  return key ? searchPath(1, { category: key }) : undefined;
+                }}
+                allLink={{ to: searchPath(1), label: t('Shop All Products', 'تسوق كل المنتجات') }}
               />
               <DrawerSection
                 label={t('Services', 'الخدمات')}
@@ -825,18 +712,31 @@ function MobileDrawer({
 }
 
 /* ------------------------------------------------------------------ */
-/* Page                                                                */
+/* Layout — header, drawer, <Outlet />, footer, switcher               */
 /* ------------------------------------------------------------------ */
 export default function LookOne() {
-  const [slide, setSlide] = useState(0);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const isHome = pathname.replace(/\/$/, '') === lookBase(1);
+
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<'shop' | 'services' | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const closeMenu = useCallback(() => setOpenMenu(null), []);
   const closeTimer = useRef<number | null>(null);
-  const [lang, setLang] = useState<Lang>(() =>
-    typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
+  const [headerQ, setHeaderQ] = useState('');
+  const [lang, setLangState] = useState<Lang>(() =>
+    typeof localStorage !== 'undefined' && localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'ar',
   );
+
+  const setLang = useCallback((next: Lang) => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(LANG_KEY, next);
+    setLangState(next);
+  }, []);
+  const toggleLang = () => setLang(lang === 'ar' ? 'en' : 'ar');
+  const t = useCallback((en: string, ar: string) => (lang === 'ar' ? ar : en), [lang]);
+  const isAr = lang === 'ar';
 
   /* mega menu hover intent: ~150ms close delay so the cursor can travel into the panel */
   const cancelClose = () => {
@@ -855,57 +755,7 @@ export default function LookOne() {
     };
   }, []);
 
-  /* shop-the-look: one open product card at a time, with a small close grace period */
-  const [openSpot, setOpenSpot] = useState<string | null>(null);
-  const spotTimer = useRef<number | null>(null);
-  const cancelSpotClose = () => {
-    if (spotTimer.current !== null) {
-      window.clearTimeout(spotTimer.current);
-      spotTimer.current = null;
-    }
-  };
-  const scheduleSpotClose = () => {
-    cancelSpotClose();
-    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 120);
-  };
-  const openSpotNow = (id: string) => {
-    cancelSpotClose();
-    setOpenSpot(id);
-  };
-  const toggleSpot = (id: string) => {
-    cancelSpotClose();
-    setOpenSpot((s) => (s === id ? null : id));
-  };
-  useEffect(() => {
-    return () => {
-      if (spotTimer.current !== null) window.clearTimeout(spotTimer.current);
-    };
-  }, []);
-  useEffect(() => {
-    if (openSpot === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenSpot(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [openSpot]);
-
-  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
-  const isAr = lang === 'ar';
-
-  const toggleLang = () => {
-    const next: Lang = lang === 'ar' ? 'en' : 'ar';
-    if (typeof localStorage !== 'undefined') localStorage.setItem('diyar-look-lang', next);
-    setLang(next);
-  };
-
-  /* hero auto-advance (resets after manual navigation too) */
-  useEffect(() => {
-    const t = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
-    return () => clearInterval(t);
-  }, [slide]);
-
-  /* header: transparent over hero → solid chrome after ~60px of scroll */
+  /* header: transparent over the home hero → solid chrome after ~60px of scroll */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
     onScroll();
@@ -913,12 +763,24 @@ export default function LookOne() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
+  /* route change: start at the top, close any open chrome */
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    setOpenMenu(null);
+    setDrawerOpen(false);
+  }, [pathname]);
 
-  /* header chrome: white over the hero, ink on the solid bar.
-     While a mega-menu panel is open the header always shows its solid chrome. */
-  const solid = scrolled || openMenu !== null;
+  const submitHeaderSearch = (e: FormEvent) => {
+    e.preventDefault();
+    navigate(searchPath(1, { q: headerQ.trim() }));
+    setHeaderQ('');
+  };
+  const goSearch = (q: string) => navigate(searchPath(1, { q: q.trim() }));
+
+  /* header chrome: white over the home hero, ink on the solid bar.
+     Inner pages have no hero, so they always get the solid bar; the same goes
+     while a mega-menu panel is open. */
+  const solid = !isHome || scrolled || openMenu !== null;
   const navItemCls = `relative whitespace-nowrap py-2 text-[11.5px] uppercase transition-colors duration-300 after:absolute after:bottom-0 after:start-0 after:h-px after:w-0 after:transition-all after:duration-300 hover:after:w-full ${
     isAr ? 'tracking-normal' : 'tracking-[0.2em]'
   } ${solid ? 'text-[#171512] after:bg-[#171512]' : 'text-white after:bg-white'}`;
@@ -927,18 +789,20 @@ export default function LookOne() {
   }`;
 
   return (
-    <LangContext.Provider value={lang}>
+    <LookContext.Provider value={{ lang, setLang, t }}>
       <div
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        data-testid="look-one"
         className={`min-h-screen overflow-x-clip antialiased selection:bg-[#5A6B4D] selection:text-white ${
           isAr ? "font-['Tajawal',sans-serif]" : "font-['Outfit',sans-serif]"
         }`}
         style={{ backgroundColor: BG, color: INK }}
       >
         {/* ============================================================ */}
-        {/* 1. HEADER — transparent over hero, solid after scroll         */}
+        {/* HEADER — transparent over the home hero, solid everywhere else */}
         {/* ============================================================ */}
         <header
+          data-testid="look-header"
           onMouseEnter={cancelClose}
           onMouseLeave={() => {
             if (openMenu !== null) scheduleClose();
@@ -960,16 +824,18 @@ export default function LookOne() {
           )}
           <div className="relative mx-auto flex h-[72px] max-w-[1400px] items-center gap-5 px-6 md:px-10 lg:gap-6">
             {/* logo — white over hero, black on solid bar */}
-            <a href="#" className="shrink-0">
+            <Link to={lookBase(1)} className="shrink-0" aria-label="Diyar" data-testid="header-logo">
               <img
                 src="/logo_diyar.svg"
                 alt="Diyar"
                 className={`h-8 w-auto transition-all duration-300 ${solid ? '' : 'invert'}`}
               />
-            </a>
+            </Link>
 
             {/* search */}
-            <div
+            <form
+              role="search"
+              onSubmit={submitHeaderSearch}
               className={`hidden h-9 w-44 items-center gap-2.5 rounded-full border px-4 transition-colors duration-300 md:flex xl:w-56 ${
                 solid ? 'border-[#E8E4DC] bg-white' : 'border-white/40 bg-transparent'
               }`}
@@ -981,7 +847,11 @@ export default function LookOne() {
               />
               <input
                 type="text"
+                data-testid="header-search-input"
+                value={headerQ}
+                onChange={(e) => setHeaderQ(e.target.value)}
                 placeholder={t('SEARCH', 'ابحث')}
+                aria-label={t('Search', 'بحث')}
                 className={`w-full min-w-0 bg-transparent text-[11px] uppercase transition-colors duration-300 focus:outline-none ${
                   isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                 } ${
@@ -997,36 +867,64 @@ export default function LookOne() {
               >
                 <Camera size={15} strokeWidth={1.5} />
               </button>
-            </div>
+            </form>
 
             <div className="flex-1" />
 
             {/* nav — Shop & Services open full-width mega menus (panels are siblings below) */}
             <nav className="hidden items-center gap-6 lg:flex">
               {NAV_ITEMS.map((item) => {
-                const mega =
-                  item.en === 'Shop' ? ('shop' as const) : item.en === 'Services' ? ('services' as const) : null;
-                return mega !== null ? (
-                  <button
-                    key={item.en}
-                    type="button"
-                    data-testid={`mega-${mega}-trigger`}
-                    aria-haspopup="true"
-                    aria-expanded={openMenu === mega}
-                    onMouseEnter={() => {
-                      cancelClose();
-                      setOpenMenu(mega);
-                    }}
-                    onClick={() => {
-                      cancelClose();
-                      setOpenMenu((m) => (m === mega ? null : mega));
-                    }}
-                    className={`${navItemCls} cursor-pointer ${openMenu === mega ? 'after:w-full' : ''}`}
-                  >
-                    {t(item.en, item.ar)}
-                  </button>
-                ) : (
-                  <a key={item.en} href="#" className={navItemCls}>
+                if (item.en === 'Shop') {
+                  /* Shop is a real link to the listing; hovering still opens its mega menu */
+                  return (
+                    <Link
+                      key={item.en}
+                      to={searchPath(1)}
+                      data-testid="mega-shop-trigger"
+                      aria-haspopup="true"
+                      aria-expanded={openMenu === 'shop'}
+                      onMouseEnter={() => {
+                        cancelClose();
+                        setOpenMenu('shop');
+                      }}
+                      onClick={closeMenu}
+                      className={`${navItemCls} ${openMenu === 'shop' ? 'after:w-full' : ''}`}
+                    >
+                      {t(item.en, item.ar)}
+                    </Link>
+                  );
+                }
+                if (item.en === 'Services') {
+                  return (
+                    <button
+                      key={item.en}
+                      type="button"
+                      data-testid="mega-services-trigger"
+                      aria-haspopup="true"
+                      aria-expanded={openMenu === 'services'}
+                      onMouseEnter={() => {
+                        cancelClose();
+                        setOpenMenu('services');
+                      }}
+                      onClick={() => {
+                        cancelClose();
+                        setOpenMenu((m) => (m === 'services' ? null : 'services'));
+                      }}
+                      className={`${navItemCls} cursor-pointer ${openMenu === 'services' ? 'after:w-full' : ''}`}
+                    >
+                      {t(item.en, item.ar)}
+                    </button>
+                  );
+                }
+                if (item.en === 'Home') {
+                  return (
+                    <Link key={item.en} to={lookBase(1)} className={navItemCls} onMouseEnter={scheduleClose}>
+                      {t(item.en, item.ar)}
+                    </Link>
+                  );
+                }
+                return (
+                  <a key={item.en} href="#" className={navItemCls} onMouseEnter={scheduleClose}>
                     {t(item.en, item.ar)}
                   </a>
                 );
@@ -1119,21 +1017,40 @@ export default function LookOne() {
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
-                    {/* 6 category groups, 3 × 2 */}
+                    {/* 6 category groups, 3 × 2 — each maps onto a catalog category */}
                     <div className="col-span-9 grid grid-cols-3 gap-x-8 gap-y-10">
-                      {SHOP_MENU.map((group) => (
-                        <MegaGroup key={group.title.en} group={group} />
-                      ))}
+                      {SHOP_MENU.map((group, i) => {
+                        const key = shopGroupKey(i);
+                        return (
+                          <MegaGroup
+                            key={group.title.en}
+                            group={group}
+                            to={key ? searchPath(1, { category: key }) : undefined}
+                            onNavigate={closeMenu}
+                          />
+                        );
+                      })}
                     </div>
                     {/* featured side column */}
                     <div className="col-span-3 space-y-8 border-s ps-8" style={{ borderColor: HAIR }}>
-                      {MENU_FEATURED.shop.map((f) => (
-                        <MegaFeatured key={f.title.en} img={f.img} title={f.title} cta={f.cta} />
-                      ))}
+                      <MegaFeatured
+                        img={MENU_FEATURED.shop[0].img}
+                        title={MENU_FEATURED.shop[0].title}
+                        cta={MENU_FEATURED.shop[0].cta}
+                        to={searchPath(1, { sort: 'newest' })}
+                        onNavigate={closeMenu}
+                      />
+                      <MegaFeatured
+                        img={MENU_FEATURED.shop[1].img}
+                        title={MENU_FEATURED.shop[1].title}
+                        cta={MENU_FEATURED.shop[1].cta}
+                        to={searchPath(1, { category: 'lighting' })}
+                        onNavigate={closeMenu}
+                      />
                     </div>
                   </div>
-                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
-                    <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} />
+                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
+                    <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} to={searchPath(1)} />
                   </div>
                 </div>
               </motion.div>
@@ -1164,6 +1081,8 @@ export default function LookOne() {
                         img={MENU_FEATURED.services[0].img}
                         title={MENU_FEATURED.services[0].title}
                         cta={MENU_FEATURED.services[0].cta}
+                        to={lookBase(1)}
+                        onNavigate={closeMenu}
                       />
                     </div>
                   </div>
@@ -1177,1149 +1096,32 @@ export default function LookOne() {
         </header>
 
         {/* mobile navigation drawer — sits above the header */}
-        <MobileDrawer open={drawerOpen} onClose={closeDrawer} lang={lang} onToggleLang={toggleLang} />
+        <MobileDrawer
+          open={drawerOpen}
+          onClose={closeDrawer}
+          lang={lang}
+          onToggleLang={toggleLang}
+          onSearch={goSearch}
+        />
 
         {/* ============================================================ */}
-        {/* 2. HERO SLIDER                                                */}
+        {/* PAGE                                                          */}
         {/* ============================================================ */}
-        <section className="relative h-[88vh] min-h-[560px] overflow-hidden bg-[#171512]">
-          <AnimatePresence initial={false}>
-            <motion.div
-              key={slide}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.1, ease: 'easeInOut' }}
-            >
-              <motion.img
-                src={HERO_SLIDES[slide].img}
-                alt={isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
-                className="h-full w-full object-cover"
-                initial={{ scale: 1.06 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 6.5, ease: 'linear' }}
-              />
-              {/* subtle bottom gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
-
-              <div className="absolute inset-0 flex items-end">
-                <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
-                  <motion.div
-                    className="max-w-2xl text-white"
-                    initial={{ opacity: 0, y: 28 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
-                  >
-                    <p
-                      className={`mb-5 text-[11px] uppercase text-white/85 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.4em]'
-                      }`}
-                    >
-                      {isAr ? HERO_SLIDES[slide].tagAr : HERO_SLIDES[slide].tag}
-                    </p>
-                    <h1
-                      className={`mb-9 text-4xl font-extrabold uppercase md:text-6xl ${
-                        isAr
-                          ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                          : "font-['Outfit',sans-serif] leading-[1.04] tracking-tight"
-                      }`}
-                    >
-                      {isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
-                    </h1>
-                    <button
-                      type="button"
-                      className={`bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.32em]'
-                      }`}
-                    >
-                      {t('Shop Now', 'تسوق الآن')}
-                    </button>
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* static chrome: indicators + chevrons */}
-          <div className="absolute inset-x-0 bottom-9 z-10">
-            <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
-              <div className="flex items-center gap-6">
-                {HERO_SLIDES.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    aria-label={isAr ? `الانتقال إلى الشريحة ${i + 1}` : `Go to slide ${i + 1}`}
-                    onClick={() => setSlide(i)}
-                    className={`flex items-center gap-2.5 text-sm font-light transition-colors ${
-                      i === slide ? 'text-white' : 'text-white/45 hover:text-white/75'
-                    }`}
-                  >
-                    {i + 1}
-                    <span
-                      className={`block h-px bg-white transition-all duration-500 ${i === slide ? 'w-9' : 'w-0'}`}
-                    />
-                  </button>
-                ))}
-              </div>
-              <div className="hidden items-center gap-3 md:flex">
-                <button
-                  type="button"
-                  aria-label={t('Previous slide', 'الشريحة السابقة')}
-                  onClick={prev}
-                  className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
-                >
-                  <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={t('Next slide', 'الشريحة التالية')}
-                  onClick={next}
-                  className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
-                >
-                  <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <main>
+          <Outlet />
+        </main>
 
         {/* ============================================================ */}
-        {/* 3. FEATURED CATEGORIES                                        */}
+        {/* FOOTER                                                        */}
         {/* ============================================================ */}
-        <section className="py-20 md:py-28">
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <SectionHeading
-                eyebrow={t('Collection — 01', 'التشكيلة — 01')}
-                title={t('Featured Categories', 'أبرز التصنيفات')}
-              />
-            </Reveal>
-          </div>
-
-          <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10">
-            <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10">
-              {CATEGORIES.map((c, i) => (
-                <motion.div
-                  key={c.en}
-                  className="group relative aspect-[3/4] w-[72vw] shrink-0 cursor-pointer snap-start overflow-hidden sm:w-[320px] md:w-[356px]"
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                >
-                  <img
-                    src={c.img}
-                    alt={isAr ? c.ar : c.en}
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-7 text-white">
-                    <p
-                      className={`text-lg font-light uppercase leading-tight md:text-xl ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                      }`}
-                    >
-                      {t(c.en, c.ar)}
-                    </p>
-                    <div className="mt-5">
-                      <ViewMore light />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 4. SHOP BY ROOM — landscape tiles with an overlapping plaque  */}
-        {/* ============================================================ */}
-        <section data-testid="shop-by-room" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading eyebrow={t('Rooms — 02', 'الغرف — 02')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
-                <div className="pb-2">
-                  <ViewMore label={t('All Rooms', 'كل الغرف')} />
-                </div>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 md:mt-16 md:gap-x-6 lg:grid-cols-3">
-              {ROOMS.map((r, i) => (
-                <motion.a
-                  key={r.en}
-                  href="#"
-                  className="group block"
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 3) * 0.05 }}
-                >
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={r.img}
-                      alt={isAr ? r.ar : r.en}
-                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                    />
-                  </div>
-                  {/* white plaque sitting over the bottom edge of the photo */}
-                  <div
-                    className="relative z-10 -mt-9 flex items-baseline justify-between gap-3 border bg-white px-5 py-4 transition-colors duration-300 group-hover:border-[#5A6B4D] ms-5 me-5"
-                    style={{ borderColor: HAIR }}
-                  >
-                    <span
-                      className={`min-w-0 truncate font-bold uppercase ${
-                        isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(r.en, r.ar)}
-                    </span>
-                    <span
-                      className={`shrink-0 text-[10px] uppercase text-neutral-400 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                      }`}
-                    >
-                      {isAr ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} Pieces`}
-                    </span>
-                  </div>
-                </motion.a>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 5. SERVICES                                                   */}
-        {/* ============================================================ */}
-        <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <SectionHeading eyebrow={t('Services — 03', 'الخدمات — 03')} title={t('Our Services', 'خدماتنا')} />
-            </Reveal>
-
-            {/* hairline matrix: the cells give the small items structure so they
-                don't float in the whitespace under the oversized section title */}
-            <div
-              className="mt-14 grid grid-cols-2 border-t border-s md:mt-20 lg:grid-cols-4"
-              style={{ borderColor: HAIR }}
-            >
-              {SERVICES.map((s, i) => (
-                <motion.div
-                  key={s.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                  className="border-b border-e"
-                  style={{ borderColor: HAIR }}
-                >
-                  <div className="flex h-full flex-col items-center px-5 py-12 text-center md:px-8 md:py-14">
-                    <s.icon size={44} strokeWidth={1} className="text-[#5A6B4D]" />
-                    <h3
-                      className={`mt-7 font-bold uppercase ${
-                        isAr
-                          ? 'text-[15px] leading-relaxed tracking-normal'
-                          : 'text-[13.5px] leading-relaxed tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(s.en, s.ar)}
-                    </h3>
-                    <div className="mt-5">
-                      <ViewMore />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 6. NEW PRODUCTS                                               */}
-        {/* ============================================================ */}
-        <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading eyebrow={t('New In — 04', 'جديدنا — 04')} title={t('New Products', 'وصل حديثاً')} />
-                <div className="pb-2">
-                  <ViewMore label={t('View All', 'عرض الكل')} />
-                </div>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-14 md:mt-16 md:gap-x-6 lg:grid-cols-4">
-              {PRODUCTS.slice(0, 8).map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 4) * 0.05 }}
-                >
-                  <ProductCard p={p} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 7. AI STUDIO — the page's one modern, dark, image-led moment   */}
-        {/* ============================================================ */}
-        <section data-testid="ai-studio" style={{ backgroundColor: INK, color: CREAM }}>
-          <div className="grid lg:grid-cols-2">
-            {/* visual */}
-            <Reveal className="relative overflow-hidden">
-              <img
-                src={AI_STUDIO.img}
-                alt={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
-                className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[680px]"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#171512] via-[#171512]/10 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
-              {/* floating "before → after" chip, purely decorative */}
-              <div className="absolute bottom-6 start-6 flex items-center gap-3 border border-white/25 bg-black/35 px-4 py-2.5 backdrop-blur-sm">
-                <span className="block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: OLIVE_LT }} />
-                <span
-                  className={`text-[10px] uppercase text-white ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
-                >
-                  {t('AI Preview', 'معاينة ذكية')}
-                </span>
-              </div>
-            </Reveal>
-
-            {/* copy */}
-            <div className="flex items-center">
-              <Reveal className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24" delay={0.1}>
-                <SectionHeading
-                  light
-                  eyebrow={t(`${AI_STUDIO.eyebrow.en} — 05`, `${AI_STUDIO.eyebrow.ar} — 05`)}
-                  title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
-                />
-                <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
-                  {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
-                </p>
-
-                {/* three numbered steps */}
-                <ol className="mt-10 max-w-md">
-                  {AI_STUDIO.steps.map((s, i) => (
-                    <li
-                      key={s.en}
-                      className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
-                    >
-                      <span
-                        className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
-                        style={{ color: OLIVE_LT }}
-                      >
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
-                    </li>
-                  ))}
-                </ol>
-
-                <button
-                  type="button"
-                  className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                  }`}
-                >
-                  {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
-                </button>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 8. CUSTOM FURNITURE MANUFACTURING                             */}
-        {/* ============================================================ */}
-        <section className="border-t" style={{ borderColor: HAIR }}>
-          <div className="grid lg:grid-cols-2">
-            {/* image sits on the opposite side to the AI Studio section above it,
-                so two consecutive split sections don't stack the same way.
-                Mobile keeps image-first; only the desktop columns swap. */}
-            <Reveal className="overflow-hidden lg:order-2">
-              <img
-                src={IMG.workshop}
-                alt={t('Diyar furniture workshop', 'ورشة ديار للأثاث')}
-                className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[620px]"
-              />
-            </Reveal>
-            <div className="flex items-center bg-white lg:order-1">
-              <Reveal className="px-6 py-16 md:px-16 lg:px-20 lg:py-24 xl:px-24" delay={0.1}>
-                <p
-                  className={`text-[11px] uppercase ${
-                    isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
-                  }`}
-                  style={{ color: OLIVE }}
-                >
-                  {t('Craftsmanship — 06', 'الحرفية — 06')}
-                </p>
-                <h2
-                  className={`mt-4 text-4xl font-extrabold uppercase md:text-5xl ${
-                    isAr
-                      ? "font-['Alexandria',sans-serif] leading-[1.15] tracking-normal"
-                      : "font-['Outfit',sans-serif] leading-[0.98] tracking-tight"
-                  }`}
-                >
-                  {t('Custom Furniture Manufacturing', 'تنفيذ الأثاث حسب الطلب')}
-                </h2>
-                <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
-                  {t(
-                    'We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and lifestyle.',
-                    'نحوّل رؤيتك إلى واقع من خلال أثاث يُصنع خصيصاً ليلائم مساحتك وذوقك وأسلوب حياتك.',
-                  )}
-                </p>
-                <div className="mt-9">
-                  <ViewMore />
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 9. SHOP THE LOOK — interactive room with product hotspots     */}
-        {/* ============================================================ */}
-        <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
-          {/* heading */}
-          <div className="mx-auto max-w-[1400px] px-6 py-20 pb-10 md:px-10 md:py-28 md:pb-14">
-            <Reveal>
-              <SectionHeading eyebrow={t('The Room — 07', 'الغرفة — 07')} title={t('Shop the Look', 'تسوق الغرفة')} />
-              <p
-                className={`mt-6 max-w-xl text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
-                  isAr ? 'tracking-normal' : 'tracking-[0.02em]'
-                }`}
-              >
-                {t(
-                  'Hover any point to explore the products in this space.',
-                  'مرّر المؤشر على أي نقطة لاستكشاف منتجات هذه المساحة.',
-                )}
-              </p>
-            </Reveal>
-          </div>
-
-          {/* the shoppable image — hero of the section */}
-          <div className="relative min-h-[75vh] w-full overflow-hidden">
-            <img
-              src={IMG.roomHotspots}
-              alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            {/* very light scrim so the white dots read on bright areas */}
-            <div className="pointer-events-none absolute inset-0 bg-black/10" />
-            {/* keeps the container at min-h even though the image is absolute */}
-            <div className="relative min-h-[75vh] w-full" />
-
-            {ROOM_HOTSPOTS.map((h, i) => (
-              <ShopHotspot
-                key={h.id}
-                h={h}
-                delay={i * 0.55}
-                open={openSpot === h.id}
-                onOpen={() => openSpotNow(h.id)}
-                onScheduleClose={scheduleSpotClose}
-                onToggle={() => toggleSpot(h.id)}
-              />
-            ))}
-          </div>
-
-          {/* design assistance panel — kept, now sitting under the shoppable image */}
-          <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
-            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-              <Reveal className="lg:col-span-6">
-                <p
-                  className={`text-[11px] uppercase ${
-                    isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
-                  }`}
-                  style={{ color: OLIVE }}
-                >
-                  {t('Design Studio', 'استوديو التصميم')}
-                </p>
-                <a
-                  href="#"
-                  className={`group/da mt-4 inline-flex flex-wrap items-center gap-4 text-3xl font-extrabold uppercase md:text-4xl ${
-                    isAr
-                      ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                      : "font-['Outfit',sans-serif] leading-[1.02] tracking-tight"
-                  }`}
-                >
-                  {t('Get Free Design Assistance', 'احصل على مساعدة التصميم مجاناً')}
-                  <ArrowRight
-                    size={30}
-                    strokeWidth={1.5}
-                    className={`transition-transform duration-300 ${
-                      isAr ? 'rotate-180 group-hover/da:-translate-x-2' : 'group-hover/da:translate-x-2'
-                    }`}
-                  />
-                </a>
-                <p
-                  className={`mt-6 max-w-md text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.04em]'
-                  }`}
-                >
-                  {t(
-                    'Our designers help you plan, style and furnish every room — at no cost.',
-                    'مصممونا يساعدونك في تخطيط كل غرفة وتنسيقها وتأثيثها — دون أي تكلفة.',
-                  )}
-                </p>
-                <div className="mt-8">
-                  <ViewMore label={t('Book a Free Session', 'احجز جلسة مجانية')} />
-                </div>
-              </Reveal>
-
-              {/* what's included */}
-              <Reveal className="lg:col-span-6" delay={0.15}>
-                <div className="border bg-white p-8 md:p-10" style={{ borderColor: HAIR }}>
-                  <p
-                    className={`text-[10px] uppercase text-neutral-400 ${
-                      isAr ? 'tracking-normal' : 'tracking-[0.3em]'
-                    }`}
-                  >
-                    {t("What's included", 'ما الذي تشمله الخدمة')}
-                  </p>
-                  <ul className="mt-4 sm:grid sm:grid-cols-2 sm:gap-x-8">
-                    {DESIGN_ASSIST_ITEMS.map((item) => (
-                      <li key={item.en} className="border-b py-3.5" style={{ borderColor: HAIR }}>
-                        <span className="text-[13px] font-medium">{t(item.en, item.ar)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 10. BEST SELLERS — compact ranked rail of the product card    */}
-        {/* ============================================================ */}
-        <section data-testid="best-sellers" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading
-                  eyebrow={t('Most Loved — 08', 'الأكثر تفضيلاً — 08')}
-                  title={t('Best Sellers', 'الأكثر مبيعاً')}
-                />
-                <div className="pb-2">
-                  <ViewMore label={t('View All', 'عرض الكل')} />
-                </div>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* rail: scrolls on small screens, settles into a row from lg */}
-          <div className="mx-auto mt-12 max-w-[1400px] px-6 md:mt-16 md:px-10">
-            <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
-              {PRODUCTS.slice(0, 4).map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink"
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                >
-                  <ProductCard p={p} rank={i + 1} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 11. FIND YOUR STYLE                                           */}
-        {/* ============================================================ */}
-        <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <SectionHeading eyebrow={t('Styles — 09', 'الأساليب — 09')} title={t('Find Your Style', 'اكتشف أسلوبك')} />
-            </Reveal>
-
-            {/* uneven editorial grid — middle tiles taller */}
-            <div className="mt-12 grid grid-cols-2 items-start gap-x-5 gap-y-12 md:mt-16 md:grid-cols-5 md:gap-x-6">
-              {STYLES.map((s, i) => {
-                const tall = i === 2 || i === 3;
-                return (
-                  <motion.div
-                    key={s.en}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-80px' }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                    className={i === STYLES.length - 1 ? 'col-span-2 md:col-span-1' : ''}
-                  >
-                    <a href="#" className={`group block ${tall ? '' : 'md:mt-14'}`}>
-                      <div
-                        className={`overflow-hidden ${
-                          i === STYLES.length - 1 ? 'aspect-[16/9] md:aspect-[3/4]' : tall ? 'aspect-[3/5]' : 'aspect-[3/4]'
-                        }`}
-                      >
-                        <img
-                          src={s.img}
-                          alt={isAr ? s.ar : s.en}
-                          className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                        />
-                      </div>
-                      <h3
-                        className={`mt-4 text-2xl ${
-                          isAr
-                            ? "font-['Alexandria',sans-serif] font-bold leading-snug"
-                            : "font-['Marcellus',serif] leading-none"
-                        }`}
-                      >
-                        {t(s.en, s.ar)}
-                      </h3>
-                      <p
-                        className={`mt-1.5 text-[10px] uppercase text-neutral-400 ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.26em]'
-                        }`}
-                      >
-                        {isAr ? `${formatSAR(s.count)} منتج` : `${formatSAR(s.count)} Products`}
-                      </p>
-                    </a>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 12. WHY DIYAR — type-led trust row on hairline rules          */}
-        {/* ============================================================ */}
-        <section data-testid="why-diyar" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <SectionHeading eyebrow={t('Our Promise — 10', 'وعدنا — 10')} title={t('Why Diyar', 'لماذا ديار')} />
-            </Reveal>
-
-            <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
-              {WHY_DIYAR.map((u, i) => (
-                <motion.div
-                  key={u.title.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                  className="border-t border-[#171512]/15 pt-8"
-                >
-                  <u.icon size={30} strokeWidth={1} className="text-[#5A6B4D]" />
-                  <h3
-                    className={`mt-6 font-bold uppercase ${
-                      isAr ? 'text-[14px] leading-relaxed tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
-                    }`}
-                  >
-                    {t(u.title.en, u.title.ar)}
-                  </h3>
-                  <p className="mt-3 text-[13.5px] font-light leading-relaxed text-neutral-600">
-                    {t(u.body.en, u.body.ar)}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 13. FEATURED STORES — the marketplace supply side              */}
-        {/* ============================================================ */}
-        <section data-testid="featured-stores" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading
-                  eyebrow={t('Marketplace — 11', 'المنصة — 11')}
-                  title={t('Featured Stores', 'متاجر مختارة')}
-                />
-                <div className="pb-2">
-                  <ViewMore label={t('All Stores', 'كل المتاجر')} />
-                </div>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 md:mt-16 md:gap-6 lg:grid-cols-4">
-              {STORES.map((s, i) => (
-                <motion.div
-                  key={s.name.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                >
-                  <div
-                    className="group flex h-full flex-col border bg-white transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)]"
-                    style={{ borderColor: HAIR }}
-                  >
-                    <div className="aspect-[3/2] overflow-hidden">
-                      <img
-                        src={s.cover}
-                        alt={isAr ? s.name.ar : s.name.en}
-                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                      />
-                    </div>
-
-                    <div className="relative flex flex-1 flex-col px-6 pb-6">
-                      {/* monogram badge overlapping the cover */}
-                      <span
-                        dir="ltr"
-                        className="absolute -top-7 start-6 flex h-14 w-14 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[15px] font-bold tracking-[0.06em] text-white"
-                        aria-hidden="true"
-                      >
-                        {s.initials}
-                      </span>
-
-                      <h3
-                        className={`mt-10 font-bold uppercase ${
-                          isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
-                        }`}
-                      >
-                        {t(s.name.en, s.name.ar)}
-                      </h3>
-                      <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
-                        {t(s.specialty.en, s.specialty.ar)}
-                      </p>
-
-                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <Stars rating={s.rating} />
-                        <span className="text-[12px] font-medium text-neutral-500">{s.rating}</span>
-                        <span
-                          className={`text-[10px] uppercase text-neutral-400 ${
-                            isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                          }`}
-                        >
-                          {isAr ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} Products`}
-                        </span>
-                      </div>
-
-                      <div className="mt-6 pt-1">
-                        <ViewMore label={t('Visit Store', 'زيارة المتجر')} />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 14. LOYALTY — calm tinted band, no photography                */}
-        {/* ============================================================ */}
-        <section
-          data-testid="loyalty"
-          className="border-t py-20 md:py-28"
-          style={{ borderColor: HAIR, backgroundColor: TILE }}
-        >
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-              <Reveal className="lg:col-span-5">
-                <SectionHeading
-                  eyebrow={t(`${LOYALTY.eyebrow.en} — 12`, `${LOYALTY.eyebrow.ar} — 12`)}
-                  title={t(LOYALTY.title.en, LOYALTY.title.ar)}
-                />
-                <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
-                  {t(LOYALTY.body.en, LOYALTY.body.ar)}
-                </p>
-                <button
-                  type="button"
-                  className={`mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                  }`}
-                >
-                  {t(LOYALTY.cta.en, LOYALTY.cta.ar)}
-                </button>
-              </Reveal>
-
-              <div className="lg:col-span-7 lg:pt-3">
-                {LOYALTY.perks.map((p, i) => (
-                  <motion.div
-                    key={p.title.en}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-80px' }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                    className="flex items-start gap-5 border-t py-7 last:border-b sm:gap-7"
-                    style={{ borderColor: '#DED8CB' }}
-                  >
-                    <p.icon size={26} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
-                    <div className="min-w-0">
-                      <h3
-                        className={`font-bold uppercase ${
-                          isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
-                        }`}
-                      >
-                        {t(p.title.en, p.title.ar)}
-                      </h3>
-                      <p className="mt-2 text-[13.5px] font-light leading-relaxed text-neutral-600">
-                        {t(p.body.en, p.body.ar)}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 15. REVIEWS — dark typographic band, no avatars               */}
-        {/* ============================================================ */}
-        <section
-          data-testid="reviews"
-          className="py-20 md:py-28"
-          style={{ backgroundColor: NIGHT, color: CREAM }}
-        >
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <SectionHeading
-                light
-                eyebrow={t('Customers — 13', 'عملاؤنا — 13')}
-                title={t('What They Say', 'ماذا يقولون')}
-              />
-            </Reveal>
-
-            <div className="mt-12 grid gap-x-6 gap-y-8 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
-              {REVIEWS.map((r, i) => (
-                <motion.div
-                  key={r.name.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                  className="flex h-full flex-col border border-white/12 p-7"
-                >
-                  <Stars light rating={r.rating} />
-                  <p className="mt-6 flex-1 text-[14px] font-light leading-relaxed text-[#F6F3EC]/75">
-                    {t(r.text.en, r.text.ar)}
-                  </p>
-                  <div className="mt-7 border-t border-white/12 pt-5">
-                    <p
-                      className={`font-bold uppercase ${
-                        isAr ? 'text-[13px] tracking-normal' : 'text-[11.5px] tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(r.name.en, r.name.ar)}
-                    </p>
-                    <p
-                      className={`mt-1.5 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.24em]'}`}
-                      style={{ color: OLIVE_LT }}
-                    >
-                      {t(r.city.en, r.city.ar)}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 16. DESIGN BLOG — editorial cards                             */}
-        {/* ============================================================ */}
-        <section data-testid="design-blog" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading
-                  eyebrow={t('Journal — 14', 'المدونة — 14')}
-                  title={t('The Design Blog', 'مدونة التصميم')}
-                />
-                <div className="pb-2">
-                  <ViewMore label={t('All Articles', 'كل المقالات')} />
-                </div>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid gap-x-6 gap-y-12 md:mt-16 md:grid-cols-3">
-              {BLOG_POSTS.map((post, i) => (
-                <motion.article
-                  key={post.title.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                  className="group flex h-full flex-col"
-                >
-                  <a href="#" className="block overflow-hidden">
-                    <div className="aspect-[4/3] overflow-hidden">
-                      <img
-                        src={post.img}
-                        alt={isAr ? post.title.ar : post.title.en}
-                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                      />
-                    </div>
-                  </a>
-                  <p
-                    className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
-                    style={{ color: OLIVE }}
-                  >
-                    {t(post.category.en, post.category.ar)}
-                  </p>
-                  <h3
-                    className={`mt-3 text-2xl ${
-                      isAr
-                        ? "font-['Alexandria',sans-serif] font-bold leading-snug"
-                        : "font-['Marcellus',serif] leading-tight"
-                    }`}
-                  >
-                    <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
-                      {t(post.title.en, post.title.ar)}
-                    </a>
-                  </h3>
-                  <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
-                    {t(post.excerpt.en, post.excerpt.ar)}
-                  </p>
-                  <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                    <ViewMore label={t('Read Article', 'اقرأ المقال')} />
-                    <span
-                      className={`text-[10px] uppercase text-neutral-400 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.22em]'
-                      }`}
-                    >
-                      {isAr ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
-                    </span>
-                  </div>
-                </motion.article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 17. B2B TEASER                                                */}
-        {/* ============================================================ */}
-        <section className="relative overflow-hidden">
-          <img
-            src={IMG.loungeDark}
-            alt={t('Commercial lounge project', 'مشروع صالة تجارية')}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/60" />
-          <div className="relative mx-auto flex min-h-[62vh] max-w-[1400px] flex-col items-center justify-center px-6 py-28 text-center text-white md:px-10">
-            <Reveal>
-              <h2
-                className={`text-4xl uppercase md:text-5xl ${
-                  isAr
-                    ? "font-['Alexandria',sans-serif] font-extrabold leading-[1.2] tracking-normal"
-                    : "font-['Marcellus',serif] tracking-[0.06em]"
-                }`}
-              >
-                {t('Turnkey Project Solutions', 'حلول متكاملة للشركات والمشاريع')}
-              </h2>
-              <p
-                className={`mx-auto mt-6 max-w-xl text-sm font-light text-white/80 md:text-base ${
-                  isAr ? 'tracking-normal' : 'tracking-[0.06em]'
-                }`}
-              >
-                {t(
-                  'Design, build & deliver — we manage every stage of your project.',
-                  'نصمّم وننفّذ ونسلّم — ندير كل مرحلة من مراحل مشروعك.',
-                )}
-              </p>
-              <div className="mt-10">
-                <a
-                  href="#"
-                  className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11px] uppercase text-white transition-colors hover:border-white ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.3em]'
-                  }`}
-                >
-                  {t('Request a Consultation', 'اطلب استشارة')}
-                  <ArrowRight
-                    size={12}
-                    strokeWidth={1.5}
-                    className={`transition-transform duration-300 ${
-                      isAr ? 'rotate-180 group-hover/b2b:-translate-x-1' : 'group-hover/b2b:translate-x-1'
-                    }`}
-                  />
-                </a>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 18. BECOME A PARTNER — three roles + a dark dashboard strip    */}
-        {/* ============================================================ */}
-        <section data-testid="partner" className="py-20 md:py-28">
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
-                <div className="lg:col-span-7">
-                  <SectionHeading
-                    eyebrow={t(`${PARTNER.eyebrow.en} — 15`, `${PARTNER.eyebrow.ar} — 15`)}
-                    title={t(PARTNER.title.en, PARTNER.title.ar)}
-                  />
-                </div>
-                <p className="max-w-md self-end text-[15px] font-light leading-relaxed text-neutral-600 lg:col-span-5">
-                  {t(PARTNER.body.en, PARTNER.body.ar)}
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid gap-5 md:mt-16 md:gap-6 lg:grid-cols-3">
-              {PARTNER.roles.map((role, i) => (
-                <motion.div
-                  key={role.title.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                >
-                  <div
-                    className="flex h-full flex-col border bg-white p-8 transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)] md:p-10"
-                    style={{ borderColor: HAIR }}
-                  >
-                    <role.icon size={32} strokeWidth={1} className="text-[#5A6B4D]" />
-                    <h3
-                      className={`mt-7 font-bold uppercase ${
-                        isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(role.title.en, role.title.ar)}
-                    </h3>
-                    <p className="mt-3 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
-                      {t(role.body.en, role.body.ar)}
-                    </p>
-                    <div className="mt-7">
-                      <ViewMore label={t(role.cta.en, role.cta.ar)} />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* dashboard strip — one dark note to close the pitch */}
-            <Reveal delay={0.1}>
-              <div
-                className="mt-6 flex flex-col gap-7 p-8 md:flex-row md:items-center md:justify-between md:gap-10 md:p-12"
-                style={{ backgroundColor: INK, color: CREAM }}
-              >
-                <div className="max-w-xl">
-                  <h3
-                    className={`font-extrabold uppercase ${
-                      isAr
-                        ? "font-['Alexandria',sans-serif] text-2xl leading-snug tracking-normal"
-                        : "font-['Outfit',sans-serif] text-2xl leading-tight tracking-tight md:text-3xl"
-                    }`}
-                  >
-                    {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
-                  </h3>
-                  <p className="mt-3 text-[14px] font-light leading-relaxed text-[#F6F3EC]/65">
-                    {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                  }`}
-                >
-                  {t(PARTNER.dashboard.cta.en, PARTNER.dashboard.cta.ar)}
-                </button>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 19. APP PROMO                                                 */}
-        {/* ============================================================ */}
-        <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-              <Reveal className="lg:col-span-5">
-                <div className="overflow-hidden" style={{ backgroundColor: TILE }}>
-                  <img
-                    src={APP_PROMO.img}
-                    alt={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
-                    className="aspect-[4/5] h-full w-full object-cover"
-                  />
-                </div>
-              </Reveal>
-
-              <Reveal className="lg:col-span-7" delay={0.1}>
-                <SectionHeading
-                  eyebrow={t(`${APP_PROMO.eyebrow.en} — 16`, `${APP_PROMO.eyebrow.ar} — 16`)}
-                  title={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
-                />
-                <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-neutral-600">
-                  {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
-                </p>
-
-                <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
-                  {APP_PROMO.features.map((f, i) => (
-                    <motion.div
-                      key={f.title.en}
-                      initial={{ opacity: 0, y: 24 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: '-80px' }}
-                      transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                      className="flex items-start gap-4"
-                    >
-                      <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
-                      <div className="min-w-0">
-                        <h3
-                          className={`font-bold uppercase ${
-                            isAr ? 'text-[13.5px] tracking-normal' : 'text-[12px] tracking-[0.18em]'
-                          }`}
-                        >
-                          {t(f.title.en, f.title.ar)}
-                        </h3>
-                        <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
-                          {t(f.body.en, f.body.ar)}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <div className="mt-11 flex flex-wrap gap-4">
-                  {[
-                    { label: 'App Store', sub: t('Download on the', 'حمّله من') },
-                    { label: 'Google Play', sub: t('Get it on', 'احصل عليه من') },
-                  ].map((store) => (
-                    <button
-                      key={store.label}
-                      type="button"
-                      className="bg-[#171512] px-9 py-3.5 text-start text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
-                    >
-                      <span
-                        className={`block text-[9px] uppercase text-white/60 ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.22em]'
-                        }`}
-                      >
-                        {store.sub}
-                      </span>
-                      <span
-                        dir="ltr"
-                        className={`mt-1 block font-['Outfit',sans-serif] text-[13px] font-semibold uppercase ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.14em]'
-                        }`}
-                      >
-                        {store.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 20. FOOTER                                                    */}
-        {/* ============================================================ */}
-        <footer style={{ backgroundColor: '#14120F', color: '#EFE9DD' }}>
+        <footer data-testid="look-footer" style={{ backgroundColor: NIGHT, color: '#EFE9DD' }}>
           <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-10 md:py-20">
             <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
               {/* brand */}
               <div className="lg:col-span-4">
-                <img src="/logo_diyar.svg" alt="Diyar" className="h-8 w-auto invert" />
+                <Link to={lookBase(1)} aria-label="Diyar" className="inline-block">
+                  <img src="/logo_diyar.svg" alt="Diyar" className="h-8 w-auto invert" />
+                </Link>
                 <p className="mt-6 max-w-sm text-sm font-light leading-relaxed text-[#EFE9DD]/60">
                   {t(FOOTER_LINKS.about, FOOTER_LINKS.aboutAr)}
                 </p>
@@ -2342,13 +1144,23 @@ export default function LookOne() {
                   {t('Quick Links', 'روابط سريعة')}
                 </h4>
                 <ul className="mt-6 space-y-3.5">
-                  {FOOTER_QUICK.map((l) => (
-                    <li key={l.en}>
-                      <a href="#" className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
-                        {t(l.en, l.ar)}
-                      </a>
-                    </li>
-                  ))}
+                  {FOOTER_QUICK.map((l) => {
+                    const cls = 'text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]';
+                    const to = l.en === 'Home' ? lookBase(1) : l.en === 'Shop' ? searchPath(1) : null;
+                    return (
+                      <li key={l.en}>
+                        {to ? (
+                          <Link to={to} className={cls}>
+                            {t(l.en, l.ar)}
+                          </Link>
+                        ) : (
+                          <a href="#" className={cls}>
+                            {t(l.en, l.ar)}
+                          </a>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
 
@@ -2415,8 +1227,1213 @@ export default function LookOne() {
           </div>
         </footer>
 
-        <LookSwitcher />
+        {/* the product page carries a sticky buy bar on phones — lift the pill above it */}
+        <LookSwitcher raiseOnMobile={pathname.includes('/product/')} />
       </div>
-    </LangContext.Provider>
+    </LookContext.Provider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Home page                                                           */
+/* ------------------------------------------------------------------ */
+export function LookOneHome() {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const [slide, setSlide] = useState(0);
+
+  /* shop-the-look: one open product card at a time, with a small close grace period */
+  const [openSpot, setOpenSpot] = useState<string | null>(null);
+  const spotTimer = useRef<number | null>(null);
+  const cancelSpotClose = () => {
+    if (spotTimer.current !== null) {
+      window.clearTimeout(spotTimer.current);
+      spotTimer.current = null;
+    }
+  };
+  const scheduleSpotClose = () => {
+    cancelSpotClose();
+    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 120);
+  };
+  const openSpotNow = (id: string) => {
+    cancelSpotClose();
+    setOpenSpot(id);
+  };
+  const toggleSpot = (id: string) => {
+    cancelSpotClose();
+    setOpenSpot((s) => (s === id ? null : id));
+  };
+  useEffect(() => {
+    return () => {
+      if (spotTimer.current !== null) window.clearTimeout(spotTimer.current);
+    };
+  }, []);
+  useEffect(() => {
+    if (openSpot === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenSpot(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openSpot]);
+
+  /* hero auto-advance (resets after manual navigation too) */
+  useEffect(() => {
+    const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
+    return () => clearInterval(id);
+  }, [slide]);
+
+  const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
+
+  return (
+    <div data-testid="home-page">
+      {/* ============================================================ */}
+      {/* 2. HERO SLIDER                                                */}
+      {/* ============================================================ */}
+      <section className="relative h-[88vh] min-h-[560px] overflow-hidden bg-[#171512]">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={slide}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.1, ease: 'easeInOut' }}
+          >
+            <motion.img
+              src={HERO_SLIDES[slide].img}
+              alt={isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
+              className="h-full w-full object-cover"
+              initial={{ scale: 1.06 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 6.5, ease: 'linear' }}
+            />
+            {/* subtle bottom gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
+
+            <div className="absolute inset-0 flex items-end">
+              <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
+                <motion.div
+                  className="max-w-2xl text-white"
+                  initial={{ opacity: 0, y: 28 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
+                >
+                  <p
+                    className={`mb-5 text-[11px] uppercase text-white/85 ${
+                      isAr ? 'tracking-normal' : 'tracking-[0.4em]'
+                    }`}
+                  >
+                    {isAr ? HERO_SLIDES[slide].tagAr : HERO_SLIDES[slide].tag}
+                  </p>
+                  <h1
+                    className={`mb-9 text-4xl font-extrabold uppercase md:text-6xl ${
+                      isAr
+                        ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
+                        : "font-['Outfit',sans-serif] leading-[1.04] tracking-tight"
+                    }`}
+                  >
+                    {isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
+                  </h1>
+                  <Link
+                    to={searchPath(1)}
+                    className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                      isAr ? 'tracking-normal' : 'tracking-[0.32em]'
+                    }`}
+                  >
+                    {t('Shop Now', 'تسوق الآن')}
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* static chrome: indicators + chevrons */}
+        <div className="absolute inset-x-0 bottom-9 z-10">
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
+            <div className="flex items-center gap-6">
+              {HERO_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={isAr ? `الانتقال إلى الشريحة ${i + 1}` : `Go to slide ${i + 1}`}
+                  onClick={() => setSlide(i)}
+                  className={`flex items-center gap-2.5 text-sm font-light transition-colors ${
+                    i === slide ? 'text-white' : 'text-white/45 hover:text-white/75'
+                  }`}
+                >
+                  {i + 1}
+                  <span
+                    className={`block h-px bg-white transition-all duration-500 ${i === slide ? 'w-9' : 'w-0'}`}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="hidden items-center gap-3 md:flex">
+              <button
+                type="button"
+                aria-label={t('Previous slide', 'الشريحة السابقة')}
+                onClick={prev}
+                className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
+              >
+                <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
+              </button>
+              <button
+                type="button"
+                aria-label={t('Next slide', 'الشريحة التالية')}
+                onClick={next}
+                className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
+              >
+                <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 3. FEATURED CATEGORIES                                        */}
+      {/* ============================================================ */}
+      <section className="py-20 md:py-28">
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <SectionHeading
+              eyebrow={t('Collection — 01', 'التشكيلة — 01')}
+              title={t('Featured Categories', 'أبرز التصنيفات')}
+            />
+          </Reveal>
+        </div>
+
+        <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10">
+          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10">
+            {CATEGORIES.map((c, i) => (
+              <motion.div
+                key={c.en}
+                className="aspect-[3/4] w-[72vw] shrink-0 snap-start sm:w-[320px] md:w-[356px]"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+              >
+                <Link to={searchPath(1, { category: c.key })} className="group relative block h-full w-full overflow-hidden">
+                  <img
+                    src={c.img}
+                    alt={isAr ? c.ar : c.en}
+                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-7 text-white">
+                    <p
+                      className={`text-lg font-light uppercase leading-tight md:text-xl ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                      }`}
+                    >
+                      {t(c.en, c.ar)}
+                    </p>
+                    <div className="mt-5">
+                      <span
+                        className={`group/vm inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11px] uppercase text-white transition-colors group-hover:border-white ${
+                          isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                        }`}
+                      >
+                        {t('View More', 'عرض المزيد')}
+                        <ArrowRight
+                          size={12}
+                          strokeWidth={1.5}
+                          className={`transition-transform duration-300 ${
+                            isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'
+                          }`}
+                        />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 4. SHOP BY ROOM — landscape tiles with an overlapping plaque  */}
+      {/* ============================================================ */}
+      <section data-testid="shop-by-room" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading eyebrow={t('Rooms — 02', 'الغرف — 02')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
+              <div className="pb-2">
+                <ViewMore label={t('All Rooms', 'كل الغرف')} to={searchPath(1)} />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 md:mt-16 md:gap-x-6 lg:grid-cols-3">
+            {ROOMS.map((r, i) => (
+              <motion.div
+                key={r.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 3) * 0.05 }}
+              >
+                <Link to={searchPath(1, { room: r.key })} className="group block">
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={r.img}
+                      alt={isAr ? r.ar : r.en}
+                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                    />
+                  </div>
+                  {/* white plaque sitting over the bottom edge of the photo */}
+                  <div
+                    className="relative z-10 -mt-9 flex items-baseline justify-between gap-3 border bg-white px-5 py-4 transition-colors duration-300 group-hover:border-[#5A6B4D] ms-5 me-5"
+                    style={{ borderColor: HAIR }}
+                  >
+                    <span
+                      className={`min-w-0 truncate font-bold uppercase ${
+                        isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
+                      }`}
+                    >
+                      {t(r.en, r.ar)}
+                    </span>
+                    <span
+                      className={`shrink-0 text-[10px] uppercase text-neutral-400 ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                      }`}
+                    >
+                      {isAr ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} Pieces`}
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 5. SERVICES                                                   */}
+      {/* ============================================================ */}
+      <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <SectionHeading eyebrow={t('Services — 03', 'الخدمات — 03')} title={t('Our Services', 'خدماتنا')} />
+          </Reveal>
+
+          {/* hairline matrix: the cells give the small items structure so they
+              don't float in the whitespace under the oversized section title */}
+          <div
+            className="mt-14 grid grid-cols-2 border-t border-s md:mt-20 lg:grid-cols-4"
+            style={{ borderColor: HAIR }}
+          >
+            {SERVICES.map((s, i) => (
+              <motion.div
+                key={s.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                className="border-b border-e"
+                style={{ borderColor: HAIR }}
+              >
+                <div className="flex h-full flex-col items-center px-5 py-12 text-center md:px-8 md:py-14">
+                  <s.icon size={44} strokeWidth={1} className="text-[#5A6B4D]" />
+                  <h3
+                    className={`mt-7 font-bold uppercase ${
+                      isAr
+                        ? 'text-[15px] leading-relaxed tracking-normal'
+                        : 'text-[13.5px] leading-relaxed tracking-[0.18em]'
+                    }`}
+                  >
+                    {t(s.en, s.ar)}
+                  </h3>
+                  <div className="mt-5">
+                    <ViewMore />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 6. NEW PRODUCTS                                               */}
+      {/* ============================================================ */}
+      <section data-testid="new-products" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading eyebrow={t('New In — 04', 'جديدنا — 04')} title={t('New Products', 'وصل حديثاً')} />
+              <div className="pb-2">
+                <ViewMore label={t('View All', 'عرض الكل')} to={searchPath(1, { sort: 'newest' })} />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-14 md:mt-16 md:gap-x-6 lg:grid-cols-4">
+            {PRODUCTS.slice(0, 8).map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 4) * 0.05 }}
+              >
+                <ProductCard p={p} testId="home-product-card" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 7. AI STUDIO — the page's one modern, dark, image-led moment   */}
+      {/* ============================================================ */}
+      <section data-testid="ai-studio" style={{ backgroundColor: INK, color: CREAM }}>
+        <div className="grid lg:grid-cols-2">
+          {/* visual */}
+          <Reveal className="relative overflow-hidden">
+            <img
+              src={AI_STUDIO.img}
+              alt={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
+              className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[680px]"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#171512] via-[#171512]/10 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
+            {/* floating "before → after" chip, purely decorative */}
+            <div className="absolute bottom-6 start-6 flex items-center gap-3 border border-white/25 bg-black/35 px-4 py-2.5 backdrop-blur-sm">
+              <span className="block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: OLIVE_LT }} />
+              <span
+                className={`text-[10px] uppercase text-white ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
+              >
+                {t('AI Preview', 'معاينة ذكية')}
+              </span>
+            </div>
+          </Reveal>
+
+          {/* copy */}
+          <div className="flex items-center">
+            <Reveal className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24" delay={0.1}>
+              <SectionHeading
+                light
+                eyebrow={t(`${AI_STUDIO.eyebrow.en} — 05`, `${AI_STUDIO.eyebrow.ar} — 05`)}
+                title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
+              />
+              <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
+                {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
+              </p>
+
+              {/* three numbered steps */}
+              <ol className="mt-10 max-w-md">
+                {AI_STUDIO.steps.map((s, i) => (
+                  <li
+                    key={s.en}
+                    className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
+                  >
+                    <span
+                      className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
+                      style={{ color: OLIVE_LT }}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <button
+                type="button"
+                className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                }`}
+              >
+                {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
+              </button>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 8. CUSTOM FURNITURE MANUFACTURING                             */}
+      {/* ============================================================ */}
+      <section className="border-t" style={{ borderColor: HAIR }}>
+        <div className="grid lg:grid-cols-2">
+          {/* image sits on the opposite side to the AI Studio section above it,
+              so two consecutive split sections don't stack the same way.
+              Mobile keeps image-first; only the desktop columns swap. */}
+          <Reveal className="overflow-hidden lg:order-2">
+            <img
+              src={IMG.workshop}
+              alt={t('Diyar furniture workshop', 'ورشة ديار للأثاث')}
+              className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[620px]"
+            />
+          </Reveal>
+          <div className="flex items-center bg-white lg:order-1">
+            <Reveal className="px-6 py-16 md:px-16 lg:px-20 lg:py-24 xl:px-24" delay={0.1}>
+              <p
+                className={`text-[11px] uppercase ${
+                  isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
+                }`}
+                style={{ color: OLIVE }}
+              >
+                {t('Craftsmanship — 06', 'الحرفية — 06')}
+              </p>
+              <h2
+                className={`mt-4 text-4xl font-extrabold uppercase md:text-5xl ${
+                  isAr
+                    ? "font-['Alexandria',sans-serif] leading-[1.15] tracking-normal"
+                    : "font-['Outfit',sans-serif] leading-[0.98] tracking-tight"
+                }`}
+              >
+                {t('Custom Furniture Manufacturing', 'تنفيذ الأثاث حسب الطلب')}
+              </h2>
+              <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
+                {t(
+                  'We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and lifestyle.',
+                  'نحوّل رؤيتك إلى واقع من خلال أثاث يُصنع خصيصاً ليلائم مساحتك وذوقك وأسلوب حياتك.',
+                )}
+              </p>
+              <div className="mt-9">
+                <ViewMore />
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 9. SHOP THE LOOK — interactive room with product hotspots     */}
+      {/* ============================================================ */}
+      <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
+        {/* heading */}
+        <div className="mx-auto max-w-[1400px] px-6 py-20 pb-10 md:px-10 md:py-28 md:pb-14">
+          <Reveal>
+            <SectionHeading eyebrow={t('The Room — 07', 'الغرفة — 07')} title={t('Shop the Look', 'تسوق الغرفة')} />
+            <p
+              className={`mt-6 max-w-xl text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
+                isAr ? 'tracking-normal' : 'tracking-[0.02em]'
+              }`}
+            >
+              {t(
+                'Hover any point to explore the products in this space.',
+                'مرّر المؤشر على أي نقطة لاستكشاف منتجات هذه المساحة.',
+              )}
+            </p>
+          </Reveal>
+        </div>
+
+        {/* the shoppable image — hero of the section */}
+        <div className="relative min-h-[75vh] w-full overflow-hidden">
+          <img
+            src={IMG.roomHotspots}
+            alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {/* very light scrim so the white dots read on bright areas */}
+          <div className="pointer-events-none absolute inset-0 bg-black/10" />
+          {/* keeps the container at min-h even though the image is absolute */}
+          <div className="relative min-h-[75vh] w-full" />
+
+          {ROOM_HOTSPOTS.map((h, i) => (
+            <ShopHotspot
+              key={h.id}
+              h={h}
+              delay={i * 0.55}
+              open={openSpot === h.id}
+              onOpen={() => openSpotNow(h.id)}
+              onScheduleClose={scheduleSpotClose}
+              onToggle={() => toggleSpot(h.id)}
+            />
+          ))}
+        </div>
+
+        {/* design assistance panel — kept, now sitting under the shoppable image */}
+        <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+            <Reveal className="lg:col-span-6">
+              <p
+                className={`text-[11px] uppercase ${
+                  isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
+                }`}
+                style={{ color: OLIVE }}
+              >
+                {t('Design Studio', 'استوديو التصميم')}
+              </p>
+              <a
+                href="#"
+                className={`group/da mt-4 inline-flex flex-wrap items-center gap-4 text-3xl font-extrabold uppercase md:text-4xl ${
+                  isAr
+                    ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
+                    : "font-['Outfit',sans-serif] leading-[1.02] tracking-tight"
+                }`}
+              >
+                {t('Get Free Design Assistance', 'احصل على مساعدة التصميم مجاناً')}
+                <ArrowRight
+                  size={30}
+                  strokeWidth={1.5}
+                  className={`transition-transform duration-300 ${
+                    isAr ? 'rotate-180 group-hover/da:-translate-x-2' : 'group-hover/da:translate-x-2'
+                  }`}
+                />
+              </a>
+              <p
+                className={`mt-6 max-w-md text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.04em]'
+                }`}
+              >
+                {t(
+                  'Our designers help you plan, style and furnish every room — at no cost.',
+                  'مصممونا يساعدونك في تخطيط كل غرفة وتنسيقها وتأثيثها — دون أي تكلفة.',
+                )}
+              </p>
+              <div className="mt-8">
+                <ViewMore label={t('Book a Free Session', 'احجز جلسة مجانية')} />
+              </div>
+            </Reveal>
+
+            {/* what's included */}
+            <Reveal className="lg:col-span-6" delay={0.15}>
+              <div className="border bg-white p-8 md:p-10" style={{ borderColor: HAIR }}>
+                <p
+                  className={`text-[10px] uppercase text-neutral-400 ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.3em]'
+                  }`}
+                >
+                  {t("What's included", 'ما الذي تشمله الخدمة')}
+                </p>
+                <ul className="mt-4 sm:grid sm:grid-cols-2 sm:gap-x-8">
+                  {DESIGN_ASSIST_ITEMS.map((item) => (
+                    <li key={item.en} className="border-b py-3.5" style={{ borderColor: HAIR }}>
+                      <span className="text-[13px] font-medium">{t(item.en, item.ar)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 10. BEST SELLERS — compact ranked rail of the product card    */}
+      {/* ============================================================ */}
+      <section data-testid="best-sellers" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading
+                eyebrow={t('Most Loved — 08', 'الأكثر تفضيلاً — 08')}
+                title={t('Best Sellers', 'الأكثر مبيعاً')}
+              />
+              <div className="pb-2">
+                <ViewMore label={t('View All', 'عرض الكل')} to={searchPath(1, { sort: 'rating' })} />
+              </div>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* rail: scrolls on small screens, settles into a row from lg */}
+        <div className="mx-auto mt-12 max-w-[1400px] px-6 md:mt-16 md:px-10">
+          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
+            {PRODUCTS.slice(0, 4).map((p, i) => (
+              <motion.div
+                key={p.id}
+                className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+              >
+                <ProductCard p={p} rank={i + 1} testId="home-product-card" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 11. FIND YOUR STYLE                                           */}
+      {/* ============================================================ */}
+      <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <SectionHeading eyebrow={t('Styles — 09', 'الأساليب — 09')} title={t('Find Your Style', 'اكتشف أسلوبك')} />
+          </Reveal>
+
+          {/* uneven editorial grid — middle tiles taller */}
+          <div className="mt-12 grid grid-cols-2 items-start gap-x-5 gap-y-12 md:mt-16 md:grid-cols-5 md:gap-x-6">
+            {STYLES.map((s, i) => {
+              const tall = i === 2 || i === 3;
+              return (
+                <motion.div
+                  key={s.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                  className={i === STYLES.length - 1 ? 'col-span-2 md:col-span-1' : ''}
+                >
+                  <Link to={searchPath(1, { style: s.key })} className={`group block ${tall ? '' : 'md:mt-14'}`}>
+                    <div
+                      className={`overflow-hidden ${
+                        i === STYLES.length - 1 ? 'aspect-[16/9] md:aspect-[3/4]' : tall ? 'aspect-[3/5]' : 'aspect-[3/4]'
+                      }`}
+                    >
+                      <img
+                        src={s.img}
+                        alt={isAr ? s.ar : s.en}
+                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                      />
+                    </div>
+                    <h3
+                      className={`mt-4 text-2xl ${
+                        isAr
+                          ? "font-['Alexandria',sans-serif] font-bold leading-snug"
+                          : "font-['Marcellus',serif] leading-none"
+                      }`}
+                    >
+                      {t(s.en, s.ar)}
+                    </h3>
+                    <p
+                      className={`mt-1.5 text-[10px] uppercase text-neutral-400 ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.26em]'
+                      }`}
+                    >
+                      {isAr ? `${formatSAR(s.count)} منتج` : `${formatSAR(s.count)} Products`}
+                    </p>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 12. WHY DIYAR — type-led trust row on hairline rules          */}
+      {/* ============================================================ */}
+      <section data-testid="why-diyar" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <SectionHeading eyebrow={t('Our Promise — 10', 'وعدنا — 10')} title={t('Why Diyar', 'لماذا ديار')} />
+          </Reveal>
+
+          <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
+            {WHY_DIYAR.map((u, i) => (
+              <motion.div
+                key={u.title.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                className="border-t border-[#171512]/15 pt-8"
+              >
+                <u.icon size={30} strokeWidth={1} className="text-[#5A6B4D]" />
+                <h3
+                  className={`mt-6 font-bold uppercase ${
+                    isAr ? 'text-[14px] leading-relaxed tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
+                  }`}
+                >
+                  {t(u.title.en, u.title.ar)}
+                </h3>
+                <p className="mt-3 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                  {t(u.body.en, u.body.ar)}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 13. FEATURED STORES — the marketplace supply side              */}
+      {/* ============================================================ */}
+      <section data-testid="featured-stores" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading
+                eyebrow={t('Marketplace — 11', 'المنصة — 11')}
+                title={t('Featured Stores', 'متاجر مختارة')}
+              />
+              <div className="pb-2">
+                <ViewMore label={t('All Stores', 'كل المتاجر')} to={searchPath(1)} />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 md:mt-16 md:gap-6 lg:grid-cols-4">
+            {STORES.map((s, i) => (
+              <motion.div
+                key={s.name.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+              >
+                <div
+                  className="group flex h-full flex-col border bg-white transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)]"
+                  style={{ borderColor: HAIR }}
+                >
+                  <Link to={searchPath(1, { store: s.key })} className="block aspect-[3/2] overflow-hidden">
+                    <img
+                      src={s.cover}
+                      alt={isAr ? s.name.ar : s.name.en}
+                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                    />
+                  </Link>
+
+                  <div className="relative flex flex-1 flex-col px-6 pb-6">
+                    {/* monogram badge overlapping the cover */}
+                    <span
+                      dir="ltr"
+                      className="absolute -top-7 start-6 flex h-14 w-14 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[15px] font-bold tracking-[0.06em] text-white"
+                      aria-hidden="true"
+                    >
+                      {s.initials}
+                    </span>
+
+                    <h3
+                      className={`mt-10 font-bold uppercase ${
+                        isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
+                      }`}
+                    >
+                      {t(s.name.en, s.name.ar)}
+                    </h3>
+                    <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
+                      {t(s.specialty.en, s.specialty.ar)}
+                    </p>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <Stars rating={s.rating} />
+                      <span className="text-[12px] font-medium text-neutral-500">{s.rating}</span>
+                      <span
+                        className={`text-[10px] uppercase text-neutral-400 ${
+                          isAr ? 'tracking-normal' : 'tracking-[0.2em]'
+                        }`}
+                      >
+                        {isAr ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} Products`}
+                      </span>
+                    </div>
+
+                    <div className="mt-6 pt-1">
+                      <ViewMore label={t('Visit Store', 'زيارة المتجر')} to={searchPath(1, { store: s.key })} />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 14. LOYALTY — calm tinted band, no photography                */}
+      {/* ============================================================ */}
+      <section
+        data-testid="loyalty"
+        className="border-t py-20 md:py-28"
+        style={{ borderColor: HAIR, backgroundColor: TILE }}
+      >
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+            <Reveal className="lg:col-span-5">
+              <SectionHeading
+                eyebrow={t(`${LOYALTY.eyebrow.en} — 12`, `${LOYALTY.eyebrow.ar} — 12`)}
+                title={t(LOYALTY.title.en, LOYALTY.title.ar)}
+              />
+              <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
+                {t(LOYALTY.body.en, LOYALTY.body.ar)}
+              </p>
+              <button
+                type="button"
+                className={`mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                }`}
+              >
+                {t(LOYALTY.cta.en, LOYALTY.cta.ar)}
+              </button>
+            </Reveal>
+
+            <div className="lg:col-span-7 lg:pt-3">
+              {LOYALTY.perks.map((p, i) => (
+                <motion.div
+                  key={p.title.en}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                  className="flex items-start gap-5 border-t py-7 last:border-b sm:gap-7"
+                  style={{ borderColor: '#DED8CB' }}
+                >
+                  <p.icon size={26} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
+                  <div className="min-w-0">
+                    <h3
+                      className={`font-bold uppercase ${
+                        isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
+                      }`}
+                    >
+                      {t(p.title.en, p.title.ar)}
+                    </h3>
+                    <p className="mt-2 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                      {t(p.body.en, p.body.ar)}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 15. REVIEWS — dark typographic band, no avatars               */}
+      {/* ============================================================ */}
+      <section
+        data-testid="reviews"
+        className="py-20 md:py-28"
+        style={{ backgroundColor: NIGHT, color: CREAM }}
+      >
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <SectionHeading
+              light
+              eyebrow={t('Customers — 13', 'عملاؤنا — 13')}
+              title={t('What They Say', 'ماذا يقولون')}
+            />
+          </Reveal>
+
+          <div className="mt-12 grid gap-x-6 gap-y-8 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
+            {REVIEWS.map((r, i) => (
+              <motion.div
+                key={r.name.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                className="flex h-full flex-col border border-white/12 p-7"
+              >
+                <Stars light rating={r.rating} />
+                <p className="mt-6 flex-1 text-[14px] font-light leading-relaxed text-[#F6F3EC]/75">
+                  {t(r.text.en, r.text.ar)}
+                </p>
+                <div className="mt-7 border-t border-white/12 pt-5">
+                  <p
+                    className={`font-bold uppercase ${
+                      isAr ? 'text-[13px] tracking-normal' : 'text-[11.5px] tracking-[0.18em]'
+                    }`}
+                  >
+                    {t(r.name.en, r.name.ar)}
+                  </p>
+                  <p
+                    className={`mt-1.5 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.24em]'}`}
+                    style={{ color: OLIVE_LT }}
+                  >
+                    {t(r.city.en, r.city.ar)}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 16. DESIGN BLOG — editorial cards                             */}
+      {/* ============================================================ */}
+      <section data-testid="design-blog" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading
+                eyebrow={t('Journal — 14', 'المدونة — 14')}
+                title={t('The Design Blog', 'مدونة التصميم')}
+              />
+              <div className="pb-2">
+                <ViewMore label={t('All Articles', 'كل المقالات')} />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-x-6 gap-y-12 md:mt-16 md:grid-cols-3">
+            {BLOG_POSTS.map((post, i) => (
+              <motion.article
+                key={post.title.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                className="group flex h-full flex-col"
+              >
+                <a href="#" className="block overflow-hidden">
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={post.img}
+                      alt={isAr ? post.title.ar : post.title.en}
+                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                    />
+                  </div>
+                </a>
+                <p
+                  className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                  style={{ color: OLIVE }}
+                >
+                  {t(post.category.en, post.category.ar)}
+                </p>
+                <h3
+                  className={`mt-3 text-2xl ${
+                    isAr
+                      ? "font-['Alexandria',sans-serif] font-bold leading-snug"
+                      : "font-['Marcellus',serif] leading-tight"
+                  }`}
+                >
+                  <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
+                    {t(post.title.en, post.title.ar)}
+                  </a>
+                </h3>
+                <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                  {t(post.excerpt.en, post.excerpt.ar)}
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                  <ViewMore label={t('Read Article', 'اقرأ المقال')} />
+                  <span
+                    className={`text-[10px] uppercase text-neutral-400 ${
+                      isAr ? 'tracking-normal' : 'tracking-[0.22em]'
+                    }`}
+                  >
+                    {isAr ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
+                  </span>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 17. B2B TEASER                                                */}
+      {/* ============================================================ */}
+      <section className="relative overflow-hidden">
+        <img
+          src={IMG.loungeDark}
+          alt={t('Commercial lounge project', 'مشروع صالة تجارية')}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="relative mx-auto flex min-h-[62vh] max-w-[1400px] flex-col items-center justify-center px-6 py-28 text-center text-white md:px-10">
+          <Reveal>
+            <h2
+              className={`text-4xl uppercase md:text-5xl ${
+                isAr
+                  ? "font-['Alexandria',sans-serif] font-extrabold leading-[1.2] tracking-normal"
+                  : "font-['Marcellus',serif] tracking-[0.06em]"
+              }`}
+            >
+              {t('Turnkey Project Solutions', 'حلول متكاملة للشركات والمشاريع')}
+            </h2>
+            <p
+              className={`mx-auto mt-6 max-w-xl text-sm font-light text-white/80 md:text-base ${
+                isAr ? 'tracking-normal' : 'tracking-[0.06em]'
+              }`}
+            >
+              {t(
+                'Design, build & deliver — we manage every stage of your project.',
+                'نصمّم وننفّذ ونسلّم — ندير كل مرحلة من مراحل مشروعك.',
+              )}
+            </p>
+            <div className="mt-10">
+              <a
+                href="#"
+                className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11px] uppercase text-white transition-colors hover:border-white ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.3em]'
+                }`}
+              >
+                {t('Request a Consultation', 'اطلب استشارة')}
+                <ArrowRight
+                  size={12}
+                  strokeWidth={1.5}
+                  className={`transition-transform duration-300 ${
+                    isAr ? 'rotate-180 group-hover/b2b:-translate-x-1' : 'group-hover/b2b:translate-x-1'
+                  }`}
+                />
+              </a>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 18. BECOME A PARTNER — three roles + a dark dashboard strip    */}
+      {/* ============================================================ */}
+      <section data-testid="partner" className="py-20 md:py-28">
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
+              <div className="lg:col-span-7">
+                <SectionHeading
+                  eyebrow={t(`${PARTNER.eyebrow.en} — 15`, `${PARTNER.eyebrow.ar} — 15`)}
+                  title={t(PARTNER.title.en, PARTNER.title.ar)}
+                />
+              </div>
+              <p className="max-w-md self-end text-[15px] font-light leading-relaxed text-neutral-600 lg:col-span-5">
+                {t(PARTNER.body.en, PARTNER.body.ar)}
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-5 md:mt-16 md:gap-6 lg:grid-cols-3">
+            {PARTNER.roles.map((role, i) => (
+              <motion.div
+                key={role.title.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+              >
+                <div
+                  className="flex h-full flex-col border bg-white p-8 transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)] md:p-10"
+                  style={{ borderColor: HAIR }}
+                >
+                  <role.icon size={32} strokeWidth={1} className="text-[#5A6B4D]" />
+                  <h3
+                    className={`mt-7 font-bold uppercase ${
+                      isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
+                    }`}
+                  >
+                    {t(role.title.en, role.title.ar)}
+                  </h3>
+                  <p className="mt-3 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                    {t(role.body.en, role.body.ar)}
+                  </p>
+                  <div className="mt-7">
+                    <ViewMore label={t(role.cta.en, role.cta.ar)} />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* dashboard strip — one dark note to close the pitch */}
+          <Reveal delay={0.1}>
+            <div
+              className="mt-6 flex flex-col gap-7 p-8 md:flex-row md:items-center md:justify-between md:gap-10 md:p-12"
+              style={{ backgroundColor: INK, color: CREAM }}
+            >
+              <div className="max-w-xl">
+                <h3
+                  className={`font-extrabold uppercase ${
+                    isAr
+                      ? "font-['Alexandria',sans-serif] text-2xl leading-snug tracking-normal"
+                      : "font-['Outfit',sans-serif] text-2xl leading-tight tracking-tight md:text-3xl"
+                  }`}
+                >
+                  {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
+                </h3>
+                <p className="mt-3 text-[14px] font-light leading-relaxed text-[#F6F3EC]/65">
+                  {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                }`}
+              >
+                {t(PARTNER.dashboard.cta.en, PARTNER.dashboard.cta.ar)}
+              </button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 19. APP PROMO                                                 */}
+      {/* ============================================================ */}
+      <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+            <Reveal className="lg:col-span-5">
+              <div className="overflow-hidden" style={{ backgroundColor: TILE }}>
+                <img
+                  src={APP_PROMO.img}
+                  alt={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+                  className="aspect-[4/5] h-full w-full object-cover"
+                />
+              </div>
+            </Reveal>
+
+            <Reveal className="lg:col-span-7" delay={0.1}>
+              <SectionHeading
+                eyebrow={t(`${APP_PROMO.eyebrow.en} — 16`, `${APP_PROMO.eyebrow.ar} — 16`)}
+                title={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+              />
+              <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-neutral-600">
+                {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
+              </p>
+
+              <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+                {APP_PROMO.features.map((f, i) => (
+                  <motion.div
+                    key={f.title.en}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-80px' }}
+                    transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                    className="flex items-start gap-4"
+                  >
+                    <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
+                    <div className="min-w-0">
+                      <h3
+                        className={`font-bold uppercase ${
+                          isAr ? 'text-[13.5px] tracking-normal' : 'text-[12px] tracking-[0.18em]'
+                        }`}
+                      >
+                        {t(f.title.en, f.title.ar)}
+                      </h3>
+                      <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
+                        {t(f.body.en, f.body.ar)}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-11 flex flex-wrap gap-4">
+                {[
+                  { label: 'App Store', sub: t('Download on the', 'حمّله من') },
+                  { label: 'Google Play', sub: t('Get it on', 'احصل عليه من') },
+                ].map((store) => (
+                  <button
+                    key={store.label}
+                    type="button"
+                    className="bg-[#171512] px-9 py-3.5 text-start text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
+                  >
+                    <span
+                      className={`block text-[9px] uppercase text-white/60 ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.22em]'
+                      }`}
+                    >
+                      {store.sub}
+                    </span>
+                    <span
+                      dir="ltr"
+                      className={`mt-1 block font-['Outfit',sans-serif] text-[13px] font-semibold uppercase ${
+                        isAr ? 'tracking-normal' : 'tracking-[0.14em]'
+                      }`}
+                    >
+                      {store.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

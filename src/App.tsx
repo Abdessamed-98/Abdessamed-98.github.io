@@ -47,9 +47,9 @@ import ChatPage from './pages/ChatPage.tsx';
 
 import LooksIndex from './pages/looks/LooksIndex.tsx';
 import { LookSwitcher } from './pages/looks/lookShared.tsx';
-import LookOne from './pages/looks/LookOne.tsx';
-import LookTwo from './pages/looks/LookTwo.tsx';
-import LookThree from './pages/looks/LookThree.tsx';
+import LookOne, { LookOneHome, LookOneSearch, LookOneProduct } from './pages/looks/LookOne.tsx';
+import LookTwo, { LookTwoHome, LookTwoSearch, LookTwoProduct } from './pages/looks/LookTwo.tsx';
+import LookThree, { LookThreeHome, LookThreeSearch, LookThreeProduct } from './pages/looks/LookThree.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import DashboardIndex from './pages/dashboard/DashboardIndex.tsx';
@@ -294,9 +294,22 @@ export default function App() {
 
         {/* Redesign proposal: 3 design-direction demos */}
         <Route path="/looks" element={<LooksIndex />} />
-        <Route path="/look/1" element={<LookOne />} />
-        <Route path="/look/2" element={<LookTwo />} />
-        <Route path="/look/3" element={<LookThree />} />
+        {/* Each look is a layout (header / drawer / footer / language) around its pages */}
+        <Route path="/look/1" element={<LookOne />}>
+          <Route index element={<LookOneHome />} />
+          <Route path="search" element={<LookOneSearch />} />
+          <Route path="product/:id" element={<LookOneProduct />} />
+        </Route>
+        <Route path="/look/2" element={<LookTwo />}>
+          <Route index element={<LookTwoHome />} />
+          <Route path="search" element={<LookTwoSearch />} />
+          <Route path="product/:id" element={<LookTwoProduct />} />
+        </Route>
+        <Route path="/look/3" element={<LookThree />}>
+          <Route index element={<LookThreeHome />} />
+          <Route path="search" element={<LookThreeSearch />} />
+          <Route path="product/:id" element={<LookThreeProduct />} />
+        </Route>
 
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardIndex />} />
