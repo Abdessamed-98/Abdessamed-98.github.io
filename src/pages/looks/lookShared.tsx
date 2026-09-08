@@ -1029,6 +1029,118 @@ export const searchPath = (n: LookNo, qy?: SearchQuery) => {
 };
 export const productPath = (n: LookNo, id: number) => `${lookBase(n)}/product/${id}`;
 
+/* ------------------------------------------------------------------ */
+/* Homepage sections carried over from the original site (Look 4)      */
+/* so the chosen look can mirror its structure section for section.    */
+/* ------------------------------------------------------------------ */
+
+/** Quick-nav strip under the hero: 10 shop categories + 10 services, using the client's own icons. */
+export interface QuickCategory { en: string; ar: string; icon: string; kind: 'shop' | 'service'; category?: CategoryKey; room?: RoomKey }
+
+export const QUICK_CATEGORIES: QuickCategory[] = [
+  { en: 'Bedrooms', ar: 'غرف النوم', icon: '/categories/غرف النوم.png', kind: 'shop', category: 'home', room: 'bedroom' },
+  { en: 'Living Rooms', ar: 'الصالونات', icon: '/categories/الصالونات.png', kind: 'shop', category: 'home', room: 'living' },
+  { en: 'Kitchens', ar: 'المطابخ', icon: '/categories/المطابخ.png', kind: 'shop', category: 'home' },
+  { en: 'Dining Rooms', ar: 'غرف الطعام', icon: '/categories/غرف الطعام.png', kind: 'shop', category: 'home', room: 'dining' },
+  { en: 'Offices', ar: 'المكاتب', icon: '/categories/المكاتب.png', kind: 'shop', category: 'office' },
+  { en: 'Decor', ar: 'ديكورات', icon: '/categories/ديكورات.png', kind: 'shop', category: 'decor' },
+  { en: 'Lighting', ar: 'الإضاءة', icon: '/categories/الإضاءة.png', kind: 'shop', category: 'lighting' },
+  { en: 'Curtains', ar: 'الستائر', icon: '/categories/الستائر.png', kind: 'shop', category: 'decor' },
+  { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/أثاث خارجي.png', kind: 'shop', category: 'home', room: 'outdoor' },
+  { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/الحمامات.png', kind: 'shop', category: 'bath' },
+  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/تصميم داخلي.png', kind: 'service' },
+  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/تركيب وصيانة.png', kind: 'service' },
+  { en: 'Painting', ar: 'دهانات', icon: '/categories/دهانات.png', kind: 'service' },
+  { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/تنجيد وتجديد.png', kind: 'service' },
+  { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/نجارة مخصصة.png', kind: 'service' },
+  { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/استشارات تصميم.png', kind: 'service' },
+  { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/نقل وتغليف.png', kind: 'service' },
+  { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/تنظيف وتلميع.png', kind: 'service' },
+  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/إضاءة وكهرباء.png', kind: 'service' },
+  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/تركيب الستائر.png', kind: 'service' },
+];
+
+/** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */
+export interface PromoPanel { img: string; eyebrow: Bi; title: Bi; cta: Bi; span: 2 | 3; query?: SearchQuery }
+
+export const PROMO_PANELS: PromoPanel[] = [
+  { img: IMG.hero, span: 3, eyebrow: { en: 'Limited Time', ar: 'لفترة محدودة' }, title: { en: 'Summer Sale — up to 40% off sofas', ar: 'عروض الصيف — خصم حتى 40% على الأرائك' }, cta: { en: 'Shop the Sale', ar: 'تسوق العروض' }, query: { sale: true } },
+  { img: IMG.roomHotspots, span: 3, eyebrow: { en: 'Free Service', ar: 'خدمة مجانية' }, title: { en: 'Free design session with any order over 5,000 SAR', ar: 'جلسة تصميم مجانية مع كل طلب فوق 5,000 ر.س' }, cta: { en: 'Book Now', ar: 'احجز الآن' } },
+  { img: IMG.catLighting, span: 2, eyebrow: { en: 'New Arrivals', ar: 'وصل حديثاً' }, title: { en: 'Lighting edit', ar: 'مختارات الإنارة' }, cta: { en: 'Discover', ar: 'اكتشف' }, query: { category: 'lighting' } },
+  { img: IMG.bedroom, span: 2, eyebrow: { en: 'Bundles', ar: 'باقات' }, title: { en: 'Bedroom sets from 6,900 SAR', ar: 'باقات غرف النوم من 6,900 ر.س' }, cta: { en: 'View Sets', ar: 'شاهد الباقات' }, query: { room: 'bedroom' } },
+  { img: IMG.workshop, span: 2, eyebrow: { en: 'Made to Order', ar: 'حسب الطلب' }, title: { en: 'Custom furniture, 3–4 weeks', ar: 'أثاث مخصص خلال 3–4 أسابيع' }, cta: { en: 'Start a Project', ar: 'ابدأ مشروعك' } },
+];
+
+/** "Most interactive" rail — live shopper activity on catalog items. */
+export interface TrendingItem { productId: number; views: number; likes: number; saves: number; hot?: boolean }
+
+export const TRENDING: TrendingItem[] = [
+  { productId: 13, views: 1842, likes: 312, saves: 148, hot: true },
+  { productId: 1, views: 1530, likes: 276, saves: 121, hot: true },
+  { productId: 10, views: 1207, likes: 198, saves: 96 },
+  { productId: 6, views: 1114, likes: 240, saves: 88, hot: true },
+  { productId: 4, views: 968, likes: 154, saves: 77 },
+  { productId: 12, views: 902, likes: 221, saves: 64 },
+];
+
+/** "Featured deals" — a countdown that ends at local midnight, over the discounted items. */
+export const FEATURED_DEALS = {
+  productIds: [2, 6, 4, 10, 13, 9] as number[],
+  /** Extra deal applied on top of the catalogue price for items without an oldPrice (percent). */
+  fallbackDiscount: 15,
+};
+
+/** Two campaign banners (the original's summer banners), typographic instead of baked images. */
+export interface Campaign { img: string; eyebrow: Bi; title: Bi; body: Bi; cta: Bi; query?: SearchQuery; tone: 'light' | 'dark' }
+
+export const CAMPAIGNS: Campaign[] = [
+  {
+    img: IMG.catHome, tone: 'dark',
+    eyebrow: { en: 'Summer Offers', ar: 'عروض الصيف' },
+    title: { en: 'Up to 40% off living room seating', ar: 'خصم حتى 40% على جلسات المعيشة' },
+    body: { en: 'Sofas, armchairs and majlis sets from Diyar and its partner stores — while stock lasts.', ar: 'أرائك وكراسي وأطقم مجالس من ديار ومتاجرها الشريكة — حتى نفاد الكمية.' },
+    cta: { en: 'Shop the Offers', ar: 'تسوق العروض' }, query: { sale: true },
+  },
+  {
+    img: IMG.loungeDark, tone: 'light',
+    eyebrow: { en: 'Majlis Season', ar: 'موسم المجالس' },
+    title: { en: 'Furnish the whole majlis — delivered and installed', ar: 'جهّز مجلسك كاملاً — توصيل وتركيب' },
+    body: { en: 'Seating, lighting, rugs and curtains coordinated by our designers, installed by our crews.', ar: 'جلسات وإنارة وسجاد وستائر ينسقها مصممونا وتركّبها فرقنا.' },
+    cta: { en: 'Explore Majlis', ar: 'استكشف المجالس' }, query: { room: 'majlis' },
+  },
+];
+
+/** "Suggested for you" — personalised picks (static for the demo). */
+export const SUGGESTED_IDS: number[] = [8, 5, 11, 7, 14];
+
+/** Brand wordmarks strip (the original listed these brands). Rendered as type, no logos. */
+export const BRANDS: Bi[] = [
+  { en: 'IKEA', ar: 'إيكيا' },
+  { en: 'Ashley', ar: 'أشلي' },
+  { en: 'West Elm', ar: 'ويست إلم' },
+  { en: 'BoConcept', ar: 'بوكونسبت' },
+  { en: 'Pottery Barn', ar: 'بوتري بارن' },
+  { en: 'Natuzzi', ar: 'ناتوزي' },
+  { en: 'Herman Miller', ar: 'هيرمان ميلر' },
+  { en: 'Muji', ar: 'موجي' },
+];
+
+/** Standalone newsletter section (the original's closing section). */
+export const NEWSLETTER = {
+  title: { en: 'Subscribe to our newsletter', ar: 'اشترك في نشرتنا البريدية' } as Bi,
+  body: { en: 'The latest offers, decor tips and new arrivals — straight to your inbox.', ar: 'احصل على أحدث العروض، ونصائح الديكور، والمنتجات الجديدة مباشرة في صندوق الوارد الخاص بك.' } as Bi,
+  placeholder: { en: 'Enter your email', ar: 'أدخل بريدك الإلكتروني' } as Bi,
+  cta: { en: 'Subscribe', ar: 'اشتراك' } as Bi,
+  success: { en: 'You are on the list.', ar: 'تم اشتراكك بنجاح.' } as Bi,
+};
+
+/** Milliseconds until the next local midnight — shared by the deal countdowns. */
+export const msUntilMidnight = (now = new Date()) => {
+  const end = new Date(now);
+  end.setHours(24, 0, 0, 0);
+  return end.getTime() - now.getTime();
+};
+
 export const formatSAR = (n: number) => n.toLocaleString('en-US');
 
 /** Floating switcher shown on every look page (and the original site) so the client can flip between directions. */

@@ -9,16 +9,32 @@ import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { IMG, type Lang } from './lookShared.tsx';
 
-const LOOKS = [
+interface LookCard {
+  to: string; num: string; name: string; nameAr: string; desc: string; descAr: string;
+  img: string; palette: string[]; selected?: boolean;
+}
+
+const LOOKS: LookCard[] = [
   {
     to: '/look/1',
     num: '01',
     name: 'Editorial Light',
     nameAr: 'إيديتوريال فاتح',
-    desc: 'Gallery-white canvas, bold uppercase titles, olive accents — the closest match to the reference direction.',
-    descAr: 'خلفية بيضاء دافئة وعناوين كبيرة بارزة ولمسات زيتونية — الأقرب إلى الاتجاه المرجعي.',
+    selected: true,
+    desc: 'The approved direction — the current site’s full section structure, rebuilt in the new design.',
+    descAr: 'الاتجاه المعتمد — كامل أقسام الموقع الحالي وترتيبها، بالتصميم الجديد.',
     img: IMG.hero,
     palette: ['#FDFCF9', '#171512', '#5A6B4D'],
+  },
+  {
+    to: '/',
+    num: '04',
+    name: 'Current Site',
+    nameAr: 'الموقع الحالي',
+    desc: 'The existing design, included for comparison — open it side by side with the three new directions.',
+    descAr: 'التصميم الحالي للموقع، مضاف للمقارنة — افتحه بجانب الاتجاهات الثلاثة الجديدة.',
+    img: '/looks/original-site.png',
+    palette: ['#1f3d3a', '#f3ecdb', '#947961'],
   },
   {
     to: '/look/2',
@@ -39,16 +55,6 @@ const LOOKS = [
     descAr: 'خلفية بيج هادئة وخط كلاسيكي وتفاصيل متحفية — الأكثر هدوءاً واتزاناً بين الثلاثة.',
     img: IMG.roomHotspots,
     palette: ['#F1EDE5', '#2A241C', '#8A6D4F'],
-  },
-  {
-    to: '/',
-    num: '04',
-    name: 'Current Site',
-    nameAr: 'الموقع الحالي',
-    desc: 'The existing design, included for comparison — open it side by side with the three new directions.',
-    descAr: 'التصميم الحالي للموقع، مضاف للمقارنة — افتحه بجانب الاتجاهات الثلاثة الجديدة.',
-    img: '/looks/original-site.png',
-    palette: ['#1f3d3a', '#f3ecdb', '#947961'],
   },
 ];
 
@@ -94,12 +100,12 @@ export default function LooksIndex() {
             {t('Diyar — Redesign', 'ديار — إعادة التصميم')}
           </p>
           <h1 className={`text-4xl md:text-6xl font-extrabold tracking-tight mb-3 ${ar ? '' : 'uppercase'}`}>
-            {t('Three Design Directions', 'ثلاثة اتجاهات تصميمية')}
+            {t('The Approved Direction', 'الاتجاه المعتمد')}
           </h1>
           <p className="text-white/50 max-w-xl mb-12 leading-relaxed">
             {t(
-              'One brand, one content structure — three visual voices. Open each look, scroll it end to end, and tell us which world Diyar should live in.',
-              'علامة واحدة وبنية محتوى واحدة — بثلاث هويات بصرية. افتح كل اتجاه وتصفحه حتى النهاية، وأخبرنا أي عالم يليق بديار.',
+              'Look 1 is the approved design, now carrying the current site’s full section structure. The current site stays here for comparison, with the two alternative directions after it.',
+              'التصميم الأول هو المعتمد، ويحمل الآن كامل أقسام الموقع الحالي وترتيبها. يبقى الموقع الحالي هنا للمقارنة، ويليه الاتجاهان البديلان.',
             )}
           </p>
         </motion.div>
@@ -119,6 +125,11 @@ export default function LooksIndex() {
                   <span className={`absolute top-4 start-4 text-[11px] text-white/80 ${ar ? '' : 'tracking-[0.3em]'}`}>
                     {t(`LOOK ${look.num}`, `التصميم ${look.num}`)}
                   </span>
+                  {look.selected && (
+                    <span className={`absolute top-4 end-4 bg-white px-2.5 py-1 text-[10px] font-bold text-[#111009] ${ar ? '' : 'tracking-[0.2em] uppercase'}`}>
+                      {t('Approved', 'المعتمد')}
+                    </span>
+                  )}
                   <div className="absolute bottom-4 start-4 flex gap-1.5">
                     {look.palette.map((c) => (
                       <span key={c} className="w-4 h-4 rounded-full border border-white/40" style={{ backgroundColor: c }} />
