@@ -34,7 +34,7 @@ import {
 } from './one/ui';
 import {
   QuickCategories, PromoMosaic, Trending, FeaturedDeals, CampaignBanner,
-  SuggestedForYou, BrandsStrip, Newsletter,
+  SuggestedForYou, BrandsStrip, Newsletter, ApartmentRooms,
 } from './one/HomeSections';
 
 export { LookOneSearch } from './one/SearchPage';
@@ -1582,60 +1582,9 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 10. SHOP BY ROOM — landscape tiles with an overlapping plaque */}
       {/* ============================================================== */}
-      <section data-testid="shop-by-room" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <SectionHeading eyebrow={t('Rooms — 06', 'الغرف — 06')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
-              <div className="pb-2">
-                <ViewMore label={t('All Rooms', 'كل الغرف')} to={searchPath(1)} />
-              </div>
-            </div>
-          </Reveal>
-
-          <div className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 md:mt-16 md:gap-x-6 lg:grid-cols-3">
-            {ROOMS.map((r, i) => (
-              <motion.div
-                key={r.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 3) * 0.05 }}
-              >
-                <Link to={searchPath(1, { room: r.key })} className="group block">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={r.img}
-                      alt={isAr ? r.ar : r.en}
-                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                    />
-                  </div>
-                  {/* white plaque sitting over the bottom edge of the photo */}
-                  <div
-                    className="relative z-10 -mt-9 flex items-baseline justify-between gap-3 border bg-white px-5 py-4 transition-colors duration-300 group-hover:border-[#5A6B4D] ms-5 me-5"
-                    style={{ borderColor: HAIR }}
-                  >
-                    <span
-                      className={`min-w-0 truncate font-bold uppercase ${
-                        isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(r.en, r.ar)}
-                    </span>
-                    <span
-                      className={`shrink-0 text-[10px] uppercase text-neutral-400 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                      }`}
-                    >
-                      {isAr ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} Pieces`}
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Shop by room — the isometric apartment; hovering a room lights it
+          and the list beside it carries keyboard and mobile. */}
+      <ApartmentRooms />
 
       {/* ============================================================== */}
       {/* 11. NEW PRODUCTS */}

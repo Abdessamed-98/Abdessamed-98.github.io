@@ -7,14 +7,14 @@
  * olive accents, red only for sale, black rectangle buttons.
  */
 import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ChevronLeft, ChevronRight, Eye, Heart, Bookmark, Check,
 } from 'lucide-react';
 import {
   QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, BRANDS, NEWSLETTER,
-  msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR,
-  type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory,
+  msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, ROOMS,
+  type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory, type RoomKey,
 } from '../lookShared';
 import {
   INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM,
@@ -640,6 +640,202 @@ export function Newsletter() {
             <p className="mt-3 text-[11px] text-neutral-400">
               {t('No spam — unsubscribe any time.', 'بلا رسائل مزعجة — يمكنك إلغاء الاشتراك في أي وقت.')}
             </p>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Shop by room — interactive isometric apartment                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Room hit regions traced over /looks/apartment.jpg, as percentages of the
+ * image box. Each polygon covers the room's whole VISIBLE VOLUME (floor, back
+ * walls and tall furniture), not just its floor — in an isometric view the
+ * furniture is drawn above its footprint, so a floor-only mask would leave the
+ * bed, wardrobe and olive tree outside the highlight.
+ * The mask edge is feathered, so a few percent of imprecision never shows.
+ */
+const ROOM_SHAPES: Record<RoomKey, [number, number][]> = {
+  living: [[8, 40], [30, 16], [42, 33], [28, 63], [12, 50]],
+  dining: [[28, 64], [44, 39], [52, 47], [36, 74]],
+  bedroom: [[34, 24], [51, 3], [69, 26], [52, 47], [37, 32]],
+  majlis: [[38, 69], [57, 47], [79, 68], [58, 90]],
+  office: [[59, 41], [69, 26], [80, 38], [68, 53]],
+  outdoor: [[75, 58], [84, 31], [97, 50], [97, 62], [87, 75]],
+};
+
+/** The render's own background, so the plate melts into the band behind it. */
+const APARTMENT_BG = '#F3E9DA';
+
+const pointsOf = (k: RoomKey) => ROOM_SHAPES[k].map(([x, y]) => `${x},${y}`).join(' ');
+const centroidOf = (k: RoomKey) => {
+  const pts = ROOM_SHAPES[k];
+  return {
+    x: pts.reduce((a, p) => a + p[0], 0) / pts.length,
+    y: pts.reduce((a, p) => a + p[1], 0) / pts.length,
+  };
+};
+
+export function ApartmentRooms() {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const navigate = useNavigate();
+  const [active, setActive] = useState<RoomKey | null>(null);
+  const activeRoom = active ? ROOMS.find((r) => r.key === active) : undefined;
+
+  return (
+    <section
+      data-testid="shop-by-room"
+      className="border-t py-20 md:py-28"
+      style={{ borderColor: HAIR, backgroundColor: APARTMENT_BG }}
+    >
+      <div className={CONTAINER}>
+        <Reveal>
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeading eyebrow={t('Rooms — 06', 'الغرف — 06')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
+            <ViewMore label={t('All Rooms', 'كل الغرف')} to={searchPath(1)} />
+          </div>
+          <p className={`mt-5 max-w-md text-[15px] font-light leading-relaxed text-neutral-600 ${isAr ? 'tracking-normal' : ''}`}>
+            {t(
+              'Pick a room to see everything that furnishes it — from the sofa down to the vases.',
+              'اختر غرفة لترى كل ما يؤثثها — من الأريكة حتى المزهريات.',
+            )}
+          </p>
+        </Reveal>
+
+        <div className="mt-12 grid gap-8 md:mt-16 lg:grid-cols-12 lg:gap-10">
+          {/* the plate */}
+          <Reveal className="lg:col-span-8">
+            <div
+              className="relative select-none"
+              onMouseLeave={() => setActive(null)}
+              data-testid="apartment-plate"
+            >
+              <img
+                src="/looks/apartment.jpg"
+                alt={t(
+                  'Cutaway view of a furnished apartment: living room, bedroom, dining room, majlis, home office and terrace',
+                  'مقطع لشقة مؤثثة: غرفة المعيشة وغرفة النوم وغرفة الطعام والمجلس والمكتب المنزلي والجلسة الخارجية',
+                )}
+                className="block h-auto w-full"
+                draggable={false}
+              />
+
+              {/* Highlight + hit regions. Percent coordinates, so they track the
+                  image at any width; physical (never mirrored) like the photo. */}
+              <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 h-full w-full"
+              >
+                <defs>
+                  <filter id="apartment-feather">
+                    <feGaussianBlur stdDeviation="0.9" />
+                  </filter>
+                  <mask id="apartment-mask">
+                    <rect x="0" y="0" width="100" height="100" fill="white" />
+                    {active && (
+                      <polygon points={pointsOf(active)} fill="black" filter="url(#apartment-feather)" />
+                    )}
+                  </mask>
+                </defs>
+
+                {/* Everything but the hovered room washes out. The veil is the
+                    band colour, not ink — so the render's own background stays
+                    exactly the colour behind it and the plate never shows as a
+                    dimmed rectangle. */}
+                <rect
+                  x="0" y="0" width="100" height="100"
+                  fill={APARTMENT_BG}
+                  mask="url(#apartment-mask)"
+                  className="transition-opacity duration-300"
+                  opacity={active ? 0.5 : 0}
+                />
+
+                {/* pointer targets — the room list below carries keyboard + screen readers */}
+                {ROOMS.map((r) => (
+                  <polygon
+                    key={r.key}
+                    points={pointsOf(r.key)}
+                    fill="transparent"
+                    className="cursor-pointer outline-none"
+                    onMouseEnter={() => setActive(r.key)}
+                    onClick={() => navigate(searchPath(1, { room: r.key }))}
+                  />
+                ))}
+              </svg>
+
+              {/* label chip pinned to the hovered room */}
+              {activeRoom && (
+                <Link
+                  to={searchPath(1, { room: activeRoom.key })}
+                  className="pointer-events-none absolute z-10 hidden -translate-x-1/2 -translate-y-1/2 border bg-white/95 px-4 py-2.5 shadow-[0_10px_30px_rgba(23,21,18,0.18)] backdrop-blur-sm md:block"
+                  style={{
+                    left: `${centroidOf(activeRoom.key).x}%`,
+                    top: `${centroidOf(activeRoom.key).y}%`,
+                    borderColor: HAIR,
+                  }}
+                >
+                  <span className={`block text-[13px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em]'}`}>
+                    {t(activeRoom.en, activeRoom.ar)}
+                  </span>
+                  <span className="mt-1 flex items-center gap-2 text-[11px] text-neutral-500">
+                    {t(`${formatSAR(activeRoom.count)} pieces`, `${formatSAR(activeRoom.count)} قطعة`)}
+                    <ArrowRight size={11} strokeWidth={1.75} className={isAr ? 'rotate-180' : undefined} style={{ color: OLIVE }} />
+                  </span>
+                </Link>
+              )}
+            </div>
+          </Reveal>
+
+          {/* the list — the accessible, keyboard and mobile path to the same rooms */}
+          <Reveal className="lg:col-span-4" delay={0.1}>
+            <p className={eyebrowCls(isAr)}>{t('The Rooms', 'الغرف')}</p>
+            <ul className="mt-5 border-t" style={{ borderColor: HAIR }}>
+              {ROOMS.map((r) => {
+                const on = active === r.key;
+                return (
+                  <li key={r.key} className="border-b" style={{ borderColor: HAIR }}>
+                    <Link
+                      to={searchPath(1, { room: r.key })}
+                      data-testid={`room-row-${r.key}`}
+                      onMouseEnter={() => setActive(r.key)}
+                      onFocus={() => setActive(r.key)}
+                      onBlur={() => setActive(null)}
+                      className="group flex items-center gap-4 py-4 transition-colors"
+                    >
+                      <span
+                        className="h-6 w-px shrink-0 transition-colors duration-300"
+                        style={{ backgroundColor: on ? OLIVE : 'transparent' }}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span
+                          className={`block text-[15px] font-bold transition-colors duration-300 ${isAr ? 'tracking-normal' : ''}`}
+                          style={{ color: on ? OLIVE : INK }}
+                        >
+                          {t(r.en, r.ar)}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-neutral-400">
+                          {t(`${formatSAR(r.count)} pieces`, `${formatSAR(r.count)} قطعة`)}
+                        </span>
+                      </span>
+                      <ArrowRight
+                        size={14}
+                        strokeWidth={1.5}
+                        className={`shrink-0 transition-transform duration-300 ${
+                          isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'
+                        }`}
+                        style={{ color: on ? OLIVE : '#B9B2A6' }}
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </Reveal>
         </div>
       </div>
