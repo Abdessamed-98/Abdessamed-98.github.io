@@ -88,59 +88,60 @@ export function QuickCategories() {
 
   return (
     <section data-testid="quick-categories" className="border-b py-12 md:py-16" style={{ borderColor: HAIR }}>
-      <div className={CONTAINER}>
-        <QuickRow label={t('Browse Categories', 'تصفّح الأقسام')} items={shop} isAr={isAr} />
-        <div className="mt-10 md:mt-12">
-          <QuickRow label={t('Diyar Services', 'خدمات ديار')} items={services} isAr={isAr} />
-        </div>
+      <QuickRow label={t('Browse Categories', 'تصفّح الأقسام')} items={shop} isAr={isAr} />
+      <div className="mt-12 md:mt-14">
+        <QuickRow label={t('Diyar Services', 'خدمات ديار')} items={services} isAr={isAr} />
       </div>
     </section>
   );
 }
 
 /**
- * One run of ten plates. The artwork is already 3:4 with its own ground baked
- * in — cream for the shop categories, deep green for the services — so the
- * plates are full-bleed: no circle, no border, no rounding, and the two rows
- * read as two families without needing a divider between them.
- * Ten across from lg; below that it becomes a snap rail.
+ * One run of ten plates, bled to the viewport edges rather than sitting in the
+ * page container — the row reads as a strip you scroll rather than a grid that
+ * happens to overflow. Names sit inside the plate over a bottom scrim, the same
+ * treatment Featured Categories uses, so the two sections speak the same way.
  */
 function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[]; isAr: boolean }) {
   const { lang } = useLook();
   const rail = useRail();
+  const EDGE = 'px-6 md:px-10';
   return (
     <div>
-      <div className="flex items-center justify-between gap-4">
-        <p className={eyebrowCls(isAr, 'text-[10px] text-neutral-400')}>{label}</p>
+      <div className={`${EDGE} flex items-center justify-between gap-4`}>
+        <p
+          className={`font-bold uppercase ${isAr ? 'text-[13px] tracking-normal' : 'text-[12px] tracking-[0.28em]'}`}
+          style={{ color: OLIVE }}
+        >
+          {label}
+        </p>
         <RailArrows onPrev={rail.prev} onNext={rail.next} />
       </div>
-      <div
-        ref={rail.ref}
-        className="scrollbar-hide -mx-6 mt-5 flex snap-x gap-4 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:px-0"
-      >
+
+      <div ref={rail.ref} className={`scrollbar-hide mt-5 flex snap-x gap-4 overflow-x-auto ${EDGE}`}>
         {items.map((c) => {
           const name = lang === 'ar' ? c.ar : c.en;
           const inner = (
-            <>
-              <div className="overflow-hidden">
-                <img
-                  src={c.icon}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-              </div>
+            <div className="relative overflow-hidden">
+              <img
+                src={c.icon}
+                alt=""
+                loading="lazy"
+                className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              {/* scrim kept to the lower third: the name stays legible on both the
+                  cream and the green plates without washing the whole image grey */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
               <p
-                className={`mt-3.5 text-[12.5px] leading-snug transition-colors duration-300 group-hover:text-[#5A6B4D] ${
-                  isAr ? 'tracking-normal' : ''
-                }`}
-                style={{ color: INK }}
+                className={`absolute inset-x-0 bottom-0 p-4 text-start text-white ${
+                  isAr ? 'text-[13.5px] tracking-normal' : 'text-[13px]'
+                } font-bold leading-snug`}
               >
                 {name}
               </p>
-            </>
+            </div>
           );
-          const cls = 'group w-[150px] shrink-0 snap-start text-center sm:w-[172px] lg:w-[190px] xl:w-[210px]';
+          const cls = 'group w-[150px] shrink-0 snap-start sm:w-[172px] lg:w-[190px] xl:w-[210px]';
           return c.kind === 'shop' ? (
             <Link key={c.en} to={searchPath(1, { category: c.category, room: c.room })} className={cls}>
               {inner}
