@@ -4,10 +4,10 @@
  * SectionHeading, ViewMore, Stars, ProductCard, Breadcrumb) that the home page,
  * the search page and the product page all draw from.
  */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Star, ArrowRight, Heart, ChevronRight, Check } from 'lucide-react';
+import { Star, ArrowRight, Heart, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import {
   formatSAR, storeOf, productPath,
   type Lang, type LookProduct, type CatalogProduct,
@@ -411,3 +411,39 @@ export function Breadcrumb({ items }: { items: Crumb[] }) {
     </nav>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Horizontal rails — shared by the home sections and the category row  */
+/* ------------------------------------------------------------------ */
+
+export function useRail() {
+  const { lang } = useLook();
+  const ref = useRef<HTMLDivElement>(null);
+  const go = (dir: 1 | -1) => {
+    const el = ref.current;
+    if (!el) return;
+    const sign = lang === 'ar' ? -dir : dir;
+    el.scrollBy({ left: sign * Math.round(el.clientWidth * 0.7), behavior: 'smooth' });
+  };
+  return { ref, prev: () => go(-1), next: () => go(1) };
+}
+
+/** Prev / next hairline squares — desktop only, the rails swipe on touch. */
+export function RailArrows({ onPrev, onNext, className = '' }: { onPrev: () => void; onNext: () => void; className?: string }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const btn =
+    'flex h-9 w-9 items-center justify-center border transition-colors duration-300 hover:border-[#171512] hover:bg-[#171512] hover:text-white';
+  return (
+    <div className={`hidden items-center gap-2 md:flex ${className}`}>
+      <button type="button" onClick={onPrev} aria-label={t('Previous', 'السابق')} className={btn} style={{ borderColor: HAIR }}>
+        <ChevronLeft size={16} strokeWidth={1.25} className={isAr ? 'rotate-180' : ''} />
+      </button>
+      <button type="button" onClick={onNext} aria-label={t('Next', 'التالي')} className={btn} style={{ borderColor: HAIR }}>
+        <ChevronRight size={16} strokeWidth={1.25} className={isAr ? 'rotate-180' : ''} />
+      </button>
+    </div>
+  );
+}
+
+/** The look's bleed rail: scrolls edge to edge on phones, snaps per card. */

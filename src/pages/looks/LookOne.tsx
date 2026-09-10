@@ -30,7 +30,7 @@ import {
 import {
   BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
   LookContext, useLook, useLang,
-  Reveal, SectionHeading, ViewMore, Stars, ProductCard,
+  Reveal, SectionHeading, ViewMore, Stars, ProductCard, useRail, RailArrows,
 } from './one/ui';
 import {
   QuickCategories, PromoMosaic, Trending, FeaturedDeals, CampaignBanner,
@@ -1242,6 +1242,7 @@ export default function LookOne() {
 /* Home page                                                           */
 /* ------------------------------------------------------------------ */
 export function LookOneHome() {
+  const catRail = useRail();
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [slide, setSlide] = useState(0);
@@ -1408,15 +1409,23 @@ export function LookOneHome() {
       <section data-testid="featured-categories" className="py-20 md:py-28">
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
-            <SectionHeading
-              eyebrow={t('Collection — 01', 'التشكيلة — 01')}
-              title={t('Featured Categories', 'أبرز التصنيفات')}
-            />
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading
+                eyebrow={t('Collection — 01', 'التشكيلة — 01')}
+                title={t('Featured Categories', 'أبرز التصنيفات')}
+              />
+              {/* the row overflows on every width — without these it can only be
+                  scrolled by shift+wheel or a trackpad swipe */}
+              <RailArrows onPrev={catRail.prev} onNext={catRail.next} />
+            </div>
           </Reveal>
         </div>
 
         <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10">
-          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10">
+          <div
+            ref={catRail.ref}
+            className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10"
+          >
             {CATEGORIES.map((c, i) => (
               <motion.div
                 key={c.en}

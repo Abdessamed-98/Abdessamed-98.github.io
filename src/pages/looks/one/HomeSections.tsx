@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, ChevronLeft, ChevronRight, Eye, Heart, Bookmark, Check,
+  ArrowRight, Eye, Heart, Bookmark, Check,
 } from 'lucide-react';
 import {
   QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, BRANDS, NEWSLETTER,
@@ -19,6 +19,7 @@ import {
 import {
   INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM,
   useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, primaryBtnCls, eyebrowCls,
+  useRail, RailArrows,
 } from './ui';
 
 /* ------------------------------------------------------------------ */
@@ -34,37 +35,6 @@ const titleFont = (isAr: boolean) =>
     : "font-['Outfit',sans-serif] leading-[0.98] tracking-tight";
 
 /** Scroll helpers for the snap rails: `next` always moves towards the content end, in both directions. */
-function useRail() {
-  const { lang } = useLook();
-  const ref = useRef<HTMLDivElement>(null);
-  const go = (dir: 1 | -1) => {
-    const el = ref.current;
-    if (!el) return;
-    const sign = lang === 'ar' ? -dir : dir;
-    el.scrollBy({ left: sign * Math.round(el.clientWidth * 0.7), behavior: 'smooth' });
-  };
-  return { ref, prev: () => go(-1), next: () => go(1) };
-}
-
-/** Prev / next hairline squares — desktop only, the rails swipe on touch. */
-function RailArrows({ onPrev, onNext, className = '' }: { onPrev: () => void; onNext: () => void; className?: string }) {
-  const { lang, t } = useLook();
-  const isAr = lang === 'ar';
-  const btn =
-    'flex h-9 w-9 items-center justify-center border transition-colors duration-300 hover:border-[#171512] hover:bg-[#171512] hover:text-white';
-  return (
-    <div className={`hidden items-center gap-2 md:flex ${className}`}>
-      <button type="button" onClick={onPrev} aria-label={t('Previous', 'السابق')} className={btn} style={{ borderColor: HAIR }}>
-        <ChevronLeft size={16} strokeWidth={1.25} className={isAr ? 'rotate-180' : ''} />
-      </button>
-      <button type="button" onClick={onNext} aria-label={t('Next', 'التالي')} className={btn} style={{ borderColor: HAIR }}>
-        <ChevronRight size={16} strokeWidth={1.25} className={isAr ? 'rotate-180' : ''} />
-      </button>
-    </div>
-  );
-}
-
-/** The look's bleed rail: scrolls edge to edge on phones, snaps per card. */
 function Rail({ railRef, children, className = '' }: { railRef: RefObject<HTMLDivElement | null>; children: ReactNode; className?: string }) {
   return (
     <div
