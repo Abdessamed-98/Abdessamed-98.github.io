@@ -80,75 +80,76 @@ function Rail({ railRef, children, className = '' }: { railRef: RefObject<HTMLDi
 /* 2. Quick categories — the original's icon strip under the hero      */
 /* ------------------------------------------------------------------ */
 
-function QuickItem({ c }: { c: QuickCategory; key?: string | number }) {
-  const { lang } = useLook();
-  const label = lang === 'ar' ? c.ar : c.en;
-  const inner = (
-    <>
-      <span
-        className="flex h-[72px] w-[72px] items-center justify-center rounded-full border transition-colors duration-300 group-hover/qc:border-[#5A6B4D]"
-        style={{ borderColor: HAIR, backgroundColor: TILE }}
-      >
-        <img src={c.icon} alt="" loading="lazy" className="h-full w-full object-contain p-3" />
-      </span>
-      <span className="mt-2.5 line-clamp-2 text-[11px] leading-snug text-[#171512]/80 transition-colors group-hover/qc:text-[#171512]">
-        {label}
-      </span>
-    </>
-  );
-  const cls = 'group/qc flex w-[84px] shrink-0 snap-start flex-col items-center text-center';
-  return c.kind === 'shop' ? (
-    <Link to={searchPath(1, { category: c.category, room: c.room })} className={cls} aria-label={label}>
-      {inner}
-    </Link>
-  ) : (
-    <button type="button" className={cls} aria-label={label}>
-      {inner}
-    </button>
-  );
-}
-
 export function QuickCategories() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  const rail = useRail();
   const shop = QUICK_CATEGORIES.filter((c) => c.kind === 'shop');
   const services = QUICK_CATEGORIES.filter((c) => c.kind === 'service');
-  const groupLabel = eyebrowCls(isAr, 'text-[10px] text-neutral-400');
 
   return (
-    <section data-testid="quick-categories" className="border-b py-8 md:py-10" style={{ borderColor: HAIR }}>
-      <div className={`${CONTAINER} relative`}>
-        <RailArrows onPrev={rail.prev} onNext={rail.next} className="absolute -top-2 end-6 z-10 md:end-10" />
-        <Rail railRef={rail.ref}>
-          {/* shop run */}
-          <div className="shrink-0">
-            <p className={groupLabel}>{t('Browse Categories', 'تصفّح الأقسام')}</p>
-            <div className="mt-5 flex gap-2 md:gap-3">
-              {shop.map((c) => (
-                <QuickItem key={c.en} c={c} />
-              ))}
-            </div>
-          </div>
-          {/* services run */}
-          <div className="shrink-0 border-s ps-5 md:ps-6" style={{ borderColor: HAIR }}>
-            <p className={groupLabel}>{t('Diyar Services', 'خدمات ديار')}</p>
-            <div className="mt-5 flex gap-2 md:gap-3">
-              {services.map((c) => (
-                <QuickItem key={c.en} c={c} />
-              ))}
-            </div>
-          </div>
-        </Rail>
+    <section data-testid="quick-categories" className="border-b py-12 md:py-16" style={{ borderColor: HAIR }}>
+      <div className={CONTAINER}>
+        <QuickRow label={t('Browse Categories', 'تصفّح الأقسام')} items={shop} isAr={isAr} />
+        <div className="mt-10 md:mt-12">
+          <QuickRow label={t('Diyar Services', 'خدمات ديار')} items={services} isAr={isAr} />
+        </div>
       </div>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* 4. Promo mosaic — five offer panels on a 6-column grid              */
-/* ------------------------------------------------------------------ */
+/**
+ * One run of ten plates. The artwork is already 3:4 with its own ground baked
+ * in — cream for the shop categories, deep green for the services — so the
+ * plates are full-bleed: no circle, no border, no rounding, and the two rows
+ * read as two families without needing a divider between them.
+ * Ten across from lg; below that it becomes a snap rail.
+ */
+function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[]; isAr: boolean }) {
+  const { lang } = useLook();
+  return (
+    <div>
+      <p className={eyebrowCls(isAr, 'text-[10px] text-neutral-400')}>{label}</p>
+      <div className="scrollbar-hide -mx-6 mt-5 flex snap-x gap-3 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:grid lg:grid-cols-10 lg:gap-4 lg:overflow-visible lg:px-0">
+        {items.map((c) => {
+          const name = lang === 'ar' ? c.ar : c.en;
+          const inner = (
+            <>
+              <div className="overflow-hidden">
+                <img
+                  src={c.icon}
+                  alt=""
+                  loading="lazy"
+                  className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              </div>
+              <p
+                className={`mt-3 text-[11px] leading-snug transition-colors duration-300 group-hover:text-[#5A6B4D] ${
+                  isAr ? 'tracking-normal' : ''
+                }`}
+                style={{ color: INK }}
+              >
+                {name}
+              </p>
+            </>
+          );
+          const cls = 'group w-[104px] shrink-0 snap-start text-center sm:w-[120px] lg:w-auto';
+          return c.kind === 'shop' ? (
+            <Link key={c.en} to={searchPath(1, { category: c.category, room: c.room })} className={cls}>
+              {inner}
+            </Link>
+          ) : (
+            <button key={c.en} type="button" className={cls}>
+              {inner}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
+/** Promo panels are laid out on a 6-column grid. */
 const SPAN_CLS = { 2: 'md:col-span-2', 3: 'md:col-span-3' } as const;
 
 export function PromoMosaic() {
