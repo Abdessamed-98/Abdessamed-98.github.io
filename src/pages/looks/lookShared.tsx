@@ -1035,29 +1035,35 @@ export const productPath = (n: LookNo, id: number) => `${lookBase(n)}/product/${
 /* ------------------------------------------------------------------ */
 
 /** Quick-nav strip under the hero: 10 shop categories + 10 services, using the client's own icons. */
-export interface QuickCategory { en: string; ar: string; icon: string; kind: 'shop' | 'service'; category?: CategoryKey; room?: RoomKey }
+export interface QuickCategory {
+  en: string; ar: string; icon: string;
+  kind: 'shop' | 'service';
+  /** Ground baked into the artwork — decides whether the label prints ink or cream. */
+  tone: 'light' | 'dark';
+  category?: CategoryKey; room?: RoomKey;
+}
 
 export const QUICK_CATEGORIES: QuickCategory[] = [
-  { en: 'Bedrooms', ar: 'غرف النوم', icon: '/categories/tiles/غرف النوم.jpg', kind: 'shop', category: 'home', room: 'bedroom' },
-  { en: 'Living Rooms', ar: 'الصالونات', icon: '/categories/tiles/الصالونات.jpg', kind: 'shop', category: 'home', room: 'living' },
-  { en: 'Kitchens', ar: 'المطابخ', icon: '/categories/tiles/المطابخ.jpg', kind: 'shop', category: 'home' },
-  { en: 'Dining Rooms', ar: 'غرف الطعام', icon: '/categories/tiles/غرف الطعام.jpg', kind: 'shop', category: 'home', room: 'dining' },
-  { en: 'Offices', ar: 'المكاتب', icon: '/categories/tiles/المكاتب.jpg', kind: 'shop', category: 'office' },
-  { en: 'Decor', ar: 'ديكورات', icon: '/categories/tiles/ديكورات.jpg', kind: 'shop', category: 'decor' },
-  { en: 'Lighting', ar: 'الإضاءة', icon: '/categories/tiles/الإضاءة.jpg', kind: 'shop', category: 'lighting' },
-  { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', category: 'decor' },
-  { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/tiles/أثاث خارجي.jpg', kind: 'shop', category: 'home', room: 'outdoor' },
-  { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/tiles/الحمامات.jpg', kind: 'shop', category: 'bath' },
-  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service' },
-  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service' },
-  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service' },
-  { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service' },
-  { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service' },
-  { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/tiles/استشارات تصميم.jpg', kind: 'service' },
-  { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service' },
-  { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service' },
-  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service' },
-  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service' },
+  { en: 'Bedrooms', ar: 'غرف النوم', icon: '/categories/tiles/غرف النوم.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'bedroom' },
+  { en: 'Living Rooms', ar: 'الصالونات', icon: '/categories/tiles/الصالونات.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'living' },
+  { en: 'Kitchens', ar: 'المطابخ', icon: '/categories/tiles/المطابخ.jpg', kind: 'shop', tone: 'light', category: 'home' },
+  { en: 'Dining Rooms', ar: 'غرف الطعام', icon: '/categories/tiles/غرف الطعام.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'dining' },
+  { en: 'Offices', ar: 'المكاتب', icon: '/categories/tiles/المكاتب.jpg', kind: 'shop', tone: 'light', category: 'office' },
+  { en: 'Decor', ar: 'ديكورات', icon: '/categories/tiles/ديكورات.jpg', kind: 'shop', tone: 'light', category: 'decor' },
+  { en: 'Lighting', ar: 'الإضاءة', icon: '/categories/tiles/الإضاءة.jpg', kind: 'shop', tone: 'light', category: 'lighting' },
+  { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', tone: 'light', category: 'decor' },
+  { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/tiles/أثاث خارجي.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'outdoor' },
+  { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/tiles/الحمامات.jpg', kind: 'shop', tone: 'light', category: 'bath' },
+  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/tiles/استشارات تصميم.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark' },
 ];
 
 /** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */

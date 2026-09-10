@@ -129,13 +129,14 @@ function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[
                 loading="lazy"
                 className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
-              {/* scrim kept to the lower third: the name stays legible on both the
-                  cream and the green plates without washing the whole image grey */}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
+              {/* No scrim — the plates were padded to 3:4, so the strip under the
+                  subject is flat ground. The label simply prints on it in the
+                  opposite tone (measured 9.6:1 at worst). */}
               <p
-                className={`absolute inset-x-0 bottom-0 p-4 text-start text-white ${
+                className={`absolute inset-x-0 bottom-0 p-4 text-start ${
                   isAr ? 'text-[13.5px] tracking-normal' : 'text-[13px]'
                 } font-bold leading-snug`}
+                style={{ color: c.tone === 'dark' ? CREAM : INK }}
               >
                 {name}
               </p>
