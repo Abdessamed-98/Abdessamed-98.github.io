@@ -4,7 +4,7 @@
  * SectionHeading, ViewMore, Stars, ProductCard, Breadcrumb) that the home page,
  * the search page and the product page all draw from.
  */
-import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Star, ArrowRight, Heart, ChevronLeft, ChevronRight, Check } from 'lucide-react';
@@ -55,15 +55,20 @@ export function Reveal({
   children,
   delay = 0,
   className,
+  y = 24,
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
   key?: string | number;
+  /** Vertical travel. Pass 0 inside horizontal rails: cards still off-screen
+   *  never trigger, so a permanent 24px offset would overflow the rail (and
+   *  now be clipped by it). */
+  y?: number;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.6, ease: 'easeOut', delay }}
@@ -416,16 +421,59 @@ export function Breadcrumb({ items }: { items: Crumb[] }) {
 /* Horizontal rails — shared by the home sections and the category row  */
 /* ------------------------------------------------------------------ */
 
-export function useRail() {
+/**
+ * A horizontal rail. `auto` (ms) advances it on a timer — but only while it is
+ * on screen, not hovered/focused/touched, the tab is visible, and the visitor
+ * has not asked for reduced motion.
+ */
+export function useRail({ auto = 0 }: { auto?: number } = {}) {
   const { lang } = useLook();
   const ref = useRef<HTMLDivElement>(null);
-  const go = (dir: 1 | -1) => {
+  const paused = useRef(false);
+  const onScreen = useRef(false);
+
+  const stepBy = (dir: 1 | -1) => {
     const el = ref.current;
     if (!el) return;
+    const first = el.firstElementChild as HTMLElement | null;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    // one card at a time reads better than a fraction of the viewport
+    const amount = first ? first.getBoundingClientRect().width + gap : Math.round(el.clientWidth * 0.7);
     const sign = lang === 'ar' ? -dir : dir;
-    el.scrollBy({ left: sign * Math.round(el.clientWidth * 0.7), behavior: 'smooth' });
+    el.scrollBy({ left: sign * amount, behavior: 'smooth' });
   };
-  return { ref, prev: () => go(-1), next: () => go(1) };
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!auto || !el) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    const io = new IntersectionObserver(([e]) => { onScreen.current = e.isIntersecting; }, { threshold: 0.3 });
+    io.observe(el);
+
+    const id = window.setInterval(() => {
+      const node = ref.current;
+      if (!node || paused.current || !onScreen.current || document.hidden) return;
+      const max = node.scrollWidth - node.clientWidth;
+      if (max <= 4) return;
+      // scrollLeft runs negative in RTL, so compare on distance travelled
+      if (Math.abs(node.scrollLeft) >= max - 4) node.scrollTo({ left: 0, behavior: 'smooth' });
+      else stepBy(1);
+    }, auto);
+
+    return () => { io.disconnect(); window.clearInterval(id); };
+  }, [auto, lang]);
+
+  /** Spread onto the rail so it holds still while the visitor is using it. */
+  const hold = {
+    onPointerEnter: () => { paused.current = true; },
+    onPointerLeave: () => { paused.current = false; },
+    onFocusCapture: () => { paused.current = true; },
+    onBlurCapture: () => { paused.current = false; },
+    onTouchStart: () => { paused.current = true; },
+  };
+
+  return { ref, prev: () => stepBy(-1), next: () => stepBy(1), hold };
 }
 
 /** Prev / next hairline squares — desktop only, the rails swipe on touch. */

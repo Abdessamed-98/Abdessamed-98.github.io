@@ -39,7 +39,7 @@ function Rail({ railRef, children, className = '' }: { railRef: RefObject<HTMLDi
   return (
     <div
       ref={railRef}
-      className={`scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 ${className}`}
+      className={`scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 ${className}`}
     >
       {children}
     </div>
@@ -88,7 +88,8 @@ function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[
         <RailArrows onPrev={rail.prev} onNext={rail.next} />
       </div>
 
-      <div ref={rail.ref} className={`scrollbar-hide mt-5 flex snap-x gap-4 overflow-x-auto ${EDGE}`}>
+      <div ref={rail.ref}
+            {...rail.hold} className={`scrollbar-hide mt-5 flex snap-x gap-4 overflow-x-auto overflow-y-hidden ${EDGE}`}>
         {items.map((c) => {
           const name = lang === 'ar' ? c.ar : c.en;
           const inner = (
@@ -244,7 +245,7 @@ function TrendingCard({ tr, p }: { tr: TrendingItem; p: CatalogProduct; key?: st
 export function Trending({ no }: { no: string }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  const rail = useRail();
+  const rail = useRail({ auto: 5600 });
   const items = TRENDING.flatMap((tr) => {
     const p = findProduct(tr.productId);
     return p ? [{ tr, p }] : [];
@@ -285,7 +286,7 @@ export function Trending({ no }: { no: string }) {
       <div className={`${CONTAINER} mt-12 md:mt-16`}>
         <Rail railRef={rail.ref}>
           {items.map(({ tr, p }, i) => (
-            <Reveal key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-[312px]">
+            <Reveal y={0} key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-[312px]">
               <TrendingCard tr={tr} p={p} />
             </Reveal>
           ))}
@@ -399,7 +400,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
 
 export function FeaturedDeals({ no }: { no: string }) {
   const { t } = useLook();
-  const rail = useRail();
+  const rail = useRail({ auto: 6200 });
   const items = FEATURED_DEALS.productIds.flatMap((id) => {
     const p = findProduct(id);
     return p ? [p] : [];
@@ -423,7 +424,7 @@ export function FeaturedDeals({ no }: { no: string }) {
       <div className={`${CONTAINER} mt-12 md:mt-16`}>
         <Rail railRef={rail.ref}>
           {items.map((p, i) => (
-            <Reveal key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-[312px]">
+            <Reveal y={0} key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-[312px]">
               <DealCard p={p} />
             </Reveal>
           ))}
@@ -517,9 +518,9 @@ export function SuggestedForYou({ no }: { no: string }) {
 
       {/* rail on small screens, settles into a 5-up row from lg */}
       <div className={`${CONTAINER} mt-12 md:mt-16`}>
-        <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
+        <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
           {items.map((p, i) => (
-            <Reveal key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink">
+            <Reveal y={0} key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink">
               <ProductCard p={p} testId="home-product-card" />
             </Reveal>
           ))}

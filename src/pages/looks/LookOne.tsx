@@ -1242,7 +1242,7 @@ export default function LookOne() {
 /* Home page                                                           */
 /* ------------------------------------------------------------------ */
 export function LookOneHome() {
-  const catRail = useRail();
+  const catRail = useRail({ auto: 5000 });
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [slide, setSlide] = useState(0);
@@ -1424,14 +1424,15 @@ export function LookOneHome() {
         <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10">
           <div
             ref={catRail.ref}
-            className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10"
+            {...catRail.hold}
+            className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10"
           >
             {CATEGORIES.map((c, i) => (
               <motion.div
                 key={c.en}
                 className="aspect-[3/4] w-[72vw] shrink-0 snap-start sm:w-[320px] md:w-[356px]"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
               >
@@ -1768,13 +1769,13 @@ export function LookOneHome() {
 
         {/* rail: scrolls on small screens, settles into a row from lg */}
         <div className="mx-auto mt-12 max-w-[1400px] px-6 md:mt-16 md:px-10">
-          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
+          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
             {PRODUCTS.slice(0, 4).map((p, i) => (
               <motion.div
                 key={p.id}
                 className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
               >
