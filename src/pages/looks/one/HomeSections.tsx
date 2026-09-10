@@ -107,10 +107,17 @@ export function QuickCategories() {
  */
 function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[]; isAr: boolean }) {
   const { lang } = useLook();
+  const rail = useRail();
   return (
     <div>
-      <p className={eyebrowCls(isAr, 'text-[10px] text-neutral-400')}>{label}</p>
-      <div className="scrollbar-hide -mx-6 mt-5 flex snap-x gap-3 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:grid lg:grid-cols-10 lg:gap-4 lg:overflow-visible lg:px-0">
+      <div className="flex items-center justify-between gap-4">
+        <p className={eyebrowCls(isAr, 'text-[10px] text-neutral-400')}>{label}</p>
+        <RailArrows onPrev={rail.prev} onNext={rail.next} />
+      </div>
+      <div
+        ref={rail.ref}
+        className="scrollbar-hide -mx-6 mt-5 flex snap-x gap-4 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:px-0"
+      >
         {items.map((c) => {
           const name = lang === 'ar' ? c.ar : c.en;
           const inner = (
@@ -124,7 +131,7 @@ function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[
                 />
               </div>
               <p
-                className={`mt-3 text-[11px] leading-snug transition-colors duration-300 group-hover:text-[#5A6B4D] ${
+                className={`mt-3.5 text-[12.5px] leading-snug transition-colors duration-300 group-hover:text-[#5A6B4D] ${
                   isAr ? 'tracking-normal' : ''
                 }`}
                 style={{ color: INK }}
@@ -133,7 +140,7 @@ function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[
               </p>
             </>
           );
-          const cls = 'group w-[104px] shrink-0 snap-start text-center sm:w-[120px] lg:w-auto';
+          const cls = 'group w-[150px] shrink-0 snap-start text-center sm:w-[172px] lg:w-[190px] xl:w-[210px]';
           return c.kind === 'shop' ? (
             <Link key={c.en} to={searchPath(1, { category: c.category, room: c.room })} className={cls}>
               {inner}
