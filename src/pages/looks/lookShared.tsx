@@ -39,6 +39,8 @@ export interface LookService {
   icon: React.ComponentType<{ size?: number | string; className?: string; strokeWidth?: number }>;
   en: string;
   ar: string;
+  /** Preview shown when the service is highlighted in the services index. */
+  img: string;
 }
 
 export type StyleKey = 'modern' | 'classic' | 'bohemian' | 'neo' | 'luxury';
@@ -365,14 +367,14 @@ export const CATEGORIES: LookCategory[] = [
 ];
 
 export const SERVICES: LookService[] = [
-  { icon: PenTool, en: 'Interior Design', ar: 'التصميم الداخلي' },
-  { icon: DoorOpen, en: 'Door Solutions', ar: 'حلول الأبواب' },
-  { icon: Armchair, en: 'Custom Furniture', ar: 'تنفيذ الأثاث' },
-  { icon: PaintRoller, en: 'Painting & Wall Finishes', ar: 'الدهانات والجداريات' },
-  { icon: Layers, en: 'Flooring Solutions', ar: 'الأرضيات' },
-  { icon: Sparkles, en: 'Finishing & Decorative', ar: 'التشطيبات والديكورات' },
-  { icon: PanelTop, en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت' },
-  { icon: ShieldCheck, en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة' },
+  { icon: PenTool, en: 'Interior Design', ar: 'التصميم الداخلي', img: IMG.catHome },
+  { icon: DoorOpen, en: 'Door Solutions', ar: 'حلول الأبواب', img: IMG.loungeDark },
+  { icon: Armchair, en: 'Custom Furniture', ar: 'تنفيذ الأثاث', img: IMG.workshop },
+  { icon: PaintRoller, en: 'Painting & Wall Finishes', ar: 'الدهانات والجداريات', img: IMG.roomHotspots },
+  { icon: Layers, en: 'Flooring Solutions', ar: 'الأرضيات', img: IMG.catOffice },
+  { icon: Sparkles, en: 'Finishing & Decorative', ar: 'التشطيبات والديكورات', img: IMG.bedroom },
+  { icon: PanelTop, en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت', img: IMG.hero },
+  { icon: ShieldCheck, en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة', img: IMG.restaurant },
 ];
 
 export const PRODUCTS: LookProduct[] = [

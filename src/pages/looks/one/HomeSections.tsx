@@ -7,13 +7,14 @@
  * olive accents, red only for sale, black rectangle buttons.
  */
 import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Eye, Heart, Bookmark, Check,
 } from 'lucide-react';
 import {
   QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, BRANDS, NEWSLETTER,
-  msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, ROOMS,
+  msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, ROOMS, SERVICES,
   type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory, type RoomKey,
 } from '../lookShared';
 import {
@@ -817,6 +818,115 @@ export function ApartmentRooms() {
                 );
               })}
             </ul>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Services — a numbered index that previews one photograph            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Eight identical icon cells read as a template, so the services are set as an
+ * index instead: the names carry the section in large type and a single
+ * photograph answers "what does this look like" as you move down the list.
+ * Desktop previews on hover/focus; touch has no hover, so each row carries its
+ * own thumbnail there and the preview pane is desktop-only.
+ */
+export function ServicesIndex({ no }: { no: string }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const [active, setActive] = useState(0);
+  const current = SERVICES[active];
+
+  return (
+    <section data-testid="services" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+      <div className={CONTAINER}>
+        <Reveal>
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeading eyebrow={t(`Services — ${no}`, `الخدمات — ${no}`)} title={t('Our Services', 'خدماتنا')} />
+            <ViewMore label={t('All Services', 'كل الخدمات')} />
+          </div>
+        </Reveal>
+
+        <div className="mt-12 grid gap-10 md:mt-16 lg:grid-cols-12 lg:gap-14">
+          {/* the index */}
+          <Reveal className="lg:col-span-7">
+            <ul className="border-t" style={{ borderColor: HAIR }}>
+              {SERVICES.map((sv, i) => {
+                const on = i === active;
+                return (
+                  <li key={sv.en} className="border-b" style={{ borderColor: HAIR }}>
+                    <button
+                      type="button"
+                      data-testid={`service-row-${i}`}
+                      onMouseEnter={() => setActive(i)}
+                      onFocus={() => setActive(i)}
+                      className="group flex w-full items-center gap-4 py-5 text-start md:gap-6 md:py-6"
+                    >
+                      {/* touch has no hover — carry the image in the row instead */}
+                      <img
+                        src={sv.img}
+                        alt=""
+                        loading="lazy"
+                        className="h-14 w-12 shrink-0 object-cover lg:hidden"
+                      />
+                      <span
+                        className={`shrink-0 text-[11px] ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
+                        style={{ color: on ? OLIVE : '#B9B2A6' }}
+                      >
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span
+                        className={`min-w-0 flex-1 font-extrabold leading-tight transition-colors duration-300 ${
+                          isAr ? "font-['Alexandria',sans-serif] text-xl tracking-normal md:text-2xl" : 'text-2xl md:text-[28px]'
+                        }`}
+                        style={{ color: on ? OLIVE : INK }}
+                      >
+                        {t(sv.en, sv.ar)}
+                      </span>
+                      <ArrowRight
+                        size={16}
+                        strokeWidth={1.5}
+                        className={`shrink-0 transition-transform duration-300 ${
+                          isAr ? 'rotate-180 group-hover:-translate-x-1.5' : 'group-hover:translate-x-1.5'
+                        }`}
+                        style={{ color: on ? OLIVE : '#B9B2A6' }}
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </Reveal>
+
+          {/* the preview — desktop only, follows the list down the page */}
+          <Reveal className="hidden lg:col-span-5 lg:block" delay={0.1}>
+            <div className="sticky top-28">
+              <div className="relative aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={current.img}
+                    src={current.img}
+                    alt={t(current.en, current.ar)}
+                    initial={{ opacity: 0, scale: 1.03 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </AnimatePresence>
+              </div>
+              <p
+                className={`mt-4 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
+                style={{ color: OLIVE }}
+              >
+                {t(current.en, current.ar)}
+              </p>
+            </div>
           </Reveal>
         </div>
       </div>
