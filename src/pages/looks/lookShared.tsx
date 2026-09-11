@@ -1151,8 +1151,16 @@ export const msUntilMidnight = (now = new Date()) => {
 
 export const formatSAR = (n: number) => n.toLocaleString('en-US');
 
-/** Floating switcher shown on every look page (and the original site) so the client can flip between directions. */
-export function LookSwitcher({ raiseOnMobile = false }: { raiseOnMobile?: boolean } = {}) {
+/**
+ * Floating switcher shown on every look page (and the original site) so the
+ * client can flip between directions. A slim vertical rail on the left edge:
+ * the end of the reading line in Arabic, and clear of the original site's
+ * contact buttons, which sit bottom-right. z-[45] is deliberate: one look
+ * renders its mobile drawer inside the fixed z-50 header, whose stacking
+ * context caps that whole drawer at 50 — so the rail must sit below 50 for
+ * every open menu to cover it. Nothing else on these pages stacks above ~z-20.
+ */
+export function LookSwitcher() {
   const { pathname } = useLocation();
   const looks = [
     { to: '/look/1', label: '1' },
@@ -1160,22 +1168,34 @@ export function LookSwitcher({ raiseOnMobile = false }: { raiseOnMobile?: boolea
     { to: '/look/3', label: '3' },
     { to: '/', label: '4' },
   ];
+  // a look's search and product pages still belong to that look
+  const isActive = (to: string) =>
+    to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`);
   return (
-    <div dir="ltr" className={`fixed left-1/2 -translate-x-1/2 z-[90] flex items-center gap-1 rounded-full bg-black/80 backdrop-blur-md px-2 py-1.5 shadow-2xl border border-white/10 ${raiseOnMobile ? 'bottom-[86px] md:bottom-5' : 'bottom-5'}`}>
-      <Link to="/looks" className="text-white/60 hover:text-white text-[11px] tracking-[0.15em] uppercase px-3 py-1.5 transition-colors">
+    <nav
+      dir="ltr"
+      aria-label="Design looks"
+      data-testid="look-switcher"
+      className="fixed left-3 top-1/2 z-[45] flex -translate-y-1/2 flex-col items-center gap-1 rounded-full border border-white/10 bg-black/80 px-1.5 py-2 shadow-2xl backdrop-blur-md md:left-4"
+    >
+      <Link
+        to="/looks"
+        className="rotate-180 px-1 py-2 text-[10px] uppercase tracking-[0.18em] text-white/60 transition-colors [writing-mode:vertical-rl] hover:text-white"
+      >
         Looks
       </Link>
       {looks.map((l) => (
         <Link
           key={l.to}
           to={l.to}
-          className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold transition-colors ${
-            pathname === l.to ? 'bg-white text-black' : 'text-white/70 hover:bg-white/15 hover:text-white'
+          aria-current={isActive(l.to) ? 'page' : undefined}
+          className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold transition-colors ${
+            isActive(l.to) ? 'bg-white text-black' : 'text-white/70 hover:bg-white/15 hover:text-white'
           }`}
         >
           {l.label}
         </Link>
       ))}
-    </div>
+    </nav>
   );
 }

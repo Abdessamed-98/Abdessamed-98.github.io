@@ -343,7 +343,7 @@ export default function App() {
       </Routes>
 
       {/* Redesign review: the original site is "look 4" — keep the switcher reachable on it */}
-      {isHomePage && <LookSwitcher raiseOnMobile />}
+      {isHomePage && <LookSwitcher />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <FloatingContactBar />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <Footer />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <MobileBottomNav onOpenCart={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} />}

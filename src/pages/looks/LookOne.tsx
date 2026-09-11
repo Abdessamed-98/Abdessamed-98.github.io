@@ -695,9 +695,8 @@ function MobileDrawer({
               </ul>
             </div>
 
-            {/* contact — pinned to the bottom of the panel. The extra bottom
-                padding keeps it clear of the floating LookSwitcher pill. */}
-            <div className="shrink-0 border-t px-5 pt-5 pb-16" style={{ borderColor: HAIR }}>
+            {/* contact — pinned to the bottom of the panel. */}
+            <div className="shrink-0 border-t px-5 pt-5 pb-5" style={{ borderColor: HAIR }}>
               <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
               <a href="#" className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
                 <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />

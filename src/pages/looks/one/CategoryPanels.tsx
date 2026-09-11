@@ -4,57 +4,26 @@
  * Six categories needed a rail, arrows and auto-advance just to be seen, which
  * is the format telling you it is wrong. Here all six sit in one band: closed
  * panels are tall strips, one panel is open at a time, hovering (or focusing)
- * a strip opens it. The open panel still drifts to the next category every
- * few seconds, like the old rail did — but only on desktop, only on screen,
- * never while hovered/focused, and not at all for reduced-motion visitors.
+ * a strip opens it. Nothing moves on its own — the visitor decides which
+ * panel is open.
  *
  * Touch has no hover, so below lg it is a plain 2/3-column grid.
  *
  * Self-contained on purpose: removing this file and restoring the old section
  * in LookOneHome (git revert) puts the rail back exactly.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { CATEGORIES, searchPath } from '../lookShared';
 import { useLook, Reveal, SectionHeading, ViewMore } from './ui';
 
-const CYCLE_MS = 5000;
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function CategoryPanels() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [active, setActive] = useState(0);
-  const held = useRef(false);
-  const onScreen = useRef(false);
-  /** When the open panel last changed, or the visitor last touched the band.
-   *  The next automatic move waits a full cycle from here — so the panel never
-   *  jumps the instant a visitor looks away or the section scrolls into view.
-   *  (A fixed setInterval could fire 0.2s after the mouse left.) */
-  const lastChange = useRef(0);
-  const bandRef = useRef<HTMLDivElement>(null);
-
-  const openPanel = (i: number) => { lastChange.current = Date.now(); setActive(i); };
-
-  useEffect(() => {
-    const el = bandRef.current;
-    if (!el) return;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    const desktop = window.matchMedia('(min-width: 1024px)');
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !onScreen.current) lastChange.current = Date.now();
-      onScreen.current = e.isIntersecting;
-    }, { threshold: 0.4 });
-    io.observe(el);
-    const id = window.setInterval(() => {
-      if (!desktop.matches || held.current || !onScreen.current || document.hidden) return;
-      if (Date.now() - lastChange.current < CYCLE_MS) return;
-      lastChange.current = Date.now();
-      setActive((a) => (a + 1) % CATEGORIES.length);
-    }, 250);
-    return () => { io.disconnect(); window.clearInterval(id); };
-  }, []);
 
   const bigName = isAr
     ? "font-['Alexandria',sans-serif] text-[30px] tracking-normal xl:text-[34px]"
@@ -75,13 +44,12 @@ export function CategoryPanels() {
         </Reveal>
 
         <div className="mt-10 md:mt-14">
-          {/* ---- desktop: one band, every category visible, one open ---- */}
+          {/* ---- desktop: one band, every category visible, one open ----
+              Height follows the viewport (64vh) between 460px on short laptops
+              and 640px on tall screens, so it fills the space instead of sitting squat. */}
           <div
-            ref={bandRef}
             data-testid="cat-band"
-            onPointerEnter={() => { held.current = true; }}
-            onPointerLeave={() => { held.current = false; lastChange.current = Date.now(); }}
-            className="hidden h-[440px] gap-2 lg:flex xl:h-[460px]"
+            className="hidden h-[clamp(460px,64vh,640px)] gap-2 lg:flex"
           >
             {CATEGORIES.map((c, i) => {
               const open = i === active;
@@ -93,9 +61,8 @@ export function CategoryPanels() {
                   data-testid={`cat-panel-${i}`}
                   data-open={open}
                   aria-label={name}
-                  onMouseEnter={() => openPanel(i)}
-                  onFocus={() => { held.current = true; openPanel(i); }}
-                  onBlur={() => { held.current = false; lastChange.current = Date.now(); }}
+                  onMouseEnter={() => setActive(i)}
+                  onFocus={() => setActive(i)}
                   className="group relative min-w-0 overflow-hidden transition-[flex-grow] duration-700 ease-[cubic-bezier(.2,.7,.2,1)] motion-reduce:transition-none"
                   style={{ flexGrow: open ? 3.4 : 1, flexBasis: 0 }}
                 >

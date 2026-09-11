@@ -633,9 +633,8 @@ function MobileDrawer({
                 </ul>
               </div>
 
-              {/* Contact — pinned below the scroll area. The extra bottom
-                  padding keeps it clear of the floating LookSwitcher pill. */}
-              <div className="shrink-0 border-t border-[#C9A86A]/25 bg-[#1C1610] px-5 pt-5 pb-16">
+              {/* Contact — pinned below the scroll area. */}
+              <div className="shrink-0 border-t border-[#C9A86A]/25 bg-[#1C1610] px-5 pt-5 pb-5">
                 <p className={`${sectionLabel} mb-3 text-[#C9A86A]/70`}>{t('Contact', 'تواصل معنا')}</p>
                 <a
                   href="#"
