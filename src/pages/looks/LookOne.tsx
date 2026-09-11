@@ -36,6 +36,7 @@ import {
   QuickCategories, PromoMosaic, Trending, FeaturedDeals, CampaignBanner,
   SuggestedForYou, BrandsStrip, Newsletter, ApartmentRooms, ServicesIndex,
 } from './one/HomeSections';
+import { HowWeWork } from './one/HowWeWork';
 
 export { LookOneSearch } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -1548,6 +1549,9 @@ export function LookOneHome() {
           </div>
         </div>
       </section>
+
+      {/* TRIAL — How We Work (sticky media + changing steps). Remove this line to revert. */}
+      <HowWeWork />
 
       {/* ============================================================== */}
       {/* 10. SHOP BY ROOM — landscape tiles with an overlapping plaque */}
