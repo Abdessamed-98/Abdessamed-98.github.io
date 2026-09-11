@@ -30,13 +30,14 @@ import {
 import {
   BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
   LookContext, useLook, useLang,
-  Reveal, SectionHeading, ViewMore, Stars, ProductCard, useRail, RailArrows,
+  Reveal, SectionHeading, ViewMore, Stars, ProductCard,
 } from './one/ui';
 import {
   QuickCategories, PromoMosaic, Trending, FeaturedDeals, CampaignBanner,
   SuggestedForYou, BrandsStrip, Newsletter, ApartmentRooms, ServicesIndex,
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
+import { CategoryPanels } from './one/CategoryPanels';
 
 export { LookOneSearch } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -1243,7 +1244,6 @@ export default function LookOne() {
 /* Home page                                                           */
 /* ------------------------------------------------------------------ */
 export function LookOneHome() {
-  const catRail = useRail({ auto: 5000 });
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [slide, setSlide] = useState(0);
@@ -1407,74 +1407,8 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 3. FEATURED CATEGORIES */}
       {/* ============================================================== */}
-      <section data-testid="featured-categories" className="py-20 md:py-28">
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <SectionHeading
-                eyebrow={t('Collection — 01', 'التشكيلة — 01')}
-                title={t('Featured Categories', 'أبرز التصنيفات')}
-              />
-              {/* the row overflows on every width — without these it can only be
-                  scrolled by shift+wheel or a trackpad swipe */}
-              <RailArrows onPrev={catRail.prev} onNext={catRail.next} />
-            </div>
-          </Reveal>
-        </div>
-
-        <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10">
-          <div
-            ref={catRail.ref}
-            {...catRail.hold}
-            className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10"
-          >
-            {CATEGORIES.map((c, i) => (
-              <motion.div
-                key={c.en}
-                className="aspect-[3/4] w-[72vw] shrink-0 snap-start sm:w-[320px] md:w-[356px]"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-              >
-                <Link to={searchPath(1, { category: c.key })} className="group relative block h-full w-full overflow-hidden">
-                  <img
-                    src={c.img}
-                    alt={isAr ? c.ar : c.en}
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-7 text-white">
-                    <p
-                      className={`text-lg font-light uppercase leading-tight md:text-xl ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                      }`}
-                    >
-                      {t(c.en, c.ar)}
-                    </p>
-                    <div className="mt-5">
-                      <span
-                        className={`group/vm inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11px] uppercase text-white transition-colors group-hover:border-white ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                        }`}
-                      >
-                        {t('View More', 'عرض المزيد')}
-                        <ArrowRight
-                          size={12}
-                          strokeWidth={1.5}
-                          className={`transition-transform duration-300 ${
-                            isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'
-                          }`}
-                        />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* TRIAL — featured categories as a compressed catalogue (expanding panels). */}
+      <CategoryPanels />
 
       {/* ============================================================== */}
       {/* 4. PROMO MOSAIC — five offer panels */}
