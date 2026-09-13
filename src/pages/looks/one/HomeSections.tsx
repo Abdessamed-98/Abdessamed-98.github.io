@@ -7,16 +7,17 @@
  * olive accents, red only for sale, black rectangle buttons.
  */
 import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion, useInView, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Eye, Heart, Bookmark, Check,
+  ArrowRight, ChevronLeft, ChevronRight, Eye, Heart, Bookmark, Check,
 } from 'lucide-react';
 import {
   QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, BRANDS, NEWSLETTER,
-  msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, ROOMS, SERVICES,
+  msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, lookBase, ROOMS, SERVICES,
   type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory, type RoomKey,
 } from '../lookShared';
+import { serviceSlug } from './ServicePage';
 import {
   INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM,
   useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, primaryBtnCls, eyebrowCls,
@@ -29,6 +30,9 @@ import {
 
 const CONTAINER = 'mx-auto max-w-[1400px] px-6 md:px-10';
 
+/** the look's reveal curve — a quick start that settles rather than bounces */
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 /** Display face for titles outside SectionHeading — Outfit in EN, Alexandria in AR (never letterspaced). */
 const titleFont = (isAr: boolean) =>
   isAr
@@ -40,7 +44,7 @@ function Rail({ railRef, children, className = '' }: { railRef: RefObject<HTMLDi
   return (
     <div
       ref={railRef}
-      className={`scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 ${className}`}
+      className={`scrollbar-hide -mx-6 flex snap-x scroll-px-6 md:scroll-px-10 snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 ${className}`}
     >
       {children}
     </div>
@@ -58,78 +62,205 @@ export function QuickCategories() {
   const services = QUICK_CATEGORIES.filter((c) => c.kind === 'service');
 
   return (
-    <section data-testid="quick-categories" className="border-b py-12 md:py-16" style={{ borderColor: HAIR }}>
-      <QuickRow label={t('Browse Categories', 'تصفّح الأقسام')} items={shop} isAr={isAr} />
-      <div className="mt-12 md:mt-14">
-        <QuickRow label={t('Diyar Services', 'خدمات ديار')} items={services} isAr={isAr} />
+    <section
+      data-testid="quick-categories"
+      className="overflow-x-clip border-b py-16 md:py-20"
+      style={{ borderColor: HAIR }}
+    >
+      <QuickRow
+        label={t('Browse Categories', 'تصفّح الأقسام')}
+        allLabel={t('All Categories', 'جميع الأقسام')}
+        allTo={searchPath(1)}
+        items={shop}
+        isAr={isAr}
+      />
+      <div className="mt-16 md:mt-20">
+        <QuickRow
+          label={t('Diyar Services', 'خدمات ديار')}
+          allLabel={t('All Services', 'جميع الخدمات')}
+          items={services}
+          isAr={isAr}
+        />
       </div>
     </section>
   );
 }
 
 /**
- * One run of ten plates, bled to the viewport edges rather than sitting in the
- * page container — the row reads as a strip you scroll rather than a grid that
- * happens to overflow. Names sit inside the plate over a bottom scrim, the same
- * treatment Featured Categories uses, so the two sections speak the same way.
+ * One run of ten plates. The run is aligned to the page container like every
+ * other section — the cards that peek past the edge are the container's, not
+ * the screen's, so nothing looks accidentally sliced. The title carries the row
+ * at section scale with the "all" link opposite it, the arrows straddle the two
+ * ends of the run where they are actually aimed, and names stay printed inside
+ * the plate in the opposite tone (the treatment chosen for this section).
+ *
+ * The reveal is driven by the run's own visibility, not each card's: cards
+ * parked off to the side of a scroll rail never enter the viewport by
+ * themselves, so a per-card trigger strands them half-drawn. Plates wipe up
+ * from their bottom edge in sequence while the picture inside settles back to
+ * size, and the name follows a beat later.
  */
-function QuickRow({ label, items, isAr }: { label: string; items: QuickCategory[]; isAr: boolean }) {
-  const { lang } = useLook();
-  const rail = useRail();
-  const EDGE = 'px-6 md:px-10';
+function QuickRow({
+  label,
+  allLabel,
+  allTo,
+  items,
+  isAr,
+}: {
+  label: string;
+  allLabel: string;
+  /** left off for the service run, which has no listing page of its own */
+  allTo?: string;
+  items: QuickCategory[];
+  isAr: boolean;
+}) {
+  const { lang, t } = useLook();
+  // Arrows turn the batch over; the timer travels a card at a time and never
+  // rewinds — see the doubled run below, which is what lets it roll over.
+  const rail = useRail({ page: true, auto: 3200, loop: true });
+  const reduce = useReducedMotion();
+  const run = useRef<HTMLDivElement>(null);
+  const shown = useInView(run, { once: true, margin: '-90px' });
+  const on = shown || !!reduce;
+  const stepIn = (i: number) => (reduce ? 0 : Math.min(i, 9) * 0.07);
+
+  // half of h-11, so each button sits centred on the end of the run
+  const arrowCls =
+    'absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border bg-[#FDFCF9] text-[#171512] transition-colors duration-300 hover:border-[#171512] hover:bg-[#171512] hover:text-white md:flex';
+  const arrowInset = '-1.375rem';
+
   return (
-    <div>
-      <div className={`${EDGE} flex items-center justify-between gap-4`}>
-        <p
-          className={`font-bold uppercase ${isAr ? 'text-[13px] tracking-normal' : 'text-[12px] tracking-[0.28em]'}`}
-          style={{ color: OLIVE }}
-        >
+    <div className={CONTAINER}>
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+        <h3 className={`font-extrabold uppercase ${titleFont(isAr)} text-[26px] md:text-[34px]`} style={{ color: INK }}>
           {label}
-        </p>
-        <RailArrows onPrev={rail.prev} onNext={rail.next} />
+        </h3>
+        <div className="pb-1">
+          <ViewMore label={allLabel} to={allTo} />
+        </div>
       </div>
 
-      <div ref={rail.ref}
-            {...rail.hold} className={`scrollbar-hide mt-5 flex snap-x gap-4 overflow-x-auto overflow-y-hidden ${EDGE}`}>
-        {items.map((c) => {
-          const name = lang === 'ar' ? c.ar : c.en;
-          const inner = (
-            <div className="relative overflow-hidden">
-              <img
-                src={c.icon}
-                alt=""
-                loading="lazy"
-                className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              />
-              {/* No scrim — the plates were padded to 3:4, so the strip under the
-                  subject is flat ground. The label simply prints on it in the
-                  opposite tone (measured 9.6:1 at worst). */}
-              <p
-                className={`absolute inset-x-0 bottom-0 p-4 text-start ${
-                  isAr ? 'text-[13.5px] tracking-normal' : 'text-[13px]'
-                } font-bold leading-snug`}
-                style={{ color: c.tone === 'dark' ? CREAM : INK }}
+      <div ref={run} className="relative mt-7 md:mt-9">
+        {/* No bleed past the container here, unlike the product rails: the run
+            is cut to the row so the plates on screen are whole ones and the
+            arrows have a real edge to sit on. The arrows carry the cue that
+            there is more to the side. */}
+        <div
+          ref={rail.ref}
+          {...rail.hold}
+          className="scrollbar-hide flex snap-x gap-1.5 overflow-x-auto overflow-y-hidden md:gap-2"
+        >
+          {/* The run is rendered twice. The timer scrolls forward for good and
+              swaps copy one for copy two when it has been used up, which lands
+              on the same cards and so cannot be seen. The second copy is a
+              duplicate of things already on the page, so it is hidden from
+              assistive tech and taken out of the tab order. */}
+          {[...items, ...items].map((c, idx) => {
+            const twin = idx >= items.length;
+            const i = idx % items.length;
+            const name = lang === 'ar' ? c.ar : c.en;
+            const dark = c.tone === 'dark';
+            const inner = (
+              <motion.div
+                initial={reduce || twin ? false : { opacity: 0, clipPath: 'inset(100% 0% 0% 0%)' }}
+                animate={on ? { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)' } : undefined}
+                transition={{ duration: 0.8, ease: EASE, delay: stepIn(i) }}
+                className="relative overflow-hidden border transition-colors duration-300"
+                style={{ borderColor: dark ? 'rgba(255,255,255,0.14)' : HAIR }}
               >
-                {name}
-              </p>
-            </div>
-          );
-          const cls = 'group w-[150px] shrink-0 snap-start sm:w-[172px] lg:w-[190px] xl:w-[210px]';
-          return c.kind === 'shop' ? (
-            <Link key={c.en} to={searchPath(1, { category: c.category, room: c.room })} className={cls}>
-              {inner}
-            </Link>
-          ) : (
-            <button key={c.en} type="button" className={cls}>
-              {inner}
-            </button>
-          );
-        })}
+                {/* the picture settles back to its own size as the plate draws.
+                    It scales on a wrapper so the hover zoom below keeps its own
+                    transform instead of being overwritten. */}
+                <motion.div
+                  initial={reduce || twin ? false : { scale: 1.16 }}
+                  animate={on ? { scale: 1 } : undefined}
+                  transition={{ duration: 1.2, ease: EASE, delay: stepIn(i) }}
+                >
+                  <img
+                    src={c.icon}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-[3/4] w-full object-cover transition-transform duration-[900ms] ease-out group-hover/plate:scale-[1.06]"
+                  />
+                </motion.div>
+
+                <motion.div
+                  className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 md:p-5"
+                  initial={reduce || twin ? false : { opacity: 0, y: 14 }}
+                  animate={on ? { opacity: 1, y: 0 } : undefined}
+                  transition={{ duration: 0.6, ease: EASE, delay: stepIn(i) + 0.28 }}
+                >
+                  <p
+                    className={`text-start font-bold leading-snug transition-colors duration-300 ${
+                      isAr ? 'text-[15px] tracking-normal' : 'text-[13px]'
+                    } ${dark ? 'text-[#F6F3EC]' : 'text-[#171512] group-hover/plate:text-[#5A6B4D]'}`}
+                  >
+                    {name}
+                  </p>
+                  <ArrowRight
+                    size={15}
+                    strokeWidth={1.5}
+                    aria-hidden
+                    className={`shrink-0 translate-y-1.5 opacity-0 transition-all duration-300 group-hover/plate:translate-y-0 group-hover/plate:opacity-100 ${
+                      isAr ? 'rotate-180' : ''
+                    } ${dark ? 'text-[#F6F3EC]' : 'text-[#5A6B4D]'}`}
+                  />
+                </motion.div>
+              </motion.div>
+            );
+            // A whole number of plates fills the run exactly, so nothing is left
+            // sliced at either end and both arrows sit on a real card edge. The
+            // width is the row divided by the count less its gaps, so the plates
+            // stretch with the container instead of stepping at breakpoints.
+            // Gaps here must match the rail's own: gap-1.5 (0.375rem), gap-2 from md.
+            const cls =
+              'group/plate shrink-0 snap-start w-[calc((100%-0.375rem)/2)] sm:w-[calc((100%-0.75rem)/3)] md:w-[calc((100%-1.5rem)/4)] lg:w-[calc((100%-2rem)/5)] xl:w-[calc((100%-2.5rem)/6)]';
+            const twinProps = twin ? { 'aria-hidden': true, tabIndex: -1 } : {};
+            return c.kind === 'shop' ? (
+              <Link
+                key={`${c.en}${twin ? '-twin' : ''}`}
+                to={searchPath(1, { category: c.category, room: c.room })}
+                className={cls}
+                data-testid="quick-plate"
+                {...twinProps}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <button key={`${c.en}${twin ? '-twin' : ''}`} type="button" className={cls} data-testid="quick-plate" {...twinProps}>
+                {inner}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* aimed at the run, so they sit on its two ends rather than up in the
+            heading. `start`/`end` follow the language, as the rail itself does. */}
+        <button
+          type="button"
+          onClick={rail.prev}
+          aria-label={t('Previous', 'السابق')}
+          className={arrowCls}
+          style={{ borderColor: HAIR, insetInlineStart: arrowInset }}
+        >
+          <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : ''} />
+        </button>
+        <button
+          type="button"
+          onClick={rail.next}
+          aria-label={t('Next', 'التالي')}
+          className={arrowCls}
+          style={{ borderColor: HAIR, insetInlineEnd: arrowInset }}
+        >
+          <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : ''} />
+        </button>
       </div>
     </div>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* 5. Trending — the original's "most interactive" rail                */
 /** Promo panels are laid out on a 6-column grid. */
 const SPAN_CLS = { 2: 'md:col-span-2', 3: 'md:col-span-3' } as const;
 
@@ -447,29 +578,24 @@ export function CampaignBanner({ c, testId }: { c: Campaign; testId: string }) {
   return (
     <section data-testid={testId} className="relative flex min-h-[420px] items-center overflow-hidden md:min-h-[520px]">
       <img src={c.img} alt={title} className="absolute inset-0 h-full w-full object-cover" />
-      <div
-        className={`absolute inset-0 ${
-          dark
-            ? 'bg-gradient-to-t from-black/80 via-black/50 to-black/25'
-            : 'bg-gradient-to-r from-[#FDFCF9]/95 via-[#FDFCF9]/80 to-[#FDFCF9]/35 rtl:bg-gradient-to-l'
-        }`}
-      />
+      {/* overlay removed on request — the photograph carries the banner on its own */}
+
       <div className={`${CONTAINER} relative w-full py-20 md:py-28`}>
         <Reveal>
           <p
             className={`text-[11px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
-            style={{ color: dark ? OLIVE_LT : OLIVE }}
+            style={{ color: dark ? '#FFFFFF' : INK }}
           >
             {isAr ? c.eyebrow.ar : c.eyebrow.en}
           </p>
           <h2
             className={`mt-4 max-w-2xl text-4xl font-extrabold uppercase md:text-5xl lg:text-6xl ${titleFont(isAr)}`}
-            style={{ color: dark ? CREAM : INK }}
+            style={{ color: dark ? '#FFFFFF' : INK }}
           >
             {title}
           </h2>
           <p
-            className={`mt-6 max-w-xl text-[15px] font-light leading-relaxed ${dark ? 'text-[#F6F3EC]/75' : 'text-neutral-600'}`}
+            className={`mt-6 max-w-xl text-[15px] font-light leading-relaxed ${dark ? 'text-white' : 'text-[#171512]'}`}
           >
             {isAr ? c.body.ar : c.body.en}
           </p>
@@ -519,7 +645,7 @@ export function SuggestedForYou({ no }: { no: string }) {
 
       {/* rail on small screens, settles into a 5-up row from lg */}
       <div className={`${CONTAINER} mt-12 md:mt-16`}>
-        <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
+        <div className="scrollbar-hide -mx-6 flex snap-x scroll-px-6 md:scroll-px-10 snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
           {items.map((p, i) => (
             <Reveal y={0} key={p.id} delay={i * 0.05} className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink">
               <ProductCard p={p} testId="home-product-card" />
@@ -669,6 +795,73 @@ export function ApartmentRooms() {
   const [active, setActive] = useState<RoomKey | null>(null);
   const activeRoom = active ? ROOMS.find((r) => r.key === active) : undefined;
 
+  /* The plan is the whole section now, so it has to teach its own interaction:
+     it draws itself in, then walks through the rooms once and settles. Touching
+     it at any point cancels the tour — the visitor outranks the demo. */
+  const plate = useRef<HTMLDivElement>(null);
+  /* The plan opens from under its own title: a circle at the top centre of
+     the plate that blooms as the plate scrolls up into place, so the apartment
+     grows out of the heading rather than wiping in from an edge. Once it has
+     covered the plate the clip comes off for good. */
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress: bloom } = useScroll({ target: plate, offset: ['start 92%', 'center 55%'] });
+  const irisR = useTransform(bloom, [0, 1], [3, 130]);
+  const iris = useMotionTemplate`circle(${irisR}% at 50% 0%)`;
+  const [bloomed, setBloomed] = useState(false);
+  useMotionValueEvent(bloom, 'change', (v) => { if (v >= 0.999) setBloomed(true); });
+  const [seen, setSeen] = useState(false);
+  const touched = useRef(false);
+
+  useEffect(() => {
+    const el = plate.current;
+    if (!el || seen) return;
+    // The plan is taller than most viewports, so "its top edge appeared" fires
+    // while it is still below the fold and the reveal is over before anyone
+    // sees it. Wait until a real share of it is actually on screen.
+    const reached = () => {
+      const r = el.getBoundingClientRect();
+      const shown = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+      return shown > Math.min(r.height, window.innerHeight) * 0.45;
+    };
+    if (reached()) {
+      setSeen(true);
+      return;
+    }
+    const check = () => {
+      if (!reached()) return;
+      setSeen(true);
+      io.disconnect();
+      window.removeEventListener('scroll', check);
+    };
+    const io = new IntersectionObserver(check, { threshold: [0, 0.25, 0.45, 0.6] });
+    io.observe(el);
+    window.addEventListener('scroll', check, { passive: true });
+    return () => {
+      io.disconnect();
+      window.removeEventListener('scroll', check);
+    };
+  }, [seen]);
+
+  useEffect(() => {
+    if (!seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timers = ROOMS.map((r, i) =>
+      window.setTimeout(() => {
+        if (!touched.current) setActive(r.key);
+      }, 1200 + i * 300),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        if (!touched.current) setActive(null);
+      }, 1200 + ROOMS.length * 300),
+    );
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }, [seen]);
+
+  const hold = (key: RoomKey | null) => {
+    touched.current = true;
+    setActive(key);
+  };
+
   return (
     <section
       data-testid="shop-by-room"
@@ -677,149 +870,144 @@ export function ApartmentRooms() {
     >
       <div className={CONTAINER}>
         <Reveal>
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow={t('Rooms — 06', 'الغرف — 06')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
-            <ViewMore label={t('All Rooms', 'كل الغرف')} to={searchPath(1)} />
+          <div className="mx-auto max-w-2xl text-center">
+            <SectionHeading eyebrow={t('Rooms — 07', 'الغرف — 07')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
+            <p className={`mx-auto mt-5 max-w-md text-[15px] font-light leading-relaxed ${isAr ? 'tracking-normal' : ''}`} style={{ color: '#4A443C' }}>
+              {t(
+                'Hover a room to see everything that furnishes it — from the sofa down to the vases.',
+                'مرّر على غرفة لترى كل ما يؤثثها — من الأريكة حتى المزهريات.',
+              )}
+            </p>
+            <div className="mt-6 flex justify-center">
+              <ViewMore label={t('All Rooms', 'كل الغرف')} to={searchPath(1)} />
+            </div>
           </div>
-          <p className={`mt-5 max-w-md text-[15px] font-light leading-relaxed text-neutral-600 ${isAr ? 'tracking-normal' : ''}`}>
-            {t(
-              'Pick a room to see everything that furnishes it — from the sofa down to the vases.',
-              'اختر غرفة لترى كل ما يؤثثها — من الأريكة حتى المزهريات.',
-            )}
-          </p>
         </Reveal>
 
-        <div className="mt-12 grid gap-8 md:mt-16 lg:grid-cols-12 lg:gap-10">
-          {/* the plate */}
-          <Reveal className="lg:col-span-8">
-            <div
-              className="relative select-none"
-              onMouseLeave={() => setActive(null)}
-              data-testid="apartment-plate"
-            >
-              <img
-                src="/looks/apartment.jpg"
-                alt={t(
-                  'Cutaway view of a furnished apartment: living room, bedroom, dining room, majlis, home office and terrace',
-                  'مقطع لشقة مؤثثة: غرفة المعيشة وغرفة النوم وغرفة الطعام والمجلس والمكتب المنزلي والجلسة الخارجية',
-                )}
-                className="block h-auto w-full"
-                draggable={false}
-              />
+        <motion.div
+          ref={plate}
+          data-testid="apartment-plate"
+          data-seen={seen}
+          className="relative mx-auto mt-12 max-w-[1120px] select-none md:mt-16"
+          style={reduceMotion ? undefined : bloomed ? { clipPath: 'none' } : { clipPath: iris }}
+          onMouseLeave={() => hold(null)}
+        >
+          <motion.img
+            src="/looks/apartment.jpg"
+            alt={t(
+              'Cutaway view of a furnished apartment: living room, bedroom, dining room, majlis, home office and terrace',
+              'مقطع لشقة مؤثثة: غرفة المعيشة وغرفة النوم وغرفة الطعام والمجلس والمكتب المنزلي والجلسة الخارجية',
+            )}
+            className="block h-auto w-full"
+            draggable={false}
+            initial={{ scale: 1.06 }}
+            animate={seen ? { scale: 1 } : undefined}
+            transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          />
 
-              {/* Highlight + hit regions. Percent coordinates, so they track the
-                  image at any width; physical (never mirrored) like the photo. */}
-              <svg
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-                className="absolute inset-0 h-full w-full"
+          {/* Highlight + hit regions. Percent coordinates, so they track the
+              image at any width; physical (never mirrored) like the photo. */}
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+            <defs>
+              <filter id="apartment-feather">
+                <feGaussianBlur stdDeviation="0.9" />
+              </filter>
+              <mask id="apartment-mask">
+                <rect x="0" y="0" width="100" height="100" fill="white" />
+                {active && <polygon points={pointsOf(active)} fill="black" filter="url(#apartment-feather)" />}
+              </mask>
+            </defs>
+
+            {/* Everything but the hovered room washes out. The veil is the band
+                colour, not ink — the render's own background stays exactly the
+                colour behind it and the plate never shows as a dimmed rectangle. */}
+            <rect
+              x="0" y="0" width="100" height="100"
+              fill={APARTMENT_BG}
+              mask="url(#apartment-mask)"
+              className="transition-opacity duration-300"
+              opacity={active ? 0.55 : 0}
+            />
+
+            {/* Real links, so the rooms are reachable by keyboard now that the
+                list beside the plan is gone. */}
+            {ROOMS.map((r) => (
+              <a
+                key={r.key}
+                href={searchPath(1, { room: r.key })}
+                aria-label={`${t(r.en, r.ar)} — ${t(`${formatSAR(r.count)} pieces`, `${formatSAR(r.count)} قطعة`)}`}
+                onFocus={() => hold(r.key)}
+                onBlur={() => hold(null)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(searchPath(1, { room: r.key }));
+                }}
               >
-                <defs>
-                  <filter id="apartment-feather">
-                    <feGaussianBlur stdDeviation="0.9" />
-                  </filter>
-                  <mask id="apartment-mask">
-                    <rect x="0" y="0" width="100" height="100" fill="white" />
-                    {active && (
-                      <polygon points={pointsOf(active)} fill="black" filter="url(#apartment-feather)" />
-                    )}
-                  </mask>
-                </defs>
-
-                {/* Everything but the hovered room washes out. The veil is the
-                    band colour, not ink — so the render's own background stays
-                    exactly the colour behind it and the plate never shows as a
-                    dimmed rectangle. */}
-                <rect
-                  x="0" y="0" width="100" height="100"
-                  fill={APARTMENT_BG}
-                  mask="url(#apartment-mask)"
-                  className="transition-opacity duration-300"
-                  opacity={active ? 0.5 : 0}
+                <polygon
+                  points={pointsOf(r.key)}
+                  fill="transparent"
+                  className="cursor-pointer outline-none"
+                  onMouseEnter={() => hold(r.key)}
                 />
+              </a>
+            ))}
+          </svg>
 
-                {/* pointer targets — the room list below carries keyboard + screen readers */}
-                {ROOMS.map((r) => (
-                  <polygon
-                    key={r.key}
-                    points={pointsOf(r.key)}
-                    fill="transparent"
-                    className="cursor-pointer outline-none"
-                    onMouseEnter={() => setActive(r.key)}
-                    onClick={() => navigate(searchPath(1, { room: r.key }))}
-                  />
-                ))}
-              </svg>
+          {/* Idle markers: without the list, these are what say "this plan is alive". */}
+          {ROOMS.map((r) => {
+            const c = centroidOf(r.key);
+            return (
+              <span
+                key={r.key}
+                aria-hidden
+                className={`pointer-events-none absolute hidden h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-300 md:block ${
+                  seen && !active ? 'opacity-100' : 'opacity-0'
+                }`}
+                style={{ left: `${c.x}%`, top: `${c.y}%`, backgroundColor: OLIVE }}
+              >
+                <span className="absolute inset-0 animate-ping rounded-full motion-reduce:animate-none" style={{ backgroundColor: OLIVE, opacity: 0.5 }} />
+              </span>
+            );
+          })}
 
-              {/* label chip pinned to the hovered room */}
-              {activeRoom && (
-                <Link
-                  to={searchPath(1, { room: activeRoom.key })}
-                  className="pointer-events-none absolute z-10 hidden -translate-x-1/2 -translate-y-1/2 border bg-white/95 px-4 py-2.5 shadow-[0_10px_30px_rgba(23,21,18,0.18)] backdrop-blur-sm md:block"
-                  style={{
-                    left: `${centroidOf(activeRoom.key).x}%`,
-                    top: `${centroidOf(activeRoom.key).y}%`,
-                    borderColor: HAIR,
-                  }}
-                >
-                  <span className={`block text-[13px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em]'}`}>
-                    {t(activeRoom.en, activeRoom.ar)}
-                  </span>
-                  <span className="mt-1 flex items-center gap-2 text-[11px] text-neutral-500">
-                    {t(`${formatSAR(activeRoom.count)} pieces`, `${formatSAR(activeRoom.count)} قطعة`)}
-                    <ArrowRight size={11} strokeWidth={1.75} className={isAr ? 'rotate-180' : undefined} style={{ color: OLIVE }} />
-                  </span>
-                </Link>
-              )}
-            </div>
-          </Reveal>
+          {/* label chip pinned to the hovered room */}
+          {activeRoom && (
+            <Link
+              to={searchPath(1, { room: activeRoom.key })}
+              className="pointer-events-none absolute z-10 hidden -translate-x-1/2 -translate-y-1/2 border bg-white/95 px-4 py-2.5 shadow-[0_10px_30px_rgba(23,21,18,0.18)] backdrop-blur-sm md:block"
+              style={{
+                left: `${centroidOf(activeRoom.key).x}%`,
+                top: `${centroidOf(activeRoom.key).y}%`,
+                borderColor: HAIR,
+              }}
+            >
+              <span className={`block text-[13px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em]'}`}>
+                {t(activeRoom.en, activeRoom.ar)}
+              </span>
+              <span className="mt-1 flex items-center gap-2 text-[11px]" style={{ color: '#5F5950' }}>
+                {t(`${formatSAR(activeRoom.count)} pieces`, `${formatSAR(activeRoom.count)} قطعة`)}
+                <ArrowRight size={11} strokeWidth={1.75} className={isAr ? 'rotate-180' : undefined} style={{ color: OLIVE }} />
+              </span>
+            </Link>
+          )}
+        </motion.div>
 
-          {/* the list — the accessible, keyboard and mobile path to the same rooms */}
-          <Reveal className="lg:col-span-4" delay={0.1}>
-            <p className={eyebrowCls(isAr)}>{t('The Rooms', 'الغرف')}</p>
-            <ul className="mt-5 border-t" style={{ borderColor: HAIR }}>
-              {ROOMS.map((r) => {
-                const on = active === r.key;
-                return (
-                  <li key={r.key} className="border-b" style={{ borderColor: HAIR }}>
-                    <Link
-                      to={searchPath(1, { room: r.key })}
-                      data-testid={`room-row-${r.key}`}
-                      onMouseEnter={() => setActive(r.key)}
-                      onFocus={() => setActive(r.key)}
-                      onBlur={() => setActive(null)}
-                      className="group flex items-center gap-4 py-4 transition-colors"
-                    >
-                      <span
-                        className="h-6 w-px shrink-0 transition-colors duration-300"
-                        style={{ backgroundColor: on ? OLIVE : 'transparent' }}
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span
-                          className={`block text-[15px] font-bold transition-colors duration-300 ${isAr ? 'tracking-normal' : ''}`}
-                          style={{ color: on ? OLIVE : INK }}
-                        >
-                          {t(r.en, r.ar)}
-                        </span>
-                        <span className="mt-0.5 block text-[11px] text-neutral-400">
-                          {t(`${formatSAR(r.count)} pieces`, `${formatSAR(r.count)} قطعة`)}
-                        </span>
-                      </span>
-                      <ArrowRight
-                        size={14}
-                        strokeWidth={1.5}
-                        className={`shrink-0 transition-transform duration-300 ${
-                          isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'
-                        }`}
-                        style={{ color: on ? OLIVE : '#B9B2A6' }}
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </Reveal>
-        </div>
+        {/* Touch has no hover and the hit regions are small on a phone, so the
+            rooms also stand as chips there. */}
+        <ul className="mt-8 flex flex-wrap justify-center gap-2.5 md:hidden" data-testid="room-chips">
+          {ROOMS.map((r) => (
+            <li key={r.key}>
+              <Link
+                to={searchPath(1, { room: r.key })}
+                className="flex items-center gap-2 border bg-white/70 px-3.5 py-2.5 text-[12px] font-medium"
+                style={{ borderColor: HAIR }}
+              >
+                {t(r.en, r.ar)}
+                <span className="text-[10px] tabular-nums" style={{ color: '#5F5950' }}>{formatSAR(r.count)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
@@ -860,8 +1048,8 @@ export function ServicesIndex({ no }: { no: string }) {
                 const on = i === active;
                 return (
                   <li key={sv.en} className="border-b" style={{ borderColor: HAIR }}>
-                    <button
-                      type="button"
+                    <Link
+                                            to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
                       data-testid={`service-row-${i}`}
                       onMouseEnter={() => setActive(i)}
                       onFocus={() => setActive(i)}
@@ -896,7 +1084,7 @@ export function ServicesIndex({ no }: { no: string }) {
                         }`}
                         style={{ color: on ? OLIVE : '#B9B2A6' }}
                       />
-                    </button>
+                    </Link>
                   </li>
                 );
               })}
@@ -906,20 +1094,7 @@ export function ServicesIndex({ no }: { no: string }) {
           {/* the preview — desktop only, follows the list down the page */}
           <Reveal className="hidden lg:col-span-5 lg:block" delay={0.1}>
             <div className="sticky top-28">
-              <div className="relative aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={current.img}
-                    src={current.img}
-                    alt={t(current.en, current.ar)}
-                    initial={{ opacity: 0, scale: 1.03 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                </AnimatePresence>
-              </div>
+              <ServicePreview index={active} />
               <p
                 className={`mt-4 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
                 style={{ color: OLIVE }}
@@ -931,5 +1106,49 @@ export function ServicesIndex({ no }: { no: string }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * The services preview. The new image dissolves in over the one it replaces,
+ * so there is never an empty frame between them.
+ */
+function ServicePreview({ index }: { index: number }) {
+  const { t } = useLook();
+  const [shown, setShown] = useState({ index, prev: index });
+  if (shown.index !== index) {
+    // keep the outgoing image underneath while the new one dissolves in
+    setShown({ index, prev: shown.index });
+  }
+
+  // load every image up front so a dissolve never starts on a frame still loading
+  useEffect(() => {
+    SERVICES.forEach((sv) => {
+      const im = new Image();
+      im.src = sv.img;
+    });
+  }, []);
+
+  const cur = SERVICES[shown.index];
+  const under = SERVICES[shown.prev];
+
+  return (
+    <div
+      data-testid="service-preview"
+      data-index={shown.index}
+      className="relative aspect-[4/5] overflow-hidden"
+      style={{ backgroundColor: TILE }}
+    >
+      <img key={`under-${under.img}`} src={under.img} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+      <motion.img
+        key={cur.img}
+        src={cur.img}
+        alt={t(cur.en, cur.ar)}
+        initial={shown.prev !== shown.index ? { opacity: 0 } : false}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: 'easeInOut' }}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    </div>
   );
 }

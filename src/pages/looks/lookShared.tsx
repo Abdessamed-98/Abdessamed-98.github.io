@@ -357,13 +357,14 @@ export const FOOTER_SUPPORT: Bi[] = [
   { en: 'Track Order', ar: 'تتبع الطلب' },
 ];
 
+/** Own 4:5 photography, one per category (public/categories/featured). */
 export const CATEGORIES: LookCategory[] = [
-  { key: 'home', img: IMG.catHome, en: 'Home Furniture', ar: 'الأثاث المنزلي' },
-  { key: 'office', img: IMG.catOffice, en: 'Office Furniture', ar: 'الأثاث المكتبي' },
-  { key: 'lighting', img: IMG.catLighting, en: 'Lighting', ar: 'الإنارات' },
-  { key: 'rugs', img: IMG.bedroom, en: 'Rugs & Carpets', ar: 'السجاد' },
-  { key: 'bath', img: IMG.loungeDark, en: 'Bathroom Solutions', ar: 'دورات المياه' },
-  { key: 'decor', img: IMG.roomHotspots, en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
+  { key: 'home', img: '/categories/featured/home.webp', en: 'Home Furniture', ar: 'الأثاث المنزلي' },
+  { key: 'office', img: '/categories/featured/office.webp', en: 'Office Furniture', ar: 'الأثاث المكتبي' },
+  { key: 'lighting', img: '/categories/featured/lighting.webp', en: 'Lighting', ar: 'الإنارات' },
+  { key: 'rugs', img: '/categories/featured/rugs.webp', en: 'Rugs & Carpets', ar: 'السجاد' },
+  { key: 'bath', img: '/categories/featured/bath.webp', en: 'Bathroom Solutions', ar: 'دورات المياه' },
+  { key: 'decor', img: '/categories/featured/decor.webp', en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
 ];
 
 export const SERVICES: LookService[] = [
@@ -567,9 +568,14 @@ export const BLOG_POSTS: LookPost[] = [
 ];
 
 /** Featured partner stores — Diyar is a multi-vendor marketplace. */
-export type StoreKey = 'diyar' | 'bk' | 'ld' | 'dw' | 'ns';
+export type StoreKey = 'diyar' | 'bk' | 'ld' | 'dw' | 'ns' | 'zk' | 'mk';
 
-export interface LookStore { key: StoreKey; name: Bi; specialty: Bi; initials: string; rating: number; products: number; cover: string }
+export interface LookStore {
+  key: StoreKey; name: Bi; specialty: Bi; initials: string; rating: number; products: number; cover: string;
+  /** A real shop mark, once the partners supply one. Until then the card falls
+   *  back to `initials`, so dropping logos in is this one field and no more. */
+  logo?: string;
+}
 
 export const STORES: LookStore[] = [
   {
@@ -595,6 +601,18 @@ export const STORES: LookStore[] = [
     name: { en: 'Naseej', ar: 'نسيج' },
     specialty: { en: 'Rugs & textiles', ar: 'السجاد والمنسوجات' },
     initials: 'NS', rating: 4.9, products: 349, cover: IMG.bedroom,
+  },
+  {
+    key: 'zk',
+    name: { en: 'Zukhruf', ar: 'زخرف' },
+    specialty: { en: 'Decor & accessories', ar: 'الديكور والإكسسوارات' },
+    initials: 'ZK', rating: 4.8, products: 604, cover: IMG.roomHotspots,
+  },
+  {
+    key: 'mk',
+    name: { en: 'Maktabi', ar: 'مكتبي' },
+    specialty: { en: 'Office & workspace', ar: 'الأثاث المكتبي' },
+    initials: 'MK', rating: 4.6, products: 187, cover: IMG.catOffice,
   },
 ];
 
@@ -862,7 +880,7 @@ export const CATALOG: CatalogProduct[] = [
   {
     id: 12, img: '/looks/shop/vases.jpg', gallery: ['/looks/shop/vases.jpg', IMG.roomHotspots],
     name: { en: 'Stoneware Vase Set', ar: 'طقم مزهريات حجرية' },
-    store: 'diyar', category: 'decor', room: 'dining', style: 'modern',
+    store: 'zk', category: 'decor', room: 'dining', style: 'modern',
     price: 480, rating: 4.7, reviews: 219, sku: 'DH-VS-0902',
     colors: [C.sand, C.charcoal],
     dimensions: { en: 'Set of 2 · H 28 cm and H 22 cm', ar: 'طقم من قطعتين · الارتفاع 28 سم و22 سم' },
@@ -874,7 +892,7 @@ export const CATALOG: CatalogProduct[] = [
   {
     id: 13, img: '/looks/shop/chair.jpg', gallery: ['/looks/shop/chair.jpg', IMG.roomHotspots, IMG.catHome],
     name: { en: 'Olive Bouclé Lounge Chair', ar: 'كرسي استرخاء بقماش البوكليه' },
-    store: 'dw', category: 'home', room: 'living', style: 'modern',
+    store: 'mk', category: 'home', room: 'living', style: 'modern',
     price: 3150, rating: 4.9, reviews: 112, sku: 'DW-CH-1150',
     colors: [C.olive, C.cream, C.taupe],
     dimensions: { en: 'W 84 × D 86 × H 72 cm', ar: 'العرض 84 × العمق 86 × الارتفاع 72 سم' },
@@ -886,7 +904,7 @@ export const CATALOG: CatalogProduct[] = [
   {
     id: 14, img: '/looks/shop/planter.jpg', gallery: ['/looks/shop/planter.jpg', IMG.roomHotspots],
     name: { en: 'Aged Terracotta Planter', ar: 'أصيص فخاري عتيق' },
-    store: 'diyar', category: 'decor', room: 'outdoor', style: 'bohemian',
+    store: 'zk', category: 'decor', room: 'outdoor', style: 'bohemian',
     price: 620, rating: 4.8, reviews: 64, sku: 'DH-PL-0330',
     colors: [C.terracotta],
     dimensions: { en: 'Ø 52 × H 60 cm · drainage hole', ar: 'القطر 52 × الارتفاع 60 سم · فتحة تصريف' },
@@ -907,6 +925,62 @@ export const DIYAR_STORE: LookStore = {
 export const ALL_STORES: LookStore[] = [DIYAR_STORE, ...STORES];
 
 export const storeOf = (key: StoreKey): LookStore => ALL_STORES.find((s) => s.key === key) ?? DIYAR_STORE;
+
+/* ------------------------------------------------------------------ */
+/* Store locations — Jeddah                                            */
+/* District points geocoded from OpenStreetMap (Nominatim). Street-    */
+/* level addresses are deliberately not invented.                     */
+/* ------------------------------------------------------------------ */
+
+export interface StoreLocation {
+  id: string;
+  store: StoreKey;
+  district: Bi;
+  lat: number;
+  lng: number;
+  /** Opening hours in Saudi (Riyadh) time on a 24h clock; 24 means midnight. */
+  opens: number;
+  closes: number;
+  /** Day the location is closed, 0 = Sunday … 6 = Saturday. */
+  closedOn?: number;
+}
+
+/** Where the nearby-stores map starts: central Jeddah. */
+export const MAP_ORIGIN = {
+  lat: 21.55044,
+  lng: 39.17424,
+  label: { en: 'Jeddah, Saudi Arabia', ar: 'جدة، السعودية' } as Bi,
+};
+
+export const STORE_LOCATIONS: StoreLocation[] = [
+  { id: 'diyar-tahlia', store: 'diyar', district: { en: 'Tahlia Street, Al Khalidiyah', ar: 'شارع التحلية، الخالدية' }, lat: 21.54768, lng: 39.136, opens: 10, closes: 23 },
+  { id: 'dw-rawdah', store: 'dw', district: { en: 'Al Rawdah', ar: 'حي الروضة' }, lat: 21.55193, lng: 39.14359, opens: 10, closes: 23 },
+  { id: 'ld-hamra', store: 'ld', district: { en: 'Al Hamra', ar: 'حي الحمراء' }, lat: 21.52822, lng: 39.16257, opens: 10, closes: 22 },
+  { id: 'bk-salamah', store: 'bk', district: { en: 'Al Salamah', ar: 'حي السلامة' }, lat: 21.594, lng: 39.15236, opens: 9, closes: 18, closedOn: 5 },
+  { id: 'ns-balad', store: 'ns', district: { en: 'Al Balad, Historic Jeddah', ar: 'البلد، جدة التاريخية' }, lat: 21.48604, lng: 39.1877, opens: 16, closes: 24 },
+  { id: 'diyar-obhur', store: 'diyar', district: { en: 'South Obhur, Corniche Road', ar: 'أبحر الجنوبية، طريق الكورنيش' }, lat: 21.73562, lng: 39.12275, opens: 10, closes: 24 },
+];
+
+/** Great-circle distance in kilometres. */
+export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** Whether a location is open right now, judged in Saudi (Riyadh) time. */
+export function isOpenNow(loc: StoreLocation, now: Date = new Date()): boolean {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Riyadh', hour: 'numeric', hourCycle: 'h23', weekday: 'short',
+  }).formatToParts(now);
+  const hour = Number(parts.find((x) => x.type === 'hour')?.value ?? 0);
+  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.find((x) => x.type === 'weekday')?.value ?? 'Sun');
+  if (loc.closedOn === day) return false;
+  return hour >= loc.opens && hour < loc.closes;
+}
 
 export const findProduct = (id: string | number | undefined): CatalogProduct | undefined =>
   CATALOG.find((p) => p.id === Number(id));
@@ -1071,12 +1145,13 @@ export const QUICK_CATEGORIES: QuickCategory[] = [
 /** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */
 export interface PromoPanel { img: string; eyebrow: Bi; title: Bi; cta: Bi; span: 2 | 3; query?: SearchQuery }
 
+/** Own banner photography, shot minimal so the wall reads as one set. */
 export const PROMO_PANELS: PromoPanel[] = [
-  { img: IMG.hero, span: 3, eyebrow: { en: 'Limited Time', ar: 'لفترة محدودة' }, title: { en: 'Summer Sale — up to 40% off sofas', ar: 'عروض الصيف — خصم حتى 40% على الأرائك' }, cta: { en: 'Shop the Sale', ar: 'تسوق العروض' }, query: { sale: true } },
-  { img: IMG.roomHotspots, span: 3, eyebrow: { en: 'Free Service', ar: 'خدمة مجانية' }, title: { en: 'Free design session with any order over 5,000 SAR', ar: 'جلسة تصميم مجانية مع كل طلب فوق 5,000 ر.س' }, cta: { en: 'Book Now', ar: 'احجز الآن' } },
-  { img: IMG.catLighting, span: 2, eyebrow: { en: 'New Arrivals', ar: 'وصل حديثاً' }, title: { en: 'Lighting edit', ar: 'مختارات الإنارة' }, cta: { en: 'Discover', ar: 'اكتشف' }, query: { category: 'lighting' } },
-  { img: IMG.bedroom, span: 2, eyebrow: { en: 'Bundles', ar: 'باقات' }, title: { en: 'Bedroom sets from 6,900 SAR', ar: 'باقات غرف النوم من 6,900 ر.س' }, cta: { en: 'View Sets', ar: 'شاهد الباقات' }, query: { room: 'bedroom' } },
-  { img: IMG.workshop, span: 2, eyebrow: { en: 'Made to Order', ar: 'حسب الطلب' }, title: { en: 'Custom furniture, 3–4 weeks', ar: 'أثاث مخصص خلال 3–4 أسابيع' }, cta: { en: 'Start a Project', ar: 'ابدأ مشروعك' } },
+  { img: '/looks/promo/lead-summer.webp', span: 3, eyebrow: { en: 'Limited Time', ar: 'لفترة محدودة' }, title: { en: 'Summer Sale — up to 40% off sofas', ar: 'عروض الصيف — خصم حتى 40% على الأرائك' }, cta: { en: 'Shop the Sale', ar: 'تسوق العروض' }, query: { sale: true } },
+  { img: '/looks/promo/design-session.webp', span: 3, eyebrow: { en: 'Free Service', ar: 'خدمة مجانية' }, title: { en: 'Free design session with any order over 5,000 SAR', ar: 'جلسة تصميم مجانية مع كل طلب فوق 5,000 ر.س' }, cta: { en: 'Book Now', ar: 'احجز الآن' } },
+  { img: '/looks/promo/lighting.webp', span: 2, eyebrow: { en: 'New Arrivals', ar: 'وصل حديثاً' }, title: { en: 'Lighting edit', ar: 'مختارات الإنارة' }, cta: { en: 'Discover', ar: 'اكتشف' }, query: { category: 'lighting' } },
+  { img: '/looks/promo/bedroom-packages.webp', span: 2, eyebrow: { en: 'Bundles', ar: 'باقات' }, title: { en: 'Bedroom sets from 6,900 SAR', ar: 'باقات غرف النوم من 6,900 ر.س' }, cta: { en: 'View Sets', ar: 'شاهد الباقات' }, query: { room: 'bedroom' } },
+  { img: '/looks/promo/custom-furniture.webp', span: 2, eyebrow: { en: 'Made to Order', ar: 'حسب الطلب' }, title: { en: 'Custom furniture, 3–4 weeks', ar: 'أثاث مخصص خلال 3–4 أسابيع' }, cta: { en: 'Start a Project', ar: 'ابدأ مشروعك' } },
 ];
 
 /** "Most interactive" rail — live shopper activity on catalog items. */
@@ -1099,18 +1174,31 @@ export const FEATURED_DEALS = {
 };
 
 /** Two campaign banners (the original's summer banners), typographic instead of baked images. */
-export interface Campaign { img: string; eyebrow: Bi; title: Bi; body: Bi; cta: Bi; query?: SearchQuery; tone: 'light' | 'dark' }
+export interface Campaign {
+  img: string; eyebrow: Bi; title: Bi; body: Bi; cta: Bi; query?: SearchQuery;
+  tone: 'light' | 'dark';
+  /** 'soft' for a photograph already shot with the reading side left empty —
+   *  the full scrim exists to carve room out of a busy picture, and laying it
+   *  over one that does not need it only drains the colour. */
+  scrim?: 'soft';
+}
 
 export const CAMPAIGNS: Campaign[] = [
   {
-    img: IMG.catHome, tone: 'dark',
+    // shot wide with the wall left empty on the reading side, so the copy sits
+    // on the room rather than on top of the sofa
+    // white type
+    img: '/looks/campaign-living.webp', tone: 'dark', scrim: 'soft',
     eyebrow: { en: 'Summer Offers', ar: 'عروض الصيف' },
     title: { en: 'Up to 40% off living room seating', ar: 'خصم حتى 40% على جلسات المعيشة' },
     body: { en: 'Sofas, armchairs and majlis sets from Diyar and its partner stores — while stock lasts.', ar: 'أرائك وكراسي وأطقم مجالس من ديار ومتاجرها الشريكة — حتى نفاد الكمية.' },
     cta: { en: 'Shop the Offers', ar: 'تسوق العروض' }, query: { sale: true },
   },
   {
-    img: IMG.loungeDark, tone: 'light',
+    // shot wide with the wall left empty on the reading side, like the summer
+    // banner, so the copy sits on the room rather than over the seating
+    // black type
+    img: '/looks/campaign-majlis.webp', tone: 'light', scrim: 'soft',
     eyebrow: { en: 'Majlis Season', ar: 'موسم المجالس' },
     title: { en: 'Furnish the whole majlis — delivered and installed', ar: 'جهّز مجلسك كاملاً — توصيل وتركيب' },
     body: { en: 'Seating, lighting, rugs and curtains coordinated by our designers, installed by our crews.', ar: 'جلسات وإنارة وسجاد وستائر ينسقها مصممونا وتركّبها فرقنا.' },
@@ -1162,10 +1250,10 @@ export const formatSAR = (n: number) => n.toLocaleString('en-US');
  */
 export function LookSwitcher() {
   const { pathname } = useLocation();
+  // looks 2 and 3 are archived (src/pages/looks/_archive), leaving the chosen
+  // direction and the current site to compare it against
   const looks = [
     { to: '/look/1', label: '1' },
-    { to: '/look/2', label: '2' },
-    { to: '/look/3', label: '3' },
     { to: '/', label: '4' },
   ];
   // a look's search and product pages still belong to that look

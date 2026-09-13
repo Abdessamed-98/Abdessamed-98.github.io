@@ -36,26 +36,6 @@ const LOOKS: LookCard[] = [
     img: '/looks/original-site.png',
     palette: ['#1f3d3a', '#f3ecdb', '#947961'],
   },
-  {
-    to: '/look/2',
-    num: '02',
-    name: 'Dark Luxury',
-    nameAr: 'فخامة داكنة',
-    desc: 'Espresso black, brass-gold hairlines, serif display type — the showroom at night.',
-    descAr: 'أسود إسبريسو وخطوط ذهبية رفيعة وخط فاخر — صالة العرض ليلاً.',
-    img: IMG.loungeDark,
-    palette: ['#131009', '#EFE9DD', '#C9A86A'],
-  },
-  {
-    to: '/look/3',
-    num: '03',
-    name: 'Quiet Gallery',
-    nameAr: 'معرض هادئ',
-    desc: 'Warm greige canvas, serif-led type, museum-caption details — the calmest and most understated of the three.',
-    descAr: 'خلفية بيج هادئة وخط كلاسيكي وتفاصيل متحفية — الأكثر هدوءاً واتزاناً بين الثلاثة.',
-    img: IMG.roomHotspots,
-    palette: ['#F1EDE5', '#2A241C', '#8A6D4F'],
-  },
 ];
 
 export default function LooksIndex() {

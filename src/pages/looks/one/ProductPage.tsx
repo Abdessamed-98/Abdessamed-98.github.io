@@ -7,6 +7,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { useShell } from './shellContext';
+import { useWishlist } from '../../../context/WishlistContext';
 import {
   Heart, Share2, Minus, Plus, Check, ChevronDown, ChevronLeft, ChevronRight,
   Truck, Wrench, RefreshCw, Sparkles,
@@ -78,11 +80,13 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const [color, setColor] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const [wished, setWished] = useState(false);
+  const shell = useShell();
+  const wishlist = useWishlist();
   const [openPanel, setOpenPanel] = useState<string | null>('description');
   const addedTimer = useRef<number | null>(null);
 
   const addToCart = () => {
+    shell.addToCart(p.id, t(p.name.en, p.name.ar), { colorKey: p.colors[color]?.name.en, qty });
     setAdded(true);
     if (addedTimer.current !== null) window.clearTimeout(addedTimer.current);
     addedTimer.current = window.setTimeout(() => setAdded(false), 1800);
@@ -377,13 +381,13 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 <button
                   type="button"
                   data-testid="wishlist-toggle"
-                  onClick={() => setWished((w) => !w)}
-                  aria-pressed={wished}
+                  onClick={() => wishlist.toggle(p.id)}
+                  aria-pressed={wishlist.has(p.id)}
                   aria-label={t('Add to wishlist', 'أضف إلى المفضلة')}
-                  className={`${iconBtn} ${wished ? 'text-[#B03A2E]' : ''}`}
-                  style={{ borderColor: wished ? RED : HAIR }}
+                  className={`${iconBtn} ${wishlist.has(p.id) ? 'text-[#B03A2E]' : ''}`}
+                  style={{ borderColor: wishlist.has(p.id) ? RED : HAIR }}
                 >
-                  <Heart size={18} strokeWidth={1.25} className={wished ? 'fill-[#B03A2E]' : 'fill-transparent'} />
+                  <Heart size={18} strokeWidth={1.25} className={wishlist.has(p.id) ? 'fill-[#B03A2E]' : 'fill-transparent'} />
                 </button>
                 <button type="button" aria-label={t('Share', 'مشاركة')} className={iconBtn} style={{ borderColor: HAIR }}>
                   <Share2 size={18} strokeWidth={1.25} />

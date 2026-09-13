@@ -7,6 +7,8 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useShell } from './shellContext';
+import { useWishlist } from '../../../context/WishlistContext';
 import { Star, ArrowRight, Heart, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import {
   formatSAR, storeOf, productPath,
@@ -25,6 +27,8 @@ export const TILE = '#F6F3EC';    // product image tile
 export const OLIVE_LT = '#A7B894'; // olive lifted for the dark bands
 export const CREAM = '#F6F3EC';   // type colour on the dark bands
 export const NIGHT = '#14120F';   // dark band ground (same as the footer)
+export const MUTED = '#5F5950';   // secondary type — neutral-400 fails on cream
+export const FIELD = '#C9C2B4';   // input and control outline: a hairline is too faint to aim at
 
 /* ------------------------------------------------------------------ */
 /* Language context                                                    */
@@ -213,6 +217,18 @@ interface CardData {
   isNew: boolean;
 }
 
+/**
+ * The image tile is a warm ground and the picture is drawn inside it, so a
+ * product shot on its own white background lands as a pale square sitting on
+ * the tile rather than on it. Pieces 1–9 have their background removed
+ * (public/looks/cutout); anything else keeps its catalogue shot, so this is
+ * safe to call for every product and the rest can be cut out later without
+ * touching a component.
+ */
+const CUT_OUT = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+export const tileImg = (id: number, fallback: string) =>
+  (CUT_OUT.has(id) ? `/looks/cutout/p${String(id).padStart(2, '0')}.webp` : fallback);
+
 const isCatalog = (p: LookProduct | CatalogProduct): p is CatalogProduct => 'gallery' in p;
 
 function toCard(p: LookProduct | CatalogProduct, lang: Lang): CardData {
@@ -264,10 +280,13 @@ export function ProductCard({
   const isAr = lang === 'ar';
   const c = toCard(p, lang);
   const to = productPath(1, c.id);
-  const [wished, setWished] = useState(false);
+  const shell = useShell();
+  const wishlist = useWishlist();
+  const wished = wishlist.has(c.id);
   const [added, setAdded] = useState(false);
 
   const addToCart = () => {
+    shell.addToCart(c.id, c.name);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1600);
   };
@@ -306,7 +325,7 @@ export function ProductCard({
         {/* wishlist — top end (bottom end when the rank digit is there) */}
         <button
           type="button"
-          onClick={() => setWished((w) => !w)}
+          onClick={() => wishlist.toggle(c.id)}
           aria-pressed={wished}
           aria-label={t('Add to wishlist', 'أضف إلى المفضلة')}
           className={`absolute end-3 z-10 flex h-9 w-9 items-center justify-center transition-colors ${
@@ -317,7 +336,7 @@ export function ProductCard({
         </button>
         <Link to={to} className="block h-full w-full" aria-label={c.name}>
           <img
-            src={c.img}
+            src={tileImg(c.id, c.img)}
             alt={c.name}
             className="h-full w-full object-contain p-7 transition-transform duration-700 ease-out group-hover:scale-105"
           />
@@ -425,21 +444,55 @@ export function Breadcrumb({ items }: { items: Crumb[] }) {
  * A horizontal rail. `auto` (ms) advances it on a timer — but only while it is
  * on screen, not hovered/focused/touched, the tab is visible, and the visitor
  * has not asked for reduced motion.
+ *
+ * `loop` expects the caller to have rendered its items twice over. The rail
+ * then never rewinds: once the first copy has been scrolled through, it is
+ * swapped for the second instantly, which lands on identical cards and so is
+ * invisible, and the run keeps travelling the same way for good.
  */
-export function useRail({ auto = 0 }: { auto?: number } = {}) {
+export function useRail({ auto = 0, page = false, loop = false }: { auto?: number; page?: boolean; loop?: boolean } = {}) {
   const { lang } = useLook();
   const ref = useRef<HTMLDivElement>(null);
   const paused = useRef(false);
   const onScreen = useRef(false);
+  const rtl = lang === 'ar';
 
-  const stepBy = (dir: 1 | -1) => {
+  /* scrollLeft runs negative in RTL, so all of this works on distance travelled */
+  const posOf = (el: HTMLDivElement) => Math.abs(el.scrollLeft);
+  const setPos = (el: HTMLDivElement, p: number) => { el.scrollLeft = rtl ? -p : p; };
+
+  /** Distance between a card and its twin in the second copy — one full turn. */
+  const periodOf = (el: HTMLDivElement) => {
+    const kids = el.children;
+    if (kids.length < 2 || kids.length % 2) return 0;
+    const a = kids[0] as HTMLElement;
+    const b = kids[kids.length / 2] as HTMLElement;
+    return Math.abs(b.offsetLeft - a.offsetLeft);
+  };
+
+  /** Jump a whole turn, so the step that follows never runs out of run. */
+  const rollOver = (el: HTMLDivElement, dir: 1 | -1) => {
+    if (!loop) return;
+    const period = periodOf(el);
+    if (!period) return;
+    const p = posOf(el);
+    if (dir > 0 && p >= period - 1) setPos(el, p - period);
+    else if (dir < 0 && p <= 1) setPos(el, p + period);
+  };
+
+  const stepBy = (dir: 1 | -1, mode: 'card' | 'page') => {
     const el = ref.current;
     if (!el) return;
+    rollOver(el, dir);
     const first = el.firstElementChild as HTMLElement | null;
     const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
-    // one card at a time reads better than a fraction of the viewport
-    const amount = first ? first.getBoundingClientRect().width + gap : Math.round(el.clientWidth * 0.7);
-    const sign = lang === 'ar' ? -dir : dir;
+    // One card at a time reads better than a fraction of the viewport — unless
+    // the rail asked to turn over a whole screenful, where the run holds an
+    // exact number of cards and the next batch should land flush.
+    const amount = mode === 'page'
+      ? el.clientWidth + gap
+      : first ? first.getBoundingClientRect().width + gap : Math.round(el.clientWidth * 0.7);
+    const sign = rtl ? -dir : dir;
     el.scrollBy({ left: sign * amount, behavior: 'smooth' });
   };
 
@@ -456,13 +509,14 @@ export function useRail({ auto = 0 }: { auto?: number } = {}) {
       if (!node || paused.current || !onScreen.current || document.hidden) return;
       const max = node.scrollWidth - node.clientWidth;
       if (max <= 4) return;
-      // scrollLeft runs negative in RTL, so compare on distance travelled
+      // a looping rail carries on forward — stepBy rolls it over for itself
+      if (loop) { stepBy(1, 'card'); return; }
       if (Math.abs(node.scrollLeft) >= max - 4) node.scrollTo({ left: 0, behavior: 'smooth' });
-      else stepBy(1);
+      else stepBy(1, 'card');
     }, auto);
 
     return () => { io.disconnect(); window.clearInterval(id); };
-  }, [auto, lang]);
+  }, [auto, lang, loop]);
 
   /** Spread onto the rail so it holds still while the visitor is using it. */
   const hold = {
@@ -473,7 +527,8 @@ export function useRail({ auto = 0 }: { auto?: number } = {}) {
     onTouchStart: () => { paused.current = true; },
   };
 
-  return { ref, prev: () => stepBy(-1), next: () => stepBy(1), hold };
+  const mode = page ? 'page' : 'card';
+  return { ref, prev: () => stepBy(-1, mode), next: () => stepBy(1, mode), hold };
 }
 
 /** Prev / next hairline squares — desktop only, the rails swipe on touch. */
@@ -495,3 +550,45 @@ export function RailArrows({ onPrev, onNext, className = '' }: { onPrev: () => v
 }
 
 /** The look's bleed rail: scrolls edge to edge on phones, snaps per card. */
+
+/**
+ * True once a real share of the element is on screen — and it stays true.
+ *
+ * whileInView is not enough for tall blocks: an IntersectionObserver only
+ * reports at frame boundaries, so a fast flick can carry an element from below
+ * the fold to above it without ever registering, and a tall element's top edge
+ * appears long before the element itself is worth looking at.
+ */
+export function useSeen<T extends HTMLElement>(share = 0.35) {
+  const ref = useRef<T>(null);
+  const [seen, setSeen] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || seen) return;
+    const reached = () => {
+      const r = el.getBoundingClientRect();
+      const shown = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+      return shown > Math.min(r.height, window.innerHeight) * share;
+    };
+    if (reached()) {
+      setSeen(true);
+      return;
+    }
+    const check = () => {
+      if (!reached()) return;
+      setSeen(true);
+      io.disconnect();
+      window.removeEventListener('scroll', check);
+    };
+    const io = new IntersectionObserver(check, { threshold: [0, 0.2, 0.4, 0.6] });
+    io.observe(el);
+    window.addEventListener('scroll', check, { passive: true });
+    return () => {
+      io.disconnect();
+      window.removeEventListener('scroll', check);
+    };
+  }, [seen, share]);
+
+  return { ref, seen };
+}

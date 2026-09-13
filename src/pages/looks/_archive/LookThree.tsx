@@ -1,0 +1,2355 @@
+/**
+ * Look 3 — "Quiet Gallery"
+ * Museum-catalog calm inside the warm minimal-luxury brief: warm greige canvas,
+ * serif-led Title Case headings (Playfair), Marcellus small-caps labels, bronze
+ * used only as a whisper (rules, links, captions), museum captions under images,
+ * ghost numerals, hairlines, sharp corners, and very slow, quiet motion.
+ *
+ * Fully bilingual (Arabic-first): the header ENG | عربي switch flips the page
+ * between RTL Arabic (Amiri headings, Alexandria labels, Tajawal body — no
+ * letterspacing on Arabic script) and the original English look.
+ */
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type Key, type ReactNode } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  Search, Camera, User, Heart, ShoppingBag, ArrowRight,
+  ChevronLeft, ChevronRight, ChevronDown, Menu, X,
+  Instagram, Facebook, Linkedin, Sparkles,
+} from 'lucide-react';
+import {
+  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
+  ROOM_HOTSPOTS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED,
+  ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS, PARTNER, APP_PROMO,
+  formatSAR, LookSwitcher, lookBase, searchPath, productPath,
+  type Lang, type Bi, type MenuGroup, type RoomHotspot,
+} from '../lookShared';
+import {
+  BG, ALT, INK, MUTED, BRONZE, HAIR, DARK, CREAM, GOLDISH, CONTAINER,
+  PLAYFAIR, MARCELLUS, AMIRI, ALEXANDRIA, TAJAWAL, DRAWER_EASE,
+  serif, headingLeading, pad2,
+  LookProvider, useLook, Reveal, SectionHeader, HairButton, BronzeLink, Stars, ProductTile,
+} from './three/ui';
+import SearchPage from './three/SearchPage';
+import ProductPage from './three/ProductPage';
+
+/* ------------------------------------------------------------------ */
+/* The look's palette, type and museum-catalog primitives (Reveal,     */
+/* SectionHeader, HairButton, BronzeLink, Stars, ProductTile) live in  */
+/* ./three/ui so the search and product pages share them.             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Museum-catalog product card for a shop-the-look hotspot.
+ * Text flows with the page language; POSITION is handed in as physical
+ * offsets by the caller so the card never jumps sides in RTL.
+ */
+function ProductCard({
+  spot, lang, className = '', style,
+}: { spot: RoomHotspot; lang: Lang; className?: string; style?: CSSProperties; key?: Key }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <motion.div
+      data-testid={`hotspot-card-${spot.id}`}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 6 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className={`border p-4 shadow-[0_18px_50px_rgba(42,36,28,0.14)] ${className}`}
+      style={{ backgroundColor: ALT, borderColor: HAIR, ...style }}
+    >
+      <div className="flex items-start gap-3.5">
+        <img
+          src={spot.thumb}
+          alt={spot.name.en}
+          className="h-[76px] w-[76px] shrink-0 object-cover"
+          style={{ backgroundColor: BG }}
+        />
+        <div className="min-w-0 flex-1">
+          <p
+            className={
+              lang === 'ar'
+                ? `${ALEXANDRIA} text-[9px] tracking-normal`
+                : `${MARCELLUS} text-[9px] uppercase tracking-[0.28em]`
+            }
+            style={{ color: MUTED }}
+          >
+            {t(spot.category.en, spot.category.ar)}
+          </p>
+          <h3
+            className={`${serif(lang)} mt-1.5 line-clamp-2 text-[15px] ${headingLeading(lang, 'leading-snug')}`}
+            style={{ color: INK }}
+          >
+            {t(spot.name.en, spot.name.ar)}
+          </h3>
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
+            <span className={`${PLAYFAIR} text-[17px]`} style={{ color: INK }}>
+              {formatSAR(spot.price)}
+            </span>
+            <span
+              className={lang === 'ar' ? 'text-[11px] tracking-normal' : 'text-[10px] tracking-[0.15em]'}
+              style={{ color: MUTED }}
+            >
+              {t('SAR', 'ر.س')}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hairline action — same rectangle language as HairButton; opens the product page */}
+      <Link
+        to={productPath(3, spot.productId)}
+        data-testid={`hotspot-view-${spot.id}`}
+        className={`mt-4 block w-full border border-[#2A241C]/40 py-2.5 text-center text-[#2A241C] transition-colors duration-300 hover:border-[#2A241C] hover:bg-[#2A241C] hover:text-[#EFE9DD] ${
+          lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+        }`}
+      >
+        {t('View Product', 'عرض المنتج')}
+      </Link>
+      <div className="mt-3 text-center">
+        <button
+          type="button"
+          className={`border-b border-[#8A6D4F]/35 pb-0.5 text-[#8A6D4F] transition-colors duration-300 hover:border-[#8A6D4F] ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+          }`}
+        >
+          {t('Add to Cart', 'أضف إلى السلة')}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * One shoppable point on the room photo: a small white dot ringed in bronze with a
+ * slow halo, plus the desktop product card that opens beside it. The anchor and the
+ * card offsets are PHYSICAL (top/left/right), so nothing mirrors in RTL.
+ */
+function HotspotPoint({
+  spot, lang, isActive, delay, onEnter, onLeave, onToggle,
+}: {
+  spot: RoomHotspot;
+  lang: Lang;
+  isActive: boolean;
+  delay: number;
+  onEnter: () => void;
+  onLeave: () => void;
+  onToggle: () => void;
+  key?: Key;
+}) {
+  const cardStyle: CSSProperties = {
+    ...(spot.align === 'left' ? { right: 24 } : { left: 24 }),
+    ...(spot.vAlign === 'bottom' ? { top: -12 } : { bottom: -12 }),
+  };
+
+  return (
+    <div
+      className="absolute z-10"
+      style={{ top: spot.top, left: spot.left }}
+      /* Pointer-type guard: touch devices must not "hover" the card open and then
+         have the follow-up click immediately toggle it shut. */
+      onPointerEnter={(e) => { if (e.pointerType === 'mouse') onEnter(); }}
+      onPointerLeave={(e) => { if (e.pointerType === 'mouse') onLeave(); }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={lang === 'ar' ? spot.name.ar : spot.name.en}
+        aria-expanded={isActive}
+        data-testid={`hotspot-${spot.id}`}
+        className="group relative -m-3 block cursor-pointer p-3"
+      >
+        <span className="relative block h-[13px] w-[13px]">
+          <motion.span
+            className="absolute inset-0 rounded-full bg-white/70"
+            animate={{ scale: [1, 2.7], opacity: [0.6, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut', delay }}
+          />
+          <span
+            className={`absolute inset-0 rounded-full bg-white transition-transform duration-300 group-hover:scale-125 ${
+              isActive ? 'scale-125' : ''
+            }`}
+            style={{ boxShadow: `0 0 0 1px ${BRONZE}, 0 2px 8px rgba(42,36,28,0.28)` }}
+          />
+        </span>
+      </button>
+
+      {/* Desktop card — anchored to its dot. Mobile uses the centred card below the image stack. */}
+      <AnimatePresence>
+        {isActive && (
+          <ProductCard
+            key={spot.id}
+            spot={spot}
+            lang={lang}
+            className="absolute z-20 hidden w-[250px] md:block"
+            style={cardStyle}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Header + mega menus                                                 */
+/* ------------------------------------------------------------------ */
+
+type MenuKey = 'shop' | 'services';
+
+/**
+ * One mega-menu column: serif group title over a thin bronze rule, muted sub-items.
+ * Given `to` (the Shop menu's category search), the title and its items navigate there.
+ */
+function MegaGroup({
+  group, lang, to, onNavigate,
+}: { group: MenuGroup; lang: Lang; to?: string; onNavigate?: () => void; key?: Key }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const titleCls = `${serif(lang)} ${lang === 'ar' ? 'text-[16px] tracking-normal' : 'text-[15px]'}`;
+  const itemCls = `block text-[12.5px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
+    lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
+  }`;
+  return (
+    <div>
+      <h3 className={titleCls} style={{ color: INK }}>
+        {to ? (
+          <Link to={to} onClick={onNavigate} className="transition-colors duration-300 hover:text-[#8A6D4F]">
+            {t(group.title.en, group.title.ar)}
+          </Link>
+        ) : (
+          t(group.title.en, group.title.ar)
+        )}
+      </h3>
+      <span className="mt-3 block h-px w-6" style={{ backgroundColor: BRONZE }} />
+      <ul className="mt-4 space-y-2">
+        {group.items.map((item) => (
+          <li key={item.en}>
+            {to ? (
+              <Link to={to} onClick={onNavigate} className={itemCls}>
+                {t(item.en, item.ar)}
+              </Link>
+            ) : (
+              <a href="#" onClick={(e) => e.preventDefault()} className={itemCls}>
+                {t(item.en, item.ar)}
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Museum-piece promo tile: image above, caption below in small serif, bronze underlined CTA. */
+function MegaFeatured({
+  tile, lang, to, onNavigate,
+}: { tile: { img: string; title: Bi; cta: Bi }; lang: Lang; to?: string; onNavigate?: () => void; key?: Key }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const Wrap = to
+    ? ({ children }: { children: ReactNode }) => (
+        <Link to={to} onClick={onNavigate} className="group block">{children}</Link>
+      )
+    : ({ children }: { children: ReactNode }) => (
+        <a href="#" onClick={(e) => e.preventDefault()} className="group block">{children}</a>
+      );
+  return (
+    <Wrap>
+      <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+        <img
+          src={tile.img}
+          alt={tile.title.en}
+          className="aspect-[4/3] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+        />
+      </div>
+      {/* Museum caption */}
+      <div className="pt-4">
+        <p className={`${serif(lang)} text-[16px] leading-snug`} style={{ color: INK }}>
+          {t(tile.title.en, tile.title.ar)}
+        </p>
+        <span
+          className={`mt-2 inline-flex items-center gap-1.5 border-b border-[#8A6D4F]/35 pb-0.5 text-[#8A6D4F] transition-colors duration-300 group-hover:border-[#8A6D4F] ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+          }`}
+        >
+          {t(tile.cta.en, tile.cta.ar)}
+          <ArrowRight size={11} strokeWidth={1.25} className="rtl:rotate-180" />
+        </span>
+      </div>
+    </Wrap>
+  );
+}
+
+/** Bronze small-caps link closing a mega panel, arrow flips in RTL. */
+function MegaBottomLink({
+  label, lang, to, onNavigate,
+}: { label: string; lang: Lang; to?: string; onNavigate?: () => void }) {
+  const cls = `inline-flex items-center gap-2 text-[#8A6D4F] transition-opacity duration-300 hover:opacity-75 ${
+    lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
+  }`;
+  const inner = (
+    <>
+      {label}
+      <ArrowRight size={12} strokeWidth={1.25} className="rtl:rotate-180" />
+    </>
+  );
+  if (to) {
+    return (
+      <Link to={to} onClick={onNavigate} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <a href="#" onClick={(e) => e.preventDefault()} className={cls}>
+      {inner}
+    </a>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile drawer                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One category group inside a drawer accordion: a small-caps title on a hairline
+ * that expands to its subcategories. The mobile stand-in for a mega-menu column.
+ */
+function DrawerGroup({
+  group, lang, isOpen, onToggle, onNavigate, to,
+}: {
+  group: MenuGroup;
+  lang: Lang;
+  isOpen: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+  /** Where the group (and its items) navigate — the Shop menu's category search. */
+  to?: string;
+  key?: Key;
+}) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const titleCls =
+    lang === 'ar'
+      ? `${ALEXANDRIA} text-[12px] tracking-normal`
+      : `${MARCELLUS} text-[11px] uppercase tracking-[0.2em]`;
+  const itemCls = `block py-2 text-[13px] leading-relaxed text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F] ${
+    lang === 'ar' ? `${TAJAWAL} tracking-normal` : ''
+  }`;
+  const chevron = (
+    <ChevronDown
+      size={13}
+      strokeWidth={1.25}
+      className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+      style={{ color: BRONZE }}
+    />
+  );
+  return (
+    <div className="border-t" style={{ borderColor: HAIR }}>
+      {to ? (
+        /* The title navigates; only the chevron expands the sub-items. */
+        <div className="flex w-full items-center justify-between gap-3">
+          <Link
+            to={to}
+            onClick={onNavigate}
+            className={`${titleCls} flex-1 py-3`}
+            style={{ color: isOpen ? BRONZE : INK }}
+          >
+            {t(group.title.en, group.title.ar)}
+          </Link>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={isOpen}
+            aria-label={t(`Expand ${group.title.en}`, `توسيع ${group.title.ar}`)}
+            className="-me-2 shrink-0 p-2 py-3"
+          >
+            {chevron}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          className="flex w-full items-center justify-between gap-3 py-3 text-start"
+        >
+          <span className={titleCls} style={{ color: isOpen ? BRONZE : INK }}>
+            {t(group.title.en, group.title.ar)}
+          </span>
+          {chevron}
+        </button>
+      )}
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="items"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: DRAWER_EASE }}
+            className="overflow-hidden"
+          >
+            <ul className="pb-3 ps-4">
+              {group.items.map((item) => (
+                <li key={item.en}>
+                  {to ? (
+                    <Link to={to} onClick={onNavigate} className={itemCls}>
+                      {t(item.en, item.ar)}
+                    </Link>
+                  ) : (
+                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate(); }} className={itemCls}>
+                      {t(item.en, item.ar)}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * Below `lg` the bar has no room for the nav, the search or the mega menus, so
+ * all of it moves in here: a slim slide-in panel in the same museum-catalog
+ * language — hairlines, sharp corners, bronze only as a whisper.
+ *
+ * RTL: the panel is anchored with the logical `start-0`, but a translate is
+ * PHYSICAL, so the offset flips with the language — otherwise the Arabic drawer
+ * would fly in from the wrong edge.
+ */
+function MobileDrawer({
+  lang, open, onClose, onToggleLang,
+}: {
+  lang: Lang;
+  open: boolean;
+  onClose: () => void;
+  onToggleLang: () => void;
+}) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const navigate = useNavigate();
+  const [openSection, setOpenSection] = useState<MenuKey | null>(null);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+
+  /* A closed drawer forgets where it was — it always reopens at the top level. */
+  useEffect(() => {
+    if (open) return;
+    setOpenSection(null);
+    setOpenGroup(null);
+    setQ('');
+  }, [open]);
+
+  /** Enter in the drawer's search field opens the listing page for that query. */
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    onClose();
+    navigate(searchPath(3, { q: q.trim() }));
+  };
+
+  /* Lock the page behind the drawer. */
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [open]);
+
+  /* Escape closes it; so does growing past `lg`, where the drawer stops rendering. */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onResize = () => { if (window.innerWidth >= 1024) onClose(); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open, onClose]);
+
+  /** Physical slide offset — in RTL the start edge is the right one. */
+  const off = lang === 'ar' ? '100%' : '-100%';
+
+  /** Marcellus small-caps section label; Arabic script is never letterspaced. */
+  const labelCls =
+    lang === 'ar'
+      ? `${ALEXANDRIA} text-[10px] tracking-normal`
+      : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`;
+
+  /** Demo-only links (account, contact, unwired nav) just close the drawer. */
+  const closeOnTap = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    onClose();
+  };
+
+  const utilities = [
+    { Icon: User, label: t('Account', 'حسابي') },
+    { Icon: Heart, label: t('Wishlist', 'المفضلة') },
+    { Icon: ShoppingBag, label: t('Cart', 'السلة') },
+  ];
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="drawer-scrim"
+          aria-hidden
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35, ease: DRAWER_EASE }}
+          className="fixed inset-0 z-[60] bg-[#1B1712]/45 lg:hidden"
+        />
+      )}
+      {open && (
+        <motion.div
+          key="drawer-panel"
+          id="mobile-drawer"
+          data-testid="mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('Menu', 'القائمة')}
+          initial={{ x: off, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: off, opacity: 0 }}
+          transition={{ duration: 0.35, ease: DRAWER_EASE }}
+          className="fixed bottom-0 start-0 top-0 z-[61] flex w-[86vw] max-w-[380px] flex-col border-e lg:hidden"
+          style={{ backgroundColor: ALT, borderColor: HAIR, color: INK }}
+        >
+          {/* Plaque: the mark, and the way out */}
+          <div className="flex shrink-0 items-center justify-between border-b px-6 py-5" style={{ borderColor: HAIR }}>
+            <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto" />
+            <button
+              type="button"
+              onClick={onClose}
+              data-testid="mobile-drawer-close"
+              aria-label={t('Close menu', 'إغلاق القائمة')}
+              className="-me-2 p-2 transition-opacity duration-300 hover:opacity-60"
+            >
+              <X size={18} strokeWidth={1.25} />
+            </button>
+          </div>
+
+          <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain pb-10">
+            {/* Search — the bar's slim hairline field, squared off for the drawer */}
+            <div className="px-6 pt-6">
+              <form
+                role="search"
+                onSubmit={submitSearch}
+                className="flex h-11 items-center gap-3 border px-4"
+                style={{ borderColor: HAIR }}
+              >
+                <Search size={15} strokeWidth={1.5} className="shrink-0 text-[#8B8378]" />
+                <input
+                  type="text"
+                  data-testid="drawer-search-input"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t('Search', 'ابحث')}
+                  aria-label={t('Search', 'ابحث')}
+                  className={`w-full min-w-0 bg-transparent text-[12px] outline-none placeholder:text-[#8B8378] ${
+                    lang === 'ar' ? 'tracking-normal' : 'tracking-[0.12em]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  aria-label={t('Visual search', 'البحث بالصورة')}
+                  className="shrink-0 text-[#8A6D4F] transition-opacity duration-300 hover:opacity-60"
+                >
+                  <Camera size={15} strokeWidth={1.5} />
+                </button>
+              </form>
+            </div>
+
+            {/* Primary nav — Shop and Services open into the mega menus' contents */}
+            <nav className="px-6 pt-8">
+              <p className={labelCls} style={{ color: MUTED }}>
+                {t('Menu', 'القائمة')}
+              </p>
+              <div className="mt-4">
+                {NAV_ITEMS.map((item) => {
+                  const menuKey: MenuKey | null =
+                    item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
+
+                  const rowCls = `${serif(lang)} block border-b py-4 text-[17px] transition-colors duration-300 hover:text-[#8A6D4F]`;
+                  if (menuKey === null) {
+                    if (item.en === 'Home') {
+                      return (
+                        <Link key={item.en} to={lookBase(3)} onClick={onClose} className={rowCls} style={{ borderColor: HAIR }}>
+                          {t(item.en, item.ar)}
+                        </Link>
+                      );
+                    }
+                    return (
+                      <a key={item.en} href="#" onClick={closeOnTap} className={rowCls} style={{ borderColor: HAIR }}>
+                        {t(item.en, item.ar)}
+                      </a>
+                    );
+                  }
+
+                  const groups = menuKey === 'shop' ? SHOP_MENU : SERVICES_MENU;
+                  const sectionOpen = openSection === menuKey;
+                  const toggleSection = () => {
+                    setOpenSection((s) => (s === menuKey ? null : menuKey));
+                    setOpenGroup(null);
+                  };
+                  const chevron = (
+                    <ChevronDown
+                      size={15}
+                      strokeWidth={1.25}
+                      className={`shrink-0 transition-transform duration-300 ${sectionOpen ? 'rotate-180' : ''}`}
+                      style={{ color: BRONZE }}
+                    />
+                  );
+                  return (
+                    <div key={item.en} className="border-b" style={{ borderColor: HAIR }}>
+                      {/* Shop itself navigates to the listing; the chevron expands its categories.
+                          Services has no page of its own, so the whole row toggles. */}
+                      <div className="flex w-full items-center justify-between gap-3">
+                        {menuKey === 'shop' ? (
+                          <Link
+                            to={searchPath(3)}
+                            onClick={onClose}
+                            data-testid="drawer-shop-link"
+                            className={`${serif(lang)} flex-1 py-4 text-[17px] transition-colors duration-300 hover:text-[#8A6D4F]`}
+                            style={{ color: sectionOpen ? BRONZE : INK }}
+                          >
+                            {t(item.en, item.ar)}
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={toggleSection}
+                            aria-expanded={sectionOpen}
+                            aria-controls={`drawer-${menuKey}-panel`}
+                            className={`${serif(lang)} flex-1 py-4 text-start text-[17px]`}
+                            style={{ color: sectionOpen ? BRONZE : INK }}
+                          >
+                            {t(item.en, item.ar)}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          data-testid={`drawer-${menuKey}-toggle`}
+                          aria-expanded={sectionOpen}
+                          aria-controls={`drawer-${menuKey}-panel`}
+                          aria-label={t(`Expand ${item.en}`, `توسيع ${item.ar}`)}
+                          onClick={toggleSection}
+                          className="-me-2 shrink-0 p-2 py-4"
+                        >
+                          {chevron}
+                        </button>
+                      </div>
+
+                      <AnimatePresence initial={false}>
+                        {sectionOpen && (
+                          <motion.div
+                            key="section"
+                            id={`drawer-${menuKey}-panel`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: DRAWER_EASE }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pb-4">
+                              {groups.map((g, i) => {
+                                const groupKey = `${menuKey}:${g.title.en}`;
+                                /* Shop groups follow CATEGORIES order — each opens its category search. */
+                                const category = menuKey === 'shop' ? CATEGORIES[i] : undefined;
+                                return (
+                                  <DrawerGroup
+                                    key={groupKey}
+                                    group={g}
+                                    lang={lang}
+                                    isOpen={openGroup === groupKey}
+                                    onToggle={() => setOpenGroup((k) => (k === groupKey ? null : groupKey))}
+                                    onNavigate={onClose}
+                                    to={category ? searchPath(3, { category: category.key }) : undefined}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </nav>
+
+            {/* Language — the header switch, restated where a phone can reach it */}
+            <div className="mt-8 border-t px-6 pt-6" style={{ borderColor: HAIR }}>
+              <p className={labelCls} style={{ color: MUTED }}>
+                {t('Language', 'اللغة')}
+              </p>
+              <button
+                type="button"
+                data-testid="drawer-lang-toggle"
+                onClick={onToggleLang}
+                aria-label={t('Switch language to Arabic', 'التبديل إلى الإنجليزية')}
+                className="mt-4 flex items-center gap-2 text-[12px]"
+              >
+                <span
+                  className={`tracking-[0.15em] transition-opacity duration-300 ${
+                    lang === 'en' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50'
+                  }`}
+                >
+                  ENG
+                </span>
+                <span className="opacity-40">|</span>
+                <span
+                  className={`${AMIRI} text-[14px] tracking-normal transition-opacity duration-300 ${
+                    lang === 'ar' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50'
+                  }`}
+                >
+                  عربي
+                </span>
+              </button>
+            </div>
+
+            {/* Account utilities — moved off the bar so the phone header stays quiet */}
+            <div className="mt-8 border-t px-6 pt-6" style={{ borderColor: HAIR }}>
+              <p className={labelCls} style={{ color: MUTED }}>
+                {t('Your Account', 'حسابك')}
+              </p>
+              <div className="mt-4 flex flex-col">
+                {utilities.map(({ Icon, label }) => (
+                  <a
+                    key={label}
+                    href="#"
+                    onClick={closeOnTap}
+                    className={`flex items-center gap-3.5 py-3 text-[14px] font-light transition-colors duration-300 hover:text-[#8A6D4F] ${
+                      lang === 'ar' ? 'tracking-normal' : ''
+                    }`}
+                  >
+                    <Icon size={16} strokeWidth={1.25} className="shrink-0 text-[#8A6D4F]" />
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Contact — pinned to the foot of the panel, like a gallery's info plate */}
+          <div className="shrink-0 border-t px-6 pb-24 pt-5" style={{ borderColor: HAIR }}>
+            <p className={labelCls} style={{ color: MUTED }}>
+              {t('Contact', 'تواصل معنا')}
+            </p>
+            <a
+              href="#"
+              onClick={closeOnTap}
+              className="mt-3 block text-[13px] font-light transition-colors duration-300 hover:text-[#8A6D4F]"
+            >
+              <span dir="ltr">{FOOTER_LINKS.phone}</span>
+            </a>
+            <a
+              href="#"
+              onClick={closeOnTap}
+              className="mt-1.5 block text-[13px] font-light text-[#8B8378] transition-colors duration-300 hover:text-[#8A6D4F]"
+            >
+              {FOOTER_LINKS.email}
+            </a>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/**
+ * The fixed bar. `transparent` is true only over the home hero — everywhere
+ * else the chrome is solid from the first pixel.
+ */
+function Header({
+  lang, onToggle, transparent,
+}: { lang: Lang; onToggle: () => void; transparent: boolean }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const closeTimer = useRef<number | null>(null);
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const [q, setQ] = useState('');
+
+  /* A route change closes whatever was open; the field mirrors the page's current query. */
+  useEffect(() => {
+    setOpenMenu(null);
+    setDrawerOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    setQ(new URLSearchParams(search).get('q') ?? '');
+  }, [search]);
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    setOpenMenu(null);
+    navigate(searchPath(3, { q: q.trim() }));
+  };
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  /** Cancel a pending close (the cursor made it back into the header or panel). */
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  /** Close after a short grace period so the cursor can travel into the panel. */
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 150);
+  };
+  const openPanel = (menu: MenuKey) => {
+    cancelClose();
+    setOpenMenu(menu);
+  };
+
+  useEffect(() => cancelClose, []);
+
+  const solid = !transparent || scrolled || openMenu !== null;
+
+  return (
+    <header
+      onMouseEnter={cancelClose}
+      onMouseLeave={scheduleClose}
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+        solid ? 'border-b border-[#DDD6CA] bg-[#F1EDE5] text-[#2A241C]' : 'border-b border-transparent bg-transparent text-white'
+      }`}
+    >
+      {/* Scrim behind the transparent bar: the header renders white content over
+          the hero, so a bright slide would otherwise swallow it. Fades out below
+          the bar and disappears once the solid chrome takes over. */}
+      {!solid && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[150px] bg-gradient-to-b from-black/55 via-black/25 to-transparent"
+        />
+      )}
+      <div className={`${CONTAINER} relative flex h-[72px] items-center gap-6`}>
+        {/* Logo — home */}
+        <Link to={lookBase(3)} data-testid="header-logo" aria-label={t('Diyar home', 'ديار — الرئيسية')} className="shrink-0">
+          <img
+            src="/logo_diyar.svg"
+            alt="Diyar"
+            className={`h-7 w-auto transition-all duration-300 ${solid ? '' : 'invert'}`}
+          />
+        </Link>
+
+        {/* Slim search — Enter opens the listing page */}
+        <form
+          role="search"
+          onSubmit={submitSearch}
+          className={`hidden h-10 w-60 items-center gap-3 rounded-full border px-4 transition-colors duration-300 lg:flex ${
+            solid ? 'border-[#DDD6CA]' : 'border-white/40'
+          }`}
+        >
+          <Search size={14} strokeWidth={1.5} className="shrink-0 opacity-80" />
+          <input
+            type="text"
+            data-testid="header-search-input"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t('Search', 'ابحث')}
+            aria-label={t('Search', 'ابحث')}
+            className={`w-full bg-transparent text-[11px] outline-none placeholder:text-inherit placeholder:opacity-50 ${
+              lang === 'ar' ? 'tracking-normal' : 'tracking-[0.12em]'
+            }`}
+          />
+          <button type="button" aria-label="Visual search" className="shrink-0 opacity-80 transition-opacity hover:opacity-100">
+            <Camera size={14} strokeWidth={1.5} />
+          </button>
+        </form>
+
+        {/* Nav */}
+        <nav className="ms-auto hidden items-center gap-7 lg:flex">
+          {NAV_ITEMS.map((item) => {
+            const menuKey: MenuKey | null =
+              item.en === 'Shop' ? 'shop' : item.en === 'Services' ? 'services' : null;
+            const navCls = `transition-opacity duration-300 hover:opacity-100 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[12px] tracking-normal` : 'text-[11px] uppercase tracking-[0.22em]'
+            }`;
+            if (menuKey === 'shop') {
+              /* Hover opens the mega menu; a click goes to the listing page. */
+              return (
+                <Link
+                  key={item.en}
+                  to={searchPath(3)}
+                  data-testid="mega-shop-trigger"
+                  aria-haspopup="true"
+                  aria-expanded={openMenu === 'shop'}
+                  onClick={() => setOpenMenu(null)}
+                  onMouseEnter={() => openPanel('shop')}
+                  className={`${openMenu === 'shop' ? 'opacity-100' : 'opacity-90'} ${navCls}`}
+                >
+                  {t(item.en, item.ar)}
+                </Link>
+              );
+            }
+            if (menuKey !== null) {
+              return (
+                <a
+                  key={item.en}
+                  href="#"
+                  data-testid={`mega-${menuKey}-trigger`}
+                  aria-haspopup="true"
+                  aria-expanded={openMenu === menuKey}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenMenu((m) => (m === menuKey ? null : menuKey));
+                  }}
+                  onMouseEnter={() => openPanel(menuKey)}
+                  className={`${openMenu === menuKey ? 'opacity-100' : 'opacity-90'} ${navCls}`}
+                >
+                  {t(item.en, item.ar)}
+                </a>
+              );
+            }
+            if (item.en === 'Home') {
+              return (
+                <Link key={item.en} to={lookBase(3)} onMouseEnter={scheduleClose} className={`opacity-90 ${navCls}`}>
+                  {t(item.en, item.ar)}
+                </Link>
+              );
+            }
+            return (
+              <a
+                key={item.en}
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                onMouseEnter={scheduleClose}
+                className={`opacity-90 ${navCls}`}
+              >
+                {t(item.en, item.ar)}
+              </a>
+            );
+          })}
+        </nav>
+
+        {/* Right utilities */}
+        <div className="ms-auto flex items-center gap-5 lg:ms-0">
+          <button
+            data-testid="lang-toggle"
+            onClick={onToggle}
+            className="flex items-center gap-1.5 text-[11px]"
+            aria-label={t('Switch language to Arabic', 'التبديل إلى الإنجليزية')}
+          >
+            <span
+              className={`tracking-[0.15em] transition-opacity duration-300 ${
+                lang === 'en' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50 hover:opacity-80'
+              }`}
+            >
+              ENG
+            </span>
+            <span className="opacity-40">|</span>
+            <span
+              className={`${AMIRI} text-[13px] tracking-normal transition-opacity duration-300 ${
+                lang === 'ar' ? 'border-b border-[#8A6D4F] pb-px opacity-100' : 'opacity-50 hover:opacity-80'
+              }`}
+            >
+              عربي
+            </span>
+          </button>
+          {/* Account and wishlist live in the drawer below `lg` — the phone bar
+              keeps only the mark, the cart and the way into the menu. */}
+          <button aria-label="Account" className="hidden transition-opacity hover:opacity-70 lg:block">
+            <User size={17} strokeWidth={1.25} />
+          </button>
+          <button aria-label="Wishlist" className="hidden transition-opacity hover:opacity-70 lg:block">
+            <Heart size={17} strokeWidth={1.25} />
+          </button>
+          <button aria-label="Cart" className="transition-opacity hover:opacity-70">
+            <ShoppingBag size={17} strokeWidth={1.25} />
+          </button>
+          <button
+            type="button"
+            data-testid="mobile-menu-trigger"
+            onClick={() => setDrawerOpen(true)}
+            aria-label={t('Open menu', 'فتح القائمة')}
+            aria-expanded={drawerOpen}
+            aria-controls="mobile-drawer"
+            className="transition-opacity hover:opacity-70 lg:hidden"
+          >
+            <Menu size={19} strokeWidth={1.25} />
+          </button>
+        </div>
+      </div>
+
+      <MobileDrawer
+        lang={lang}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onToggleLang={onToggle}
+      />
+
+      {/* Mega menus — desktop only, a quiet fade beneath the header */}
+      <AnimatePresence>
+        {openMenu === 'shop' && (
+          <motion.div
+            key="shop"
+            data-testid="mega-shop-panel"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute inset-x-0 top-full hidden border-b border-[#DDD6CA] bg-[#FBFAF7] text-[#2A241C] shadow-[0_24px_60px_rgba(42,36,28,0.09)] lg:block"
+          >
+            <div className={`${CONTAINER} pb-8 pt-10`}>
+              <div className="flex items-start gap-12">
+                <div className="grid flex-1 grid-cols-3 gap-x-10 gap-y-10">
+                  {/* Shop groups follow CATEGORIES order — each column opens its category search */}
+                  {SHOP_MENU.map((group, i) => (
+                    <MegaGroup
+                      key={group.title.en}
+                      group={group}
+                      lang={lang}
+                      to={CATEGORIES[i] ? searchPath(3, { category: CATEGORIES[i].key }) : searchPath(3)}
+                      onNavigate={() => setOpenMenu(null)}
+                    />
+                  ))}
+                </div>
+                {/* Featured side column — museum pieces */}
+                <div className="grid w-[280px] shrink-0 grid-cols-1 gap-9 border-s ps-10" style={{ borderColor: HAIR }}>
+                  {MENU_FEATURED.shop.map((tile, i) => (
+                    <MegaFeatured
+                      key={tile.title.en}
+                      tile={tile}
+                      lang={lang}
+                      to={i === 1 ? searchPath(3, { category: 'lighting' }) : searchPath(3, { sort: 'newest' })}
+                      onNavigate={() => setOpenMenu(null)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="mt-10 border-t pt-5" style={{ borderColor: HAIR }}>
+                <MegaBottomLink
+                  lang={lang}
+                  to={searchPath(3)}
+                  onNavigate={() => setOpenMenu(null)}
+                  label={t('View All Categories', 'عرض كل التصنيفات')}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {openMenu === 'services' && (
+          <motion.div
+            key="services"
+            data-testid="mega-services-panel"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute inset-x-0 top-full hidden border-b border-[#DDD6CA] bg-[#FBFAF7] text-[#2A241C] shadow-[0_24px_60px_rgba(42,36,28,0.09)] lg:block"
+          >
+            <div className={`${CONTAINER} pb-8 pt-10`}>
+              <div className="flex items-start gap-12">
+                <div className="grid flex-1 grid-cols-4 gap-x-10 gap-y-10">
+                  {SERVICES_MENU.map((group) => (
+                    <MegaGroup key={group.title.en} group={group} lang={lang} />
+                  ))}
+                </div>
+                {/* Single featured tile */}
+                <div className="w-[280px] shrink-0 border-s ps-10" style={{ borderColor: HAIR }}>
+                  <MegaFeatured tile={MENU_FEATURED.services[0]} lang={lang} />
+                </div>
+              </div>
+              <div className="mt-10 border-t pt-5" style={{ borderColor: HAIR }}>
+                <MegaBottomLink lang={lang} label={t('Request a Consultation', 'اطلب استشارة')} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero                                                                */
+/* ------------------------------------------------------------------ */
+
+function Hero({ lang }: { lang: Lang }) {
+  const [slide, setSlide] = useState(0);
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 7000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const current = HERO_SLIDES[slide];
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  return (
+    <section className="relative h-screen min-h-[620px] overflow-hidden" style={{ backgroundColor: DARK }}>
+      {/* Slides — slow crossfade with a quiet drift-in scale */}
+      <AnimatePresence>
+        <motion.div
+          key={slide}
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.4, ease: 'easeInOut' }}
+        >
+          <motion.img
+            src={current.img}
+            alt={current.en}
+            initial={{ scale: 1.05 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 8, ease: 'linear' }}
+            className="h-full w-full object-cover"
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Even scrim so centred type stays legible over any slide, plus a
+          bottom gradient to seat the indicators */}
+      <div className="pointer-events-none absolute inset-0 bg-black/25" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+
+      {/* Copy — centred, matching the centred section headers used page-wide */}
+      <div className="absolute inset-0 flex items-center justify-center px-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={slide}
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="flex max-w-3xl flex-col items-center text-center"
+          >
+            <span className="mb-6 block h-px w-10 bg-white/50" />
+            <p
+              className={`text-white/80 ${
+                lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.3em]`
+              }`}
+            >
+              {lang === 'ar' ? current.tagAr : current.tag}
+            </p>
+            <h1 className={`${serif(lang)} mt-5 text-5xl text-white md:text-6xl lg:text-7xl ${headingLeading(lang, 'leading-[1.12]')}`}>
+              {lang === 'ar' ? current.ar : current.en}
+            </h1>
+            <div className="mt-9">
+              <HairButton lang={lang} label={t('Discover', 'اكتشف')} tone="white" />
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className={`${CONTAINER} pointer-events-none absolute inset-x-0 bottom-10 md:bottom-12`}>
+        {/* Indicators — centred on mobile, bottom end on desktop.
+            Numerals stay Latin in both languages. */}
+        <div className="pointer-events-auto flex items-center justify-center gap-5 md:justify-end">
+          <span dir="ltr" className={`${PLAYFAIR} text-sm tracking-[0.2em] text-white/90`}>
+            {pad(slide + 1)} <span className="text-white/40">/ {pad(HERO_SLIDES.length)}</span>
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Previous slide"
+              onClick={() => setSlide((s) => (s + HERO_SLIDES.length - 1) % HERO_SLIDES.length)}
+              className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#2A241C]"
+            >
+              <ChevronLeft size={15} strokeWidth={1.25} className="rtl:rotate-180" />
+            </button>
+            <button
+              aria-label="Next slide"
+              onClick={() => setSlide((s) => (s + 1) % HERO_SLIDES.length)}
+              className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#2A241C]"
+            >
+              <ChevronRight size={15} strokeWidth={1.25} className="rtl:rotate-180" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Sections                                                            */
+/* ------------------------------------------------------------------ */
+
+function FeaturedCategories({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Collection — 01', 'التشكيلة — 01')}>
+          {lang === 'ar' ? <>أبرز <em>التصنيفات</em></> : <>Featured <em>Categories</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-14 md:mt-20 md:grid-cols-3 md:gap-x-10">
+          {CATEGORIES.map((c, i) => (
+            <Reveal key={c.en} delay={(i % 3) * 0.08}>
+              <div className="group block">
+                <Link
+                  to={searchPath(3, { category: c.key })}
+                  aria-label={t(c.en, c.ar)}
+                  className="block overflow-hidden"
+                  style={{ backgroundColor: BG }}
+                >
+                  <img
+                    src={c.img}
+                    alt={c.en}
+                    className="aspect-[4/5] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </Link>
+                {/* Museum caption */}
+                <div className="pt-5 text-center">
+                  <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
+                    {t(c.en, c.ar)}
+                  </h3>
+                  <div className="mt-3">
+                    <BronzeLink lang={lang} to={searchPath(3, { category: c.key })} label={t('View More', 'عرض المزيد')} />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Services({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Practice — 03', 'الحرفة — 03')}>
+          {t('Our Services', 'خدماتنا')}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-2 gap-x-8 md:mt-20 md:grid-cols-4 md:gap-x-12">
+          {SERVICES.map((s, i) => (
+            <Reveal key={s.en} delay={(i % 4) * 0.07}>
+              <div className="relative border-t pt-10 pb-12" style={{ borderColor: HAIR }}>
+                {/* ghost numeral sits behind the name — kept lighter so it never
+                    outweighs the service it labels */}
+                <span
+                  aria-hidden
+                  className={`${PLAYFAIR} pointer-events-none absolute end-0 top-6 select-none text-5xl leading-none text-[#2A241C0F]`}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <s.icon size={36} strokeWidth={1} className="text-[#8A6D4F]" />
+                <h3
+                  className={`${serif(lang)} mt-7 leading-snug ${lang === 'ar' ? 'text-2xl leading-[1.5]' : 'text-xl'}`}
+                  style={{ color: INK }}
+                >
+                  {t(s.en, s.ar)}
+                </h3>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NewProducts({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Featured — 04', 'مختارات — 04')}>
+          {lang === 'ar' ? <>وصل <em>حديثاً</em></> : <>New <em>Arrivals</em></>}
+        </SectionHeader>
+        <Reveal className="mt-10 flex justify-center md:justify-end">
+          <BronzeLink lang={lang} to={searchPath(3, { sort: 'newest' })} label={t('View All', 'عرض الكل')} />
+        </Reveal>
+
+        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-4 md:gap-x-8">
+          {PRODUCTS.slice(0, 8).map((p, i) => (
+            <Reveal key={p.id} delay={(i % 4) * 0.06}>
+              <ProductTile p={p} lang={lang} />
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Atelier({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section className="grid lg:grid-cols-[11fr_9fr]">
+      <div className="relative min-h-[420px] overflow-hidden lg:min-h-0">
+        <img src={IMG.workshop} alt="Diyar atelier workshop" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+      <div className="flex items-center px-6 py-24 md:px-16 lg:py-36" style={{ backgroundColor: BG }}>
+        <Reveal>
+          <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
+          <p
+            className={`mt-6 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+            }`}
+            style={{ color: MUTED }}
+          >
+            {t('Atelier — 06', 'المشغل — 06')}
+          </p>
+          <h2
+            className={`${serif(lang)} mt-5 text-4xl md:text-[2.75rem] ${headingLeading(lang, 'leading-[1.15]')}`}
+            style={{ color: INK }}
+          >
+            {lang === 'ar' ? <>أثاث مخصص، <em>صُنع لأجلك</em></> : <>Custom Furniture, <em>Made for You</em></>}
+          </h2>
+          <p className="mt-6 max-w-md text-[15px] font-light leading-relaxed" style={{ color: MUTED }}>
+            {t(
+              'We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and lifestyle.',
+              'نحوّل رؤيتك إلى واقع من خلال أثاث مخصص يُصنع بعناية ليلائم مساحتك وذوقك وأسلوب حياتك.',
+            )}
+          </p>
+          <div className="mt-10">
+            <HairButton lang={lang} label={t('Start Your Project', 'ابدأ مشروعك')} />
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Shop the Look — the room photograph is the hero, each piece in it carries a
+ * hotspot that opens a small product card on hover (desktop) or tap (mobile).
+ * Only one card is open at a time; Escape closes it.
+ */
+function ShopTheLook({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const [active, setActive] = useState<string | null>(null);
+  const closeTimer = useRef<number | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  /** Short grace period so the cursor can travel from the dot into the card. */
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(() => setActive(null), 120);
+  };
+  const open = (id: string) => {
+    cancelClose();
+    setActive(id);
+  };
+
+  useEffect(() => cancelClose, []);
+
+  useEffect(() => {
+    if (active === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActive(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [active]);
+
+  const activeSpot = ROOM_HOTSPOTS.find((h) => h.id === active) ?? null;
+
+  return (
+    <section data-testid="shop-the-look" className="pt-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('The Room — 07', 'الغرفة — 07')}>
+          {lang === 'ar' ? <>تسوق <em>الغرفة</em></> : <>Shop the <em>Look</em></>}
+        </SectionHeader>
+        <Reveal delay={0.08} className="mx-auto mt-6 max-w-md text-center">
+          <p
+            className={`text-[14px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+            style={{ color: MUTED }}
+          >
+            {t(
+              'Hover any point to explore the pieces in this space.',
+              'مرّر المؤشر على أي نقطة لاستكشاف قطع هذه المساحة.',
+            )}
+          </p>
+        </Reveal>
+      </div>
+
+      {/* The photograph is the hero — full bleed, sharp corners, hotspots on top. */}
+      <Reveal className="mt-14 md:mt-20">
+        <div className="relative min-h-[75vh] w-full overflow-hidden">
+          <img
+            src={IMG.roomHotspots}
+            alt="Styled room with shoppable pieces"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-black/10" />
+
+          {ROOM_HOTSPOTS.map((spot, i) => (
+            <HotspotPoint
+              key={spot.id}
+              spot={spot}
+              lang={lang}
+              isActive={active === spot.id}
+              delay={i * 0.45}
+              onEnter={() => open(spot.id)}
+              onLeave={scheduleClose}
+              onToggle={() => setActive((a) => (a === spot.id ? null : spot.id))}
+            />
+          ))}
+
+          {/* Mobile — one centred card inside the image, so it can never overflow the viewport. */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20 flex justify-center px-5 md:hidden">
+            <AnimatePresence>
+              {activeSpot && (
+                <ProductCard
+                  key={activeSpot.id}
+                  spot={activeSpot}
+                  lang={lang}
+                  className="pointer-events-auto w-full max-w-[300px]"
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function FindYourStyle({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Gallery — 09', 'المعرض — 09')}>
+          {lang === 'ar' ? <>اكتشف <em>أسلوبك</em></> : <>Find Your <em>Style</em></>}
+        </SectionHeader>
+
+        {/* Asymmetric gallery wall — center tile taller and lifted */}
+        <div className="mt-20 grid grid-cols-2 items-start gap-x-6 gap-y-14 md:mt-28 md:grid-cols-5">
+          {STYLES.map((s, i) => {
+            const isCenter = i === 2;
+            return (
+              <Reveal
+                key={s.en}
+                delay={i * 0.07}
+                className={`${isCenter ? 'md:-mt-12' : ''} ${i === 4 ? 'col-span-2 md:col-span-1' : ''}`}
+              >
+                <Link to={searchPath(3, { style: s.key })} className="group block">
+                  <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+                    <img
+                      src={s.img}
+                      alt={s.en}
+                      className={`w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105 ${
+                        isCenter ? 'aspect-[3/5]' : 'aspect-[3/4]'
+                      }`}
+                    />
+                  </div>
+                  {/* Museum caption */}
+                  <div className="pt-4 text-center">
+                    <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
+                      {t(s.en, s.ar)}
+                    </h3>
+                    <p
+                      className={`mt-1 ${lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'}`}
+                      style={{ color: MUTED }}
+                    >
+                      {lang === 'ar' ? `${formatSAR(s.count)} قطعة` : `${formatSAR(s.count)} pieces`}
+                    </p>
+                  </div>
+                </Link>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Sections carried over from the previous site                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Shop by Room — landscape plates in an even three-up. Deliberately the opposite
+ * of "Find Your Style": that wall is asymmetric and portrait (shopping by
+ * aesthetic), this one is a calm, regular catalogue page (shopping by place).
+ */
+function ShopByRoom({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="shop-by-room" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Rooms — 02', 'الغرف — 02')}>
+          {lang === 'ar' ? <>تسوق حسب <em>الغرفة</em></> : <>Shop by <em>Room</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 md:mt-20 md:grid-cols-3 md:gap-x-10">
+          {ROOMS.map((r, i) => (
+            <Reveal key={r.en} delay={(i % 3) * 0.07}>
+              <Link to={searchPath(3, { room: r.key })} className="group block">
+                <div className="overflow-hidden" style={{ backgroundColor: ALT }}>
+                  <img
+                    src={r.img}
+                    alt={r.en}
+                    className="aspect-[3/2] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption */}
+                <div className="flex flex-col items-center pt-5 text-center">
+                  <h3 className={`${serif(lang)} text-xl`} style={{ color: INK }}>
+                    {t(r.en, r.ar)}
+                  </h3>
+                  <span className="mt-3 block h-px w-6" style={{ backgroundColor: BRONZE }} />
+                  <p
+                    className={`mt-3 ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {lang === 'ar' ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} pieces`}
+                  </p>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * AI Studio — the page's one modern moment, held to the same museum manners:
+ * a dark band, a single wide full-bleed plate, then three numbered steps below it.
+ */
+function AiStudio({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="ai-studio" className="py-28" style={{ backgroundColor: DARK }}>
+      <div className={CONTAINER}>
+        <SectionHeader
+          lang={lang}
+          tone="cream"
+          eyebrow={`${t(AI_STUDIO.eyebrow.en, AI_STUDIO.eyebrow.ar)} — 05`}
+        >
+          {t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
+        </SectionHeader>
+      </div>
+
+      {/* One wide plate, edge to edge — split so the plate itself shows what the
+          studio does: the room as it is on one side, as it is proposed on the other.
+          Halves are physical (left = before) and must not mirror in RTL. */}
+      <Reveal delay={0.06} className="mt-14 md:mt-16">
+        <div className="relative aspect-[16/9] w-full overflow-hidden md:aspect-[21/9]">
+          <img
+            src={AI_STUDIO.img}
+            alt={AI_STUDIO.title.en}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <img
+            src={AI_STUDIO.img}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ clipPath: 'inset(0 50% 0 0)', filter: 'grayscale(0.92) brightness(0.55) contrast(0.95)' }}
+          />
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
+            style={{ backgroundColor: GOLDISH }}
+          />
+          <span
+            aria-hidden
+            className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-sm"
+            style={{ borderColor: GOLDISH, backgroundColor: 'rgba(27,23,18,0.55)' }}
+          >
+            <Sparkles size={15} strokeWidth={1} style={{ color: GOLDISH }} />
+          </span>
+          <span
+            className={`absolute bottom-5 left-5 px-3 py-1.5 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+            }`}
+            style={{ backgroundColor: 'rgba(27,23,18,0.72)', color: 'rgba(239,233,221,0.75)' }}
+          >
+            {t('Before', 'قبل')}
+          </span>
+          <span
+            className={`absolute bottom-5 right-5 px-3 py-1.5 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+            }`}
+            style={{ backgroundColor: 'rgba(27,23,18,0.72)', color: GOLDISH }}
+          >
+            {t('After — Diyar AI', 'بعد — ديار الذكي')}
+          </span>
+        </div>
+      </Reveal>
+
+      <div className={CONTAINER}>
+        {/* Caption below the image, as everywhere else on the page */}
+        <Reveal delay={0.08} className="mx-auto mt-12 max-w-xl text-center">
+          <p
+            className={`text-[15px] font-light leading-relaxed text-[#EFE9DD]/60 ${
+              lang === 'ar' ? 'tracking-normal' : ''
+            }`}
+          >
+            {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
+          </p>
+        </Reveal>
+
+        <div className="mt-14 grid grid-cols-1 gap-x-10 gap-y-10 sm:grid-cols-3">
+          {AI_STUDIO.steps.map((s, i) => (
+            <Reveal key={s.en} delay={i * 0.07}>
+              <div className="flex h-full flex-col border-t pt-7" style={{ borderColor: 'rgba(239,233,221,0.18)' }}>
+                <span
+                  className={`${PLAYFAIR} block text-[13px] tracking-[0.25em] text-start`}
+                  style={{ color: GOLDISH }}
+                >
+                  {pad2(i + 1)}
+                </span>
+                <h3
+                  className={`${serif(lang)} mt-3 text-xl ${headingLeading(lang, 'leading-snug')}`}
+                  style={{ color: CREAM }}
+                >
+                  {t(s.en, s.ar)}
+                </h3>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.12} className="mt-14 flex justify-center">
+          <HairButton lang={lang} tone="cream" label={t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)} />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/** Best Sellers — the same product tiles as New Arrivals, ranked 01–04. */
+function BestSellers({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="best-sellers" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Ranking — 08', 'الأكثر طلباً — 08')}>
+          {lang === 'ar' ? <>الأكثر <em>مبيعاً</em></> : <>Best <em>Sellers</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-14 md:mt-20 md:grid-cols-4 md:gap-x-8">
+          {PRODUCTS.slice(0, 4).map((p, i) => (
+            <Reveal key={p.id} delay={(i % 4) * 0.07}>
+              <ProductTile p={p} lang={lang} rank={i + 1} />
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.1} className="mt-14 flex justify-center">
+          <BronzeLink lang={lang} to={searchPath(3)} label={t('View All Best Sellers', 'عرض كل الأكثر مبيعاً')} />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/** Why Diyar — a hairline grid, four cells, one line of copy each. */
+function WhyDiyar({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="why-diyar" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Assurance — 10', 'ضماناتنا — 10')}>
+          {lang === 'ar' ? <>لماذا <em>ديار</em></> : <>Why <em>Diyar</em></>}
+        </SectionHeader>
+
+        {/* gap-px over a hairline background draws the rules between cells — RTL-safe */}
+        <div
+          className="mt-16 grid grid-cols-1 gap-px border sm:grid-cols-2 md:mt-20 md:grid-cols-4"
+          style={{ backgroundColor: HAIR, borderColor: HAIR }}
+        >
+          {WHY_DIYAR.map((u, i) => {
+            const Icon = u.icon;
+            return (
+              <Reveal key={u.title.en} delay={(i % 4) * 0.07} className="px-8 py-12" style={{ backgroundColor: BG }}>
+                <Icon size={30} strokeWidth={1} className="text-[#8A6D4F]" />
+                <h3
+                  className={`${serif(lang)} mt-7 text-xl ${headingLeading(lang, 'leading-snug')}`}
+                  style={{ color: INK }}
+                >
+                  {t(u.title.en, u.title.ar)}
+                </h3>
+                <p
+                  className={`mt-3 text-[13.5px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                  style={{ color: MUTED }}
+                >
+                  {t(u.body.en, u.body.ar)}
+                </p>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Featured Stores — the marketplace's vendors, each as a plate with a monogram plaque. */
+function FeaturedStores({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="featured-stores" className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('The Makers — 11', 'المتاجر — 11')}>
+          {lang === 'ar' ? <>متاجر <em>مختارة</em></> : <>Featured <em>Stores</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 md:mt-20 md:grid-cols-4">
+          {STORES.map((s, i) => (
+            <Reveal key={s.name.en} delay={(i % 4) * 0.07}>
+              <div className="group flex h-full flex-col">
+                <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+                  <img
+                    src={s.cover}
+                    alt={s.name.en}
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption — monogram plaque, then the plate's label */}
+                <div className="flex flex-1 flex-col items-center pt-5 text-center">
+                  <span
+                    dir="ltr"
+                    aria-hidden
+                    className={`${PLAYFAIR} flex h-11 w-11 items-center justify-center border text-[14px] tracking-[0.12em]`}
+                    style={{ borderColor: HAIR, color: BRONZE }}
+                  >
+                    {s.initials}
+                  </span>
+                  <h3 className={`${serif(lang)} mt-4 text-xl`} style={{ color: INK }}>
+                    {t(s.name.en, s.name.ar)}
+                  </h3>
+                  <p
+                    className={`mt-2 text-[13px] font-light ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(s.specialty.en, s.specialty.ar)}
+                  </p>
+                  <div className="mt-3 flex justify-center">
+                    <Stars rating={s.rating} />
+                  </div>
+                  <p
+                    className={`mt-3 ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {lang === 'ar' ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} products`}
+                  </p>
+                  <div className="mt-auto pt-5">
+                    <BronzeLink lang={lang} to={searchPath(3, { store: s.key })} label={t('Visit Store', 'زيارة المتجر')} />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Loyalty — one quiet bordered plate holding the offer and its three perks. */
+function Loyalty({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="loyalty" className="py-28">
+      <div className={CONTAINER}>
+        <div className="border" style={{ borderColor: HAIR, backgroundColor: ALT }}>
+          <div className="px-6 py-16 md:px-16">
+            <SectionHeader lang={lang} eyebrow={`${t(LOYALTY.eyebrow.en, LOYALTY.eyebrow.ar)} — 12`}>
+              {t(LOYALTY.title.en, LOYALTY.title.ar)}
+            </SectionHeader>
+            <Reveal delay={0.06} className="mx-auto mt-6 max-w-xl text-center">
+              <p
+                className={`text-[15px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                style={{ color: MUTED }}
+              >
+                {t(LOYALTY.body.en, LOYALTY.body.ar)}
+              </p>
+            </Reveal>
+            <Reveal delay={0.1} className="mt-10 flex justify-center">
+              <HairButton lang={lang} label={t(LOYALTY.cta.en, LOYALTY.cta.ar)} />
+            </Reveal>
+          </div>
+
+          <div
+            className="grid grid-cols-1 gap-px border-t sm:grid-cols-3"
+            style={{ backgroundColor: HAIR, borderColor: HAIR }}
+          >
+            {LOYALTY.perks.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <Reveal
+                  key={p.title.en}
+                  delay={i * 0.07}
+                  className="flex flex-col items-center px-8 py-12 text-center"
+                  style={{ backgroundColor: ALT }}
+                >
+                  <Icon size={26} strokeWidth={1} className="text-[#8A6D4F]" />
+                  <h3
+                    className={`${serif(lang)} mt-6 text-lg ${headingLeading(lang, 'leading-snug')}`}
+                    style={{ color: INK }}
+                  >
+                    {t(p.title.en, p.title.ar)}
+                  </h3>
+                  <p
+                    className={`mt-2.5 max-w-[34ch] text-[13.5px] font-light leading-relaxed ${
+                      lang === 'ar' ? 'tracking-normal' : ''
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(p.body.en, p.body.ar)}
+                  </p>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Reviews — testimonials hung like gallery placards: stars, the quote, then the credit line. */
+function Reviews({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="reviews" className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Visitors — 13', 'آراء العملاء — 13')}>
+          {lang === 'ar' ? <>ما يقوله <em>عملاؤنا</em></> : <>What Our <em>Clients</em> Say</>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-8 md:mt-20 md:grid-cols-2 lg:grid-cols-4">
+          {REVIEWS.map((r, i) => (
+            <Reveal key={r.name.en} delay={(i % 4) * 0.07}>
+              <figure
+                className="flex h-full flex-col items-center border px-7 py-10 text-center"
+                style={{ borderColor: HAIR, backgroundColor: BG }}
+              >
+                <Stars rating={r.rating} />
+                <blockquote
+                  className={`${serif(lang)} mt-6 text-[17px] ${headingLeading(lang, 'leading-[1.6]')}`}
+                  style={{ color: INK }}
+                >
+                  {t(r.text.en, r.text.ar)}
+                </blockquote>
+                <div className="mt-auto flex flex-col items-center pt-7">
+                  <span className="block h-px w-6" style={{ backgroundColor: BRONZE }} />
+                  <figcaption
+                    className={`mt-4 ${
+                      lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                    }`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(r.name.en, r.name.ar)} — {t(r.city.en, r.city.ar)}
+                  </figcaption>
+                </div>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Design Blog — three editorial plates, captions underneath. */
+function DesignBlog({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="design-blog" className="py-28">
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} eyebrow={t('Journal — 14', 'المجلة — 14')}>
+          {lang === 'ar' ? <>مجلة <em>التصميم</em></> : <>The Design <em>Journal</em></>}
+        </SectionHeader>
+
+        <div className="mt-16 grid grid-cols-1 gap-x-10 gap-y-14 md:mt-20 md:grid-cols-3">
+          {BLOG_POSTS.map((post, i) => (
+            <Reveal key={post.title.en} delay={i * 0.07}>
+              <article className="group flex h-full flex-col">
+                <div className="overflow-hidden" style={{ backgroundColor: ALT }}>
+                  <img
+                    src={post.img}
+                    alt={post.title.en}
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
+                  />
+                </div>
+                {/* Museum caption */}
+                <div className="flex flex-1 flex-col pt-5">
+                  <p
+                    className={
+                      lang === 'ar'
+                        ? `${ALEXANDRIA} text-[10px] tracking-normal`
+                        : `${MARCELLUS} text-[9px] uppercase tracking-[0.3em]`
+                    }
+                    style={{ color: BRONZE }}
+                  >
+                    {t(post.category.en, post.category.ar)}
+                  </p>
+                  <h3
+                    className={`${serif(lang)} mt-3 text-[22px] ${headingLeading(lang, 'leading-snug')}`}
+                    style={{ color: INK }}
+                  >
+                    {t(post.title.en, post.title.ar)}
+                  </h3>
+                  <p
+                    className={`mt-3 text-[14px] font-light leading-relaxed ${lang === 'ar' ? 'tracking-normal' : ''}`}
+                    style={{ color: MUTED }}
+                  >
+                    {t(post.excerpt.en, post.excerpt.ar)}
+                  </p>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-6">
+                    <BronzeLink lang={lang} label={t('Read Article', 'اقرأ المقال')} />
+                    <span
+                      className={
+                        lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.3em]'
+                      }
+                      style={{ color: MUTED }}
+                    >
+                      {lang === 'ar' ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Become a Partner — the supply side, on the dark band so it reads as a separate address. */
+function Partner({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="partner" className="py-28" style={{ backgroundColor: DARK }}>
+      <div className={CONTAINER}>
+        <SectionHeader lang={lang} tone="cream" eyebrow={`${t(PARTNER.eyebrow.en, PARTNER.eyebrow.ar)} — 16`}>
+          {lang === 'ar' ? <>انضم إلى <em>المنصة</em></> : <>Join the <em>Marketplace</em></>}
+        </SectionHeader>
+        <Reveal delay={0.06} className="mx-auto mt-6 max-w-xl text-center">
+          <p
+            className={`text-[15px] font-light leading-relaxed text-[#EFE9DD]/60 ${
+              lang === 'ar' ? 'tracking-normal' : ''
+            }`}
+          >
+            {t(PARTNER.body.en, PARTNER.body.ar)}
+          </p>
+        </Reveal>
+
+        <div className="mt-16 grid grid-cols-1 gap-8 md:mt-20 md:grid-cols-3">
+          {PARTNER.roles.map((role, i) => {
+            const Icon = role.icon;
+            return (
+              <Reveal key={role.title.en} delay={i * 0.07}>
+                <div className="relative flex h-full flex-col border border-[#EFE9DD]/18 px-8 py-12">
+                  <span
+                    aria-hidden
+                    dir="ltr"
+                    className={`${PLAYFAIR} pointer-events-none absolute end-6 top-7 select-none text-5xl leading-none text-[#EFE9DD1F]`}
+                  >
+                    {pad2(i + 1)}
+                  </span>
+                  <Icon size={28} strokeWidth={1} className="text-[#C9B393]" />
+                  <h3
+                    className={`${serif(lang)} mt-7 text-xl ${headingLeading(lang, 'leading-snug')}`}
+                    style={{ color: CREAM }}
+                  >
+                    {t(role.title.en, role.title.ar)}
+                  </h3>
+                  <p
+                    className={`mt-3 text-[13.5px] font-light leading-relaxed text-[#EFE9DD]/55 ${
+                      lang === 'ar' ? 'tracking-normal' : ''
+                    }`}
+                  >
+                    {t(role.body.en, role.body.ar)}
+                  </p>
+                  <div className="mt-auto pt-8">
+                    <BronzeLink lang={lang} tone="gold" label={t(role.cta.en, role.cta.ar)} />
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        {/* Dashboard strip */}
+        <Reveal delay={0.14} className="mt-8">
+          <div className="flex flex-col items-center gap-6 border border-[#EFE9DD]/18 px-8 py-10 text-center md:flex-row md:justify-between md:text-start">
+            <div>
+              <h3 className={`${serif(lang)} text-xl ${headingLeading(lang, 'leading-snug')}`} style={{ color: CREAM }}>
+                {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
+              </h3>
+              <p
+                className={`mt-2 text-[13.5px] font-light leading-relaxed text-[#EFE9DD]/55 ${
+                  lang === 'ar' ? 'tracking-normal' : ''
+                }`}
+              >
+                {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
+              </p>
+            </div>
+            <HairButton
+              lang={lang}
+              tone="cream"
+              className="shrink-0"
+              label={t(PARTNER.dashboard.cta.en, PARTNER.dashboard.cta.ar)}
+            />
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/** App Promo — a plate on one side, four capabilities and two store buttons on the other. */
+function AppPromo({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section data-testid="app-promo" className="py-28" style={{ backgroundColor: ALT }}>
+      <div className={CONTAINER}>
+        <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+          <Reveal>
+            <div className="overflow-hidden" style={{ backgroundColor: BG }}>
+              <img
+                src={APP_PROMO.img}
+                alt={APP_PROMO.title.en}
+                className="aspect-[4/5] w-full object-cover md:aspect-[4/3] lg:aspect-[4/5]"
+              />
+            </div>
+          </Reveal>
+
+          <div>
+            <Reveal delay={0.06}>
+              <span className="block h-px w-10" style={{ backgroundColor: BRONZE }} />
+              <p
+                className={`mt-6 ${
+                  lang === 'ar'
+                    ? `${ALEXANDRIA} text-[11px] tracking-normal`
+                    : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+                }`}
+                style={{ color: MUTED }}
+              >
+                {`${t(APP_PROMO.eyebrow.en, APP_PROMO.eyebrow.ar)} — 17`}
+              </p>
+              <h2
+                className={`${serif(lang)} mt-5 text-4xl md:text-[2.75rem] ${headingLeading(lang, 'leading-[1.15]')}`}
+                style={{ color: INK }}
+              >
+                {t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+              </h2>
+              <p
+                className={`mt-6 max-w-md text-[15px] font-light leading-relaxed ${
+                  lang === 'ar' ? 'tracking-normal' : ''
+                }`}
+                style={{ color: MUTED }}
+              >
+                {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
+              </p>
+            </Reveal>
+
+            <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-9 sm:grid-cols-2">
+              {APP_PROMO.features.map((f, i) => {
+                const Icon = f.icon;
+                return (
+                  <Reveal key={f.title.en} delay={(i % 2) * 0.07}>
+                    <div className="border-t pt-6" style={{ borderColor: HAIR }}>
+                      <Icon size={24} strokeWidth={1} className="text-[#8A6D4F]" />
+                      <h3
+                        className={`${serif(lang)} mt-4 text-lg ${headingLeading(lang, 'leading-snug')}`}
+                        style={{ color: INK }}
+                      >
+                        {t(f.title.en, f.title.ar)}
+                      </h3>
+                      <p
+                        className={`mt-2 text-[13px] font-light leading-relaxed ${
+                          lang === 'ar' ? 'tracking-normal' : ''
+                        }`}
+                        style={{ color: MUTED }}
+                      >
+                        {t(f.body.en, f.body.ar)}
+                      </p>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+
+            <Reveal delay={0.12} className="mt-12 flex flex-wrap gap-4">
+              <HairButton lang={lang} label={t('App Store', 'آب ستور')} />
+              <HairButton lang={lang} label={t('Google Play', 'جوجل بلاي')} />
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function B2B({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  return (
+    <section className="grid md:grid-cols-2">
+      <div className="relative min-h-[380px] overflow-hidden md:min-h-[560px]">
+        <img src={IMG.restaurant} alt="Hospitality project by Diyar" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+      <div className="flex items-center justify-center px-6 py-24 md:px-16 md:py-32" style={{ backgroundColor: DARK }}>
+        <Reveal className="flex max-w-md flex-col items-center text-center">
+          <span className="h-px w-10" style={{ backgroundColor: GOLDISH }} />
+          <p
+            className={`mt-6 text-[#EFE9DD]/50 ${
+              lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : `${MARCELLUS} text-[10px] uppercase tracking-[0.4em]`
+            }`}
+          >
+            {t('B2B — 15', 'قطاع الأعمال — 15')}
+          </p>
+          <h2 className={`${serif(lang)} mt-5 text-4xl ${headingLeading(lang, 'leading-[1.15]')}`} style={{ color: CREAM }}>
+            {lang === 'ar' ? <>حلول <em>متكاملة</em> للشركات والمشاريع</> : <>Turnkey <em>Project</em> Solutions</>}
+          </h2>
+          <p className="mt-5 text-[15px] font-light leading-relaxed text-[#EFE9DD]/55">
+            {t(
+              'From concept to handover — furniture, fit-out, and design for hotels, offices, and restaurants.',
+              'من الفكرة إلى التسليم — أثاث وتجهيز وتصميم للفنادق والمكاتب والمطاعم.',
+            )}
+          </p>
+          <div className="mt-10">
+            <HairButton lang={lang} label={t('Request a Consultation', 'اطلب استشارة')} tone="cream" />
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Footer                                                              */
+/* ------------------------------------------------------------------ */
+
+function Footer({ lang }: { lang: Lang }) {
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+  const colTitle =
+    lang === 'ar'
+      ? `${ALEXANDRIA} text-[11px] tracking-normal text-[#EFE9DD]/75`
+      : `${MARCELLUS} text-[10px] uppercase tracking-[0.35em] text-[#EFE9DD]/75`;
+  const link = 'text-[13px] font-light text-[#EFE9DD]/55 transition-colors duration-300 hover:text-[#C9B393]';
+
+  return (
+    <footer style={{ backgroundColor: DARK, color: CREAM }}>
+      <div className={`${CONTAINER} grid gap-14 py-20 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr] lg:gap-10`}>
+        {/* Brand */}
+        <div>
+          <img src="/logo_diyar.svg" alt="Diyar" className="h-7 w-auto invert" />
+          <p className="mt-6 max-w-xs text-[13px] font-light leading-relaxed text-[#EFE9DD]/55">
+            {t(FOOTER_LINKS.about, FOOTER_LINKS.aboutAr)}
+          </p>
+        </div>
+
+        {/* Quick links */}
+        <div>
+          <h3 className={colTitle}>{t('Quick Links', 'روابط سريعة')}</h3>
+          <ul className="mt-6 space-y-3">
+            {FOOTER_QUICK.map((l) => {
+              const to = l.en === 'Home' ? lookBase(3) : l.en === 'Shop' ? searchPath(3) : undefined;
+              return (
+                <li key={l.en}>
+                  {to ? (
+                    <Link to={to} className={link}>
+                      {t(l.en, l.ar)}
+                    </Link>
+                  ) : (
+                    <a href="#" onClick={(e) => e.preventDefault()} className={link}>
+                      {t(l.en, l.ar)}
+                    </a>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Support */}
+        <div>
+          <h3 className={colTitle}>{t('Customer Support', 'خدمة العملاء')}</h3>
+          <ul className="mt-6 space-y-3">
+            {FOOTER_SUPPORT.map((l) => (
+              <li key={l.en}>
+                <a href="#" onClick={(e) => e.preventDefault()} className={link}>
+                  {t(l.en, l.ar)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Contact + subscribe */}
+        <div>
+          <h3 className={colTitle}>{t('Contact', 'تواصل معنا')}</h3>
+          <div className="mt-6 space-y-3">
+            <a href="#" onClick={(e) => e.preventDefault()} className={`${link} block tracking-[0.08em]`}>
+              <span dir="ltr">{FOOTER_LINKS.phone}</span>
+            </a>
+            <a href="#" onClick={(e) => e.preventDefault()} className={`${link} block tracking-[0.08em]`}>
+              {FOOTER_LINKS.email}
+            </a>
+          </div>
+
+          <h3 className={`${colTitle} mt-10`}>{t('Subscribe', 'النشرة البريدية')}</h3>
+          <div className="mt-5 flex items-center gap-4 border-b border-[#EFE9DD]/25 pb-3">
+            <input
+              type="email"
+              placeholder={t('Your email address', 'بريدك الإلكتروني')}
+              className={`w-full bg-transparent text-[12px] font-light text-[#EFE9DD] outline-none placeholder:text-[#EFE9DD]/35 ${
+                lang === 'ar' ? 'tracking-normal' : 'tracking-[0.08em]'
+              }`}
+            />
+            <button
+              className={`shrink-0 text-[#C9B393] transition-opacity hover:opacity-70 ${
+                lang === 'ar' ? `${ALEXANDRIA} text-[11px] tracking-normal` : 'text-[10px] uppercase tracking-[0.3em]'
+              }`}
+            >
+              {t('Submit', 'اشترك')}
+            </button>
+          </div>
+
+          <div className="mt-8 flex items-center gap-3">
+            {[
+              { Icon: Instagram, label: 'Instagram' },
+              { Icon: Facebook, label: 'Facebook' },
+              { Icon: Linkedin, label: 'LinkedIn' },
+            ].map(({ Icon, label }) => (
+              <a
+                key={label}
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                aria-label={label}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#EFE9DD]/25 text-[#EFE9DD]/70 transition-colors duration-300 hover:border-[#EFE9DD]/70 hover:text-[#EFE9DD]"
+              >
+                <Icon size={15} strokeWidth={1.25} />
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10">
+        <p
+          className={`py-7 text-center text-[#EFE9DD]/40 ${
+            lang === 'ar' ? `${ALEXANDRIA} text-[10px] tracking-normal` : 'text-[9px] uppercase tracking-[0.35em]'
+          }`}
+        >
+          {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار — جميع الحقوق محفوظة.')}
+        </p>
+      </div>
+    </footer>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The look's layout: owns the language (persisted, Arabic by default) and
+ * wraps every route — home, search, product — in the same header, drawer,
+ * footer and look switcher. Pages read `lang`/`t` through `useLook()`.
+ */
+export default function LookThree() {
+  const [lang, setLangState] = useState<Lang>(() =>
+    typeof localStorage !== 'undefined' && localStorage.getItem('diyar-look-lang') === 'en' ? 'en' : 'ar',
+  );
+  const { pathname } = useLocation();
+
+  const setLang = (next: Lang) => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem('diyar-look-lang', next);
+    setLangState(next);
+  };
+  const toggleLang = () => setLang(lang === 'ar' ? 'en' : 'ar');
+  const t = (en: string, ar: string) => (lang === 'ar' ? ar : en);
+
+  /* A new page opens at the top; query changes on the same page must not scroll. */
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  /* Only the home page has a hero for the bar to sit over. */
+  const isHome = pathname.replace(/\/+$/, '') === lookBase(3);
+
+  return (
+    <LookProvider value={{ lang, setLang, t }}>
+      <div
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        className={`min-h-screen overflow-x-hidden antialiased ${lang === 'ar' ? TAJAWAL : "font-['Outfit',sans-serif]"}`}
+        style={{ backgroundColor: BG, color: INK }}
+      >
+        <Header lang={lang} onToggle={toggleLang} transparent={isHome} />
+        <main>
+          <Outlet />
+        </main>
+        <Footer lang={lang} />
+        <LookSwitcher />
+      </div>
+    </LookProvider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Route pages                                                         */
+/* ------------------------------------------------------------------ */
+
+/** The homepage — every section, in the original order. */
+export function LookThreeHome() {
+  const { lang } = useLook();
+  return (
+    <>
+      <Hero lang={lang} />
+      <FeaturedCategories lang={lang} />
+      <ShopByRoom lang={lang} />
+      <Services lang={lang} />
+      <NewProducts lang={lang} />
+      <AiStudio lang={lang} />
+      <Atelier lang={lang} />
+      <ShopTheLook lang={lang} />
+      <BestSellers lang={lang} />
+      <FindYourStyle lang={lang} />
+      <WhyDiyar lang={lang} />
+      <FeaturedStores lang={lang} />
+      <Loyalty lang={lang} />
+      <Reviews lang={lang} />
+      <DesignBlog lang={lang} />
+      <B2B lang={lang} />
+      <Partner lang={lang} />
+      <AppPromo lang={lang} />
+    </>
+  );
+}
+
+/** Search / listing — see ./three/SearchPage. */
+export function LookThreeSearch() {
+  return <SearchPage />;
+}
+
+/** Product detail — see ./three/ProductPage. */
+export function LookThreeProduct() {
+  return <ProductPage />;
+}
