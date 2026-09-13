@@ -39,6 +39,8 @@ export interface LookService {
   icon: React.ComponentType<{ size?: number | string; className?: string; strokeWidth?: number }>;
   en: string;
   ar: string;
+  /** Preview shown when the service is highlighted in the services index. */
+  img: string;
 }
 
 export type StyleKey = 'modern' | 'classic' | 'bohemian' | 'neo' | 'luxury';
@@ -355,24 +357,25 @@ export const FOOTER_SUPPORT: Bi[] = [
   { en: 'Track Order', ar: 'تتبع الطلب' },
 ];
 
+/** Own 4:5 photography, one per category (public/categories/featured). */
 export const CATEGORIES: LookCategory[] = [
-  { key: 'home', img: IMG.catHome, en: 'Home Furniture', ar: 'الأثاث المنزلي' },
-  { key: 'office', img: IMG.catOffice, en: 'Office Furniture', ar: 'الأثاث المكتبي' },
-  { key: 'lighting', img: IMG.catLighting, en: 'Lighting', ar: 'الإنارات' },
-  { key: 'rugs', img: IMG.bedroom, en: 'Rugs & Carpets', ar: 'السجاد' },
-  { key: 'bath', img: IMG.loungeDark, en: 'Bathroom Solutions', ar: 'دورات المياه' },
-  { key: 'decor', img: IMG.roomHotspots, en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
+  { key: 'home', img: '/categories/featured/home.webp', en: 'Home Furniture', ar: 'الأثاث المنزلي' },
+  { key: 'office', img: '/categories/featured/office.webp', en: 'Office Furniture', ar: 'الأثاث المكتبي' },
+  { key: 'lighting', img: '/categories/featured/lighting.webp', en: 'Lighting', ar: 'الإنارات' },
+  { key: 'rugs', img: '/categories/featured/rugs.webp', en: 'Rugs & Carpets', ar: 'السجاد' },
+  { key: 'bath', img: '/categories/featured/bath.webp', en: 'Bathroom Solutions', ar: 'دورات المياه' },
+  { key: 'decor', img: '/categories/featured/decor.webp', en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
 ];
 
 export const SERVICES: LookService[] = [
-  { icon: PenTool, en: 'Interior Design', ar: 'التصميم الداخلي' },
-  { icon: DoorOpen, en: 'Door Solutions', ar: 'حلول الأبواب' },
-  { icon: Armchair, en: 'Custom Furniture', ar: 'تنفيذ الأثاث' },
-  { icon: PaintRoller, en: 'Painting & Wall Finishes', ar: 'الدهانات والجداريات' },
-  { icon: Layers, en: 'Flooring Solutions', ar: 'الأرضيات' },
-  { icon: Sparkles, en: 'Finishing & Decorative', ar: 'التشطيبات والديكورات' },
-  { icon: PanelTop, en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت' },
-  { icon: ShieldCheck, en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة' },
+  { icon: PenTool, en: 'Interior Design', ar: 'التصميم الداخلي', img: IMG.catHome },
+  { icon: DoorOpen, en: 'Door Solutions', ar: 'حلول الأبواب', img: IMG.loungeDark },
+  { icon: Armchair, en: 'Custom Furniture', ar: 'تنفيذ الأثاث', img: IMG.workshop },
+  { icon: PaintRoller, en: 'Painting & Wall Finishes', ar: 'الدهانات والجداريات', img: IMG.roomHotspots },
+  { icon: Layers, en: 'Flooring Solutions', ar: 'الأرضيات', img: IMG.catOffice },
+  { icon: Sparkles, en: 'Finishing & Decorative', ar: 'التشطيبات والديكورات', img: IMG.bedroom },
+  { icon: PanelTop, en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت', img: IMG.hero },
+  { icon: ShieldCheck, en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة', img: IMG.restaurant },
 ];
 
 export const PRODUCTS: LookProduct[] = [
@@ -565,9 +568,14 @@ export const BLOG_POSTS: LookPost[] = [
 ];
 
 /** Featured partner stores — Diyar is a multi-vendor marketplace. */
-export type StoreKey = 'diyar' | 'bk' | 'ld' | 'dw' | 'ns';
+export type StoreKey = 'diyar' | 'bk' | 'ld' | 'dw' | 'ns' | 'zk' | 'mk';
 
-export interface LookStore { key: StoreKey; name: Bi; specialty: Bi; initials: string; rating: number; products: number; cover: string }
+export interface LookStore {
+  key: StoreKey; name: Bi; specialty: Bi; initials: string; rating: number; products: number; cover: string;
+  /** A real shop mark, once the partners supply one. Until then the card falls
+   *  back to `initials`, so dropping logos in is this one field and no more. */
+  logo?: string;
+}
 
 export const STORES: LookStore[] = [
   {
@@ -593,6 +601,18 @@ export const STORES: LookStore[] = [
     name: { en: 'Naseej', ar: 'نسيج' },
     specialty: { en: 'Rugs & textiles', ar: 'السجاد والمنسوجات' },
     initials: 'NS', rating: 4.9, products: 349, cover: IMG.bedroom,
+  },
+  {
+    key: 'zk',
+    name: { en: 'Zukhruf', ar: 'زخرف' },
+    specialty: { en: 'Decor & accessories', ar: 'الديكور والإكسسوارات' },
+    initials: 'ZK', rating: 4.8, products: 604, cover: IMG.roomHotspots,
+  },
+  {
+    key: 'mk',
+    name: { en: 'Maktabi', ar: 'مكتبي' },
+    specialty: { en: 'Office & workspace', ar: 'الأثاث المكتبي' },
+    initials: 'MK', rating: 4.6, products: 187, cover: IMG.catOffice,
   },
 ];
 
@@ -860,7 +880,7 @@ export const CATALOG: CatalogProduct[] = [
   {
     id: 12, img: '/looks/shop/vases.jpg', gallery: ['/looks/shop/vases.jpg', IMG.roomHotspots],
     name: { en: 'Stoneware Vase Set', ar: 'طقم مزهريات حجرية' },
-    store: 'diyar', category: 'decor', room: 'dining', style: 'modern',
+    store: 'zk', category: 'decor', room: 'dining', style: 'modern',
     price: 480, rating: 4.7, reviews: 219, sku: 'DH-VS-0902',
     colors: [C.sand, C.charcoal],
     dimensions: { en: 'Set of 2 · H 28 cm and H 22 cm', ar: 'طقم من قطعتين · الارتفاع 28 سم و22 سم' },
@@ -872,7 +892,7 @@ export const CATALOG: CatalogProduct[] = [
   {
     id: 13, img: '/looks/shop/chair.jpg', gallery: ['/looks/shop/chair.jpg', IMG.roomHotspots, IMG.catHome],
     name: { en: 'Olive Bouclé Lounge Chair', ar: 'كرسي استرخاء بقماش البوكليه' },
-    store: 'dw', category: 'home', room: 'living', style: 'modern',
+    store: 'mk', category: 'home', room: 'living', style: 'modern',
     price: 3150, rating: 4.9, reviews: 112, sku: 'DW-CH-1150',
     colors: [C.olive, C.cream, C.taupe],
     dimensions: { en: 'W 84 × D 86 × H 72 cm', ar: 'العرض 84 × العمق 86 × الارتفاع 72 سم' },
@@ -884,7 +904,7 @@ export const CATALOG: CatalogProduct[] = [
   {
     id: 14, img: '/looks/shop/planter.jpg', gallery: ['/looks/shop/planter.jpg', IMG.roomHotspots],
     name: { en: 'Aged Terracotta Planter', ar: 'أصيص فخاري عتيق' },
-    store: 'diyar', category: 'decor', room: 'outdoor', style: 'bohemian',
+    store: 'zk', category: 'decor', room: 'outdoor', style: 'bohemian',
     price: 620, rating: 4.8, reviews: 64, sku: 'DH-PL-0330',
     colors: [C.terracotta],
     dimensions: { en: 'Ø 52 × H 60 cm · drainage hole', ar: 'القطر 52 × الارتفاع 60 سم · فتحة تصريف' },
@@ -905,6 +925,62 @@ export const DIYAR_STORE: LookStore = {
 export const ALL_STORES: LookStore[] = [DIYAR_STORE, ...STORES];
 
 export const storeOf = (key: StoreKey): LookStore => ALL_STORES.find((s) => s.key === key) ?? DIYAR_STORE;
+
+/* ------------------------------------------------------------------ */
+/* Store locations — Jeddah                                            */
+/* District points geocoded from OpenStreetMap (Nominatim). Street-    */
+/* level addresses are deliberately not invented.                     */
+/* ------------------------------------------------------------------ */
+
+export interface StoreLocation {
+  id: string;
+  store: StoreKey;
+  district: Bi;
+  lat: number;
+  lng: number;
+  /** Opening hours in Saudi (Riyadh) time on a 24h clock; 24 means midnight. */
+  opens: number;
+  closes: number;
+  /** Day the location is closed, 0 = Sunday … 6 = Saturday. */
+  closedOn?: number;
+}
+
+/** Where the nearby-stores map starts: central Jeddah. */
+export const MAP_ORIGIN = {
+  lat: 21.55044,
+  lng: 39.17424,
+  label: { en: 'Jeddah, Saudi Arabia', ar: 'جدة، السعودية' } as Bi,
+};
+
+export const STORE_LOCATIONS: StoreLocation[] = [
+  { id: 'diyar-tahlia', store: 'diyar', district: { en: 'Tahlia Street, Al Khalidiyah', ar: 'شارع التحلية، الخالدية' }, lat: 21.54768, lng: 39.136, opens: 10, closes: 23 },
+  { id: 'dw-rawdah', store: 'dw', district: { en: 'Al Rawdah', ar: 'حي الروضة' }, lat: 21.55193, lng: 39.14359, opens: 10, closes: 23 },
+  { id: 'ld-hamra', store: 'ld', district: { en: 'Al Hamra', ar: 'حي الحمراء' }, lat: 21.52822, lng: 39.16257, opens: 10, closes: 22 },
+  { id: 'bk-salamah', store: 'bk', district: { en: 'Al Salamah', ar: 'حي السلامة' }, lat: 21.594, lng: 39.15236, opens: 9, closes: 18, closedOn: 5 },
+  { id: 'ns-balad', store: 'ns', district: { en: 'Al Balad, Historic Jeddah', ar: 'البلد، جدة التاريخية' }, lat: 21.48604, lng: 39.1877, opens: 16, closes: 24 },
+  { id: 'diyar-obhur', store: 'diyar', district: { en: 'South Obhur, Corniche Road', ar: 'أبحر الجنوبية، طريق الكورنيش' }, lat: 21.73562, lng: 39.12275, opens: 10, closes: 24 },
+];
+
+/** Great-circle distance in kilometres. */
+export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** Whether a location is open right now, judged in Saudi (Riyadh) time. */
+export function isOpenNow(loc: StoreLocation, now: Date = new Date()): boolean {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Riyadh', hour: 'numeric', hourCycle: 'h23', weekday: 'short',
+  }).formatToParts(now);
+  const hour = Number(parts.find((x) => x.type === 'hour')?.value ?? 0);
+  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.find((x) => x.type === 'weekday')?.value ?? 'Sun');
+  if (loc.closedOn === day) return false;
+  return hour >= loc.opens && hour < loc.closes;
+}
 
 export const findProduct = (id: string | number | undefined): CatalogProduct | undefined =>
   CATALOG.find((p) => p.id === Number(id));
@@ -1029,33 +1105,185 @@ export const searchPath = (n: LookNo, qy?: SearchQuery) => {
 };
 export const productPath = (n: LookNo, id: number) => `${lookBase(n)}/product/${id}`;
 
+/* ------------------------------------------------------------------ */
+/* Homepage sections carried over from the original site (Look 4)      */
+/* so the chosen look can mirror its structure section for section.    */
+/* ------------------------------------------------------------------ */
+
+/** Quick-nav strip under the hero: 10 shop categories + 10 services, using the client's own icons. */
+export interface QuickCategory {
+  en: string; ar: string; icon: string;
+  kind: 'shop' | 'service';
+  /** Ground baked into the artwork — decides whether the label prints ink or cream. */
+  tone: 'light' | 'dark';
+  category?: CategoryKey; room?: RoomKey;
+}
+
+export const QUICK_CATEGORIES: QuickCategory[] = [
+  { en: 'Bedrooms', ar: 'غرف النوم', icon: '/categories/tiles/غرف النوم.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'bedroom' },
+  { en: 'Living Rooms', ar: 'الصالونات', icon: '/categories/tiles/الصالونات.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'living' },
+  { en: 'Kitchens', ar: 'المطابخ', icon: '/categories/tiles/المطابخ.jpg', kind: 'shop', tone: 'light', category: 'home' },
+  { en: 'Dining Rooms', ar: 'غرف الطعام', icon: '/categories/tiles/غرف الطعام.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'dining' },
+  { en: 'Offices', ar: 'المكاتب', icon: '/categories/tiles/المكاتب.jpg', kind: 'shop', tone: 'light', category: 'office' },
+  { en: 'Decor', ar: 'ديكورات', icon: '/categories/tiles/ديكورات.jpg', kind: 'shop', tone: 'light', category: 'decor' },
+  { en: 'Lighting', ar: 'الإضاءة', icon: '/categories/tiles/الإضاءة.jpg', kind: 'shop', tone: 'light', category: 'lighting' },
+  { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', tone: 'light', category: 'decor' },
+  { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/tiles/أثاث خارجي.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'outdoor' },
+  { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/tiles/الحمامات.jpg', kind: 'shop', tone: 'light', category: 'bath' },
+  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/tiles/استشارات تصميم.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark' },
+];
+
+/** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */
+export interface PromoPanel { img: string; eyebrow: Bi; title: Bi; cta: Bi; span: 2 | 3; query?: SearchQuery }
+
+/** Own banner photography, shot minimal so the wall reads as one set. */
+export const PROMO_PANELS: PromoPanel[] = [
+  { img: '/looks/promo/lead-summer.webp', span: 3, eyebrow: { en: 'Limited Time', ar: 'لفترة محدودة' }, title: { en: 'Summer Sale — up to 40% off sofas', ar: 'عروض الصيف — خصم حتى 40% على الأرائك' }, cta: { en: 'Shop the Sale', ar: 'تسوق العروض' }, query: { sale: true } },
+  { img: '/looks/promo/design-session.webp', span: 3, eyebrow: { en: 'Free Service', ar: 'خدمة مجانية' }, title: { en: 'Free design session with any order over 5,000 SAR', ar: 'جلسة تصميم مجانية مع كل طلب فوق 5,000 ر.س' }, cta: { en: 'Book Now', ar: 'احجز الآن' } },
+  { img: '/looks/promo/lighting.webp', span: 2, eyebrow: { en: 'New Arrivals', ar: 'وصل حديثاً' }, title: { en: 'Lighting edit', ar: 'مختارات الإنارة' }, cta: { en: 'Discover', ar: 'اكتشف' }, query: { category: 'lighting' } },
+  { img: '/looks/promo/bedroom-packages.webp', span: 2, eyebrow: { en: 'Bundles', ar: 'باقات' }, title: { en: 'Bedroom sets from 6,900 SAR', ar: 'باقات غرف النوم من 6,900 ر.س' }, cta: { en: 'View Sets', ar: 'شاهد الباقات' }, query: { room: 'bedroom' } },
+  { img: '/looks/promo/custom-furniture.webp', span: 2, eyebrow: { en: 'Made to Order', ar: 'حسب الطلب' }, title: { en: 'Custom furniture, 3–4 weeks', ar: 'أثاث مخصص خلال 3–4 أسابيع' }, cta: { en: 'Start a Project', ar: 'ابدأ مشروعك' } },
+];
+
+/** "Most interactive" rail — live shopper activity on catalog items. */
+export interface TrendingItem { productId: number; views: number; likes: number; saves: number; hot?: boolean }
+
+export const TRENDING: TrendingItem[] = [
+  { productId: 13, views: 1842, likes: 312, saves: 148, hot: true },
+  { productId: 1, views: 1530, likes: 276, saves: 121, hot: true },
+  { productId: 10, views: 1207, likes: 198, saves: 96 },
+  { productId: 6, views: 1114, likes: 240, saves: 88, hot: true },
+  { productId: 4, views: 968, likes: 154, saves: 77 },
+  { productId: 12, views: 902, likes: 221, saves: 64 },
+];
+
+/** "Featured deals" — a countdown that ends at local midnight, over the discounted items. */
+export const FEATURED_DEALS = {
+  productIds: [2, 6, 4, 10, 13, 9] as number[],
+  /** Extra deal applied on top of the catalogue price for items without an oldPrice (percent). */
+  fallbackDiscount: 15,
+};
+
+/** Two campaign banners (the original's summer banners), typographic instead of baked images. */
+export interface Campaign {
+  img: string; eyebrow: Bi; title: Bi; body: Bi; cta: Bi; query?: SearchQuery;
+  tone: 'light' | 'dark';
+  /** 'soft' for a photograph already shot with the reading side left empty —
+   *  the full scrim exists to carve room out of a busy picture, and laying it
+   *  over one that does not need it only drains the colour. */
+  scrim?: 'soft';
+}
+
+export const CAMPAIGNS: Campaign[] = [
+  {
+    // shot wide with the wall left empty on the reading side, so the copy sits
+    // on the room rather than on top of the sofa
+    // white type
+    img: '/looks/campaign-living.webp', tone: 'dark', scrim: 'soft',
+    eyebrow: { en: 'Summer Offers', ar: 'عروض الصيف' },
+    title: { en: 'Up to 40% off living room seating', ar: 'خصم حتى 40% على جلسات المعيشة' },
+    body: { en: 'Sofas, armchairs and majlis sets from Diyar and its partner stores — while stock lasts.', ar: 'أرائك وكراسي وأطقم مجالس من ديار ومتاجرها الشريكة — حتى نفاد الكمية.' },
+    cta: { en: 'Shop the Offers', ar: 'تسوق العروض' }, query: { sale: true },
+  },
+  {
+    // shot wide with the wall left empty on the reading side, like the summer
+    // banner, so the copy sits on the room rather than over the seating
+    // black type
+    img: '/looks/campaign-majlis.webp', tone: 'light', scrim: 'soft',
+    eyebrow: { en: 'Majlis Season', ar: 'موسم المجالس' },
+    title: { en: 'Furnish the whole majlis — delivered and installed', ar: 'جهّز مجلسك كاملاً — توصيل وتركيب' },
+    body: { en: 'Seating, lighting, rugs and curtains coordinated by our designers, installed by our crews.', ar: 'جلسات وإنارة وسجاد وستائر ينسقها مصممونا وتركّبها فرقنا.' },
+    cta: { en: 'Explore Majlis', ar: 'استكشف المجالس' }, query: { room: 'majlis' },
+  },
+];
+
+/** "Suggested for you" — personalised picks (static for the demo). */
+export const SUGGESTED_IDS: number[] = [8, 5, 11, 7, 14];
+
+/** Brand wordmarks strip (the original listed these brands). Rendered as type, no logos. */
+export const BRANDS: Bi[] = [
+  { en: 'IKEA', ar: 'إيكيا' },
+  { en: 'Ashley', ar: 'أشلي' },
+  { en: 'West Elm', ar: 'ويست إلم' },
+  { en: 'BoConcept', ar: 'بوكونسبت' },
+  { en: 'Pottery Barn', ar: 'بوتري بارن' },
+  { en: 'Natuzzi', ar: 'ناتوزي' },
+  { en: 'Herman Miller', ar: 'هيرمان ميلر' },
+  { en: 'Muji', ar: 'موجي' },
+];
+
+/** Standalone newsletter section (the original's closing section). */
+export const NEWSLETTER = {
+  title: { en: 'Subscribe to our newsletter', ar: 'اشترك في نشرتنا البريدية' } as Bi,
+  body: { en: 'The latest offers, decor tips and new arrivals — straight to your inbox.', ar: 'احصل على أحدث العروض، ونصائح الديكور، والمنتجات الجديدة مباشرة في صندوق الوارد الخاص بك.' } as Bi,
+  placeholder: { en: 'Enter your email', ar: 'أدخل بريدك الإلكتروني' } as Bi,
+  cta: { en: 'Subscribe', ar: 'اشتراك' } as Bi,
+  success: { en: 'You are on the list.', ar: 'تم اشتراكك بنجاح.' } as Bi,
+};
+
+/** Milliseconds until the next local midnight — shared by the deal countdowns. */
+export const msUntilMidnight = (now = new Date()) => {
+  const end = new Date(now);
+  end.setHours(24, 0, 0, 0);
+  return end.getTime() - now.getTime();
+};
+
 export const formatSAR = (n: number) => n.toLocaleString('en-US');
 
-/** Floating switcher shown on every look page (and the original site) so the client can flip between directions. */
-export function LookSwitcher({ raiseOnMobile = false }: { raiseOnMobile?: boolean } = {}) {
+/**
+ * Floating switcher shown on every look page (and the original site) so the
+ * client can flip between directions. A slim vertical rail on the left edge:
+ * the end of the reading line in Arabic, and clear of the original site's
+ * contact buttons, which sit bottom-right. z-[45] is deliberate: one look
+ * renders its mobile drawer inside the fixed z-50 header, whose stacking
+ * context caps that whole drawer at 50 — so the rail must sit below 50 for
+ * every open menu to cover it. Nothing else on these pages stacks above ~z-20.
+ */
+export function LookSwitcher() {
   const { pathname } = useLocation();
+  // looks 2 and 3 are archived (src/pages/looks/_archive), leaving the chosen
+  // direction and the current site to compare it against
   const looks = [
     { to: '/look/1', label: '1' },
-    { to: '/look/2', label: '2' },
-    { to: '/look/3', label: '3' },
     { to: '/', label: '4' },
   ];
+  // a look's search and product pages still belong to that look
+  const isActive = (to: string) =>
+    to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`);
   return (
-    <div dir="ltr" className={`fixed left-1/2 -translate-x-1/2 z-[90] flex items-center gap-1 rounded-full bg-black/80 backdrop-blur-md px-2 py-1.5 shadow-2xl border border-white/10 ${raiseOnMobile ? 'bottom-[86px] md:bottom-5' : 'bottom-5'}`}>
-      <Link to="/looks" className="text-white/60 hover:text-white text-[11px] tracking-[0.15em] uppercase px-3 py-1.5 transition-colors">
+    <nav
+      dir="ltr"
+      aria-label="Design looks"
+      data-testid="look-switcher"
+      className="fixed left-3 top-1/2 z-[45] flex -translate-y-1/2 flex-col items-center gap-1 rounded-full border border-white/10 bg-black/80 px-1.5 py-2 shadow-2xl backdrop-blur-md md:left-4"
+    >
+      <Link
+        to="/looks"
+        className="rotate-180 px-1 py-2 text-[10px] uppercase tracking-[0.18em] text-white/60 transition-colors [writing-mode:vertical-rl] hover:text-white"
+      >
         Looks
       </Link>
       {looks.map((l) => (
         <Link
           key={l.to}
           to={l.to}
-          className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold transition-colors ${
-            pathname === l.to ? 'bg-white text-black' : 'text-white/70 hover:bg-white/15 hover:text-white'
+          aria-current={isActive(l.to) ? 'page' : undefined}
+          className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold transition-colors ${
+            isActive(l.to) ? 'bg-white text-black' : 'text-white/70 hover:bg-white/15 hover:text-white'
           }`}
         >
           {l.label}
         </Link>
       ))}
-    </div>
+    </nav>
   );
 }

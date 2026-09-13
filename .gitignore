@@ -7,3 +7,6 @@ coverage/
 .env*
 !.env.example
 .backup/
+
+# source render for the shop-by-room plate (5.6MB); the optimised apartment.jpg is what ships
+public/looks/apartment.png

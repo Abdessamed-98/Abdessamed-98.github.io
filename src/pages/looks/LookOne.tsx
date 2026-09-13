@@ -20,18 +20,38 @@ import {
   Menu, X, ChevronDown, Phone, Mail,
 } from 'lucide-react';
 import {
-  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, STYLES,
+  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
   DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
-  ROOMS, AI_STUDIO, WHY_DIYAR, STORES, LOYALTY, REVIEWS, BLOG_POSTS, PARTNER, APP_PROMO,
+  ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
   lookBase, searchPath, productPath,
   type Lang, type MenuGroup, type Bi, type RoomHotspot, type CategoryKey,
 } from './lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
   LookContext, useLook, useLang,
-  Reveal, SectionHeading, ViewMore, Stars, ProductCard,
+  Reveal, SectionHeading, ViewMore, ProductCard,
 } from './one/ui';
+import {
+  QuickCategories, Trending, FeaturedDeals, CampaignBanner,
+  SuggestedForYou, BrandsStrip, Newsletter, ApartmentRooms,
+} from './one/HomeSections';
+import { HowWeWork } from './one/HowWeWork';
+import { CategoryPanels } from './one/CategoryPanels';
+import { RoomStage } from './one/RoomStage';
+import { LookShell } from './one/shell';
+import { useShell } from './one/shellContext';
+import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
+import { HeroScrub } from './one/HeroScrub';
+import { BeforeAfter } from './one/BeforeAfter';
+import { WhyDiyar } from './one/WhyDiyar';
+import { StyleIndex } from './one/StyleIndex';
+import { CustomerRooms } from './one/CustomerRooms';
+import { PromoWall } from './one/PromoWall';
+import { MadeToOrder } from './one/MadeToOrder';
+import { FeaturedStores } from './one/FeaturedStores';
+import { CurtainStage } from './one/CurtainStage';
+import { LoadReveal } from './one/LoadReveal';
 
 export { LookOneSearch } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -72,6 +92,7 @@ function ShopHotspot({
   key?: string | number;
 }) {
   const isAr = useLang() === 'ar';
+  const shell = useShell();
   const name = isAr ? h.name.ar : h.name.en;
 
   /* open the card away from the nearest image edge — physical, never mirrored */
@@ -165,6 +186,8 @@ function ShopHotspot({
                 </Link>
                 <button
                   type="button"
+                  data-testid={`hotspot-${h.id}-add`}
+                  onClick={() => shell.addToCart(h.productId, name)}
                   className={`mt-2.5 block w-full text-center text-[9.5px] uppercase text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
                     isAr ? 'tracking-normal' : 'tracking-[0.18em]'
                   }`}
@@ -579,13 +602,7 @@ function MobileDrawer({
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
-                  <button
-                    type="button"
-                    aria-label={t('Search by photo', 'البحث بالصورة')}
-                    className="shrink-0 text-neutral-400 transition-colors hover:text-[#171512]"
-                  >
-                    <Camera size={15} strokeWidth={1.5} />
-                  </button>
+                  <ImageSearchButton className="shrink-0 text-neutral-400 transition-colors hover:text-[#171512]" />
                 </div>
               </form>
 
@@ -661,37 +678,11 @@ function MobileDrawer({
               </div>
 
               {/* account / wishlist / cart */}
-              <ul className="border-t py-2" style={{ borderColor: HAIR }}>
-                <li>
-                  <button type="button" onClick={onClose} className={rowCls}>
-                    <User size={18} strokeWidth={1.25} style={{ color: OLIVE }} />
-                    {t('Account', 'الحساب')}
-                  </button>
-                </li>
-                <li>
-                  <button type="button" onClick={onClose} className={rowCls}>
-                    <Heart size={18} strokeWidth={1.25} style={{ color: OLIVE }} />
-                    {t('Wishlist', 'المفضلة')}
-                  </button>
-                </li>
-                <li>
-                  <button type="button" onClick={onClose} className={rowCls}>
-                    <ShoppingBag size={18} strokeWidth={1.25} style={{ color: OLIVE }} />
-                    {t('Cart', 'السلة')}
-                    <span
-                      className="ms-auto flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-semibold text-white"
-                      style={{ backgroundColor: OLIVE }}
-                    >
-                      2
-                    </span>
-                  </button>
-                </li>
-              </ul>
+              <DrawerAccountRows rowCls={rowCls} onNavigate={onClose} />
             </div>
 
-            {/* contact — pinned to the bottom of the panel. The extra bottom
-                padding keeps it clear of the floating LookSwitcher pill. */}
-            <div className="shrink-0 border-t px-5 pt-5 pb-16" style={{ borderColor: HAIR }}>
+            {/* contact — pinned to the bottom of the panel. */}
+            <div className="shrink-0 border-t px-5 pt-5 pb-5" style={{ borderColor: HAIR }}>
               <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
               <a href="#" className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
                 <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
@@ -790,6 +781,7 @@ export default function LookOne() {
 
   return (
     <LookContext.Provider value={{ lang, setLang, t }}>
+      <LookShell>
       <div
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         data-testid="look-one"
@@ -858,15 +850,11 @@ export default function LookOne() {
                   solid ? 'text-[#171512] placeholder:text-neutral-400' : 'text-white placeholder:text-white/70'
                 }`}
               />
-              <button
-                type="button"
-                aria-label={t('Search by photo', 'البحث بالصورة')}
+              <ImageSearchButton
                 className={`shrink-0 transition-colors duration-300 ${
                   solid ? 'text-neutral-400 hover:text-[#171512]' : 'text-white hover:text-white/70'
                 }`}
-              >
-                <Camera size={15} strokeWidth={1.5} />
-              </button>
+              />
             </form>
 
             <div className="flex-1" />
@@ -968,23 +956,7 @@ export default function LookOne() {
 
             {/* icons */}
             <div className="flex shrink-0 items-center gap-4 md:gap-5">
-              {/* account & wishlist live in the drawer below lg — the mobile bar
-                  stays down to logo · cart · hamburger */}
-              <button type="button" aria-label={t('Account', 'الحساب')} className={`hidden lg:block ${iconBtnCls}`}>
-                <User size={20} strokeWidth={1.25} />
-              </button>
-              <button type="button" aria-label={t('Wishlist', 'المفضلة')} className={`hidden lg:block ${iconBtnCls}`}>
-                <Heart size={20} strokeWidth={1.25} />
-              </button>
-              <button type="button" aria-label={t('Cart', 'السلة')} className={`relative ${iconBtnCls}`}>
-                <ShoppingBag size={20} strokeWidth={1.25} />
-                <span
-                  className="absolute -end-1.5 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-semibold text-white"
-                  style={{ backgroundColor: OLIVE }}
-                >
-                  2
-                </span>
-              </button>
+              <HeaderActions iconBtnCls={iconBtnCls} />
 
               {/* hamburger — the only way into navigation below lg */}
               <button
@@ -1015,10 +987,10 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
                     {/* 6 category groups, 3 × 2 — each maps onto a catalog category */}
-                    <div className="col-span-9 grid grid-cols-3 gap-x-8 gap-y-10">
+                    <div className="col-span-8 grid grid-cols-3 gap-x-8 gap-y-6">
                       {SHOP_MENU.map((group, i) => {
                         const key = shopGroupKey(i);
                         return (
@@ -1031,8 +1003,11 @@ export default function LookOne() {
                         );
                       })}
                     </div>
-                    {/* featured side column */}
-                    <div className="col-span-3 space-y-8 border-s ps-8" style={{ borderColor: HAIR }}>
+                    {/* featured side column — the two tiles sit side by side rather than
+                        stacked, so the category groups set the panel's height, not the
+                        pictures: stacked, they made the whole menu a third taller than
+                        the lists needed */}
+                    <div className="col-span-4 grid grid-cols-2 content-start gap-x-5 border-s ps-8" style={{ borderColor: HAIR }}>
                       <MegaFeatured
                         img={MENU_FEATURED.shop[0].img}
                         title={MENU_FEATURED.shop[0].title}
@@ -1049,7 +1024,7 @@ export default function LookOne() {
                       />
                     </div>
                   </div>
-                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
+                  <div className="mt-6 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} to={searchPath(1)} />
                   </div>
                 </div>
@@ -1229,7 +1204,10 @@ export default function LookOne() {
 
         {/* the product page carries a sticky buy bar on phones — lift the pill above it */}
         <LookSwitcher raiseOnMobile={pathname.includes('/product/')} />
+        {/* first load of the session: the page arrives through the logo (one/LoadReveal) */}
+        <LoadReveal />
       </div>
+      </LookShell>
     </LookContext.Provider>
   );
 }
@@ -1255,12 +1233,20 @@ export function LookOneHome() {
     cancelSpotClose();
     spotTimer.current = window.setTimeout(() => setOpenSpot(null), 120);
   };
+  const spotOpenedAt = useRef(0);
   const openSpotNow = (id: string) => {
     cancelSpotClose();
+    if (openSpot !== id) spotOpenedAt.current = Date.now();
     setOpenSpot(id);
   };
   const toggleSpot = (id: string) => {
     cancelSpotClose();
+    // a tap fires hover + focus (which open the card) just before its click;
+    // don't let that same click close the card again
+    if (Date.now() - spotOpenedAt.current < 500) {
+      setOpenSpot(id);
+      return;
+    }
     setOpenSpot((s) => (s === id ? null : id));
   };
   useEffect(() => {
@@ -1288,31 +1274,28 @@ export function LookOneHome() {
 
   return (
     <div data-testid="home-page">
-      {/* ============================================================ */}
-      {/* 2. HERO SLIDER                                                */}
-      {/* ============================================================ */}
-      <section className="relative h-[88vh] min-h-[560px] overflow-hidden bg-[#171512]">
+      {/* ============================================================== */}
+      {/* 1. HERO SLIDER */}
+      {/* ============================================================== */}
+      <section data-testid="hero" className="relative h-[100svh] min-h-[600px] overflow-hidden bg-[#171512]">
+        {/* the room orbit, scrubbed by the pointer; poster-only on touch (one/HeroScrub) */}
+        <HeroScrub
+          poster="/looks/hero-scrub/poster.webp"
+          alt={t('A sunlit living room with an olive green sofa', 'غرفة معيشة مضاءة بأريكة خضراء زيتونية')}
+        />
+        {/* subtle bottom gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/5" />
+
         <AnimatePresence initial={false}>
           <motion.div
             key={slide}
-            className="absolute inset-0"
+            className="absolute inset-0 flex items-end"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.1, ease: 'easeInOut' }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
           >
-            <motion.img
-              src={HERO_SLIDES[slide].img}
-              alt={isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
-              className="h-full w-full object-cover"
-              initial={{ scale: 1.06 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 6.5, ease: 'linear' }}
-            />
-            {/* subtle bottom gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
-
-            <div className="absolute inset-0 flex items-end">
+            <div className="contents">
               <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
                 <motion.div
                   className="max-w-2xl text-white"
@@ -1393,351 +1376,33 @@ export function LookOneHome() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 3. FEATURED CATEGORIES                                        */}
-      {/* ============================================================ */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <SectionHeading
-              eyebrow={t('Collection — 01', 'التشكيلة — 01')}
-              title={t('Featured Categories', 'أبرز التصنيفات')}
-            />
-          </Reveal>
-        </div>
+      {/* ============================================================== */}
+      {/* 2. QUICK CATEGORIES — the original's icon strip under the hero */}
+      {/* ============================================================== */}
+      <QuickCategories />
 
-        <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10">
-          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10">
-            {CATEGORIES.map((c, i) => (
-              <motion.div
-                key={c.en}
-                className="aspect-[3/4] w-[72vw] shrink-0 snap-start sm:w-[320px] md:w-[356px]"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-              >
-                <Link to={searchPath(1, { category: c.key })} className="group relative block h-full w-full overflow-hidden">
-                  <img
-                    src={c.img}
-                    alt={isAr ? c.ar : c.en}
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-7 text-white">
-                    <p
-                      className={`text-lg font-light uppercase leading-tight md:text-xl ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                      }`}
-                    >
-                      {t(c.en, c.ar)}
-                    </p>
-                    <div className="mt-5">
-                      <span
-                        className={`group/vm inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11px] uppercase text-white transition-colors group-hover:border-white ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                        }`}
-                      >
-                        {t('View More', 'عرض المزيد')}
-                        <ArrowRight
-                          size={12}
-                          strokeWidth={1.5}
-                          className={`transition-transform duration-300 ${
-                            isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'
-                          }`}
-                        />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ============================================================== */}
+      {/* 3. FEATURED CATEGORIES */}
+      {/* ============================================================== */}
+      {/* TRIAL — featured categories as a compressed catalogue (expanding panels). */}
+      <CategoryPanels />
 
-      {/* ============================================================ */}
-      {/* 4. SHOP BY ROOM — landscape tiles with an overlapping plaque  */}
-      {/* ============================================================ */}
-      <section data-testid="shop-by-room" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <SectionHeading eyebrow={t('Rooms — 02', 'الغرف — 02')} title={t('Shop by Room', 'تسوق حسب الغرفة')} />
-              <div className="pb-2">
-                <ViewMore label={t('All Rooms', 'كل الغرف')} to={searchPath(1)} />
-              </div>
-            </div>
-          </Reveal>
+      {/* ============================================================== */}
+      {/* 4. PROMO MOSAIC — five offer panels */}
+      {/* ============================================================== */}
+      <PromoWall />
 
-          <div className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 md:mt-16 md:gap-x-6 lg:grid-cols-3">
-            {ROOMS.map((r, i) => (
-              <motion.div
-                key={r.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 3) * 0.05 }}
-              >
-                <Link to={searchPath(1, { room: r.key })} className="group block">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={r.img}
-                      alt={isAr ? r.ar : r.en}
-                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                    />
-                  </div>
-                  {/* white plaque sitting over the bottom edge of the photo */}
-                  <div
-                    className="relative z-10 -mt-9 flex items-baseline justify-between gap-3 border bg-white px-5 py-4 transition-colors duration-300 group-hover:border-[#5A6B4D] ms-5 me-5"
-                    style={{ borderColor: HAIR }}
-                  >
-                    <span
-                      className={`min-w-0 truncate font-bold uppercase ${
-                        isAr ? 'text-[14px] tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(r.en, r.ar)}
-                    </span>
-                    <span
-                      className={`shrink-0 text-[10px] uppercase text-neutral-400 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                      }`}
-                    >
-                      {isAr ? `${formatSAR(r.count)} قطعة` : `${formatSAR(r.count)} Pieces`}
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 5. SERVICES                                                   */}
-      {/* ============================================================ */}
-      <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <SectionHeading eyebrow={t('Services — 03', 'الخدمات — 03')} title={t('Our Services', 'خدماتنا')} />
-          </Reveal>
-
-          {/* hairline matrix: the cells give the small items structure so they
-              don't float in the whitespace under the oversized section title */}
-          <div
-            className="mt-14 grid grid-cols-2 border-t border-s md:mt-20 lg:grid-cols-4"
-            style={{ borderColor: HAIR }}
-          >
-            {SERVICES.map((s, i) => (
-              <motion.div
-                key={s.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                className="border-b border-e"
-                style={{ borderColor: HAIR }}
-              >
-                <div className="flex h-full flex-col items-center px-5 py-12 text-center md:px-8 md:py-14">
-                  <s.icon size={44} strokeWidth={1} className="text-[#5A6B4D]" />
-                  <h3
-                    className={`mt-7 font-bold uppercase ${
-                      isAr
-                        ? 'text-[15px] leading-relaxed tracking-normal'
-                        : 'text-[13.5px] leading-relaxed tracking-[0.18em]'
-                    }`}
-                  >
-                    {t(s.en, s.ar)}
-                  </h3>
-                  <div className="mt-5">
-                    <ViewMore />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 6. NEW PRODUCTS                                               */}
-      {/* ============================================================ */}
-      <section data-testid="new-products" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <SectionHeading eyebrow={t('New In — 04', 'جديدنا — 04')} title={t('New Products', 'وصل حديثاً')} />
-              <div className="pb-2">
-                <ViewMore label={t('View All', 'عرض الكل')} to={searchPath(1, { sort: 'newest' })} />
-              </div>
-            </div>
-          </Reveal>
-
-          <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-14 md:mt-16 md:gap-x-6 lg:grid-cols-4">
-            {PRODUCTS.slice(0, 8).map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 4) * 0.05 }}
-              >
-                <ProductCard p={p} testId="home-product-card" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 7. AI STUDIO — the page's one modern, dark, image-led moment   */}
-      {/* ============================================================ */}
-      <section data-testid="ai-studio" style={{ backgroundColor: INK, color: CREAM }}>
-        <div className="grid lg:grid-cols-2">
-          {/* visual */}
-          <Reveal className="relative overflow-hidden">
-            <img
-              src={AI_STUDIO.img}
-              alt={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
-              className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[680px]"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#171512] via-[#171512]/10 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
-            {/* floating "before → after" chip, purely decorative */}
-            <div className="absolute bottom-6 start-6 flex items-center gap-3 border border-white/25 bg-black/35 px-4 py-2.5 backdrop-blur-sm">
-              <span className="block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: OLIVE_LT }} />
-              <span
-                className={`text-[10px] uppercase text-white ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
-              >
-                {t('AI Preview', 'معاينة ذكية')}
-              </span>
-            </div>
-          </Reveal>
-
-          {/* copy */}
-          <div className="flex items-center">
-            <Reveal className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24" delay={0.1}>
-              <SectionHeading
-                light
-                eyebrow={t(`${AI_STUDIO.eyebrow.en} — 05`, `${AI_STUDIO.eyebrow.ar} — 05`)}
-                title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
-              />
-              <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
-                {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
-              </p>
-
-              {/* three numbered steps */}
-              <ol className="mt-10 max-w-md">
-                {AI_STUDIO.steps.map((s, i) => (
-                  <li
-                    key={s.en}
-                    className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
-                  >
-                    <span
-                      className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
-                      style={{ color: OLIVE_LT }}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
-                  </li>
-                ))}
-              </ol>
-
-              <button
-                type="button"
-                className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
-                  isAr ? 'tracking-normal' : 'tracking-[0.28em]'
-                }`}
-              >
-                {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
-              </button>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 8. CUSTOM FURNITURE MANUFACTURING                             */}
-      {/* ============================================================ */}
-      <section className="border-t" style={{ borderColor: HAIR }}>
-        <div className="grid lg:grid-cols-2">
-          {/* image sits on the opposite side to the AI Studio section above it,
-              so two consecutive split sections don't stack the same way.
-              Mobile keeps image-first; only the desktop columns swap. */}
-          <Reveal className="overflow-hidden lg:order-2">
-            <img
-              src={IMG.workshop}
-              alt={t('Diyar furniture workshop', 'ورشة ديار للأثاث')}
-              className="aspect-[4/3] h-full w-full object-cover lg:aspect-auto lg:min-h-[620px]"
-            />
-          </Reveal>
-          <div className="flex items-center bg-white lg:order-1">
-            <Reveal className="px-6 py-16 md:px-16 lg:px-20 lg:py-24 xl:px-24" delay={0.1}>
-              <p
-                className={`text-[11px] uppercase ${
-                  isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
-                }`}
-                style={{ color: OLIVE }}
-              >
-                {t('Craftsmanship — 06', 'الحرفية — 06')}
-              </p>
-              <h2
-                className={`mt-4 text-4xl font-extrabold uppercase md:text-5xl ${
-                  isAr
-                    ? "font-['Alexandria',sans-serif] leading-[1.15] tracking-normal"
-                    : "font-['Outfit',sans-serif] leading-[0.98] tracking-tight"
-                }`}
-              >
-                {t('Custom Furniture Manufacturing', 'تنفيذ الأثاث حسب الطلب')}
-              </h2>
-              <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
-                {t(
-                  'We bring your vision to life through custom furniture crafted to perfectly fit your space, style, and lifestyle.',
-                  'نحوّل رؤيتك إلى واقع من خلال أثاث يُصنع خصيصاً ليلائم مساحتك وذوقك وأسلوب حياتك.',
-                )}
-              </p>
-              <div className="mt-9">
-                <ViewMore />
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 9. SHOP THE LOOK — interactive room with product hotspots     */}
-      {/* ============================================================ */}
+      {/* ============================================================== */}
+      {/* 17. SHOP THE LOOK — interactive room with product hotspots */}
+      {/* ============================================================== */}
       <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
-        {/* heading */}
-        <div className="mx-auto max-w-[1400px] px-6 py-20 pb-10 md:px-10 md:py-28 md:pb-14">
-          <Reveal>
-            <SectionHeading eyebrow={t('The Room — 07', 'الغرفة — 07')} title={t('Shop the Look', 'تسوق الغرفة')} />
-            <p
-              className={`mt-6 max-w-xl text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
-                isAr ? 'tracking-normal' : 'tracking-[0.02em]'
-              }`}
-            >
-              {t(
-                'Hover any point to explore the products in this space.',
-                'مرّر المؤشر على أي نقطة لاستكشاف منتجات هذه المساحة.',
-              )}
-            </p>
-          </Reveal>
-        </div>
-
-        {/* the shoppable image — hero of the section */}
-        <div className="relative min-h-[75vh] w-full overflow-hidden">
-          <img
-            src={IMG.roomHotspots}
-            alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          {/* very light scrim so the white dots read on bright areas */}
-          <div className="pointer-events-none absolute inset-0 bg-black/10" />
-          {/* keeps the container at min-h even though the image is absolute */}
-          <div className="relative min-h-[75vh] w-full" />
-
+        {/* full-screen room with the title on it; opens out as it scrolls in (one/RoomStage) */}
+        <RoomStage
+          eyebrow={t('The Room — 02', 'الغرفة — 02')}
+          title={t('Shop the Look', 'تسوق الغرفة')}
+          img={IMG.roomHotspots}
+          alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
+        >
           {ROOM_HOTSPOTS.map((h, i) => (
             <ShopHotspot
               key={h.id}
@@ -1749,7 +1414,7 @@ export function LookOneHome() {
               onToggle={() => toggleSpot(h.id)}
             />
           ))}
-        </div>
+        </RoomStage>
 
         {/* design assistance panel — kept, now sitting under the shoppable image */}
         <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
@@ -1818,15 +1483,100 @@ export function LookOneHome() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 10. BEST SELLERS — compact ranked rail of the product card    */}
-      {/* ============================================================ */}
+      {/* ============================================================== */}
+
+      {/* ============================================================== */}
+      {/* 5. TRENDING — most interactive, live activity */}
+      {/* ============================================================== */}
+      <Trending no="03" />
+
+      {/* ============================================================== */}
+
+      {/* ============================================================== */}
+      {/* 7. CAMPAIGN BANNER A */}
+      {/* ============================================================== */}
+      <CampaignBanner c={CAMPAIGNS[0]} testId="campaign-1" />
+
+      {/* 6. FEATURED DEALS — countdown to midnight */}
+      {/* ============================================================== */}
+      <FeaturedDeals no="04" />
+
+      {/* ============================================================== */}
+      {/* 8. FEATURED STORES — the marketplace supply side, with real stock */}
+      {/* ============================================================== */}
+      <FeaturedStores no="05" />
+
+      {/* ============================================================== */}
+
+      {/* ============================================================== */}
+      {/* ============================================================== */}
+      {/* 9. CUSTOM FURNITURE — pick a piece and a material, see it change */}
+      {/* ============================================================== */}
+      <MadeToOrder no="06" />
+
+      {/* TRIAL — How We Work (sticky media + changing steps). Remove this line to revert. */}
+      <HowWeWork />
+
+      {/* ============================================================== */}
+      {/* 10. SHOP BY ROOM — landscape tiles with an overlapping plaque */}
+      {/* ============================================================== */}
+      {/* Shop by room — the isometric apartment; hovering a room lights it
+          and the list beside it carries keyboard and mobile. */}
+      <ApartmentRooms />
+
+      {/* ============================================================== */}
+      {/* 11. NEW PRODUCTS */}
+      {/* ============================================================== */}
+      <section data-testid="new-products" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading eyebrow={t('New In — 08', 'جديدنا — 08')} title={t('New Products', 'وصل حديثاً')} />
+              <div className="pb-2">
+                <ViewMore label={t('View All', 'عرض الكل')} to={searchPath(1, { sort: 'newest' })} />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-14 md:mt-16 md:gap-x-6 lg:grid-cols-4">
+            {PRODUCTS.slice(0, 8).map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 4) * 0.05 }}
+              >
+                <ProductCard p={p} testId="home-product-card" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+
+
+      {/* ============================================================== */}
+      {/* 13. CAMPAIGN BANNER B */}
+      {/* ============================================================== */}
+      <CampaignBanner c={CAMPAIGNS[1]} testId="campaign-2" />
+
+      {/* ============================================================== */}
+      {/* ============================================================== */}
+      {/* 14. WHY DIYAR — the promises, each led by a real figure */}
+      {/* ============================================================== */}
+      <WhyDiyar no="09" />
+
+      {/* ============================================================== */}
+      {/* 15. BEST SELLERS — compact ranked rail of the product card */}
+      {/* ============================================================== */}
       <section data-testid="best-sellers" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
             <div className="flex flex-wrap items-end justify-between gap-6">
               <SectionHeading
-                eyebrow={t('Most Loved — 08', 'الأكثر تفضيلاً — 08')}
+                eyebrow={t('Most Loved — 10', 'الأكثر تفضيلاً — 10')}
                 title={t('Best Sellers', 'الأكثر مبيعاً')}
               />
               <div className="pb-2">
@@ -1838,13 +1588,13 @@ export function LookOneHome() {
 
         {/* rail: scrolls on small screens, settles into a row from lg */}
         <div className="mx-auto mt-12 max-w-[1400px] px-6 md:mt-16 md:px-10">
-          <div className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
+          <div className="scrollbar-hide -mx-6 flex snap-x scroll-px-6 md:scroll-px-10 snap-mandatory gap-5 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:gap-6 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0">
             {PRODUCTS.slice(0, 4).map((p, i) => (
               <motion.div
                 key={p.id}
                 className="w-[68vw] shrink-0 snap-start sm:w-[300px] lg:w-auto lg:flex-1 lg:shrink"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
               >
@@ -1855,185 +1605,83 @@ export function LookOneHome() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 11. FIND YOUR STYLE                                           */}
-      {/* ============================================================ */}
-      <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <SectionHeading eyebrow={t('Styles — 09', 'الأساليب — 09')} title={t('Find Your Style', 'اكتشف أسلوبك')} />
+      {/* ============================================================== */}
+      {/* 16. AI STUDIO — the page's one modern, dark, image-led moment */}
+      {/* ============================================================== */}
+      <CurtainStage testId="ai-studio" bg={INK} image="/looks/curtain.webp" title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}>
+        <div className="grid lg:grid-cols-2">
+          {/* visual — the two states of the room, split by a handle (one/BeforeAfter) */}
+          <Reveal className="relative">
+            <BeforeAfter
+              before="/before.png"
+              after="/after.png"
+              beforeLabel={t('The space as it is', 'المساحة الأصلية')}
+              afterLabel={t('Arranged by Diyar AI', 'ترتيب ديار الذكي')}
+              alt={t(
+                'The same room before and after Diyar arranges it',
+                'الغرفة نفسها قبل ترتيب ديار وبعده',
+              )}
+              className="aspect-[4/3] h-full w-full lg:aspect-auto lg:min-h-[680px]"
+            />
+            <div className="pointer-events-none absolute inset-0 hidden lg:block lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
           </Reveal>
 
-          {/* uneven editorial grid — middle tiles taller */}
-          <div className="mt-12 grid grid-cols-2 items-start gap-x-5 gap-y-12 md:mt-16 md:grid-cols-5 md:gap-x-6">
-            {STYLES.map((s, i) => {
-              const tall = i === 2 || i === 3;
-              return (
-                <motion.div
-                  key={s.en}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                  className={i === STYLES.length - 1 ? 'col-span-2 md:col-span-1' : ''}
-                >
-                  <Link to={searchPath(1, { style: s.key })} className={`group block ${tall ? '' : 'md:mt-14'}`}>
-                    <div
-                      className={`overflow-hidden ${
-                        i === STYLES.length - 1 ? 'aspect-[16/9] md:aspect-[3/4]' : tall ? 'aspect-[3/5]' : 'aspect-[3/4]'
-                      }`}
-                    >
-                      <img
-                        src={s.img}
-                        alt={isAr ? s.ar : s.en}
-                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                      />
-                    </div>
-                    <h3
-                      className={`mt-4 text-2xl ${
-                        isAr
-                          ? "font-['Alexandria',sans-serif] font-bold leading-snug"
-                          : "font-['Marcellus',serif] leading-none"
-                      }`}
-                    >
-                      {t(s.en, s.ar)}
-                    </h3>
-                    <p
-                      className={`mt-1.5 text-[10px] uppercase text-neutral-400 ${
-                        isAr ? 'tracking-normal' : 'tracking-[0.26em]'
-                      }`}
-                    >
-                      {isAr ? `${formatSAR(s.count)} منتج` : `${formatSAR(s.count)} Products`}
-                    </p>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 12. WHY DIYAR — type-led trust row on hairline rules          */}
-      {/* ============================================================ */}
-      <section data-testid="why-diyar" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <SectionHeading eyebrow={t('Our Promise — 10', 'وعدنا — 10')} title={t('Why Diyar', 'لماذا ديار')} />
-          </Reveal>
-
-          <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
-            {WHY_DIYAR.map((u, i) => (
-              <motion.div
-                key={u.title.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                className="border-t border-[#171512]/15 pt-8"
-              >
-                <u.icon size={30} strokeWidth={1} className="text-[#5A6B4D]" />
-                <h3
-                  className={`mt-6 font-bold uppercase ${
-                    isAr ? 'text-[14px] leading-relaxed tracking-normal' : 'text-[12.5px] tracking-[0.18em]'
-                  }`}
-                >
-                  {t(u.title.en, u.title.ar)}
-                </h3>
-                <p className="mt-3 text-[13.5px] font-light leading-relaxed text-neutral-600">
-                  {t(u.body.en, u.body.ar)}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 13. FEATURED STORES — the marketplace supply side              */}
-      {/* ============================================================ */}
-      <section data-testid="featured-stores" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-6">
+          {/* copy */}
+          <div className="flex items-center">
+            <Reveal className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24" delay={0.1}>
               <SectionHeading
-                eyebrow={t('Marketplace — 11', 'المنصة — 11')}
-                title={t('Featured Stores', 'متاجر مختارة')}
+                light
+                eyebrow={t(`${AI_STUDIO.eyebrow.en} — 11`, `${AI_STUDIO.eyebrow.ar} — 11`)}
+                title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}
               />
-              <div className="pb-2">
-                <ViewMore label={t('All Stores', 'كل المتاجر')} to={searchPath(1)} />
-              </div>
-            </div>
-          </Reveal>
+              <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
+                {t(AI_STUDIO.body.en, AI_STUDIO.body.ar)}
+              </p>
 
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 md:mt-16 md:gap-6 lg:grid-cols-4">
-            {STORES.map((s, i) => (
-              <motion.div
-                key={s.name.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-              >
-                <div
-                  className="group flex h-full flex-col border bg-white transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)]"
-                  style={{ borderColor: HAIR }}
-                >
-                  <Link to={searchPath(1, { store: s.key })} className="block aspect-[3/2] overflow-hidden">
-                    <img
-                      src={s.cover}
-                      alt={isAr ? s.name.ar : s.name.en}
-                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                    />
-                  </Link>
-
-                  <div className="relative flex flex-1 flex-col px-6 pb-6">
-                    {/* monogram badge overlapping the cover */}
+              {/* three numbered steps */}
+              <ol className="mt-10 max-w-md">
+                {AI_STUDIO.steps.map((s, i) => (
+                  <li
+                    key={s.en}
+                    className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
+                  >
                     <span
-                      dir="ltr"
-                      className="absolute -top-7 start-6 flex h-14 w-14 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[15px] font-bold tracking-[0.06em] text-white"
-                      aria-hidden="true"
+                      className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
+                      style={{ color: OLIVE_LT }}
                     >
-                      {s.initials}
+                      {String(i + 1).padStart(2, '0')}
                     </span>
+                    <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
+                  </li>
+                ))}
+              </ol>
 
-                    <h3
-                      className={`mt-10 font-bold uppercase ${
-                        isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'
-                      }`}
-                    >
-                      {t(s.name.en, s.name.ar)}
-                    </h3>
-                    <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
-                      {t(s.specialty.en, s.specialty.ar)}
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                      <Stars rating={s.rating} />
-                      <span className="text-[12px] font-medium text-neutral-500">{s.rating}</span>
-                      <span
-                        className={`text-[10px] uppercase text-neutral-400 ${
-                          isAr ? 'tracking-normal' : 'tracking-[0.2em]'
-                        }`}
-                      >
-                        {isAr ? `${formatSAR(s.products)} منتج` : `${formatSAR(s.products)} Products`}
-                      </span>
-                    </div>
-
-                    <div className="mt-6 pt-1">
-                      <ViewMore label={t('Visit Store', 'زيارة المتجر')} to={searchPath(1, { store: s.key })} />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+              <button
+                type="button"
+                className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+                  isAr ? 'tracking-normal' : 'tracking-[0.28em]'
+                }`}
+              >
+                {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
+              </button>
+            </Reveal>
           </div>
         </div>
-      </section>
+      </CurtainStage>
 
-      {/* ============================================================ */}
-      {/* 14. LOYALTY — calm tinted band, no photography                */}
-      {/* ============================================================ */}
+      {/* ============================================================== */}
+      {/* 18. FIND YOUR STYLE — an index of names, one room beside it */}
+      {/* ============================================================== */}
+      <StyleIndex no="12" />
+
+      {/* ============================================================== */}
+      {/* 19. SUGGESTED FOR YOU */}
+      {/* ============================================================== */}
+      <SuggestedForYou no="13" />
+
+      {/* ============================================================== */}
+      {/* 20. LOYALTY — calm tinted band, no photography */}
+      {/* ============================================================== */}
       <section
         data-testid="loyalty"
         className="border-t py-20 md:py-28"
@@ -2043,7 +1691,7 @@ export function LookOneHome() {
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
             <Reveal className="lg:col-span-5">
               <SectionHeading
-                eyebrow={t(`${LOYALTY.eyebrow.en} — 12`, `${LOYALTY.eyebrow.ar} — 12`)}
+                eyebrow={t(`${LOYALTY.eyebrow.en} — 15`, `${LOYALTY.eyebrow.ar} — 15`)}
                 title={t(LOYALTY.title.en, LOYALTY.title.ar)}
               />
               <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
@@ -2090,134 +1738,10 @@ export function LookOneHome() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 15. REVIEWS — dark typographic band, no avatars               */}
-      {/* ============================================================ */}
-      <section
-        data-testid="reviews"
-        className="py-20 md:py-28"
-        style={{ backgroundColor: NIGHT, color: CREAM }}
-      >
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <SectionHeading
-              light
-              eyebrow={t('Customers — 13', 'عملاؤنا — 13')}
-              title={t('What They Say', 'ماذا يقولون')}
-            />
-          </Reveal>
-
-          <div className="mt-12 grid gap-x-6 gap-y-8 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
-            {REVIEWS.map((r, i) => (
-              <motion.div
-                key={r.name.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                className="flex h-full flex-col border border-white/12 p-7"
-              >
-                <Stars light rating={r.rating} />
-                <p className="mt-6 flex-1 text-[14px] font-light leading-relaxed text-[#F6F3EC]/75">
-                  {t(r.text.en, r.text.ar)}
-                </p>
-                <div className="mt-7 border-t border-white/12 pt-5">
-                  <p
-                    className={`font-bold uppercase ${
-                      isAr ? 'text-[13px] tracking-normal' : 'text-[11.5px] tracking-[0.18em]'
-                    }`}
-                  >
-                    {t(r.name.en, r.name.ar)}
-                  </p>
-                  <p
-                    className={`mt-1.5 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.24em]'}`}
-                    style={{ color: OLIVE_LT }}
-                  >
-                    {t(r.city.en, r.city.ar)}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 16. DESIGN BLOG — editorial cards                             */}
-      {/* ============================================================ */}
-      <section data-testid="design-blog" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <SectionHeading
-                eyebrow={t('Journal — 14', 'المدونة — 14')}
-                title={t('The Design Blog', 'مدونة التصميم')}
-              />
-              <div className="pb-2">
-                <ViewMore label={t('All Articles', 'كل المقالات')} />
-              </div>
-            </div>
-          </Reveal>
-
-          <div className="mt-12 grid gap-x-6 gap-y-12 md:mt-16 md:grid-cols-3">
-            {BLOG_POSTS.map((post, i) => (
-              <motion.article
-                key={post.title.en}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                className="group flex h-full flex-col"
-              >
-                <a href="#" className="block overflow-hidden">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={post.img}
-                      alt={isAr ? post.title.ar : post.title.en}
-                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                    />
-                  </div>
-                </a>
-                <p
-                  className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
-                  style={{ color: OLIVE }}
-                >
-                  {t(post.category.en, post.category.ar)}
-                </p>
-                <h3
-                  className={`mt-3 text-2xl ${
-                    isAr
-                      ? "font-['Alexandria',sans-serif] font-bold leading-snug"
-                      : "font-['Marcellus',serif] leading-tight"
-                  }`}
-                >
-                  <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
-                    {t(post.title.en, post.title.ar)}
-                  </a>
-                </h3>
-                <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
-                  {t(post.excerpt.en, post.excerpt.ar)}
-                </p>
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                  <ViewMore label={t('Read Article', 'اقرأ المقال')} />
-                  <span
-                    className={`text-[10px] uppercase text-neutral-400 ${
-                      isAr ? 'tracking-normal' : 'tracking-[0.22em]'
-                    }`}
-                  >
-                    {isAr ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
-                  </span>
-                </div>
-              </motion.article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 17. B2B TEASER                                                */}
-      {/* ============================================================ */}
-      <section className="relative overflow-hidden">
+      {/* ============================================================== */}
+      {/* 21. B2B TEASER */}
+      {/* ============================================================== */}
+      <section data-testid="b2b" className="relative overflow-hidden">
         <img
           src={IMG.loungeDark}
           alt={t('Commercial lounge project', 'مشروع صالة تجارية')}
@@ -2266,16 +1790,16 @@ export function LookOneHome() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 18. BECOME A PARTNER — three roles + a dark dashboard strip    */}
-      {/* ============================================================ */}
+      {/* ============================================================== */}
+      {/* 22. BECOME A PARTNER — three roles + a dark dashboard strip */}
+      {/* ============================================================== */}
       <section data-testid="partner" className="py-20 md:py-28">
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <Reveal>
             <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
               <div className="lg:col-span-7">
                 <SectionHeading
-                  eyebrow={t(`${PARTNER.eyebrow.en} — 15`, `${PARTNER.eyebrow.ar} — 15`)}
+                  eyebrow={t(`${PARTNER.eyebrow.en} — 16`, `${PARTNER.eyebrow.ar} — 16`)}
                   title={t(PARTNER.title.en, PARTNER.title.ar)}
                 />
               </div>
@@ -2350,9 +1874,92 @@ export function LookOneHome() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 19. APP PROMO                                                 */}
-      {/* ============================================================ */}
+      {/* ============================================================== */}
+      {/* 23. BRANDS STRIP — typographic wordmarks */}
+      {/* ============================================================== */}
+      <BrandsStrip />
+
+      {/* ============================================================== */}
+      {/* ============================================================== */}
+      {/* 24. REVIEWS — the room each customer finished, then the quote */}
+      {/* ============================================================== */}
+      <CustomerRooms no="14" />
+
+      {/* ============================================================== */}
+      {/* 25. DESIGN BLOG — editorial cards */}
+      {/* ============================================================== */}
+      <section data-testid="design-blog" className="border-t py-20 md:py-28" style={{ borderColor: HAIR }}>
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SectionHeading
+                eyebrow={t('Journal — 15', 'المدونة — 15')}
+                title={t('The Design Blog', 'مدونة التصميم')}
+              />
+              <div className="pb-2">
+                <ViewMore label={t('All Articles', 'كل المقالات')} />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-x-6 gap-y-12 md:mt-16 md:grid-cols-3">
+            {BLOG_POSTS.map((post, i) => (
+              <motion.article
+                key={post.title.en}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                className="group flex h-full flex-col"
+              >
+                <a href="#" className="block overflow-hidden">
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={post.img}
+                      alt={isAr ? post.title.ar : post.title.en}
+                      className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                    />
+                  </div>
+                </a>
+                <p
+                  className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                  style={{ color: OLIVE }}
+                >
+                  {t(post.category.en, post.category.ar)}
+                </p>
+                <h3
+                  className={`mt-3 text-2xl ${
+                    isAr
+                      ? "font-['Alexandria',sans-serif] font-bold leading-snug"
+                      : "font-['Marcellus',serif] leading-tight"
+                  }`}
+                >
+                  <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
+                    {t(post.title.en, post.title.ar)}
+                  </a>
+                </h3>
+                <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                  {t(post.excerpt.en, post.excerpt.ar)}
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                  <ViewMore label={t('Read Article', 'اقرأ المقال')} />
+                  <span
+                    className={`text-[10px] uppercase text-neutral-400 ${
+                      isAr ? 'tracking-normal' : 'tracking-[0.22em]'
+                    }`}
+                  >
+                    {isAr ? `${post.readMins} دقائق قراءة` : `${post.readMins} min read`}
+                  </span>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 26. APP PROMO */}
+      {/* ============================================================== */}
       <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
@@ -2368,7 +1975,7 @@ export function LookOneHome() {
 
             <Reveal className="lg:col-span-7" delay={0.1}>
               <SectionHeading
-                eyebrow={t(`${APP_PROMO.eyebrow.en} — 16`, `${APP_PROMO.eyebrow.ar} — 16`)}
+                eyebrow={t(`${APP_PROMO.eyebrow.en} — 19`, `${APP_PROMO.eyebrow.ar} — 19`)}
                 title={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
               />
               <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-neutral-600">
@@ -2434,6 +2041,10 @@ export function LookOneHome() {
           </div>
         </div>
       </section>
+      {/* ============================================================== */}
+      {/* 27. NEWSLETTER — standalone band before the footer */}
+      {/* ============================================================== */}
+      <Newsletter />
     </div>
   );
 }

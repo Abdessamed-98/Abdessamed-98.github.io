@@ -74,7 +74,7 @@ function Facets({
                       disabled={empty}
                       data-testid={`facet-${f.key}-${o.key}`}
                       className={`group flex w-full items-center justify-between gap-3 text-start text-[13px] transition-colors ${
-                        empty ? 'cursor-default text-neutral-300' : active ? 'font-semibold text-[#171512]' : 'text-neutral-600 hover:text-[#171512]'
+                        empty ? 'cursor-default text-[#A9A196]' : active ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
                       }`}
                     >
                       <span className="flex min-w-0 items-center gap-3">
@@ -90,7 +90,7 @@ function Facets({
                         />
                         <span className="truncate">{o.label}</span>
                       </span>
-                      <span className={`shrink-0 text-[11px] ${empty ? 'text-neutral-300' : 'text-neutral-400'}`}>{n}</span>
+                      <span className={`shrink-0 text-[11px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
                     </button>
                   </li>
                 );
@@ -112,7 +112,7 @@ function Facets({
         >
           <span className="flex items-center gap-3">
             <span className={eyebrowCls(isAr, 'text-[10px] text-[#171512] font-semibold')}>{t('On sale', 'عروض التخفيض')}</span>
-            <span className="text-[11px] text-neutral-400">{saleCount}</span>
+            <span className="text-[11px] text-[#5F5950]">{saleCount}</span>
           </span>
           <span
             aria-hidden
@@ -208,7 +208,7 @@ export function LookOneSearch() {
     ...(catName ? [{ label: catName }] : []),
   ];
 
-  const labelCls = eyebrowCls(isAr, 'text-[10px] text-neutral-400');
+  const labelCls = eyebrowCls(isAr, 'text-[10px] text-[#5F5950]');
 
   return (
     <div data-testid="search-page" className="pt-[72px]">
@@ -234,8 +234,8 @@ export function LookOneSearch() {
             <label className="sr-only" htmlFor="look1-search">
               {t('Search products', 'ابحث عن المنتجات')}
             </label>
-            <div className="flex h-12 items-center gap-3 border bg-white px-4 transition-colors focus-within:border-[#171512]" style={{ borderColor: HAIR }}>
-              <Search size={16} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
+            <div className="flex h-12 items-center gap-3 border bg-white px-4 transition-colors focus-within:border-[#171512]" style={{ borderColor: '#C9C2B4' }}>
+              <Search size={16} strokeWidth={1.5} className="shrink-0 text-[#5F5950]" />
               <input
                 id="look1-search"
                 data-testid="search-input"
@@ -243,7 +243,7 @@ export function LookOneSearch() {
                 value={qInput}
                 onChange={(e) => setQInput(e.target.value)}
                 placeholder={t('Search sofas, lighting, stores…', 'ابحث عن أرائك، إنارات، متاجر…')}
-                className="w-full min-w-0 bg-transparent text-[13px] text-[#171512] placeholder:text-neutral-400 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+                className="w-full min-w-0 bg-transparent text-[13px] text-[#171512] placeholder:text-[#8C857A] focus:outline-none [&::-webkit-search-cancel-button]:hidden"
               />
               {qInput && (
                 <button
@@ -253,7 +253,7 @@ export function LookOneSearch() {
                     setQInput('');
                     if (query.q) update({ q: '' });
                   }}
-                  className="shrink-0 text-neutral-400 transition-colors hover:text-[#171512]"
+                  className="shrink-0 text-[#5F5950] transition-colors hover:text-[#171512]"
                 >
                   <X size={15} strokeWidth={1.5} />
                 </button>
@@ -284,7 +284,7 @@ export function LookOneSearch() {
                     <button
                       type="button"
                       onClick={clearAll}
-                      className={`text-[10px] uppercase text-neutral-500 underline-offset-4 hover:text-[#171512] hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
+                      className={`text-[10px] uppercase text-[#5F5950] underline-offset-4 hover:text-[#171512] hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
                     >
                       {t('Clear all', 'مسح الكل')}
                     </button>
@@ -366,14 +366,14 @@ export function LookOneSearch() {
                       style={{ borderColor: HAIR }}
                     >
                       {c.label}
-                      <X size={12} strokeWidth={1.5} className="text-neutral-400" />
+                      <X size={12} strokeWidth={1.5} className="text-[#5F5950]" />
                     </button>
                   ))}
                   <button
                     type="button"
                     data-testid="clear-filters"
                     onClick={clearAll}
-                    className={`ms-1 text-[10px] uppercase text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
+                    className={`ms-1 text-[10px] uppercase text-[#5F5950] underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   >
@@ -411,7 +411,7 @@ export function LookOneSearch() {
                   >
                     {t('Nothing matches yet', 'لم نجد ما يطابق بحثك')}
                   </h2>
-                  <p className="mt-4 max-w-sm text-[14px] font-light leading-relaxed text-neutral-600">
+                  <p className="mt-4 max-w-sm text-[14px] font-light leading-relaxed text-[#3F3A33]">
                     {t(
                       'Try a different word, or loosen the filters to see more of the catalogue.',
                       'جرّب كلمة أخرى، أو خفف الفلاتر لترى المزيد من الكتالوج.',
@@ -507,7 +507,7 @@ export function LookOneSearch() {
                 <button
                   type="button"
                   onClick={clearAll}
-                  className={`shrink-0 text-[10px] uppercase text-neutral-500 underline-offset-4 hover:text-[#171512] hover:underline ${
+                  className={`shrink-0 text-[10px] uppercase text-[#5F5950] underline-offset-4 hover:text-[#171512] hover:underline ${
                     isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                   }`}
                 >

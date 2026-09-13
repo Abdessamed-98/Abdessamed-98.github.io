@@ -48,8 +48,10 @@ import ChatPage from './pages/ChatPage.tsx';
 import LooksIndex from './pages/looks/LooksIndex.tsx';
 import { LookSwitcher } from './pages/looks/lookShared.tsx';
 import LookOne, { LookOneHome, LookOneSearch, LookOneProduct } from './pages/looks/LookOne.tsx';
-import LookTwo, { LookTwoHome, LookTwoSearch, LookTwoProduct } from './pages/looks/LookTwo.tsx';
-import LookThree, { LookThreeHome, LookThreeSearch, LookThreeProduct } from './pages/looks/LookThree.tsx';
+import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/CheckoutPage.tsx';
+import LookOneStore from './pages/looks/one/StorePage.tsx';
+import LookOneService from './pages/looks/one/ServicePage.tsx';
+import LookOneAccount from './pages/looks/one/AccountPage.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import DashboardIndex from './pages/dashboard/DashboardIndex.tsx';
@@ -299,16 +301,11 @@ export default function App() {
           <Route index element={<LookOneHome />} />
           <Route path="search" element={<LookOneSearch />} />
           <Route path="product/:id" element={<LookOneProduct />} />
-        </Route>
-        <Route path="/look/2" element={<LookTwo />}>
-          <Route index element={<LookTwoHome />} />
-          <Route path="search" element={<LookTwoSearch />} />
-          <Route path="product/:id" element={<LookTwoProduct />} />
-        </Route>
-        <Route path="/look/3" element={<LookThree />}>
-          <Route index element={<LookThreeHome />} />
-          <Route path="search" element={<LookThreeSearch />} />
-          <Route path="product/:id" element={<LookThreeProduct />} />
+          <Route path="store/:key" element={<LookOneStore />} />
+          <Route path="service/:slug" element={<LookOneService />} />
+          <Route path="checkout" element={<LookOneCheckout />} />
+          <Route path="order/:id" element={<LookOneOrder />} />
+          <Route path="account" element={<LookOneAccount />} />
         </Route>
 
         <Route path="/dashboard" element={<DashboardLayout />}>
@@ -343,7 +340,7 @@ export default function App() {
       </Routes>
 
       {/* Redesign review: the original site is "look 4" — keep the switcher reachable on it */}
-      {isHomePage && <LookSwitcher raiseOnMobile />}
+      {isHomePage && <LookSwitcher />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <FloatingContactBar />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <Footer />}
       {!(isAuthPage || isDashboardPage || isLookPage) && <MobileBottomNav onOpenCart={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} />}
