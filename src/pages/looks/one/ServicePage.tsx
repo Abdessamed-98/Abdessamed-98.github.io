@@ -10,6 +10,7 @@ import { ArrowRight, Check } from 'lucide-react';
 import { SERVICES, lookBase, type LookService } from '../lookShared';
 import { Breadcrumb, HAIR, INK, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { useShell } from './shellContext';
+import { ServiceProviders } from './InfoPages';
 
 /** Services have no id of their own, so their English name becomes the slug. */
 export const serviceSlug = (s: LookService) => s.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -158,6 +159,8 @@ export default function ServicePage() {
             </div>
           </aside>
         </div>
+
+        <ServiceProviders serviceEn={service.en} />
 
         {/* other services */}
         <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>

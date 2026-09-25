@@ -52,6 +52,10 @@ import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/Ch
 import LookOneStore from './pages/looks/one/StorePage.tsx';
 import LookOneService from './pages/looks/one/ServicePage.tsx';
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
+import {
+  ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
+  HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound,
+} from './pages/looks/one/InfoPages.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import DashboardIndex from './pages/dashboard/DashboardIndex.tsx';
@@ -306,6 +310,11 @@ export default function App() {
           <Route path="checkout" element={<LookOneCheckout />} />
           <Route path="order/:id" element={<LookOneOrder />} />
           <Route path="account/:section?" element={<LookOneAccount />} />
+          <Route path="services" element={<LookOneServices />} />
+          <Route path="provider/:id" element={<LookOneProvider />} />
+          <Route path="wishlist" element={<LookOneWishlist />} />
+          <Route path="help/:topic?" element={<LookOneHelp />} />
+          <Route path="*" element={<LookOneNotFound />} />
         </Route>
 
         <Route path="/dashboard" element={<DashboardLayout />}>
