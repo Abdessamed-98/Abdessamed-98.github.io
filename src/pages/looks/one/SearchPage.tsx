@@ -4,19 +4,24 @@
  * filtering and sorting are delegated to `filterCatalog` in lookShared so every
  * look agrees on the results.
  */
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import {
-  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS,
+  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES,
   parseSearch, serializeSearch, filterCatalog, lookBase, searchPath,
-  type Lang, type SearchQuery, type SortKey,
+  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService,
 } from '../lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE,
   useLook, SectionHeading, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
 } from './ui';
+import { EmptyState, Tabs, capsCls } from './kit';
+import { serviceSlug } from './ServicePage';
+
+type SearchTab = 'all' | 'products' | 'stores' | 'services';
+const TAB_KEYS: SearchTab[] = ['all', 'products', 'stores', 'services'];
 
 type FacetKey = 'category' | 'room' | 'style' | 'store' | 'price';
 
@@ -144,11 +149,33 @@ export function LookOneSearch() {
   const results = useMemo(() => filterCatalog(query, lang), [query, lang]);
   const facets = useMemo(() => buildFacets(lang, t), [lang, t]);
 
-  const update = useCallback(
-    (patch: Partial<SearchQuery>) => setSp(serializeSearch({ ...query, ...patch })),
-    [query, setSp],
+  /* the tab rides along in the URL beside the query, outside SearchQuery */
+  const rawTab = sp.get('tab') as SearchTab | null;
+  const tab: SearchTab = rawTab && TAB_KEYS.includes(rawTab) ? rawTab : 'all';
+  const withTab = useCallback(
+    (p: URLSearchParams) => {
+      if (tab !== 'all') p.set('tab', tab);
+      return p;
+    },
+    [tab],
   );
-  const clearAll = useCallback(() => setSp(serializeSearch({ sort: query.sort })), [query.sort, setSp]);
+  const setTab = (k: SearchTab) => {
+    const p = new URLSearchParams(sp);
+    if (k === 'all') p.delete('tab');
+    else p.set('tab', k);
+    setSp(p);
+  };
+
+  const needle = (query.q ?? '').trim().toLowerCase();
+  const hit = (...xs: string[]) => !needle || xs.some((x) => x.toLowerCase().includes(needle));
+  const stores = ALL_STORES.filter((s) => hit(s.name.en, s.name.ar, s.specialty.en, s.specialty.ar));
+  const services = SERVICES.filter((s) => hit(s.en, s.ar));
+
+  const update = useCallback(
+    (patch: Partial<SearchQuery>) => setSp(withTab(serializeSearch({ ...query, ...patch }))),
+    [query, setSp, withTab],
+  );
+  const clearAll = useCallback(() => setSp(withTab(serializeSearch({ sort: query.sort }))), [query.sort, setSp, withTab]);
 
   /* search box mirrors the URL, submits on Enter */
   const [qInput, setQInput] = useState(query.q ?? '');
@@ -226,7 +253,11 @@ export function LookOneSearch() {
               title={title}
             />
             <p className={`mt-4 ${labelCls}`} data-testid="result-count" aria-live="polite">
-              {productsLabel(results.length, isAr)}
+              {tab === 'stores'
+                ? t(`${stores.length} stores`, `${stores.length} متجر`)
+                : tab === 'services'
+                  ? t(`${services.length} services`, `${services.length} خدمة`)
+                  : productsLabel(results.length, isAr)}
             </p>
           </div>
 
@@ -270,8 +301,51 @@ export function LookOneSearch() {
       </div>
 
       {/* ---------------------------------------------------------- */}
+      {/* Tabs: everything, or one kind of result                     */}
+      {/* ---------------------------------------------------------- */}
+      <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+        <Tabs
+          testId="search-tabs"
+          value={tab}
+          onChange={setTab}
+          items={[
+            { key: 'all', label: t('All', 'الكل') },
+            { key: 'products', label: t('Products', 'المنتجات'), count: results.length },
+            { key: 'stores', label: t('Stores', 'المتاجر'), count: stores.length },
+            { key: 'services', label: t('Services', 'الخدمات'), count: services.length },
+          ]}
+        />
+      </div>
+
+      {tab === 'stores' && (
+        <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10 md:py-14">
+          {stores.length ? <StoreGrid stores={stores} /> : <NoneFound onClear={clearAll} />}
+        </div>
+      )}
+      {tab === 'services' && (
+        <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10 md:py-14">
+          {services.length ? <ServiceGrid services={services} /> : <NoneFound onClear={clearAll} />}
+        </div>
+      )}
+      {tab === 'all' && (stores.length > 0 || services.length > 0) && (
+        <div className="mx-auto grid max-w-[1400px] gap-12 px-6 py-10 md:px-10 md:py-12" data-testid="search-all-strips">
+          {stores.length > 0 && (
+            <Strip title={t('Stores', 'المتاجر')} more={stores.length > 4 ? () => setTab('stores') : undefined} count={stores.length}>
+              <StoreGrid stores={stores.slice(0, 4)} />
+            </Strip>
+          )}
+          {services.length > 0 && (
+            <Strip title={t('Services', 'الخدمات')} more={services.length > 4 ? () => setTab('services') : undefined} count={services.length}>
+              <ServiceGrid services={services.slice(0, 4)} />
+            </Strip>
+          )}
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------- */}
       {/* Sidebar + results                                           */}
       {/* ---------------------------------------------------------- */}
+      {(tab === 'all' || tab === 'products') && (
       <div className="border-t" style={{ borderColor: HAIR }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <div className="lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[264px_minmax(0,1fr)] xl:gap-16">
@@ -452,6 +526,7 @@ export function LookOneSearch() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ---------------------------------------------------------- */}
       {/* Mobile filter sheet                                         */}
@@ -527,5 +602,89 @@ export function LookOneSearch() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Store and service results                                           */
+/* ------------------------------------------------------------------ */
+function Strip({ title, count, more, children }: { title: string; count: number; more?: () => void; children: ReactNode }) {
+  const { lang, t } = useLook();
+  const caps = capsCls(lang === 'ar');
+  return (
+    <section>
+      <div className="mb-5 flex items-baseline justify-between gap-4">
+        <h2 className={`text-[13px] font-bold ${caps}`}>
+          {title} <span className="font-['Outfit',sans-serif] text-[11px] font-medium" style={{ color: OLIVE }}>{count}</span>
+        </h2>
+        {more && (
+          <button type="button" onClick={more} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            {t('See all', 'عرض الكل')}
+          </button>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function StoreGrid({ stores }: { stores: LookStore[] }) {
+  const { lang, t } = useLook();
+  return (
+    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" data-testid="store-results">
+      {stores.map((s) => (
+        <li key={s.key}>
+          <Link to={`${lookBase(1)}/store/${s.key}`} className="group block border transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
+            <div className="relative aspect-[16/10]" style={{ backgroundColor: TILE }}>
+              <div className="h-full w-full overflow-hidden">
+                <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+              </div>
+              <span dir="ltr" className="absolute bottom-0 start-4 flex h-12 w-12 translate-y-1/2 items-center justify-center border-2 border-white bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white">
+                {s.initials}
+              </span>
+            </div>
+            <div className="px-4 pb-5 pt-9">
+              <p className="text-[15px] font-bold">{s.name[lang]}</p>
+              <p className="mt-1 text-[12px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</p>
+              <p className="mt-3 text-[11px]" style={{ color: '#5F5950' }}>
+                ★ {s.rating.toFixed(1)} · {t(`${s.products} products`, `${s.products} منتج`)}
+              </p>
+            </div>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ServiceGrid({ services }: { services: LookService[] }) {
+  const { lang } = useLook();
+  return (
+    <ul className="grid grid-cols-2 gap-5 lg:grid-cols-4" data-testid="service-results">
+      {services.map((s) => (
+        <li key={s.en}>
+          <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className="group block">
+            <div className="relative aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
+              <img src={s.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+              <span className="absolute start-3 top-3 flex h-9 w-9 items-center justify-center bg-white/90">
+                <s.icon size={16} strokeWidth={1.5} className="text-[#5A6B4D]" />
+              </span>
+            </div>
+            <p className="mt-3 text-[14px] font-bold transition-colors group-hover:text-[#5A6B4D]">{lang === 'ar' ? s.ar : s.en}</p>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function NoneFound({ onClear }: { onClear: () => void }) {
+  const { t } = useLook();
+  return (
+    <EmptyState
+      title={t('Nothing matches yet', 'لم نجد ما يطابق بحثك')}
+      body={t('Try a different word.', 'جرّب كلمة أخرى.')}
+      action={{ label: t('Clear search', 'مسح البحث'), onClick: onClear }}
+    />
   );
 }

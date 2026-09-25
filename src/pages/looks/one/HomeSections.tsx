@@ -316,8 +316,8 @@ export function PromoMosaic() {
             const cls = 'group/pp relative block aspect-[2/1] h-full w-full overflow-hidden';
             return (
               <Reveal key={p.title.en} delay={i * 0.05} className={SPAN_CLS[p.span]}>
-                {p.query ? (
-                  <Link to={searchPath(1, p.query)} className={cls}>
+                {p.to || p.query ? (
+                  <Link to={p.to ?? searchPath(1, p.query)} className={cls}>
                     {body}
                   </Link>
                 ) : (
@@ -1040,7 +1040,7 @@ export function ServicesIndex({ no }: { no: string }) {
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeading eyebrow={t(`Services — ${no}`, `الخدمات — ${no}`)} title={t('Our Services', 'خدماتنا')} />
-            <ViewMore label={t('All Services', 'كل الخدمات')} />
+            <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
           </div>
         </Reveal>
 

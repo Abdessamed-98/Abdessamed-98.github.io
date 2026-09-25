@@ -22,6 +22,8 @@ import {
   INK, OLIVE, HAIR, RED, TILE,
   useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
 } from './ui';
+import { Lightbox } from './kit';
+import { ShareSheet, TryAISheet } from './ProductSheets';
 
 const AVAILABILITY_COLOR = { in_stock: OLIVE, low_stock: RED, made_to_order: '#8A8478' } as const;
 
@@ -83,6 +85,9 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const shell = useShell();
   const wishlist = useWishlist();
   const [openPanel, setOpenPanel] = useState<string | null>('description');
+  const [zoom, setZoom] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const addedTimer = useRef<number | null>(null);
 
   const addToCart = () => {
@@ -166,6 +171,13 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   }`}
                 />
               </AnimatePresence>
+              <button
+                type="button"
+                data-testid="gallery-zoom"
+                onClick={() => setZoom(true)}
+                aria-label={t('View full screen', 'عرض بملء الشاشة')}
+                className="absolute inset-0 z-[5] cursor-zoom-in"
+              />
 
               {/* badges */}
               <div className="absolute start-5 top-5 z-10 flex flex-col gap-1.5">
@@ -368,6 +380,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 <button
                   type="button"
                   data-testid="try-with-ai"
+                  onClick={() => setAiOpen(true)}
                   className={`inline-flex h-12 flex-1 items-center justify-center gap-2.5 border px-6 text-[11px] font-semibold uppercase transition-colors duration-300 hover:text-white ${
                     isAr ? 'tracking-normal' : 'tracking-[0.24em]'
                   }`}
@@ -389,7 +402,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 >
                   <Heart size={18} strokeWidth={1.25} className={wishlist.has(p.id) ? 'fill-[#B03A2E]' : 'fill-transparent'} />
                 </button>
-                <button type="button" aria-label={t('Share', 'مشاركة')} className={iconBtn} style={{ borderColor: HAIR }}>
+                <button type="button" data-testid="share-open" onClick={() => setShareOpen(true)} aria-label={t('Share', 'مشاركة')} className={iconBtn} style={{ borderColor: HAIR }}>
                   <Share2 size={18} strokeWidth={1.25} />
                 </button>
               </div>
@@ -533,6 +546,17 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
           </button>
         </div>
       </div>
+
+      <Lightbox
+        images={gallery}
+        index={active}
+        onIndex={setActive}
+        open={zoom}
+        onClose={() => setZoom(false)}
+        caption={(i) => `${name} — ${i + 1} / ${gallery.length}`}
+      />
+      <TryAISheet open={aiOpen} onClose={() => setAiOpen(false)} p={p} />
+      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} title={name} />
     </div>
   );
 }

@@ -1143,15 +1143,15 @@ export const QUICK_CATEGORIES: QuickCategory[] = [
 ];
 
 /** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */
-export interface PromoPanel { img: string; eyebrow: Bi; title: Bi; cta: Bi; span: 2 | 3; query?: SearchQuery }
+export interface PromoPanel { img: string; eyebrow: Bi; title: Bi; cta: Bi; span: 2 | 3; query?: SearchQuery; /** a page instead of a search */ to?: string }
 
 /** Own banner photography, shot minimal so the wall reads as one set. */
 export const PROMO_PANELS: PromoPanel[] = [
   { img: '/looks/promo/lead-summer.webp', span: 3, eyebrow: { en: 'Limited Time', ar: 'لفترة محدودة' }, title: { en: 'Summer Sale — up to 40% off sofas', ar: 'عروض الصيف — خصم حتى 40% على الأرائك' }, cta: { en: 'Shop the Sale', ar: 'تسوق العروض' }, query: { sale: true } },
-  { img: '/looks/promo/design-session.webp', span: 3, eyebrow: { en: 'Free Service', ar: 'خدمة مجانية' }, title: { en: 'Free design session with any order over 5,000 SAR', ar: 'جلسة تصميم مجانية مع كل طلب فوق 5,000 ر.س' }, cta: { en: 'Book Now', ar: 'احجز الآن' } },
+  { img: '/looks/promo/design-session.webp', span: 3, eyebrow: { en: 'Free Service', ar: 'خدمة مجانية' }, title: { en: 'Free design session with any order over 5,000 SAR', ar: 'جلسة تصميم مجانية مع كل طلب فوق 5,000 ر.س' }, cta: { en: 'Book Now', ar: 'احجز الآن' }, to: '/look/1/service/interior-design' },
   { img: '/looks/promo/lighting.webp', span: 2, eyebrow: { en: 'New Arrivals', ar: 'وصل حديثاً' }, title: { en: 'Lighting edit', ar: 'مختارات الإنارة' }, cta: { en: 'Discover', ar: 'اكتشف' }, query: { category: 'lighting' } },
   { img: '/looks/promo/bedroom-packages.webp', span: 2, eyebrow: { en: 'Bundles', ar: 'باقات' }, title: { en: 'Bedroom sets from 6,900 SAR', ar: 'باقات غرف النوم من 6,900 ر.س' }, cta: { en: 'View Sets', ar: 'شاهد الباقات' }, query: { room: 'bedroom' } },
-  { img: '/looks/promo/custom-furniture.webp', span: 2, eyebrow: { en: 'Made to Order', ar: 'حسب الطلب' }, title: { en: 'Custom furniture, 3–4 weeks', ar: 'أثاث مخصص خلال 3–4 أسابيع' }, cta: { en: 'Start a Project', ar: 'ابدأ مشروعك' } },
+  { img: '/looks/promo/custom-furniture.webp', span: 2, eyebrow: { en: 'Made to Order', ar: 'حسب الطلب' }, title: { en: 'Custom furniture, 3–4 weeks', ar: 'أثاث مخصص خلال 3–4 أسابيع' }, cta: { en: 'Start a Project', ar: 'ابدأ مشروعك' }, to: '/look/1/service/custom-furniture' },
 ];
 
 /** "Most interactive" rail — live shopper activity on catalog items. */

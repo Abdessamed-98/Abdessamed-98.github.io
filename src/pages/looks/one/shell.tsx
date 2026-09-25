@@ -12,7 +12,7 @@ import { Check } from 'lucide-react';
 import { HAIR, useLook } from './ui';
 import { LookCartProvider, useLookCart } from './cart';
 import { WishlistProvider } from '../../../context/WishlistContext';
-import { ShellContext, type ShellApi } from './shellContext';
+import { ShellContext, type ShellApi, type AuthIntent } from './shellContext';
 
 export { useShell } from './shellContext';
 import { CartSheet } from './CartSheet';
@@ -36,13 +36,15 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   const [wishlist, setWishlist] = useState(false);
   const [service, setService] = useState<{ open: boolean; name?: string }>({ open: false });
   const [auth, setAuth] = useState(false);
+  const [authIntent, setAuthIntent] = useState<AuthIntent | undefined>();
   const [imageSearch, setImageSearch] = useState(false);
   const [user, setUser] = useState<string | null>(null);
-  const [note, setNote] = useState<{ id: number; message: string } | null>(null);
+  const [note, setNote] = useState<{ id: number; message: string; cart?: boolean } | null>(null);
   const { add } = useLookCart();
 
-  const toast = useCallback((message: string) => {
-    setNote({ id: Date.now(), message });
+  /** `cart` adds the "View Cart" link — only after something went into it */
+  const toast = useCallback((message: string, cart = false) => {
+    setNote({ id: Date.now(), message, cart });
     window.setTimeout(() => setNote((n) => (n && Date.now() - n.id >= 2400 ? null : n)), 2600);
   }, []);
 
@@ -51,16 +53,19 @@ function ShellInner({ children }: { children: React.ReactNode }) {
       openCart: () => setCart(true),
       openWishlist: () => setWishlist(true),
       openService: (name?: string) => setService({ open: true, name }),
-      openAuth: () => setAuth(true),
+      openAuth: (intent?: AuthIntent) => {
+        setAuthIntent(intent);
+        setAuth(true);
+      },
       openImageSearch: () => setImageSearch(true),
       user,
       signIn: (name: string) => setUser(name),
       signOut: () => setUser(null),
       addToCart: (productId, name, opts) => {
         add(productId, opts);
-        toast(name);
+        toast(name, true);
       },
-      toast,
+      toast: (message: string) => toast(message),
     }),
     [add, toast, user],
   );
@@ -69,9 +74,9 @@ function ShellInner({ children }: { children: React.ReactNode }) {
     <ShellContext.Provider value={value}>
       {children}
       <CartSheet open={cart} onClose={() => setCart(false)} />
-      <WishlistSheet open={wishlist} onClose={() => setWishlist(false)} onAdded={(name) => toast(name)} />
+      <WishlistSheet open={wishlist} onClose={() => setWishlist(false)} onAdded={(name) => toast(name, true)} />
       <RequestServiceSheet open={service.open} onClose={() => setService({ open: false })} service={service.name} />
-      <AuthSheet open={auth} onClose={() => setAuth(false)} onSignIn={(name) => setUser(name)} />
+      <AuthSheet open={auth} onClose={() => setAuth(false)} intent={authIntent} onSignIn={(name) => setUser(name)} onNotice={toast} />
       <ImageSearchSheet open={imageSearch} onClose={() => setImageSearch(false)} />
       <Toast note={note} onOpenCart={() => setCart(true)} />
     </ShellContext.Provider>
@@ -79,7 +84,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
 }
 
 /** The line that confirms an action, with the one link worth offering after it. */
-function Toast({ note, onOpenCart }: { note: { id: number; message: string } | null; onOpenCart: () => void }) {
+function Toast({ note, onOpenCart }: { note: { id: number; message: string; cart?: boolean } | null; onOpenCart: () => void }) {
   const { t } = useLook();
   return (
     <AnimatePresence>
@@ -97,7 +102,8 @@ function Toast({ note, onOpenCart }: { note: { id: number; message: string } | n
           style={{ borderColor: HAIR }}
         >
           <Check size={16} strokeWidth={1.5} className="shrink-0" style={{ color: '#5A6B4D' }} />
-          <p className="min-w-0 flex-1 truncate text-[12px] font-medium">{note.message}</p>
+          <p className={`min-w-0 flex-1 text-[12px] font-medium ${note.cart ? 'truncate' : 'line-clamp-2'}`}>{note.message}</p>
+          {note.cart && (
           <button
             type="button"
             onClick={onOpenCart}
@@ -105,6 +111,7 @@ function Toast({ note, onOpenCart }: { note: { id: number; message: string } | n
           >
             {t('View Cart', 'عرض السلة')}
           </button>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

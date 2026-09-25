@@ -38,9 +38,11 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
+import { serviceSlug } from './one/ServicePage';
+import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
-import { useShell } from './one/shellContext';
+import { useShell, type AuthRole } from './one/shellContext';
 import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
 import { HeroScrub } from './one/HeroScrub';
 import { BeforeAfter } from './one/BeforeAfter';
@@ -63,6 +65,31 @@ export {
 
 /** Mega-menu / drawer shop groups map 1:1 onto the catalog categories, in order. */
 const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
+/** The services menu lists the eight services in SERVICES order. */
+const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${lookBase(1)}/service/${serviceSlug(SERVICES[i])}` : undefined);
+/** Where the plain nav items go. */
+const NAV_TO: Record<string, string> = {
+  Home: lookBase(1),
+  'Design Consultation': `${lookBase(1)}/ai-designer`,
+  'B2B Solutions': `${lookBase(1)}/b2b`,
+  Services: `${lookBase(1)}/services`,
+  Shop: searchPath(1),
+  'About Us': `${lookBase(1)}/about`,
+  'Contact Us': `${lookBase(1)}/contact`,
+};
+/** The partner band's three cards, in PARTNER.roles order. */
+const PARTNER_ROLES: AuthRole[] = ['store', 'affiliate', 'provider'];
+function PartnerCta({ label, role }: { label: string; role: AuthRole }) {
+  const { openAuth } = useShell();
+  return <ViewMore label={label} onClick={() => openAuth({ view: 'up', role })} />;
+}
+const SUPPORT_TO: Record<string, string> = {
+  FAQ: `${lookBase(1)}/help/faq`,
+  'Shipping & Delivery': `${lookBase(1)}/help/shipping`,
+  'Returns & Exchanges': `${lookBase(1)}/help/returns`,
+  Warranty: `${lookBase(1)}/help/warranty`,
+  'Track Order': `${lookBase(1)}/account/orders`,
+};
 
 const LANG_KEY = 'diyar-look-lang';
 
@@ -234,9 +261,7 @@ function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; o
                 {isAr ? it.ar : it.en}
               </Link>
             ) : (
-              <a href="#" className={itemCls}>
-                {isAr ? it.ar : it.en}
-              </a>
+              <span className={itemCls}>{isAr ? it.ar : it.en}</span>
             )}
           </li>
         ))}
@@ -344,9 +369,7 @@ function DrawerGroup({
                     {isAr ? it.ar : it.en}
                   </Link>
                 ) : (
-                  <a href="#" onClick={onNavigate} className={itemCls}>
-                    {isAr ? it.ar : it.en}
-                  </a>
+                  <span className={itemCls}>{isAr ? it.ar : it.en}</span>
                 )}
               </li>
             ))}
@@ -613,15 +636,9 @@ function MobileDrawer({
                 <ul>
                   {NAV_ITEMS.filter((i) => i.en !== 'Shop' && i.en !== 'Services').map((item) => (
                     <li key={item.en} className="border-t" style={{ borderColor: HAIR }}>
-                      {item.en === 'Home' ? (
-                        <Link to={lookBase(1)} onClick={onClose} className={navCls}>
-                          {t(item.en, item.ar)}
-                        </Link>
-                      ) : (
-                        <a href="#" onClick={onClose} className={navCls}>
-                          {t(item.en, item.ar)}
-                        </a>
-                      )}
+                      <Link to={NAV_TO[item.en] ?? lookBase(1)} onClick={onClose} className={navCls}>
+                        {t(item.en, item.ar)}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -649,6 +666,8 @@ function MobileDrawer({
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
+                groupTo={serviceGroupTo}
+                allLink={{ to: `${lookBase(1)}/services`, label: t('All Services', 'كل الخدمات') }}
               />
 
               {/* language */}
@@ -685,11 +704,11 @@ function MobileDrawer({
             {/* contact — pinned to the bottom of the panel. */}
             <div className="shrink-0 border-t px-5 pt-5 pb-5" style={{ borderColor: HAIR }}>
               <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
-              <a href="#" className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
                 <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr">{FOOTER_LINKS.phone}</span>
               </a>
-              <a href="#" className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`mailto:${FOOTER_LINKS.email}`} className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
                 <Mail size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr" className="truncate">
                   {FOOTER_LINKS.email}
@@ -927,9 +946,9 @@ export default function LookOne() {
                   );
                 }
                 return (
-                  <a key={item.en} href="#" className={navItemCls} onMouseEnter={scheduleClose}>
+                  <Link key={item.en} to={NAV_TO[item.en] ?? lookBase(1)} className={navItemCls} onMouseEnter={scheduleClose} onClick={closeMenu}>
                     {t(item.en, item.ar)}
-                  </a>
+                  </Link>
                 );
               })}
             </nav>
@@ -1061,8 +1080,8 @@ export default function LookOne() {
                   <div className="grid grid-cols-12 gap-x-10">
                     {/* 8 service groups, 4 × 2 */}
                     <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10">
-                      {SERVICES_MENU.map((group) => (
-                        <MegaGroup key={group.title.en} group={group} />
+                      {SERVICES_MENU.map((group, i) => (
+                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} onNavigate={closeMenu} />
                       ))}
                     </div>
                     {/* single featured tile */}
@@ -1071,13 +1090,13 @@ export default function LookOne() {
                         img={MENU_FEATURED.services[0].img}
                         title={MENU_FEATURED.services[0].title}
                         cta={MENU_FEATURED.services[0].cta}
-                        to={lookBase(1)}
+                        to={`${lookBase(1)}/ai-designer`}
                         onNavigate={closeMenu}
                       />
                     </div>
                   </div>
                   <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
-                    <ViewMore label={t('Request a Consultation', 'اطلب استشارة')} />
+                    <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
                   </div>
                 </div>
               </motion.div>
@@ -1136,18 +1155,11 @@ export default function LookOne() {
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_QUICK.map((l) => {
                     const cls = 'text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]';
-                    const to = l.en === 'Home' ? lookBase(1) : l.en === 'Shop' ? searchPath(1) : null;
                     return (
                       <li key={l.en}>
-                        {to ? (
-                          <Link to={to} className={cls}>
-                            {t(l.en, l.ar)}
-                          </Link>
-                        ) : (
-                          <a href="#" className={cls}>
-                            {t(l.en, l.ar)}
-                          </a>
-                        )}
+                        <Link to={NAV_TO[l.en] ?? lookBase(1)} className={cls}>
+                          {t(l.en, l.ar)}
+                        </Link>
                       </li>
                     );
                   })}
@@ -1162,9 +1174,9 @@ export default function LookOne() {
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_SUPPORT.map((l) => (
                     <li key={l.en}>
-                      <a href="#" className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
+                      <Link to={SUPPORT_TO[l.en] ?? `${lookBase(1)}/help/faq`} className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
                         {t(l.en, l.ar)}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -1742,8 +1754,8 @@ export function LookOneHome() {
               )}
             </p>
             <div className="mt-10">
-              <a
-                href="#"
+              <Link
+                to={`${lookBase(1)}/b2b`}
                 className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11px] uppercase text-white transition-colors hover:border-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.3em]'
                 }`}
@@ -1756,7 +1768,7 @@ export function LookOneHome() {
                     isAr ? 'rotate-180 group-hover/b2b:-translate-x-1' : 'group-hover/b2b:translate-x-1'
                   }`}
                 />
-              </a>
+              </Link>
             </div>
           </Reveal>
         </div>
@@ -1806,7 +1818,7 @@ export function LookOneHome() {
                     {t(role.body.en, role.body.ar)}
                   </p>
                   <div className="mt-7">
-                    <ViewMore label={t(role.cta.en, role.cta.ar)} />
+                    <PartnerCta label={t(role.cta.en, role.cta.ar)} role={PARTNER_ROLES[i]} />
                   </div>
                 </div>
               </motion.div>
@@ -1869,7 +1881,7 @@ export function LookOneHome() {
                 title={t('The Design Blog', 'مدونة التصميم')}
               />
               <div className="pb-2">
-                <ViewMore label={t('All Articles', 'كل المقالات')} />
+                <ViewMore label={t('All Articles', 'كل المقالات')} to={`${lookBase(1)}/blog`} />
               </div>
             </div>
           </Reveal>
@@ -1884,7 +1896,7 @@ export function LookOneHome() {
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
                 className="group flex h-full flex-col"
               >
-                <a href="#" className="block overflow-hidden">
+                <Link to={`${lookBase(1)}/blog/${postSlug(post)}`} className="block overflow-hidden">
                   <div className="aspect-[4/3] overflow-hidden">
                     <img
                       src={post.img}
@@ -1892,7 +1904,7 @@ export function LookOneHome() {
                       className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                     />
                   </div>
-                </a>
+                </Link>
                 <p
                   className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
                   style={{ color: OLIVE }}
@@ -1906,15 +1918,15 @@ export function LookOneHome() {
                       : "font-['Marcellus',serif] leading-tight"
                   }`}
                 >
-                  <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
+                  <Link to={`${lookBase(1)}/blog/${postSlug(post)}`} className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
                     {t(post.title.en, post.title.ar)}
-                  </a>
+                  </Link>
                 </h3>
                 <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
                   {t(post.excerpt.en, post.excerpt.ar)}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                  <ViewMore label={t('Read Article', 'اقرأ المقال')} />
+                  <ViewMore label={t('Read Article', 'اقرأ المقال')} to={`${lookBase(1)}/blog/${postSlug(post)}`} />
                   <span
                     className={`text-[10px] uppercase text-neutral-400 ${
                       isAr ? 'tracking-normal' : 'tracking-[0.22em]'

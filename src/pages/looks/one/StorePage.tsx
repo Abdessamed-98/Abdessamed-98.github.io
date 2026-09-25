@@ -5,9 +5,13 @@
  * has a face. The identity sits inside the cover, printed on the photograph the
  * way the service pages do it — ink type under a cover band left the name
  * stranded on an empty cream strip.
+ *
+ * Below the numbers the page splits as the original does — products, about,
+ * reviews — with the tab in the URL (?tab=about) so each can be linked to.
  */
-import { Link, useParams } from 'react-router-dom';
-import { ArrowRight, MapPin, Star, Package } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowRight, MapPin, Star, Package, Truck, RefreshCw, ShieldCheck } from 'lucide-react';
 import {
   ALL_STORES,
   CATALOG,
@@ -16,9 +20,15 @@ import {
   lookBase,
   searchPath,
   storeOf,
+  REVIEWS,
   type StoreKey,
 } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars } from './ui';
+import { RatingInput, Tabs, TextArea } from './kit';
+import { Sheet } from './Sheet';
+import { useShell } from './shellContext';
+
+type StoreTab = 'products' | 'about' | 'reviews';
 
 export default function StorePage() {
   const { lang, t } = useLook();
@@ -30,6 +40,10 @@ export default function StorePage() {
   const store = storeOf(key as StoreKey);
   const products = CATALOG.filter((p) => p.store === store.key);
   const branches = STORE_LOCATIONS.filter((l) => l.store === store.key);
+  const [sp, setSp] = useSearchParams();
+  const rawTab = sp.get('tab');
+  const tab: StoreTab = rawTab === 'about' || rawTab === 'reviews' ? rawTab : 'products';
+  const setTab = (k: StoreTab) => setSp(k === 'products' ? {} : { tab: k }, { replace: true });
 
   if (!known) {
     return (
@@ -103,7 +117,7 @@ export default function StorePage() {
 
       {/* the numbers, as a band rather than a sentence */}
       <div className="border-b" style={{ borderColor: HAIR, backgroundColor: TILE }}>
-        <ul className="mx-auto grid max-w-[1400px] grid-cols-1 divide-y px-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0 md:px-10" style={{ borderColor: HAIR }}>
+        <ul className="mx-auto grid max-w-[1400px] grid-cols-1 divide-y divide-[#E8E4DC] px-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0 md:px-10" style={{ borderColor: HAIR }}>
           {stats.map((s) => (
             <li key={s.label} className="flex items-center gap-4 py-6 sm:justify-center">
               <s.icon size={18} strokeWidth={1.4} style={{ color: OLIVE }} />
@@ -119,9 +133,25 @@ export default function StorePage() {
       </div>
 
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+        <div className="pt-8">
+          <Tabs
+            testId="store-tabs"
+            value={tab}
+            onChange={setTab}
+            items={[
+              { key: 'products', label: t('Products', 'المنتجات'), count: products.length },
+              { key: 'about', label: t('About', 'عن المتجر') },
+              { key: 'reviews', label: t('Reviews', 'التقييمات'), count: REVIEWS.length },
+            ]}
+          />
+        </div>
+
+        {tab === 'about' && <About storeName={t(store.name.en, store.name.ar)} specialty={t(store.specialty.en, store.specialty.ar)} />}
+        {tab === 'reviews' && <StoreReviews rating={store.rating} />}
+
         {/* branches */}
-        {branches.length > 0 && (
-          <section className="py-12 md:py-14">
+        {tab === 'about' && branches.length > 0 && (
+          <section className="border-t py-12 md:py-14" style={{ borderColor: HAIR }}>
             <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Where to find them', 'أين تجدهم')}</p>
             <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {branches.map((b) => (
@@ -140,7 +170,8 @@ export default function StorePage() {
         )}
 
         {/* catalogue */}
-        <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>
+        {tab === 'products' && (
+        <section className="py-12 md:py-16">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('From this store', 'من هذا المتجر')}</p>
@@ -174,6 +205,7 @@ export default function StorePage() {
             </div>
           )}
         </section>
+        )}
 
         {/* other stores */}
         <section className="border-t py-12 md:py-14" style={{ borderColor: HAIR }}>
@@ -208,12 +240,129 @@ export default function StorePage() {
           <Breadcrumb
             items={[
               { label: t('Home', 'الرئيسية'), to: lookBase(1) },
-              { label: t('Stores', 'المتاجر'), to: searchPath(1) },
+              { label: t('Stores', 'المتاجر'), to: `${searchPath(1)}?tab=stores` },
               { label: t(store.name.en, store.name.ar) },
             ]}
           />
         </div>
       </div>
     </main>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* About                                                               */
+/* ------------------------------------------------------------------ */
+function About({ storeName, specialty }: { storeName: string; specialty: string }) {
+  const { lang, t } = useLook();
+  const caps = lang === 'ar' ? 'tracking-normal' : 'uppercase tracking-[0.2em]';
+  const policies = [
+    { icon: Truck, title: t('Delivery', 'التوصيل'), body: t('Kingdom-wide in 2–5 days; free over 3,000 SAR.', 'لكل المملكة خلال 2–5 أيام؛ مجاني فوق 3,000 ر.س.') },
+    { icon: RefreshCw, title: t('Returns', 'الاسترجاع'), body: t('Fourteen days, in original condition.', 'أربعة عشر يوماً، بالحالة الأصلية.') },
+    { icon: ShieldCheck, title: t('Warranty', 'الضمان'), body: t('Two years on frames and mechanisms.', 'سنتان على الهياكل والآليات.') },
+  ];
+  return (
+    <section className="grid gap-12 py-12 md:py-16 lg:grid-cols-12 lg:gap-16" data-testid="store-about">
+      <div className="lg:col-span-7">
+        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('The store', 'عن المتجر')}</p>
+        <p className="mt-5 text-[19px] font-light leading-relaxed md:text-[22px]" style={{ color: INK }}>
+          {t(
+            `${storeName} has sold on Diyar since 2019 — ${specialty.toLowerCase()}, made and finished in the Kingdom, delivered and installed by Diyar crews.`,
+            `يبيع ${storeName} على ديار منذ 2019 — ${specialty}، تُصنع وتُشطَّب في المملكة، وتوصلها وتركبها فرق ديار.`,
+          )}
+        </p>
+        <p className="mt-5 text-[14px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+          {t(
+            'Every piece is checked at our warehouse before it leaves, and every order is covered by the Diyar guarantee — whoever the seller is.',
+            'تُفحص كل قطعة في مستودعنا قبل خروجها، وكل طلب مشمول بضمان ديار — أياً كان البائع.',
+          )}
+        </p>
+      </div>
+      <ul className="border lg:col-span-5" style={{ borderColor: HAIR }}>
+        {policies.map((pl, i) => (
+          <li key={pl.title} className={`flex items-start gap-4 p-5 ${i ? 'border-t' : ''}`} style={{ borderColor: HAIR }}>
+            <pl.icon size={18} strokeWidth={1.4} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
+            <span>
+              <span className="block text-[14px] font-bold">{pl.title}</span>
+              <span className="mt-1 block text-[13px] font-light" style={{ color: '#4A443C' }}>{pl.body}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Reviews                                                             */
+/* ------------------------------------------------------------------ */
+function StoreReviews({ rating }: { rating: number }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const caps = isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]';
+  const { user, openAuth, toast } = useShell();
+  const [writing, setWriting] = useState(false);
+  const [stars, setStars] = useState(5);
+  const [text, setText] = useState('');
+  const total = 128;
+  const split = [78, 16, 4, 1, 1];
+
+  return (
+    <section className="grid gap-12 py-12 md:py-16 lg:grid-cols-12 lg:gap-16" data-testid="store-reviews">
+      <div className="lg:col-span-4">
+        <p className="font-['Outfit',sans-serif] text-[64px] font-bold leading-none tabular-nums">{rating.toFixed(1)}</p>
+        <div className="mt-3"><Stars rating={Math.round(rating)} /></div>
+        <p className="mt-2 text-[12px]" style={{ color: MUTED }}>{t(`${total} reviews`, `${total} تقييماً`)}</p>
+        <ul className="mt-8 grid gap-2.5">
+          {split.map((pct, i) => (
+            <li key={i} className="flex items-center gap-3 text-[11px]" style={{ color: MUTED }}>
+              <span className="w-3 font-['Outfit',sans-serif] tabular-nums">{5 - i}</span>
+              <span className="h-1.5 flex-1" style={{ backgroundColor: HAIR }}>
+                <span className="block h-full" style={{ width: `${pct}%`, backgroundColor: OLIVE }} />
+              </span>
+              <span className="w-8 text-end font-['Outfit',sans-serif] tabular-nums">{pct}%</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          data-testid="store-review-write"
+          onClick={() => (user ? setWriting(true) : openAuth())}
+          className={`mt-8 w-full py-4 ${primaryBtnCls(isAr)}`}
+        >
+          {t('Review this store', 'قيّم هذا المتجر')}
+        </button>
+      </div>
+      <ul className="lg:col-span-8">
+        {REVIEWS.map((r, i) => (
+          <li key={r.name.en} className={`py-7 ${i ? 'border-t' : 'pt-0'}`} style={{ borderColor: HAIR }}>
+            <div className="flex items-center justify-between gap-4">
+              <span>
+                <span className="block text-[14px] font-bold">{t(r.name.en, r.name.ar)}</span>
+                <span className={`mt-1 block text-[10px] ${caps}`} style={{ color: MUTED }}>{t(r.city.en, r.city.ar)}</span>
+              </span>
+              <Stars rating={r.rating} />
+            </div>
+            <p className="mt-4 text-[14px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.text.en, r.text.ar)}</p>
+          </li>
+        ))}
+      </ul>
+
+      <Sheet open={writing} onClose={() => setWriting(false)} side="center" testId="store-review-sheet" eyebrow={t('Store review', 'تقييم المتجر')} title={t('How was it?', 'كيف كانت التجربة؟')}>
+        <form
+          className="grid gap-6 px-6 py-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setWriting(false);
+            setText('');
+            toast(t('Thanks — your review is in.', 'شكراً — تم إرسال تقييمك.'));
+          }}
+        >
+          <RatingInput value={stars} onChange={setStars} />
+          <TextArea id="store-review-text" label={t('Your review', 'تقييمك')} value={text} onChange={setText} />
+          <button type="submit" className={`w-full py-4 ${primaryBtnCls(isAr)}`}>{t('Send Review', 'إرسال التقييم')}</button>
+        </form>
+      </Sheet>
+    </section>
   );
 }

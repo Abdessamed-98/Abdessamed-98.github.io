@@ -305,7 +305,7 @@ export default function App() {
           <Route path="service/:slug" element={<LookOneService />} />
           <Route path="checkout" element={<LookOneCheckout />} />
           <Route path="order/:id" element={<LookOneOrder />} />
-          <Route path="account" element={<LookOneAccount />} />
+          <Route path="account/:section?" element={<LookOneAccount />} />
         </Route>
 
         <Route path="/dashboard" element={<DashboardLayout />}>

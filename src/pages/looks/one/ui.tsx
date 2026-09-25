@@ -129,7 +129,7 @@ export function SectionHeading({
 }
 
 /** Tiny letterspaced uppercase "VIEW MORE →" link with hairline underline. */
-export function ViewMore({ label, light = false, to }: { label?: string; light?: boolean; to?: string }) {
+export function ViewMore({ label, light = false, to, onClick }: { label?: string; light?: boolean; to?: string; onClick?: () => void }) {
   const isAr = useLang() === 'ar';
   const text = label ?? (isAr ? 'عرض المزيد' : 'View More');
   const cls = `group/vm inline-flex items-center gap-2.5 pb-1.5 border-b text-[11px] uppercase transition-colors ${
@@ -156,9 +156,9 @@ export function ViewMore({ label, light = false, to }: { label?: string; light?:
       {inner}
     </Link>
   ) : (
-    <a href="#" className={cls}>
+    <button type="button" onClick={onClick} className={cls}>
       {inner}
-    </a>
+    </button>
   );
 }
 

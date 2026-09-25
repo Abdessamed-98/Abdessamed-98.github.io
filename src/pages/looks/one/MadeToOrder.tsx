@@ -18,7 +18,7 @@
  * Self-contained: removing this file and its one line in LookOneHome restores
  * the previous split panel.
  */
-import { IMG } from '../lookShared';
+import { IMG, lookBase } from '../lookShared';
 import { HAIR, OLIVE, Reveal, SectionHeading, ViewMore, primaryBtnCls, useLook } from './ui';
 
 /** What a visitor weighs before asking for a quote. */
@@ -93,7 +93,7 @@ export function MadeToOrder({ no }: { no: string }) {
               <button type="button" className={`${primaryBtnCls(isAr)} px-10 py-4`}>
                 {t('Request a Quote', 'اطلب عرض سعر')}
               </button>
-              <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} />
+              <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} to={`${lookBase(1)}/search?tab=stores`} />
             </div>
           </Reveal>
         </div>
