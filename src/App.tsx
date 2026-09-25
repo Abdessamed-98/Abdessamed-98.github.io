@@ -56,6 +56,14 @@ import {
   ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
   HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound,
 } from './pages/looks/one/InfoPages.tsx';
+import {
+  B2BPage as LookOneB2B, CompanyPage as LookOneCompany, ProjectsPage as LookOneProjects,
+  AboutPage as LookOneAbout, ContactPage as LookOneContact,
+} from './pages/looks/one/BusinessPages.tsx';
+import {
+  AIDesignerPage as LookOneAIDesigner, ChatPage as LookOneChat, LoyaltyPage as LookOneLoyalty,
+  BlogIndexPage as LookOneBlog, ArticlePage as LookOneArticle, PagesIndex as LookOnePages,
+} from './pages/looks/one/ToolPages.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import DashboardIndex from './pages/dashboard/DashboardIndex.tsx';
@@ -314,6 +322,17 @@ export default function App() {
           <Route path="provider/:id" element={<LookOneProvider />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
           <Route path="help/:topic?" element={<LookOneHelp />} />
+          <Route path="b2b" element={<LookOneB2B />} />
+          <Route path="b2b/:id" element={<LookOneCompany />} />
+          <Route path="projects" element={<LookOneProjects />} />
+          <Route path="about" element={<LookOneAbout />} />
+          <Route path="contact" element={<LookOneContact />} />
+          <Route path="ai-designer" element={<LookOneAIDesigner />} />
+          <Route path="chat" element={<LookOneChat />} />
+          <Route path="loyalty" element={<LookOneLoyalty />} />
+          <Route path="blog" element={<LookOneBlog />} />
+          <Route path="blog/:slug" element={<LookOneArticle />} />
+          <Route path="pages" element={<LookOnePages />} />
           <Route path="*" element={<LookOneNotFound />} />
         </Route>
 

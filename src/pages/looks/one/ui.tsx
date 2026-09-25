@@ -364,15 +364,15 @@ export function ProductCard({
           </span>
           {c.oldPrice && <span className="text-xs text-neutral-400 line-through">{formatSAR(c.oldPrice)}</span>}
         </div>
-        <button
-          type="button"
+        <Link
+          to={`${to}?ai=1`}
           className={`shrink-0 text-[10px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
             isAr ? 'tracking-normal' : 'tracking-[0.24em]'
           }`}
           style={{ color: RED }}
         >
           {t('Try with AI', 'جرب AI')}
-        </button>
+        </Link>
       </div>
 
       {/* add to cart — full card only; the rail stays quiet */}

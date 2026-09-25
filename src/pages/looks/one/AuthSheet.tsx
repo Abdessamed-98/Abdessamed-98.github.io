@@ -167,7 +167,12 @@ export function AuthSheet({
                 {t(`We sent a 4-digit code to ${form.phone}.`, `أرسلنا رمزاً من 4 أرقام إلى ${form.phone}.`)}
               </p>
               <CodeInput value={form.code} onChange={set('code')} />
-              <button type="button" className="mt-4 text-[11px] underline-offset-4 hover:underline" style={{ color: MUTED }}>
+              <button
+                type="button"
+                onClick={() => onNotice?.(t('A new code is on its way.', 'تم إرسال رمز جديد.'))}
+                className="mt-4 text-[11px] underline-offset-4 hover:underline"
+                style={{ color: MUTED }}
+              >
                 {t('Resend code in 0:42', 'إعادة الإرسال خلال 0:42')}
               </button>
             </div>

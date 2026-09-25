@@ -11,6 +11,7 @@
 import {
   startTransition, useCallback, useEffect, useMemo, useRef, useState,
   type CSSProperties, type FormEvent,
+  type ReactNode,
 } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,6 +43,7 @@ import { serviceSlug } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
+import { AnnouncementBar, FloatingContact, PromoPopup } from './one/Overlays';
 import { useShell, type AuthRole } from './one/shellContext';
 import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
 import { HeroScrub } from './one/HeroScrub';
@@ -82,6 +84,24 @@ const PARTNER_ROLES: AuthRole[] = ['store', 'affiliate', 'provider'];
 function PartnerCta({ label, role }: { label: string; role: AuthRole }) {
   const { openAuth } = useShell();
   return <ViewMore label={label} onClick={() => openAuth({ view: 'up', role })} />;
+}
+/** The footer's newsletter field: confirms through the shell's toast. */
+function FooterSubscribe({ children }: { children: ReactNode }) {
+  const { toast } = useShell();
+  const { t } = useLook();
+  return (
+    <form
+      className="mt-5 flex items-end gap-4"
+      data-testid="footer-subscribe"
+      onSubmit={(e) => {
+        e.preventDefault();
+        (e.currentTarget as HTMLFormElement).reset();
+        toast(t('Subscribed — the next letter is on its way.', 'تم الاشتراك — رسالتنا القادمة في الطريق.'));
+      }}
+    >
+      {children}
+    </form>
+  );
 }
 const SUPPORT_TO: Record<string, string> = {
   FAQ: `${lookBase(1)}/help/faq`,
@@ -839,6 +859,7 @@ export default function LookOne() {
               : 'border-transparent bg-transparent'
           }`}
         >
+          <AnnouncementBar show={isHome && !scrolled && openMenu === null} />
           {/* Scrim behind the transparent bar: the header renders white content over
               the hero, so a bright slide would otherwise swallow it. Fades out below
               the bar and disappears once the solid chrome takes over. */}
@@ -1201,23 +1222,25 @@ export default function LookOne() {
                 >
                   {t('Subscribe', 'النشرة البريدية')}
                 </h4>
-                <div className="mt-5 flex items-end gap-4">
+                <FooterSubscribe>
                   <input
                     type="email"
+                    required
+                    aria-label={t('Email', 'البريد الإلكتروني')}
                     placeholder={t('YOUR EMAIL', 'بريدك الإلكتروني')}
                     className={`w-full border-b border-[#EFE9DD]/25 bg-transparent pb-2.5 text-[11px] uppercase text-[#EFE9DD] placeholder:text-[#EFE9DD]/35 transition-colors focus:border-[#EFE9DD] focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
                   <button
-                    type="button"
+                    type="submit"
                     className={`shrink-0 border border-[#EFE9DD]/40 px-6 py-2.5 text-[10px] uppercase transition-colors duration-300 hover:bg-[#EFE9DD] hover:text-[#14120F] ${
                       isAr ? 'tracking-normal' : 'tracking-[0.26em]'
                     }`}
                   >
                     {t('Submit', 'اشترك')}
                   </button>
-                </div>
+                </FooterSubscribe>
               </div>
             </div>
 
@@ -1231,6 +1254,8 @@ export default function LookOne() {
 
         {/* the product page carries a sticky buy bar on phones — lift the pill above it */}
         <LookSwitcher raiseOnMobile={pathname.includes('/product/')} />
+        <FloatingContact />
+        <PromoPopup active={isHome} />
         {/* first load of the session: the page arrives through the logo (one/LoadReveal) */}
         <LoadReveal />
       </div>
@@ -1361,6 +1386,7 @@ function HeroCopy() {
 export function LookOneHome() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
+  const shell = useShell();
 
   /* shop-the-look: one open product card at a time, with a small close grace period */
   const [openSpot, setOpenSpot] = useState<string | null>(null);
@@ -1640,14 +1666,14 @@ export function LookOneHome() {
                 ))}
               </ol>
 
-              <button
-                type="button"
-                className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+              <Link
+                to={`${lookBase(1)}/ai-designer`}
+                className={`inline-block mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
                 {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
-              </button>
+              </Link>
             </Reveal>
           </div>
         </div>
@@ -1681,14 +1707,14 @@ export function LookOneHome() {
               <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
                 {t(LOYALTY.body.en, LOYALTY.body.ar)}
               </p>
-              <button
-                type="button"
-                className={`mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+              <Link
+                to={`${lookBase(1)}/loyalty`}
+                className={`inline-block mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
                 {t(LOYALTY.cta.en, LOYALTY.cta.ar)}
-              </button>
+              </Link>
             </Reveal>
 
             <div className="lg:col-span-7 lg:pt-3">
@@ -1847,6 +1873,7 @@ export function LookOneHome() {
               </div>
               <button
                 type="button"
+                onClick={() => shell.openAuth({ view: 'up', role: 'store' })}
                 className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
@@ -2001,6 +2028,7 @@ export function LookOneHome() {
                   <button
                     key={store.label}
                     type="button"
+                    onClick={() => shell.toast(t('The Diyar app arrives soon on both stores.', 'تطبيق ديار قريباً على المتجرين.'))}
                     className="bg-[#171512] px-9 py-3.5 text-start text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
                   >
                     <span

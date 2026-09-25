@@ -20,6 +20,7 @@
  */
 import { IMG, lookBase } from '../lookShared';
 import { HAIR, OLIVE, Reveal, SectionHeading, ViewMore, primaryBtnCls, useLook } from './ui';
+import { useShell } from './shellContext';
 
 /** What a visitor weighs before asking for a quote. */
 const FACTS = [
@@ -39,6 +40,7 @@ const FACTS = [
 
 export function MadeToOrder({ no }: { no: string }) {
   const { lang, t } = useLook();
+  const { openService } = useShell();
   const isAr = lang === 'ar';
 
   return (
@@ -90,7 +92,7 @@ export function MadeToOrder({ no }: { no: string }) {
             </dl>
 
             <div className="mt-10 flex flex-wrap items-center gap-8">
-              <button type="button" className={`${primaryBtnCls(isAr)} px-10 py-4`}>
+              <button type="button" onClick={() => openService(t('Custom Furniture', 'تنفيذ الأثاث'))} className={`${primaryBtnCls(isAr)} px-10 py-4`}>
                 {t('Request a Quote', 'اطلب عرض سعر')}
               </button>
               <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} to={`${lookBase(1)}/search?tab=stores`} />

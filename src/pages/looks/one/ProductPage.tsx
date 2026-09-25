@@ -86,7 +86,8 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const wishlist = useWishlist();
   const [openPanel, setOpenPanel] = useState<string | null>('description');
   const [zoom, setZoom] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false);
+  // ?ai=1 (from a product card's "Try with AI") opens the sheet on arrival
+  const [aiOpen, setAiOpen] = useState(() => new URLSearchParams(window.location.search).get('ai') === '1');
   const [shareOpen, setShareOpen] = useState(false);
   const addedTimer = useRef<number | null>(null);
 
@@ -438,7 +439,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                     {t('Not sure it fits? Book a free design session', 'غير متأكد من المقاس؟ احجز جلسة تصميم مجانية')}
                   </p>
                 </div>
-                <button type="button" className={`shrink-0 px-6 py-3 ${primaryBtnCls(isAr)}`}>
+                <button type="button" onClick={() => shell.openService(t('Interior Design', 'التصميم الداخلي'))} className={`shrink-0 px-6 py-3 ${primaryBtnCls(isAr)}`}>
                   {t('Book Now', 'احجز الآن')}
                 </button>
               </div>
