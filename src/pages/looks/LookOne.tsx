@@ -9,7 +9,7 @@
  * the look's pages: `LookOneHome`, `LookOneSearch`, `LookOneProduct`.
  */
 import {
-  useCallback, useEffect, useRef, useState,
+  startTransition, useCallback, useEffect, useMemo, useRef, useState,
   type CSSProperties, type FormEvent,
 } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
-  DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
+  FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
   ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
   lookBase, searchPath, productPath,
@@ -52,6 +52,7 @@ import { MadeToOrder } from './one/MadeToOrder';
 import { FeaturedStores } from './one/FeaturedStores';
 import { CurtainStage } from './one/CurtainStage';
 import { LoadReveal } from './one/LoadReveal';
+import { DesignStudio } from './one/DesignStudio';
 
 export { LookOneSearch } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -727,6 +728,10 @@ export default function LookOne() {
   }, []);
   const toggleLang = () => setLang(lang === 'ar' ? 'en' : 'ar');
   const t = useCallback((en: string, ar: string) => (lang === 'ar' ? ar : en), [lang]);
+  // One object per language, not per render: every section reads this context,
+  // so a fresh object here re-rendered the whole homepage each time the layout
+  // changed state — the header turning solid on scroll stalled phones ~150ms.
+  const lookValue = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
   const isAr = lang === 'ar';
 
   /* mega menu hover intent: ~150ms close delay so the cursor can travel into the panel */
@@ -748,7 +753,17 @@ export default function LookOne() {
 
   /* header: transparent over the home hero → solid chrome after ~60px of scroll */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    // only on a change: setting the same value again still re-renders the whole
+    // layout once, which landed in the middle of the hero's scroll scrub
+    let last: boolean | null = null;
+    const onScroll = () => {
+      const next = window.scrollY > 60;
+      if (next === last) return;
+      last = next;
+      // a transition: React renders the header change in small slices, so the
+      // scroll (and the hero scrub riding on it) keeps painting meanwhile
+      startTransition(() => setScrolled(next));
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -780,7 +795,7 @@ export default function LookOne() {
   }`;
 
   return (
-    <LookContext.Provider value={{ lang, setLang, t }}>
+    <LookContext.Provider value={lookValue}>
       <LookShell>
       <div
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
@@ -1215,10 +1230,125 @@ export default function LookOne() {
 /* ------------------------------------------------------------------ */
 /* Home page                                                           */
 /* ------------------------------------------------------------------ */
-export function LookOneHome() {
+/**
+ * The hero's rotating copy and its controls.
+ *
+ * Kept apart from the page on purpose: the headline rotates every six seconds,
+ * and while that state lived on LookOneHome each rotation re-rendered the whole
+ * homepage — every section and product card — which stalled phones mid-scroll
+ * and made the scrubbed room stutter. Here a rotation re-renders these few lines.
+ */
+function HeroCopy() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [slide, setSlide] = useState(0);
+
+  /* auto-advance (resets after manual navigation too) */
+  useEffect(() => {
+    const id = setInterval(() => startTransition(() => setSlide((s) => (s + 1) % HERO_SLIDES.length)), 6000);
+    return () => clearInterval(id);
+  }, [slide]);
+
+  const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
+
+  return (
+    <>
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={slide}
+          className="absolute inset-0 flex items-end"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+        >
+          <div className="contents">
+            <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
+              <motion.div
+                className="max-w-2xl text-white"
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
+              >
+                <p
+                  className={`mb-5 text-[11px] uppercase text-white/85 ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.4em]'
+                  }`}
+                >
+                  {isAr ? HERO_SLIDES[slide].tagAr : HERO_SLIDES[slide].tag}
+                </p>
+                <h1
+                  className={`mb-9 text-4xl font-extrabold uppercase md:text-6xl ${
+                    isAr
+                      ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
+                      : "font-['Outfit',sans-serif] leading-[1.04] tracking-tight"
+                  }`}
+                >
+                  {isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
+                </h1>
+                <Link
+                  to={searchPath(1)}
+                  className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.32em]'
+                  }`}
+                >
+                  {t('Shop Now', 'تسوق الآن')}
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* static chrome: indicators + chevrons */}
+      <div className="absolute inset-x-0 bottom-9 z-10">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
+          <div className="flex items-center gap-6">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={isAr ? `الانتقال إلى الشريحة ${i + 1}` : `Go to slide ${i + 1}`}
+                onClick={() => setSlide(i)}
+                className={`flex items-center gap-2.5 text-sm font-light transition-colors ${
+                  i === slide ? 'text-white' : 'text-white/45 hover:text-white/75'
+                }`}
+              >
+                {i + 1}
+                <span
+                  className={`block h-px bg-white transition-all duration-500 ${i === slide ? 'w-9' : 'w-0'}`}
+                />
+              </button>
+            ))}
+          </div>
+          <div className="hidden items-center gap-3 md:flex">
+            <button
+              type="button"
+              aria-label={t('Previous slide', 'الشريحة السابقة')}
+              onClick={prev}
+              className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
+            >
+              <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
+            </button>
+            <button
+              type="button"
+              aria-label={t('Next slide', 'الشريحة التالية')}
+              onClick={next}
+              className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
+            >
+              <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function LookOneHome() {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
 
   /* shop-the-look: one open product card at a time, with a small close grace period */
   const [openSpot, setOpenSpot] = useState<string | null>(null);
@@ -1263,14 +1393,6 @@ export function LookOneHome() {
     return () => window.removeEventListener('keydown', onKey);
   }, [openSpot]);
 
-  /* hero auto-advance (resets after manual navigation too) */
-  useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
-    return () => clearInterval(id);
-  }, [slide]);
-
-  const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
 
   return (
     <div data-testid="home-page">
@@ -1278,7 +1400,7 @@ export function LookOneHome() {
       {/* 1. HERO SLIDER */}
       {/* ============================================================== */}
       <section data-testid="hero" className="relative h-[100svh] min-h-[600px] overflow-hidden bg-[#171512]">
-        {/* the room orbit, scrubbed by the pointer; poster-only on touch (one/HeroScrub) */}
+        {/* the room orbit: scrubbed by the pointer on desktop, by scrolling away on touch (one/HeroScrub) */}
         <HeroScrub
           poster="/looks/hero-scrub/poster.webp"
           alt={t('A sunlit living room with an olive green sofa', 'غرفة معيشة مضاءة بأريكة خضراء زيتونية')}
@@ -1286,94 +1408,7 @@ export function LookOneHome() {
         {/* subtle bottom gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/5" />
 
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={slide}
-            className="absolute inset-0 flex items-end"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
-          >
-            <div className="contents">
-              <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
-                <motion.div
-                  className="max-w-2xl text-white"
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
-                >
-                  <p
-                    className={`mb-5 text-[11px] uppercase text-white/85 ${
-                      isAr ? 'tracking-normal' : 'tracking-[0.4em]'
-                    }`}
-                  >
-                    {isAr ? HERO_SLIDES[slide].tagAr : HERO_SLIDES[slide].tag}
-                  </p>
-                  <h1
-                    className={`mb-9 text-4xl font-extrabold uppercase md:text-6xl ${
-                      isAr
-                        ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                        : "font-['Outfit',sans-serif] leading-[1.04] tracking-tight"
-                    }`}
-                  >
-                    {isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
-                  </h1>
-                  <Link
-                    to={searchPath(1)}
-                    className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
-                      isAr ? 'tracking-normal' : 'tracking-[0.32em]'
-                    }`}
-                  >
-                    {t('Shop Now', 'تسوق الآن')}
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* static chrome: indicators + chevrons */}
-        <div className="absolute inset-x-0 bottom-9 z-10">
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
-            <div className="flex items-center gap-6">
-              {HERO_SLIDES.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  aria-label={isAr ? `الانتقال إلى الشريحة ${i + 1}` : `Go to slide ${i + 1}`}
-                  onClick={() => setSlide(i)}
-                  className={`flex items-center gap-2.5 text-sm font-light transition-colors ${
-                    i === slide ? 'text-white' : 'text-white/45 hover:text-white/75'
-                  }`}
-                >
-                  {i + 1}
-                  <span
-                    className={`block h-px bg-white transition-all duration-500 ${i === slide ? 'w-9' : 'w-0'}`}
-                  />
-                </button>
-              ))}
-            </div>
-            <div className="hidden items-center gap-3 md:flex">
-              <button
-                type="button"
-                aria-label={t('Previous slide', 'الشريحة السابقة')}
-                onClick={prev}
-                className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
-              >
-                <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
-              </button>
-              <button
-                type="button"
-                aria-label={t('Next slide', 'الشريحة التالية')}
-                onClick={next}
-                className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
-              >
-                <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
-              </button>
-            </div>
-          </div>
-        </div>
+        <HeroCopy />
       </section>
 
       {/* ============================================================== */}
@@ -1416,71 +1451,8 @@ export function LookOneHome() {
           ))}
         </RoomStage>
 
-        {/* design assistance panel — kept, now sitting under the shoppable image */}
-        <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
-          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-            <Reveal className="lg:col-span-6">
-              <p
-                className={`text-[11px] uppercase ${
-                  isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
-                }`}
-                style={{ color: OLIVE }}
-              >
-                {t('Design Studio', 'استوديو التصميم')}
-              </p>
-              <a
-                href="#"
-                className={`group/da mt-4 inline-flex flex-wrap items-center gap-4 text-3xl font-extrabold uppercase md:text-4xl ${
-                  isAr
-                    ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                    : "font-['Outfit',sans-serif] leading-[1.02] tracking-tight"
-                }`}
-              >
-                {t('Get Free Design Assistance', 'احصل على مساعدة التصميم مجاناً')}
-                <ArrowRight
-                  size={30}
-                  strokeWidth={1.5}
-                  className={`transition-transform duration-300 ${
-                    isAr ? 'rotate-180 group-hover/da:-translate-x-2' : 'group-hover/da:translate-x-2'
-                  }`}
-                />
-              </a>
-              <p
-                className={`mt-6 max-w-md text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
-                  isAr ? 'tracking-normal' : 'tracking-[0.04em]'
-                }`}
-              >
-                {t(
-                  'Our designers help you plan, style and furnish every room — at no cost.',
-                  'مصممونا يساعدونك في تخطيط كل غرفة وتنسيقها وتأثيثها — دون أي تكلفة.',
-                )}
-              </p>
-              <div className="mt-8">
-                <ViewMore label={t('Book a Free Session', 'احجز جلسة مجانية')} />
-              </div>
-            </Reveal>
-
-            {/* what's included */}
-            <Reveal className="lg:col-span-6" delay={0.15}>
-              <div className="border bg-white p-8 md:p-10" style={{ borderColor: HAIR }}>
-                <p
-                  className={`text-[10px] uppercase text-neutral-400 ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.3em]'
-                  }`}
-                >
-                  {t("What's included", 'ما الذي تشمله الخدمة')}
-                </p>
-                <ul className="mt-4 sm:grid sm:grid-cols-2 sm:gap-x-8">
-                  {DESIGN_ASSIST_ITEMS.map((item) => (
-                    <li key={item.en} className="border-b py-3.5" style={{ borderColor: HAIR }}>
-                      <span className="text-[13px] font-medium">{t(item.en, item.ar)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-          </div>
-        </div>
+        {/* the free design session — book it here, not just read about it (one/DesignStudio) */}
+        <DesignStudio />
       </section>
 
       {/* ============================================================== */}
