@@ -472,3 +472,43 @@ export const STORE_SERVICES: Record<StoreKey, StoreService[]> = {
     DELIVERY,
   ],
 };
+
+/* ------------------------------------------------------------------ */
+/* Service galleries — recent work, per service                        */
+/* ------------------------------------------------------------------ */
+
+export interface WorkShot {
+  img: string;
+  title: Bi;
+}
+
+const HOMES: Bi[] = [
+  { en: 'Family villa, Al Rawdah — Jeddah', ar: 'فيلا عائلية، الروضة — جدة' },
+  { en: 'Majlis, Obhur — Jeddah', ar: 'مجلس، أبحر — جدة' },
+  { en: 'Apartment, Al Malqa — Riyadh', ar: 'شقة، الملقا — الرياض' },
+  { en: 'Guest wing, Al Nakheel — Riyadh', ar: 'جناح ضيافة، النخيل — الرياض' },
+  { en: 'Townhouse, Al Olaya — Khobar', ar: 'تاون هاوس، العليا — الخبر' },
+  { en: 'Penthouse, Al Shati — Jeddah', ar: 'بنتهاوس، الشاطئ — جدة' },
+];
+const VENUES: Bi[] = [
+  { en: 'Restaurant, Al Balad — Jeddah', ar: 'مطعم، البلد — جدة' },
+  { en: 'Office floor, King Fahd Rd — Riyadh', ar: 'طابق مكاتب، طريق الملك فهد — الرياض' },
+  { en: 'Executive lounge, Al Olaya — Riyadh', ar: 'صالة كبار الزوار، العليا — الرياض' },
+  { en: 'Showroom, Tahlia St — Jeddah', ar: 'صالة عرض، شارع التحلية — جدة' },
+  { en: 'Clinic, Al Corniche — Khobar', ar: 'عيادة، الكورنيش — الخبر' },
+];
+
+const shots = (imgs: string[], titles: Bi[], shift = 0): WorkShot[] =>
+  imgs.map((img, i) => ({ img, title: titles[(i + shift) % titles.length] }));
+
+const F = '/categories/featured';
+export const SERVICE_GALLERY: Record<string, WorkShot[]> = {
+  'Interior Design': shots(['/looks/campaign-living.webp', '/looks/campaign-majlis.webp', `${F}/home.webp`, IMG.roomHotspots, IMG.catHome, IMG.bedroom], HOMES),
+  'Door Solutions': shots([IMG.loungeDark, `${F}/office.webp`, '/looks/campaign-majlis.webp', IMG.catOffice, `${F}/decor.webp`], HOMES, 2),
+  'Custom Furniture': shots([IMG.workshop, '/looks/promo/custom-furniture.webp', `${F}/home.webp`, IMG.catHome, '/looks/promo/bedroom-packages.webp'], HOMES, 1),
+  'Painting & Wall Finishes': shots([IMG.roomHotspots, `${F}/bath.webp`, '/looks/promo/bedroom-packages.webp', IMG.bedroom, `${F}/decor.webp`], HOMES, 3),
+  'Flooring Solutions': shots(['/after.png', `${F}/rugs.webp`, IMG.catOffice, '/looks/campaign-living.webp', IMG.bedroom], HOMES, 4),
+  'Finishing & Decorative': shots([IMG.bedroom, `${F}/decor.webp`, IMG.loungeDark, '/looks/campaign-majlis.webp', `${F}/lighting.webp`], HOMES, 5),
+  'Glass & Skylight Facades': shots([IMG.hero, '/after.png', `${F}/office.webp`, IMG.restaurant, IMG.catLighting], VENUES, 3),
+  'Safety Equipment & Systems': shots([IMG.restaurant, IMG.catOffice, IMG.loungeDark, `${F}/office.webp`, `${F}/bath.webp`], VENUES),
+};
