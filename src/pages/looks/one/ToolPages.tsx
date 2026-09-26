@@ -402,115 +402,154 @@ export function ChatPage() {
     }, 1400);
   };
 
+  const isProvider = active ? PROVIDERS.some((p) => p.id === active.id) : false;
+  const open = !!(active && want);
+
   return (
     <main className="pt-[72px]" data-testid="chat-page">
-      <div className={`${CONTAINER} py-6 md:py-10`}>
-        <div className="grid h-[calc(100svh-72px-3rem)] min-h-[520px] border md:h-[calc(100vh-72px-5rem)] md:grid-cols-[320px_minmax(0,1fr)]" style={{ borderColor: HAIR }}>
-          {/* threads */}
-          <aside className={`${active && want ? 'hidden md:block' : 'block'} overflow-y-auto border-e`} style={{ borderColor: HAIR }}>
-            <p className={`border-b px-5 py-4 text-[11px] font-bold ${caps}`} style={{ borderColor: HAIR }}>{t('Messages', 'الرسائل')}</p>
-            <ul>
-              {threads.map((th) => {
-                const last = th.messages[th.messages.length - 1];
-                const on = th.id === active?.id;
-                return (
-                  <li key={th.id}>
-                    <button
-                      type="button"
-                      data-testid="chat-thread"
-                      onClick={() => setSp({ with: th.id }, { replace: true })}
-                      className="flex w-full items-center gap-3 border-b px-5 py-4 text-start transition-colors hover:bg-[#F6F3EC]"
-                      style={{ borderColor: HAIR, backgroundColor: on ? TILE : undefined }}
-                    >
-                      <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{th.initials}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-baseline justify-between gap-2">
-                          <span className="truncate text-[13px] font-bold">{t(th.name.en, th.name.ar)}</span>
-                          {last && <span className="shrink-0 text-[10px]" style={{ color: MUTED }}>{last.at}</span>}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[12px] font-light" style={{ color: MUTED }}>
-                          {last ? t(last.text.en, last.text.ar) : t(th.role.en, th.role.ar)}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </aside>
+      {/* a tinted band holds the white panel, so the conversation reads as one object */}
+      <div className="md:py-10" style={{ backgroundColor: '#EFEBE3' }}>
+        <div className={`${CONTAINER} max-md:!px-0`}>
+          <div className={`${open ? 'hidden md:flex' : 'flex'} flex-wrap items-end justify-between gap-4 px-6 pb-6 pt-8 md:px-0 md:pt-0`}>
+            <div>
+              <p className={`text-[10px] ${caps}`} style={{ color: OLIVE }}>{t('Messages', 'الرسائل')}</p>
+              <h1 className={`mt-2 ${displayCls(isAr, 'md')}`}>{t('Conversations', 'المحادثات')}</h1>
+              <p className="mt-2 text-[13px] font-light" style={{ color: '#4A443C' }}>
+                {t('Support replies within minutes, 9 am – 11 pm.', 'فريق الدعم يرد خلال دقائق، من 9 صباحاً حتى 11 مساءً.')}
+              </p>
+            </div>
+            <Link to={`${lookBase(1)}/help`} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+              {t('Help centre', 'مركز المساعدة')}
+            </Link>
+          </div>
 
-          {/* conversation */}
-          {active ? (
-            <section className={`${want ? 'flex' : 'hidden md:flex'} min-h-0 flex-col`}>
-              <header className="flex items-center gap-3 border-b px-5 py-4" style={{ borderColor: HAIR }}>
-                <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
-                  <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
-                </button>
-                <span dir="ltr" className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[10px] font-bold text-white">{active.initials}</span>
-                <span className="min-w-0">
-                  <span className="block truncate text-[14px] font-bold">{t(active.name.en, active.name.ar)}</span>
-                  <span className="flex items-center gap-1.5 text-[11px]" style={{ color: MUTED }}>
-                    <span className="h-1.5 w-1.5" style={{ backgroundColor: OLIVE }} />
-                    {t('Online', 'متصل')}
+          <div
+            className={`grid overflow-hidden bg-white md:grid-cols-[320px_minmax(0,1fr)] md:border md:shadow-[0_24px_60px_rgba(23,21,18,0.08)] ${
+              open ? 'h-[calc(100svh-72px)]' : 'min-h-[60svh]'
+            } md:h-[calc(100vh-72px-12rem)] md:min-h-[560px]`}
+            style={{ borderColor: '#DDD6CA' }}
+          >
+            {/* threads */}
+            <aside className={`${open ? 'hidden md:flex' : 'flex'} min-h-0 flex-col border-e`} style={{ borderColor: HAIR }}>
+              <p className={`flex items-center justify-between border-b px-5 py-4 text-[11px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
+                {t('Inbox', 'البريد')}
+                <span className="font-['Outfit',sans-serif] text-[10px] font-medium" style={{ color: MUTED }}>{threads.length}</span>
+              </p>
+              <ul className="min-h-0 flex-1 overflow-y-auto">
+                {threads.map((th) => {
+                  const last = th.messages[th.messages.length - 1];
+                  const on = th.id === active?.id;
+                  return (
+                    <li key={th.id}>
+                      <button
+                        type="button"
+                        data-testid="chat-thread"
+                        onClick={() => setSp({ with: th.id }, { replace: true })}
+                        className="relative flex w-full items-center gap-3 border-b px-5 py-4 text-start transition-colors hover:bg-[#FAF8F3]"
+                        style={{ borderColor: HAIR, backgroundColor: on ? TILE : undefined }}
+                      >
+                        {on && <span aria-hidden className="absolute inset-y-0 start-0 w-[3px] bg-[#171512]" />}
+                        <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{th.initials}</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-baseline justify-between gap-2">
+                            <span className="truncate text-[13.5px] font-bold">{t(th.name.en, th.name.ar)}</span>
+                            {last && <span className="shrink-0 text-[10px]" style={{ color: MUTED }} dir="ltr">{last.at}</span>}
+                          </span>
+                          <span className="mt-0.5 block text-[10px] font-medium" style={{ color: OLIVE }}>{t(th.role.en, th.role.ar)}</span>
+                          <span className="mt-1 block truncate text-[12px]" style={{ color: '#4A443C' }}>
+                            {last ? t(last.text.en, last.text.ar) : t('No messages yet', 'لا توجد رسائل بعد')}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </aside>
+
+            {/* conversation */}
+            {active ? (
+              <section className={`${want ? 'flex' : 'hidden md:flex'} min-h-0 flex-col`}>
+                <header className="flex items-center gap-3 border-b bg-white px-5 py-4" style={{ borderColor: HAIR }}>
+                  <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
+                    <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+                  </button>
+                  <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{active.initials}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[15px] font-bold">{t(active.name.en, active.name.ar)}</span>
+                    <span className="flex items-center gap-1.5 text-[11px]" style={{ color: MUTED }}>
+                      <span className="h-1.5 w-1.5" style={{ backgroundColor: OLIVE }} />
+                      {t('Online', 'متصل')} · {t(active.role.en, active.role.ar)}
+                    </span>
                   </span>
-                </span>
-              </header>
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6" data-testid="chat-log">
-                {active.messages.length === 0 && (
-                  <p className="py-10 text-center text-[13px] font-light" style={{ color: MUTED }}>
-                    {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
+                  {isProvider && (
+                    <Link to={`${lookBase(1)}/provider/${active.id}`} className={`hidden shrink-0 border px-4 py-2 text-[10.5px] font-medium transition-colors hover:border-[#171512] sm:block ${caps}`} style={{ borderColor: '#C9C2B4' }}>
+                      {t('View profile', 'عرض الملف')}
+                    </Link>
+                  )}
+                </header>
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6 md:px-8" style={{ backgroundColor: TILE }} data-testid="chat-log">
+                  <p className="flex items-center gap-3 pb-2 text-[10px]" style={{ color: MUTED }}>
+                    <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
+                    <span className={caps}>{t('Today', 'اليوم')}</span>
+                    <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
                   </p>
-                )}
-                {active.messages.map((m, i) => (
-                  <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`max-w-[78%] px-4 py-3 text-[13px] leading-relaxed ${m.from === 'me' ? 'bg-[#171512] text-white' : 'border bg-white'}`}
-                      style={m.from === 'me' ? undefined : { borderColor: HAIR }}
-                    >
-                      {t(m.text.en, m.text.ar)}
-                      <span className={`mt-1 block text-[10px] ${m.from === 'me' ? 'text-white/55' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
-                        {m.at}
+                  {active.messages.length === 0 && (
+                    <p className="py-10 text-center text-[13px]" style={{ color: '#4A443C' }}>
+                      {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
+                    </p>
+                  )}
+                  {active.messages.map((m, i) => (
+                    <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[78%] px-4 py-3 text-[13.5px] leading-relaxed md:max-w-[62%] ${
+                          m.from === 'me' ? 'bg-[#171512] text-white' : 'border bg-white text-[#171512] shadow-[0_1px_2px_rgba(23,21,18,0.06)]'
+                        }`}
+                        style={m.from === 'me' ? undefined : { borderColor: '#E2DCD1' }}
+                      >
+                        {t(m.text.en, m.text.ar)}
+                        <span className={`mt-1 block text-[10px] ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
+                          {m.at}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {typing && (
+                    <div className="flex justify-start">
+                      <span className="flex gap-1 border bg-white px-4 py-3.5" style={{ borderColor: '#E2DCD1' }} data-testid="chat-typing">
+                        {[0, 1, 2].map((d) => (
+                          <span key={d} className="h-1.5 w-1.5 animate-bounce bg-[#8A8478]" style={{ animationDelay: `${d * 120}ms` }} />
+                        ))}
                       </span>
                     </div>
-                  </div>
-                ))}
-                {typing && (
-                  <div className="flex justify-start">
-                    <span className="flex gap-1 border bg-white px-4 py-3.5" style={{ borderColor: HAIR }} data-testid="chat-typing">
-                      {[0, 1, 2].map((d) => (
-                        <span key={d} className="h-1.5 w-1.5 animate-bounce bg-[#8A8478]" style={{ animationDelay: `${d * 120}ms` }} />
-                      ))}
-                    </span>
-                  </div>
-                )}
-                <div ref={end} />
-              </div>
-              <form onSubmit={send} className="flex items-center gap-2 border-t p-3" style={{ borderColor: HAIR }}>
-                <input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  data-testid="chat-input"
-                  placeholder={t('Write a message', 'اكتب رسالة')}
-                  aria-label={t('Message', 'الرسالة')}
-                  className="h-11 min-w-0 flex-1 border bg-white px-4 text-[13px] outline-none focus:border-[#171512]"
-                  style={{ borderColor: '#C9C2B4' }}
-                />
-                <button type="submit" data-testid="chat-send" aria-label={t('Send', 'إرسال')} className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#171512] text-white transition-colors hover:bg-[#5A6B4D]">
-                  <Send size={15} strokeWidth={1.5} className={isAr ? '-scale-x-100' : ''} />
-                </button>
-              </form>
-            </section>
-          ) : (
-            <div className="hidden items-center justify-center text-[13px] md:flex" style={{ color: MUTED }}>{t('Choose a conversation', 'اختر محادثة')}</div>
-          )}
+                  )}
+                  <div ref={end} />
+                </div>
+                <form onSubmit={send} className="flex items-center gap-2 border-t bg-white p-3 md:p-4" style={{ borderColor: HAIR }}>
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    data-testid="chat-input"
+                    placeholder={t('Write a message', 'اكتب رسالة')}
+                    aria-label={t('Message', 'الرسالة')}
+                    className="h-12 min-w-0 flex-1 border bg-white px-4 text-[13.5px] outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
+                    style={{ borderColor: '#C9C2B4' }}
+                  />
+                  <button type="submit" data-testid="chat-send" aria-label={t('Send', 'إرسال')} className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#171512] text-white transition-colors hover:bg-[#5A6B4D]">
+                    <Send size={16} strokeWidth={1.5} className={isAr ? '-scale-x-100' : ''} />
+                  </button>
+                </form>
+              </section>
+            ) : (
+              <div className="hidden items-center justify-center text-[13px] md:flex" style={{ color: MUTED, backgroundColor: TILE }}>{t('Choose a conversation', 'اختر محادثة')}</div>
+            )}
+          </div>
         </div>
       </div>
     </main>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Loyalty                                                             */
 /* ------------------------------------------------------------------ */
 
 export function LoyaltyPage() {
