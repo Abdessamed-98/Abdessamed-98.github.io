@@ -431,7 +431,7 @@ export function ChatPage() {
           >
             {/* threads */}
             <aside className={`${open ? 'hidden md:flex' : 'flex'} min-h-0 flex-col border-e`} style={{ borderColor: HAIR }}>
-              <p className={`flex items-center justify-between border-b px-5 py-4 text-[11px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
+              <p className={`flex h-[73px] shrink-0 items-center justify-between border-b px-5 text-[11px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
                 {t('Inbox', 'البريد')}
                 <span className="font-['Outfit',sans-serif] text-[10px] font-medium" style={{ color: MUTED }}>{threads.length}</span>
               </p>
@@ -470,7 +470,7 @@ export function ChatPage() {
             {/* conversation */}
             {active ? (
               <section className={`${want ? 'flex' : 'hidden md:flex'} min-h-0 flex-col`}>
-                <header className="flex items-center gap-3 border-b bg-white px-5 py-4" style={{ borderColor: HAIR }}>
+                <header className="flex h-[73px] shrink-0 items-center gap-3 border-b bg-white px-5" style={{ borderColor: HAIR }}>
                   <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
                     <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                   </button>
