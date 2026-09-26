@@ -6,8 +6,10 @@
  * way the service pages do it — ink type under a cover band left the name
  * stranded on an empty cream strip.
  *
- * Below the numbers the page splits as the original does — products, about,
- * reviews — with the tab in the URL (?tab=about) so each can be linked to.
+ * Below the numbers the page splits — products, services, about, reviews —
+ * with the tab in the URL (?tab=services) so each can be linked to. Products
+ * open on the store's categories (the rooms its pieces are for), which filter
+ * the collection in place.
  */
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -21,14 +23,18 @@ import {
   searchPath,
   storeOf,
   REVIEWS,
+  ROOMS,
+  type RoomKey,
   type StoreKey,
 } from '../lookShared';
 import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars } from './ui';
 import { RatingInput, Tabs, TextArea } from './kit';
 import { Sheet } from './Sheet';
 import { useShell } from './shellContext';
+import { STORE_SERVICES } from './data';
+import { motion } from 'motion/react';
 
-type StoreTab = 'products' | 'about' | 'reviews';
+type StoreTab = 'products' | 'services' | 'about' | 'reviews';
 
 export default function StorePage() {
   const { lang, t } = useLook();
@@ -42,8 +48,14 @@ export default function StorePage() {
   const branches = STORE_LOCATIONS.filter((l) => l.store === store.key);
   const [sp, setSp] = useSearchParams();
   const rawTab = sp.get('tab');
-  const tab: StoreTab = rawTab === 'about' || rawTab === 'reviews' ? rawTab : 'products';
+  const tab: StoreTab = rawTab === 'services' || rawTab === 'about' || rawTab === 'reviews' ? rawTab : 'products';
   const setTab = (k: StoreTab) => setSp(k === 'products' ? {} : { tab: k }, { replace: true });
+
+  /* categories: the rooms this store's pieces are for, with real counts */
+  const [room, setRoom] = useState<RoomKey | 'all'>('all');
+  const cats = ROOMS.map((r) => ({ ...r, n: products.filter((p) => p.room === r.key).length })).filter((r) => r.n > 0);
+  const shown = room === 'all' ? products : products.filter((p) => p.room === room);
+  const services = STORE_SERVICES[store.key] ?? [];
 
   if (!known) {
     return (
@@ -140,6 +152,7 @@ export default function StorePage() {
             onChange={setTab}
             items={[
               { key: 'products', label: t('Products', 'المنتجات'), count: products.length },
+              { key: 'services', label: t('Services', 'الخدمات'), count: services.length },
               { key: 'about', label: t('About', 'عن المتجر') },
               { key: 'reviews', label: t('Reviews', 'التقييمات'), count: REVIEWS.length },
             ]}
@@ -148,6 +161,7 @@ export default function StorePage() {
 
         {tab === 'about' && <About storeName={t(store.name.en, store.name.ar)} specialty={t(store.specialty.en, store.specialty.ar)} />}
         {tab === 'reviews' && <StoreReviews rating={store.rating} />}
+        {tab === 'services' && <StoreServices storeName={t(store.name.en, store.name.ar)} list={services} />}
 
         {/* branches */}
         {tab === 'about' && branches.length > 0 && (
@@ -193,16 +207,53 @@ export default function StorePage() {
             </Link>
           </div>
 
+          {cats.length > 0 && (
+            <div className="mt-8" data-testid="store-categories">
+              <ul className="scrollbar-hide -mx-6 flex snap-x gap-3 overflow-x-auto scroll-px-6 px-6 md:mx-0 md:flex-wrap md:px-0">
+                {[{ key: 'all' as const, img: store.cover, en: 'Everything', ar: 'الكل', n: products.length }, ...cats].map((c) => {
+                  const on = room === c.key;
+                  return (
+                    <li key={c.key} className="shrink-0 snap-start">
+                      <button
+                        type="button"
+                        aria-pressed={on}
+                        data-testid={`store-cat-${c.key}`}
+                        onClick={() => setRoom(c.key)}
+                        className="group flex w-[148px] flex-col text-start md:w-[168px]"
+                      >
+                        <span className="relative block aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
+                          <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]" />
+                          <span className={`absolute inset-0 transition-colors ${on ? 'bg-black/0' : 'bg-white/25 group-hover:bg-white/0'}`} />
+                          <span className="absolute inset-x-0 bottom-0 h-[3px] transition-colors" style={{ backgroundColor: on ? INK : 'transparent' }} />
+                        </span>
+                        <span className={`mt-2.5 block text-[13px] ${on ? 'font-bold' : 'font-medium'}`}>{t(c.en, c.ar)}</span>
+                        <span className="mt-0.5 block text-[11px]" style={{ color: MUTED }}>
+                          {t(`${c.n} ${c.n === 1 ? 'piece' : 'pieces'}`, `${c.n} ${c.n === 1 ? 'قطعة' : c.n === 2 ? 'قطعتان' : 'قطع'}`)}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
           {products.length === 0 ? (
             <p className="mt-10 text-[15px] font-light" style={{ color: '#4A443C' }}>
               {t('This store has no products listed yet.', 'لا توجد منتجات معروضة لهذا المتجر بعد.')}
             </p>
           ) : (
-            <div className="mt-10 grid gap-x-5 gap-y-12 sm:grid-cols-2 md:gap-x-6 lg:grid-cols-4">
-              {products.map((p) => (
+            <motion.div
+              key={room}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="mt-10 grid gap-x-5 gap-y-12 sm:grid-cols-2 md:gap-x-6 lg:grid-cols-4"
+            >
+              {shown.map((p) => (
                 <ProductCard key={p.id} p={p} testId="store-product-card" />
               ))}
-            </div>
+            </motion.div>
           )}
         </section>
         )}
@@ -363,6 +414,55 @@ function StoreReviews({ rating }: { rating: number }) {
           <button type="submit" className={`w-full py-4 ${primaryBtnCls(isAr)}`}>{t('Send Review', 'إرسال التقييم')}</button>
         </form>
       </Sheet>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Services                                                            */
+/* ------------------------------------------------------------------ */
+function StoreServices({ storeName, list }: { storeName: string; list: (typeof STORE_SERVICES)[StoreKey] }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const caps = isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]';
+  const { openService } = useShell();
+  return (
+    <section className="py-12 md:py-16" data-testid="store-services">
+      <p className="max-w-2xl text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+        {t(
+          `Beyond the pieces: what ${storeName} does for you, carried out by Diyar-vetted crews and covered by the Diyar guarantee.`,
+          `أكثر من القطع: ما يقدّمه ${storeName} لك، تنفّذه فرق معتمدة من ديار ويشمله ضمان ديار.`,
+        )}
+      </p>
+      <ul className="mt-10 grid gap-5 md:grid-cols-3">
+        {list.map((sv) => (
+          <li key={sv.title.en} className="flex flex-col border p-6 md:p-7" style={{ borderColor: HAIR }} data-testid="store-service">
+            <span className="flex h-12 w-12 items-center justify-center" style={{ backgroundColor: TILE }}>
+              <sv.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
+            </span>
+            <p className="mt-6 text-[17px] font-bold">{t(sv.title.en, sv.title.ar)}</p>
+            <p className="mt-2 flex-1 text-[13.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(sv.body.en, sv.body.ar)}</p>
+            <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: HAIR }}>
+              <div>
+                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Price', 'السعر')}</dt>
+                <dd className="mt-1 text-[13px] font-bold">{t(sv.price.en, sv.price.ar)}</dd>
+              </div>
+              <div>
+                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Timing', 'المدة')}</dt>
+                <dd className="mt-1 text-[13px] font-bold">{t(sv.lead.en, sv.lead.ar)}</dd>
+              </div>
+            </dl>
+            <button
+              type="button"
+              data-testid="store-service-request"
+              onClick={() => openService(t(sv.title.en, sv.title.ar))}
+              className={`mt-6 w-full py-3.5 ${primaryBtnCls(isAr)}`}
+            >
+              {t('Request', 'اطلب الخدمة')}
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

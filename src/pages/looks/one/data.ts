@@ -3,7 +3,8 @@
  * account's inbox and history, chat, loyalty, help). Bilingual throughout, like
  * lookShared; kept apart from it so the catalogue file stays about the shop.
  */
-import { BLOG_POSTS, IMG, type Bi, type LookPost } from '../lookShared';
+import { Truck, PenTool, Layers, Ruler, Hammer, Lightbulb, Zap, Scissors, Sparkles, Palette, Gift, type LucideIcon } from 'lucide-react';
+import { BLOG_POSTS, IMG, type Bi, type LookPost, type StoreKey } from '../lookShared';
 
 /* ------------------------------------------------------------------ */
 /* Orders                                                              */
@@ -406,3 +407,68 @@ export const ARTICLE_BODY: { heading?: Bi; text: Bi }[] = [
     },
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Store services — what each store does beyond selling the piece      */
+/* ------------------------------------------------------------------ */
+
+export interface StoreService {
+  icon: LucideIcon;
+  title: Bi;
+  body: Bi;
+  price: Bi;
+  lead: Bi;
+}
+
+const DELIVERY: StoreService = {
+  icon: Truck,
+  title: { en: 'Delivery & installation', ar: 'التوصيل والتركيب' },
+  body: { en: 'Diyar crews deliver, assemble and take the packaging away.', ar: 'فرق ديار توصل وتجمّع وتأخذ مواد التغليف معها.' },
+  price: { en: 'Free over 3,000 SAR', ar: 'مجاني فوق 3,000 ر.س' },
+  lead: { en: '2–5 days', ar: '2–5 أيام' },
+};
+const CONSULT: StoreService = {
+  icon: PenTool,
+  title: { en: 'Design consultation', ar: 'استشارة تصميم' },
+  body: { en: 'An hour with a designer to plan the room around the pieces.', ar: 'ساعة مع مصمم لتخطيط الغرفة حول القطع.' },
+  price: { en: 'Free with orders over 5,000 SAR', ar: 'مجانية مع الطلبات فوق 5,000 ر.س' },
+  lead: { en: 'Online or at home', ar: 'عن بعد أو في المنزل' },
+};
+
+export const STORE_SERVICES: Record<StoreKey, StoreService[]> = {
+  diyar: [
+    DELIVERY,
+    CONSULT,
+    { icon: Layers, title: { en: 'Full-room packages', ar: 'باقات الغرف الكاملة' }, body: { en: 'A whole room specified, supplied and installed in one visit.', ar: 'غرفة كاملة بمواصفاتها وتوريدها وتركيبها في زيارة واحدة.' }, price: { en: 'From 6,900 SAR', ar: 'من 6,900 ر.س' }, lead: { en: '3 weeks', ar: '3 أسابيع' } },
+  ],
+  bk: [
+    { icon: Ruler, title: { en: 'Made to measure', ar: 'تفصيل حسب المقاس' }, body: { en: 'Any piece in the range built to your dimensions and wood.', ar: 'أي قطعة من التشكيلة تُصنع بمقاساتك ونوع الخشب الذي تختاره.' }, price: { en: 'From 2,500 SAR', ar: 'من 2,500 ر.س' }, lead: { en: '3–4 weeks', ar: '3–4 أسابيع' } },
+    { icon: Hammer, title: { en: 'Refinishing & repair', ar: 'التجديد والإصلاح' }, body: { en: 'Sanding, re-oiling and joint repair for solid-wood pieces.', ar: 'صنفرة وإعادة تزييت وإصلاح وصلات قطع الخشب الصلب.' }, price: { en: 'From 350 SAR', ar: 'من 350 ر.س' }, lead: { en: '1 week', ar: 'أسبوع' } },
+    DELIVERY,
+  ],
+  ld: [
+    { icon: Lightbulb, title: { en: 'Lighting plan', ar: 'مخطط الإنارة' }, body: { en: 'A layered plan for one room or the whole house, with fixture list.', ar: 'مخطط إنارة متدرّج لغرفة أو للمنزل كاملاً، مع قائمة القطع.' }, price: { en: 'From 900 SAR', ar: 'من 900 ر.س' }, lead: { en: '5 days', ar: '5 أيام' } },
+    { icon: Zap, title: { en: 'Installation by electricians', ar: 'التركيب بفنيين كهرباء' }, body: { en: 'Pendants, sconces and dimmers fitted and tested.', ar: 'تركيب الإنارات المعلقة والجدارية ومفاتيح التعتيم واختبارها.' }, price: { en: '150 SAR per point', ar: '150 ر.س لكل نقطة' }, lead: { en: 'Next week', ar: 'الأسبوع القادم' } },
+    DELIVERY,
+  ],
+  dw: [
+    { icon: Ruler, title: { en: 'Majlis to size', ar: 'مجلس حسب المقاس' }, body: { en: 'Seating cut to your walls, in the fabric and firmness you choose.', ar: 'جلسات مفصّلة على جدرانك، بالقماش والصلابة التي تختارها.' }, price: { en: 'From 1,800 SAR per metre', ar: 'من 1,800 ر.س للمتر' }, lead: { en: '3 weeks', ar: '3 أسابيع' } },
+    { icon: Scissors, title: { en: 'Re-upholstery', ar: 'إعادة التنجيد' }, body: { en: 'New fabric and foam on the frames you already have.', ar: 'قماش وإسفنج جديد على الهياكل التي لديك.' }, price: { en: 'From 450 SAR per seat', ar: 'من 450 ر.س للمقعد' }, lead: { en: '10 days', ar: '10 أيام' } },
+    DELIVERY,
+  ],
+  ns: [
+    { icon: Sparkles, title: { en: 'Rug cleaning', ar: 'تنظيف السجاد' }, body: { en: 'Hand-washed and dried flat, collected and returned.', ar: 'غسيل يدوي وتجفيف مسطّح، مع الاستلام والتسليم.' }, price: { en: '35 SAR per m²', ar: '35 ر.س للمتر المربع' }, lead: { en: '5 days', ar: '5 أيام' } },
+    { icon: Scissors, title: { en: 'Cut & bound to size', ar: 'قص وتطريف حسب المقاس' }, body: { en: 'Wall-to-wall or any shape, edges bound by hand.', ar: 'من الجدار للجدار أو بأي شكل، مع تطريف الحواف يدوياً.' }, price: { en: 'From 120 SAR per m²', ar: 'من 120 ر.س للمتر المربع' }, lead: { en: '1 week', ar: 'أسبوع' } },
+    DELIVERY,
+  ],
+  zk: [
+    { icon: Palette, title: { en: 'Styling session', ar: 'جلسة تنسيق' }, body: { en: 'A stylist dresses shelves, tables and walls with what you own and what you need.', ar: 'منسّق يرتّب الرفوف والطاولات والجدران بما لديك وما تحتاجه.' }, price: { en: 'From 600 SAR', ar: 'من 600 ر.س' }, lead: { en: 'This week', ar: 'هذا الأسبوع' } },
+    { icon: Gift, title: { en: 'Gift wrapping', ar: 'تغليف الهدايا' }, body: { en: 'Wrapped, with a card, delivered on the day you pick.', ar: 'مغلّفة مع بطاقة، وتصل في اليوم الذي تختاره.' }, price: { en: '25 SAR', ar: '25 ر.س' }, lead: { en: 'Same day in Jeddah', ar: 'في نفس اليوم في جدة' } },
+    DELIVERY,
+  ],
+  mk: [
+    { icon: Layers, title: { en: 'Office space planning', ar: 'تخطيط المساحات المكتبية' }, body: { en: 'Desk layout, meeting rooms and storage drawn to your floor plan.', ar: 'توزيع المكاتب وقاعات الاجتماعات والتخزين على مخطط مساحتك.' }, price: { en: 'Free for 10+ seats', ar: 'مجاني لعشرة مقاعد فأكثر' }, lead: { en: '1 week', ar: 'أسبوع' } },
+    { icon: Hammer, title: { en: 'Office move & reinstall', ar: 'نقل وإعادة تركيب المكاتب' }, body: { en: 'Your existing furniture taken down, moved and set up again.', ar: 'فك أثاثك الحالي ونقله وإعادة تركيبه.' }, price: { en: 'From 1,200 SAR', ar: 'من 1,200 ر.س' }, lead: { en: 'Over a weekend', ar: 'خلال عطلة نهاية الأسبوع' } },
+    DELIVERY,
+  ],
+};
