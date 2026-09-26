@@ -28,7 +28,7 @@ import {
   type StoreKey,
 } from '../lookShared';
 import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars } from './ui';
-import { RatingInput, Tabs, TextArea } from './kit';
+import { RatingInput, ServiceOffers, Tabs, TextArea } from './kit';
 import { Sheet } from './Sheet';
 import { useShell } from './shellContext';
 import { STORE_SERVICES } from './data';
@@ -420,47 +420,15 @@ function StoreReviews({ rating }: { rating: number }) {
 /* Services                                                            */
 /* ------------------------------------------------------------------ */
 function StoreServices({ storeName, list }: { storeName: string; list: (typeof STORE_SERVICES)[StoreKey] }) {
-  const { lang, t } = useLook();
-  const isAr = lang === 'ar';
-  const caps = isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]';
-  const { openService } = useShell();
+  const { t } = useLook();
   return (
-    <section className="py-12 md:py-16" data-testid="store-services">
-      <p className="max-w-2xl text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
-        {t(
-          `Beyond the pieces: what ${storeName} does for you, carried out by Diyar-vetted crews and covered by the Diyar guarantee.`,
-          `أكثر من القطع: ما يقدّمه ${storeName} لك، تنفّذه فرق معتمدة من ديار ويشمله ضمان ديار.`,
-        )}
-      </p>
-      <ul className="mt-10 grid gap-5 md:grid-cols-3">
-        {list.map((sv) => (
-          <li key={sv.title.en} className="flex flex-col border p-6 md:p-7" style={{ borderColor: HAIR }} data-testid="store-service">
-            <span className="flex h-12 w-12 items-center justify-center" style={{ backgroundColor: TILE }}>
-              <sv.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
-            </span>
-            <p className="mt-6 text-[17px] font-bold">{t(sv.title.en, sv.title.ar)}</p>
-            <p className="mt-2 flex-1 text-[13.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(sv.body.en, sv.body.ar)}</p>
-            <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: HAIR }}>
-              <div>
-                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Price', 'السعر')}</dt>
-                <dd className="mt-1 text-[13px] font-bold">{t(sv.price.en, sv.price.ar)}</dd>
-              </div>
-              <div>
-                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Timing', 'المدة')}</dt>
-                <dd className="mt-1 text-[13px] font-bold">{t(sv.lead.en, sv.lead.ar)}</dd>
-              </div>
-            </dl>
-            <button
-              type="button"
-              data-testid="store-service-request"
-              onClick={() => openService(t(sv.title.en, sv.title.ar))}
-              className={`mt-6 w-full py-3.5 ${primaryBtnCls(isAr)}`}
-            >
-              {t('Request', 'اطلب الخدمة')}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <ServiceOffers
+      testId="store-services"
+      list={list}
+      intro={t(
+        `Beyond the pieces: what ${storeName} does for you, carried out by Diyar-vetted crews and covered by the Diyar guarantee.`,
+        `أكثر من القطع: ما يقدّمه ${storeName} لك، تنفّذه فرق معتمدة من ديار ويشمله ضمان ديار.`,
+      )}
+    />
   );
 }

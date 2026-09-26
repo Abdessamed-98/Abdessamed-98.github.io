@@ -10,7 +10,9 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, ChevronLeft, ChevronRight, Star, X } from 'lucide-react';
-import { Breadcrumb, FIELD, HAIR, INK, MUTED, OLIVE, primaryBtnCls, useLook, type Crumb } from './ui';
+import { Breadcrumb, FIELD, HAIR, INK, MUTED, OLIVE, TILE, primaryBtnCls, useLook, type Crumb } from './ui';
+import { useShell } from './shellContext';
+import type { StoreService } from './data';
 
 export const CONTAINER = 'mx-auto max-w-[1400px] px-6 md:px-10';
 
@@ -583,5 +585,53 @@ export function Badge({ tone, children }: { tone: 'olive' | 'ink' | 'muted' | 'r
     <span className="inline-flex items-center border px-2.5 py-1 text-[10px] font-semibold" style={{ color: colors.c, borderColor: colors.b }}>
       {children}
     </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Service offers — a store's or a provider's services tab             */
+/* ------------------------------------------------------------------ */
+
+/** Cards with price, timing and a request button that opens the service sheet pre-filled. */
+export function ServiceOffers({ intro, list, testId }: { intro: string; list: StoreService[]; testId: string }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const caps = capsCls(isAr);
+  const { openService } = useShell();
+  return (
+    <section className="py-12 md:py-16" data-testid={testId}>
+      <p className="max-w-2xl text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+        {intro}
+      </p>
+      <ul className="mt-10 grid gap-5 md:grid-cols-3">
+        {list.map((sv) => (
+          <li key={sv.title.en} className="flex flex-col border p-6 md:p-7" style={{ borderColor: HAIR }} data-testid="service-offer">
+            <span className="flex h-12 w-12 items-center justify-center" style={{ backgroundColor: TILE }}>
+              <sv.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
+            </span>
+            <p className="mt-6 text-[17px] font-bold">{t(sv.title.en, sv.title.ar)}</p>
+            <p className="mt-2 flex-1 text-[13.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(sv.body.en, sv.body.ar)}</p>
+            <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: HAIR }}>
+              <div>
+                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Price', 'السعر')}</dt>
+                <dd className="mt-1 text-[13px] font-bold">{t(sv.price.en, sv.price.ar)}</dd>
+              </div>
+              <div>
+                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Timing', 'المدة')}</dt>
+                <dd className="mt-1 text-[13px] font-bold">{t(sv.lead.en, sv.lead.ar)}</dd>
+              </div>
+            </dl>
+            <button
+              type="button"
+              data-testid="service-offer-request"
+              onClick={() => openService(t(sv.title.en, sv.title.ar))}
+              className={`mt-6 w-full py-3.5 ${primaryBtnCls(isAr)}`}
+            >
+              {t('Request', 'اطلب الخدمة')}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

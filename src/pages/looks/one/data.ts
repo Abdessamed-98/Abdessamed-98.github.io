@@ -512,3 +512,30 @@ export const SERVICE_GALLERY: Record<string, WorkShot[]> = {
   'Glass & Skylight Facades': shots([IMG.hero, '/after.png', `${F}/office.webp`, IMG.restaurant, IMG.catLighting], VENUES, 3),
   'Safety Equipment & Systems': shots([IMG.restaurant, IMG.catOffice, IMG.loungeDark, `${F}/office.webp`, `${F}/bath.webp`], VENUES),
 };
+
+/* ------------------------------------------------------------------ */
+/* Provider services — what each partner can be booked for             */
+/* ------------------------------------------------------------------ */
+
+export const PROVIDER_SERVICES: Record<string, StoreService[]> = {
+  'iwan-design': [
+    { icon: PenTool, title: { en: 'Single-room design', ar: 'تصميم غرفة واحدة' }, body: { en: 'Layout, palette, furniture list and a 3D view of one room.', ar: 'توزيع ولوحة ألوان وقائمة أثاث ومنظور ثلاثي الأبعاد لغرفة واحدة.' }, price: { en: 'From 3,500 SAR', ar: 'من 3,500 ر.س' }, lead: { en: '2 weeks', ar: 'أسبوعان' } },
+    { icon: Layers, title: { en: 'Whole-home design', ar: 'تصميم منزل كامل' }, body: { en: 'Every room planned together, with site supervision to handover.', ar: 'كل الغرف مخططة معاً، مع إشراف على التنفيذ حتى التسليم.' }, price: { en: 'From 12,000 SAR', ar: 'من 12,000 ر.س' }, lead: { en: '6–8 weeks', ar: '6–8 أسابيع' } },
+    { icon: Sparkles, title: { en: 'Design consultation', ar: 'استشارة تصميم' }, body: { en: 'Two hours at your home: what to keep, what to change, where to start.', ar: 'ساعتان في منزلك: ما تحتفظ به، وما تغيّره، ومن أين تبدأ.' }, price: { en: '600 SAR', ar: '600 ر.س' }, lead: { en: 'This week', ar: 'هذا الأسبوع' } },
+  ],
+  'bayt-joinery': [
+    { icon: Ruler, title: { en: 'Furniture to measure', ar: 'أثاث حسب المقاس' }, body: { en: 'Tables, beds and cabinets built in solid wood to your drawings.', ar: 'طاولات وأسرّة وخزائن من الخشب الصلب حسب رسوماتك.' }, price: { en: 'From 2,500 SAR', ar: 'من 2,500 ر.س' }, lead: { en: '3–4 weeks', ar: '3–4 أسابيع' } },
+    { icon: Layers, title: { en: 'Built-in storage', ar: 'خزائن مدمجة' }, body: { en: 'Wardrobes, dressing rooms and wall units fitted wall to wall.', ar: 'خزائن ملابس وغرف تبديل ووحدات جدارية مركّبة من الجدار للجدار.' }, price: { en: 'From 1,400 SAR per metre', ar: 'من 1,400 ر.س للمتر' }, lead: { en: '4 weeks', ar: '4 أسابيع' } },
+    { icon: Hammer, title: { en: 'Doors & panelling', ar: 'الأبواب والتكسيات الخشبية' }, body: { en: 'Solid doors, frames and wall panelling, supplied and hung.', ar: 'أبواب خشب صلب وحلوق وتكسيات جدارية، توريد وتركيب.' }, price: { en: 'From 1,900 SAR per door', ar: 'من 1,900 ر.س للباب' }, lead: { en: '3 weeks', ar: '3 أسابيع' } },
+  ],
+  'lumen-lighting': [
+    { icon: Lightbulb, title: { en: 'Lighting plan', ar: 'مخطط الإنارة' }, body: { en: 'Ambient, task and accent light drawn for each room, with a fixture list.', ar: 'إنارة عامة ووظيفية ومركّزة لكل غرفة، مع قائمة القطع.' }, price: { en: 'From 900 SAR', ar: 'من 900 ر.س' }, lead: { en: '5 days', ar: '5 أيام' } },
+    { icon: Zap, title: { en: 'Fixture installation', ar: 'تركيب الإنارات' }, body: { en: 'Pendants, sconces, strips and dimmers fitted and tested.', ar: 'تركيب واختبار الإنارات المعلقة والجدارية والشرائط ومفاتيح التعتيم.' }, price: { en: '150 SAR per point', ar: '150 ر.س لكل نقطة' }, lead: { en: 'Next week', ar: 'الأسبوع القادم' } },
+    { icon: Sparkles, title: { en: 'Smart lighting', ar: 'الإنارة الذكية' }, body: { en: 'Scenes and schedules for the whole house on one app.', ar: 'مشاهد وجداول للمنزل كاملاً عبر تطبيق واحد.' }, price: { en: 'From 4,800 SAR', ar: 'من 4,800 ر.س' }, lead: { en: '2 weeks', ar: 'أسبوعان' } },
+  ],
+  'sahl-painting': [
+    { icon: Palette, title: { en: 'Interior painting', ar: 'دهان داخلي' }, body: { en: 'Walls and ceilings prepared, primed and finished in two coats.', ar: 'تجهيز الجدران والأسقف وتأسيسها وطلاؤها بطبقتين.' }, price: { en: 'From 22 SAR per m²', ar: 'من 22 ر.س للمتر المربع' }, lead: { en: '3–5 days', ar: '3–5 أيام' } },
+    { icon: Layers, title: { en: 'Lime plaster & microcement', ar: 'الجير والمايكروسمنت' }, body: { en: 'Hand-applied mineral finishes for walls, floors and bathrooms.', ar: 'تشطيبات معدنية يدوية للجدران والأرضيات ودورات المياه.' }, price: { en: 'From 180 SAR per m²', ar: 'من 180 ر.س للمتر المربع' }, lead: { en: '1–2 weeks', ar: '1–2 أسبوع' } },
+    { icon: Scissors, title: { en: 'Wallpaper hanging', ar: 'تركيب ورق الجدران' }, body: { en: 'Measured, matched and hung, including feature murals.', ar: 'قياس ومطابقة وتركيب، بما فيها الجداريات المميزة.' }, price: { en: 'From 35 SAR per m²', ar: 'من 35 ر.س للمتر المربع' }, lead: { en: '2 days', ar: 'يومان' } },
+  ],
+};

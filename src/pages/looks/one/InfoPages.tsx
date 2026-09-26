@@ -15,9 +15,9 @@ import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, ProductCard, Stars, pri
 import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
-import { CONTAINER, EmptyState, Lightbox, PageHead, Tabs, capsCls, displayCls } from './kit';
+import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
 import { serviceSlug } from './ServicePage';
-import { HELP_TOPICS, PROVIDERS, type Provider } from './data';
+import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, type Provider } from './data';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -174,7 +174,7 @@ export function ServiceProviders({ serviceEn }: { serviceEn: string }) {
 /* Provider profile                                                    */
 /* ------------------------------------------------------------------ */
 
-type ProviderTab = 'about' | 'work' | 'reviews';
+type ProviderTab = 'about' | 'services' | 'work' | 'reviews';
 
 export function ProviderPage() {
   const { lang, t } = useLook();
@@ -188,7 +188,8 @@ export function ProviderPage() {
   if (!p) return <NotFoundPage />;
 
   const rawTab = sp.get('tab');
-  const tab: ProviderTab = rawTab === 'work' || rawTab === 'reviews' ? rawTab : 'about';
+  const tab: ProviderTab = rawTab === 'services' || rawTab === 'work' || rawTab === 'reviews' ? rawTab : 'about';
+  const offers = PROVIDER_SERVICES[p.id] ?? [];
   const service = SERVICES.find((s) => s.en === p.service);
   const serviceName = service ? t(service.en, service.ar) : '';
 
@@ -235,7 +236,7 @@ export function ProviderPage() {
       </div>
 
       <div className="border-b" style={{ borderColor: HAIR, backgroundColor: TILE }}>
-        <ul className={`${CONTAINER} grid grid-cols-3 divide-x divide-[#E8E4DC] rtl:divide-x-reverse`}>
+        <ul className={`${CONTAINER} grid grid-cols-3 divide-x divide-[#E8E4DC]`}>
           {[
             { icon: Star, label: t('Rating', 'التقييم'), value: p.rating.toFixed(1) },
             { icon: Briefcase, label: t('Jobs done', 'مشاريع منجزة'), value: String(p.jobs) },
@@ -260,11 +261,23 @@ export function ProviderPage() {
             onChange={(k) => setSp(k === 'about' ? {} : { tab: k }, { replace: true })}
             items={[
               { key: 'about', label: t('About', 'نبذة') },
+              { key: 'services', label: t('Services', 'الخدمات'), count: offers.length },
               { key: 'work', label: t('Work', 'الأعمال'), count: p.portfolio.length },
               { key: 'reviews', label: t('Reviews', 'التقييمات'), count: p.reviews.length },
             ]}
           />
         </div>
+
+        {tab === 'services' && (
+          <ServiceOffers
+            testId="provider-services"
+            list={offers}
+            intro={t(
+              `What you can book ${p.name.en} for — every job quoted in writing and covered by the Diyar guarantee.`,
+              `ما يمكنك حجز ${p.name.ar} له — كل عمل بعرض سعر مكتوب ويشمله ضمان ديار.`,
+            )}
+          />
+        )}
 
         {tab === 'about' && (
           <section className="grid gap-12 py-12 md:py-16 lg:grid-cols-12 lg:gap-16" data-testid="provider-about">
