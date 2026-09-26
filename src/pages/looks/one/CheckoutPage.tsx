@@ -213,7 +213,7 @@ export default function CheckoutPage() {
               </Step>
 
               <Step n="03" title={t('Review', 'المراجعة')} last>
-                <ul className="divide-y border" style={{ borderColor: HAIR }}>
+                <ul className="divide-y divide-[#E8E4DC] border" style={{ borderColor: HAIR }}>
                   {items.map((line) => (
                     <ReviewLine key={line.uid} line={line} />
                   ))}
@@ -364,7 +364,7 @@ export function OrderPage() {
         {order && (
           <div className="mt-10 border p-6 text-start" style={{ borderColor: HAIR }}>
             <p className={`text-[10px] text-[#5F5950] ${caps}`}>{t('Summary', 'الملخص')}</p>
-            <ul className="mt-4 divide-y" style={{ borderColor: HAIR }}>
+            <ul className="mt-4 divide-y divide-[#E8E4DC]" style={{ borderColor: HAIR }}>
               {order.lines.map((l, i) => (
                 <li key={i} className="flex items-baseline justify-between gap-4 py-3 text-[13px]">
                   <span className="min-w-0 flex-1 truncate font-light">

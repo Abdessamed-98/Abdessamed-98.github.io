@@ -42,7 +42,7 @@ export function WishlistSheet({ open, onClose, onAdded }: { open: boolean; onClo
           </Link>
         </div>
       ) : (
-        <ul className="divide-y" style={{ borderColor: HAIR }}>
+        <ul className="divide-y divide-[#E8E4DC]" style={{ borderColor: HAIR }}>
           {items.map((p) => {
             const name = t(p.name.en, p.name.ar);
             const store = storeOf(p.store);

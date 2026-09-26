@@ -409,7 +409,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               </div>
 
               {/* delivery & installation */}
-              <ul className="mt-8 divide-y border" style={{ borderColor: HAIR }} data-testid="delivery-block">
+              <ul className="mt-8 divide-y divide-[#E8E4DC] border" style={{ borderColor: HAIR }} data-testid="delivery-block">
                 {[
                   { icon: Truck, title: p.leadTime[lang], sub: t('Kingdom-wide delivery', 'توصيل لكل مناطق المملكة') },
                   { icon: Wrench, title: t('Professional installation by Diyar crews', 'تركيب احترافي بفرق ديار'), sub: t('Assembly included with delivery', 'التجميع مشمول مع التوصيل') },
