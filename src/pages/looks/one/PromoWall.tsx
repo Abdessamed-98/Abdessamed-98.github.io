@@ -18,7 +18,7 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { PROMO_PANELS, msUntilMidnight, searchPath, type PromoPanel } from '../lookShared';
-import { HAIR, OLIVE, useLook, useSeen } from './ui';
+import { HAIR, OLIVE, RAIL_ITEM_MD, RAIL_MD, useLook, useSeen } from './ui';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
@@ -179,10 +179,13 @@ export function PromoWall() {
       style={{ borderColor: HAIR }}
     >
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-        {/* one gap value everywhere: the same 16px between columns and rows */}
-        <div className="grid gap-4 lg:grid-cols-12">
+        {/* one gap value everywhere: the same 16px between columns and rows.
+            On a phone the two grids dissolve (display: contents) and all five
+            tiles run as one sideways row, the offer with the clock first. */}
+        <div className={`${RAIL_MD} gap-4 md:block`} data-testid="promo-rail">
+        <div className="contents md:grid md:gap-4 lg:grid-cols-12">
           {/* the one offer with a clock on it */}
-          <Tile seen={wall.seen} order={0} className="lg:col-span-8">
+          <Tile seen={wall.seen} order={0} className={`${RAIL_ITEM_MD} lg:col-span-8`}>
             {leadHref ? (
               <Link to={leadHref} className={leadCls} data-testid="promo-lead">{leadInner}</Link>
             ) : (
@@ -191,17 +194,18 @@ export function PromoWall() {
           </Tile>
 
           {/* the standing service, kept quiet beside it */}
-          <Tile seen={wall.seen} order={1} className="lg:col-span-4">
+          <Tile seen={wall.seen} order={1} className={`${RAIL_ITEM_MD} lg:col-span-4`}>
             <QuietPanel p={rest[0]} tall />
           </Tile>
         </div>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="contents md:mt-4 md:grid md:grid-cols-3 md:gap-4">
           {rest.slice(1).map((p, i) => (
-            <Tile key={p.title.en} seen={wall.seen} order={2 + i}>
+            <Tile key={p.title.en} seen={wall.seen} order={2 + i} className={RAIL_ITEM_MD}>
               <QuietPanel p={p} />
             </Tile>
           ))}
+        </div>
         </div>
       </div>
     </section>

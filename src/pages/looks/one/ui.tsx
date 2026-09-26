@@ -128,6 +128,27 @@ export function SectionHeading({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Phone rails                                                         */
+/* ------------------------------------------------------------------ */
+
+/* On a phone a stack of like cards becomes a sideways row with the next card
+   peeking in; at the named breakpoint the section's own grid takes over again.
+   The container bleeds to the screen edge and snaps each card to the gutter.
+   Callers add the gap and the display they want at the breakpoint (sm:grid …). */
+export const RAIL_SM =
+  'scrollbar-hide -mx-6 flex snap-x snap-mandatory scroll-px-6 overflow-x-auto overflow-y-hidden px-6 sm:mx-0 sm:overflow-visible sm:px-0';
+export const RAIL_MD =
+  'scrollbar-hide -mx-6 flex snap-x snap-mandatory scroll-px-6 overflow-x-auto overflow-y-hidden px-6 md:mx-0 md:overflow-visible md:px-0';
+export const RAIL_LG =
+  'scrollbar-hide -mx-6 flex snap-x snap-mandatory scroll-px-6 overflow-x-auto overflow-y-hidden px-6 md:-mx-10 md:scroll-px-10 md:px-10 lg:mx-0 lg:overflow-visible lg:px-0';
+export const RAIL_ITEM_SM = 'w-[82%] shrink-0 snap-start sm:w-auto sm:shrink';
+export const RAIL_ITEM_MD = 'w-[82%] shrink-0 snap-start md:w-auto md:shrink';
+export const RAIL_ITEM_LG = 'w-[82%] shrink-0 snap-start md:w-[46%] lg:w-auto lg:shrink';
+/** whileInView for rail cards: off to the side still counts, so a card is already
+    there when it is swiped to rather than fading in under the finger */
+export const RAIL_VIEWPORT = { once: true, margin: '-80px 4000px' } as const;
+
 /** Tiny letterspaced uppercase "VIEW MORE →" link with hairline underline. */
 export function ViewMore({ label, light = false, to, onClick }: { label?: string; light?: boolean; to?: string; onClick?: () => void }) {
   const isAr = useLang() === 'ar';

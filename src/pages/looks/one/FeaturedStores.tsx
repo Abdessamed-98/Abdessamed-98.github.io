@@ -18,7 +18,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { STORES, formatSAR, searchPath } from '../lookShared';
-import { HAIR, Reveal, SectionHeading, ViewMore, useLook } from './ui';
+import { HAIR, Reveal, SectionHeading, ViewMore, useLook, RAIL_SM, RAIL_ITEM_SM, RAIL_VIEWPORT } from './ui';
 
 export function FeaturedStores({ no }: { no: string }) {
   const { lang, t } = useLook();
@@ -39,7 +39,7 @@ export function FeaturedStores({ no }: { no: string }) {
           </div>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:mt-16 md:gap-2 lg:grid-cols-3">
+        <div className={`mt-12 ${RAIL_SM} gap-1.5 sm:grid sm:grid-cols-2 md:mt-16 md:gap-2 lg:grid-cols-3`} data-testid="stores-rail">
           {STORES.map((s, i) => {
             const name = t(s.name.en, s.name.ar);
             return (
@@ -47,8 +47,9 @@ export function FeaturedStores({ no }: { no: string }) {
                 key={s.key}
                 initial={{ opacity: 0, y: 22 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
+                viewport={RAIL_VIEWPORT}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: (i % 3) * 0.07 }}
+                className={RAIL_ITEM_SM}
               >
                 <Link
                   to={searchPath(1, { store: s.key })}
