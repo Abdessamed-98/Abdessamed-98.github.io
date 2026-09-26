@@ -18,8 +18,9 @@ type WishlistCtx = {
 
 const WishlistContext = createContext<WishlistCtx | null>(null);
 
-export function WishlistProvider({ children }: { children: React.ReactNode }) {
-  const [ids, setIds] = useState<number[]>([]);
+/** `initial` pre-fills the list (demo pages start with a few saved pieces). */
+export function WishlistProvider({ children, initial = [] }: { children: React.ReactNode; initial?: number[] }) {
+  const [ids, setIds] = useState<number[]>(initial);
 
   const toggle = useCallback((id: number) => {
     setIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [id, ...prev]));

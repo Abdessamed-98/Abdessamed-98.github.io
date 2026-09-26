@@ -21,10 +21,13 @@ import { RequestServiceSheet } from './RequestServiceSheet';
 import { AuthSheet } from './AuthSheet';
 import { ImageSearchSheet } from './ImageSearchSheet';
 
+/** Saved from the start so the wishlist drawer and page are never empty on a first look. */
+const SEED_WISHLIST = [2, 5, 11, 12, 4];
+
 export function LookShell({ children }: { children: React.ReactNode }) {
   return (
     <LookCartProvider>
-      <WishlistProvider>
+      <WishlistProvider initial={SEED_WISHLIST}>
         <ShellInner>{children}</ShellInner>
       </WishlistProvider>
     </LookCartProvider>
