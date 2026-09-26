@@ -1975,12 +1975,15 @@ export function LookOneHome() {
       <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-            <Reveal className="lg:col-span-5">
-              <div className="overflow-hidden" style={{ backgroundColor: TILE }}>
+            {/* the phone sits on the left in both languages */}
+            <Reveal className={`lg:col-span-5 ${isAr ? 'lg:order-last' : ''}`}>
+              <div className="flex justify-center">
                 <img
-                  src={APP_PROMO.img}
+                  src="/looks/app-phone.webp"
                   alt={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
-                  className="aspect-[4/5] h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-auto max-h-[620px] w-auto max-w-[78%] object-contain drop-shadow-[0_40px_50px_rgba(23,21,18,0.22)] lg:max-w-full"
                 />
               </div>
             </Reveal>

@@ -31,7 +31,8 @@ const STEPS: Step[] = [
     fact: { en: 'Free home visit', ar: 'زيارة منزلية مجانية' },
   },
   {
-    img: '/looks/apartment.jpg',
+    // a drawing, not a photo: the apartment shot belongs to Shop by Room
+    img: '/looks/drawings/room-3d.svg',
     title: { en: 'Design', ar: 'التصميم' },
     body: {
       en: 'You see the room in 3D — materials, colours and every piece placed — before anything is built.',
