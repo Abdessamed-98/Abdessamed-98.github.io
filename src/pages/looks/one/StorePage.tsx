@@ -209,26 +209,24 @@ export default function StorePage() {
 
           {cats.length > 0 && (
             <div className="mt-8" data-testid="store-categories">
-              <ul className="scrollbar-hide -mx-6 flex snap-x gap-3 overflow-x-auto scroll-px-6 px-6 md:mx-0 md:flex-wrap md:px-0">
-                {[{ key: 'all' as const, img: store.cover, en: 'Everything', ar: 'الكل', n: products.length }, ...cats].map((c) => {
+              <ul className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0">
+                {[{ key: 'all' as const, en: 'Everything', ar: 'الكل', n: products.length }, ...cats].map((c) => {
                   const on = room === c.key;
                   return (
-                    <li key={c.key} className="shrink-0 snap-start">
+                    <li key={c.key} className="shrink-0">
                       <button
                         type="button"
                         aria-pressed={on}
                         data-testid={`store-cat-${c.key}`}
                         onClick={() => setRoom(c.key)}
-                        className="group flex w-[148px] flex-col text-start md:w-[168px]"
+                        className={`flex items-center gap-2.5 border px-4 py-2.5 text-[12.5px] transition-colors ${
+                          on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'
+                        }`}
+                        style={on ? undefined : { borderColor: '#C9C2B4' }}
                       >
-                        <span className="relative block aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
-                          <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]" />
-                          <span className={`absolute inset-0 transition-colors ${on ? 'bg-black/0' : 'bg-white/25 group-hover:bg-white/0'}`} />
-                          <span className="absolute inset-x-0 bottom-0 h-[3px] transition-colors" style={{ backgroundColor: on ? INK : 'transparent' }} />
-                        </span>
-                        <span className={`mt-2.5 block text-[13px] ${on ? 'font-bold' : 'font-medium'}`}>{t(c.en, c.ar)}</span>
-                        <span className="mt-0.5 block text-[11px]" style={{ color: MUTED }}>
-                          {t(`${c.n} ${c.n === 1 ? 'piece' : 'pieces'}`, `${c.n} ${c.n === 1 ? 'قطعة' : c.n === 2 ? 'قطعتان' : 'قطع'}`)}
+                        {t(c.en, c.ar)}
+                        <span className={`font-['Outfit',sans-serif] text-[10.5px] tabular-nums ${on ? 'text-white/70' : ''}`} style={on ? undefined : { color: MUTED }}>
+                          {c.n}
                         </span>
                       </button>
                     </li>
