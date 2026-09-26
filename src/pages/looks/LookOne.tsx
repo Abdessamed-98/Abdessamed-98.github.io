@@ -9,8 +9,9 @@
  * the look's pages: `LookOneHome`, `LookOneSearch`, `LookOneProduct`.
  */
 import {
-  useCallback, useEffect, useRef, useState,
+  startTransition, useCallback, useEffect, useMemo, useRef, useState,
   type CSSProperties, type FormEvent,
+  type ReactNode,
 } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -21,7 +22,7 @@ import {
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
-  DESIGN_ASSIST_ITEMS, FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
+  FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
   ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
   lookBase, searchPath, productPath,
@@ -38,9 +39,12 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
+import { serviceSlug } from './one/ServicePage';
+import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
-import { useShell } from './one/shellContext';
+import { AnnouncementBar, FloatingContact, PromoPopup } from './one/Overlays';
+import { useShell, type AuthRole } from './one/shellContext';
 import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
 import { HeroScrub } from './one/HeroScrub';
 import { BeforeAfter } from './one/BeforeAfter';
@@ -52,6 +56,7 @@ import { MadeToOrder } from './one/MadeToOrder';
 import { FeaturedStores } from './one/FeaturedStores';
 import { CurtainStage } from './one/CurtainStage';
 import { LoadReveal } from './one/LoadReveal';
+import { DesignStudio } from './one/DesignStudio';
 
 export { LookOneSearch } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -62,6 +67,49 @@ export {
 
 /** Mega-menu / drawer shop groups map 1:1 onto the catalog categories, in order. */
 const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
+/** The services menu lists the eight services in SERVICES order. */
+const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${lookBase(1)}/service/${serviceSlug(SERVICES[i])}` : undefined);
+/** Where the plain nav items go. */
+const NAV_TO: Record<string, string> = {
+  Home: lookBase(1),
+  'Design Consultation': `${lookBase(1)}/ai-designer`,
+  'B2B Solutions': `${lookBase(1)}/b2b`,
+  Services: `${lookBase(1)}/services`,
+  Shop: searchPath(1),
+  'About Us': `${lookBase(1)}/about`,
+  'Contact Us': `${lookBase(1)}/contact`,
+};
+/** The partner band's three cards, in PARTNER.roles order. */
+const PARTNER_ROLES: AuthRole[] = ['store', 'affiliate', 'provider'];
+function PartnerCta({ label, role }: { label: string; role: AuthRole }) {
+  const { openAuth } = useShell();
+  return <ViewMore label={label} onClick={() => openAuth({ view: 'up', role })} />;
+}
+/** The footer's newsletter field: confirms through the shell's toast. */
+function FooterSubscribe({ children }: { children: ReactNode }) {
+  const { toast } = useShell();
+  const { t } = useLook();
+  return (
+    <form
+      className="mt-5 flex items-end gap-4"
+      data-testid="footer-subscribe"
+      onSubmit={(e) => {
+        e.preventDefault();
+        (e.currentTarget as HTMLFormElement).reset();
+        toast(t('Subscribed — the next letter is on its way.', 'تم الاشتراك — رسالتنا القادمة في الطريق.'));
+      }}
+    >
+      {children}
+    </form>
+  );
+}
+const SUPPORT_TO: Record<string, string> = {
+  FAQ: `${lookBase(1)}/help/faq`,
+  'Shipping & Delivery': `${lookBase(1)}/help/shipping`,
+  'Returns & Exchanges': `${lookBase(1)}/help/returns`,
+  Warranty: `${lookBase(1)}/help/warranty`,
+  'Track Order': `${lookBase(1)}/account/orders`,
+};
 
 const LANG_KEY = 'diyar-look-lang';
 
@@ -233,9 +281,7 @@ function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; o
                 {isAr ? it.ar : it.en}
               </Link>
             ) : (
-              <a href="#" className={itemCls}>
-                {isAr ? it.ar : it.en}
-              </a>
+              <span className={itemCls}>{isAr ? it.ar : it.en}</span>
             )}
           </li>
         ))}
@@ -343,9 +389,7 @@ function DrawerGroup({
                     {isAr ? it.ar : it.en}
                   </Link>
                 ) : (
-                  <a href="#" onClick={onNavigate} className={itemCls}>
-                    {isAr ? it.ar : it.en}
-                  </a>
+                  <span className={itemCls}>{isAr ? it.ar : it.en}</span>
                 )}
               </li>
             ))}
@@ -612,15 +656,9 @@ function MobileDrawer({
                 <ul>
                   {NAV_ITEMS.filter((i) => i.en !== 'Shop' && i.en !== 'Services').map((item) => (
                     <li key={item.en} className="border-t" style={{ borderColor: HAIR }}>
-                      {item.en === 'Home' ? (
-                        <Link to={lookBase(1)} onClick={onClose} className={navCls}>
-                          {t(item.en, item.ar)}
-                        </Link>
-                      ) : (
-                        <a href="#" onClick={onClose} className={navCls}>
-                          {t(item.en, item.ar)}
-                        </a>
-                      )}
+                      <Link to={NAV_TO[item.en] ?? lookBase(1)} onClick={onClose} className={navCls}>
+                        {t(item.en, item.ar)}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -648,6 +686,8 @@ function MobileDrawer({
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
+                groupTo={serviceGroupTo}
+                allLink={{ to: `${lookBase(1)}/services`, label: t('All Services', 'كل الخدمات') }}
               />
 
               {/* language */}
@@ -684,11 +724,11 @@ function MobileDrawer({
             {/* contact — pinned to the bottom of the panel. */}
             <div className="shrink-0 border-t px-5 pt-5 pb-5" style={{ borderColor: HAIR }}>
               <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
-              <a href="#" className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
                 <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr">{FOOTER_LINKS.phone}</span>
               </a>
-              <a href="#" className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`mailto:${FOOTER_LINKS.email}`} className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
                 <Mail size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr" className="truncate">
                   {FOOTER_LINKS.email}
@@ -727,6 +767,10 @@ export default function LookOne() {
   }, []);
   const toggleLang = () => setLang(lang === 'ar' ? 'en' : 'ar');
   const t = useCallback((en: string, ar: string) => (lang === 'ar' ? ar : en), [lang]);
+  // One object per language, not per render: every section reads this context,
+  // so a fresh object here re-rendered the whole homepage each time the layout
+  // changed state — the header turning solid on scroll stalled phones ~150ms.
+  const lookValue = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
   const isAr = lang === 'ar';
 
   /* mega menu hover intent: ~150ms close delay so the cursor can travel into the panel */
@@ -748,7 +792,17 @@ export default function LookOne() {
 
   /* header: transparent over the home hero → solid chrome after ~60px of scroll */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    // only on a change: setting the same value again still re-renders the whole
+    // layout once, which landed in the middle of the hero's scroll scrub
+    let last: boolean | null = null;
+    const onScroll = () => {
+      const next = window.scrollY > 60;
+      if (next === last) return;
+      last = next;
+      // a transition: React renders the header change in small slices, so the
+      // scroll (and the hero scrub riding on it) keeps painting meanwhile
+      startTransition(() => setScrolled(next));
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -780,7 +834,7 @@ export default function LookOne() {
   }`;
 
   return (
-    <LookContext.Provider value={{ lang, setLang, t }}>
+    <LookContext.Provider value={lookValue}>
       <LookShell>
       <div
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
@@ -805,6 +859,7 @@ export default function LookOne() {
               : 'border-transparent bg-transparent'
           }`}
         >
+          <AnnouncementBar show={isHome && !scrolled && openMenu === null} />
           {/* Scrim behind the transparent bar: the header renders white content over
               the hero, so a bright slide would otherwise swallow it. Fades out below
               the bar and disappears once the solid chrome takes over. */}
@@ -912,9 +967,9 @@ export default function LookOne() {
                   );
                 }
                 return (
-                  <a key={item.en} href="#" className={navItemCls} onMouseEnter={scheduleClose}>
+                  <Link key={item.en} to={NAV_TO[item.en] ?? lookBase(1)} className={navItemCls} onMouseEnter={scheduleClose} onClick={closeMenu}>
                     {t(item.en, item.ar)}
-                  </a>
+                  </Link>
                 );
               })}
             </nav>
@@ -1046,8 +1101,8 @@ export default function LookOne() {
                   <div className="grid grid-cols-12 gap-x-10">
                     {/* 8 service groups, 4 × 2 */}
                     <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10">
-                      {SERVICES_MENU.map((group) => (
-                        <MegaGroup key={group.title.en} group={group} />
+                      {SERVICES_MENU.map((group, i) => (
+                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} onNavigate={closeMenu} />
                       ))}
                     </div>
                     {/* single featured tile */}
@@ -1056,13 +1111,13 @@ export default function LookOne() {
                         img={MENU_FEATURED.services[0].img}
                         title={MENU_FEATURED.services[0].title}
                         cta={MENU_FEATURED.services[0].cta}
-                        to={lookBase(1)}
+                        to={`${lookBase(1)}/ai-designer`}
                         onNavigate={closeMenu}
                       />
                     </div>
                   </div>
                   <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
-                    <ViewMore label={t('Request a Consultation', 'اطلب استشارة')} />
+                    <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
                   </div>
                 </div>
               </motion.div>
@@ -1121,18 +1176,11 @@ export default function LookOne() {
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_QUICK.map((l) => {
                     const cls = 'text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]';
-                    const to = l.en === 'Home' ? lookBase(1) : l.en === 'Shop' ? searchPath(1) : null;
                     return (
                       <li key={l.en}>
-                        {to ? (
-                          <Link to={to} className={cls}>
-                            {t(l.en, l.ar)}
-                          </Link>
-                        ) : (
-                          <a href="#" className={cls}>
-                            {t(l.en, l.ar)}
-                          </a>
-                        )}
+                        <Link to={NAV_TO[l.en] ?? lookBase(1)} className={cls}>
+                          {t(l.en, l.ar)}
+                        </Link>
                       </li>
                     );
                   })}
@@ -1147,9 +1195,9 @@ export default function LookOne() {
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_SUPPORT.map((l) => (
                     <li key={l.en}>
-                      <a href="#" className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
+                      <Link to={SUPPORT_TO[l.en] ?? `${lookBase(1)}/help/faq`} className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
                         {t(l.en, l.ar)}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -1174,23 +1222,25 @@ export default function LookOne() {
                 >
                   {t('Subscribe', 'النشرة البريدية')}
                 </h4>
-                <div className="mt-5 flex items-end gap-4">
+                <FooterSubscribe>
                   <input
                     type="email"
+                    required
+                    aria-label={t('Email', 'البريد الإلكتروني')}
                     placeholder={t('YOUR EMAIL', 'بريدك الإلكتروني')}
                     className={`w-full border-b border-[#EFE9DD]/25 bg-transparent pb-2.5 text-[11px] uppercase text-[#EFE9DD] placeholder:text-[#EFE9DD]/35 transition-colors focus:border-[#EFE9DD] focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
                   <button
-                    type="button"
+                    type="submit"
                     className={`shrink-0 border border-[#EFE9DD]/40 px-6 py-2.5 text-[10px] uppercase transition-colors duration-300 hover:bg-[#EFE9DD] hover:text-[#14120F] ${
                       isAr ? 'tracking-normal' : 'tracking-[0.26em]'
                     }`}
                   >
                     {t('Submit', 'اشترك')}
                   </button>
-                </div>
+                </FooterSubscribe>
               </div>
             </div>
 
@@ -1204,6 +1254,8 @@ export default function LookOne() {
 
         {/* the product page carries a sticky buy bar on phones — lift the pill above it */}
         <LookSwitcher raiseOnMobile={pathname.includes('/product/')} />
+        <FloatingContact />
+        <PromoPopup active={isHome} />
         {/* first load of the session: the page arrives through the logo (one/LoadReveal) */}
         <LoadReveal />
       </div>
@@ -1215,10 +1267,126 @@ export default function LookOne() {
 /* ------------------------------------------------------------------ */
 /* Home page                                                           */
 /* ------------------------------------------------------------------ */
-export function LookOneHome() {
+/**
+ * The hero's rotating copy and its controls.
+ *
+ * Kept apart from the page on purpose: the headline rotates every six seconds,
+ * and while that state lived on LookOneHome each rotation re-rendered the whole
+ * homepage — every section and product card — which stalled phones mid-scroll
+ * and made the scrubbed room stutter. Here a rotation re-renders these few lines.
+ */
+function HeroCopy() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [slide, setSlide] = useState(0);
+
+  /* auto-advance (resets after manual navigation too) */
+  useEffect(() => {
+    const id = setInterval(() => startTransition(() => setSlide((s) => (s + 1) % HERO_SLIDES.length)), 6000);
+    return () => clearInterval(id);
+  }, [slide]);
+
+  const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
+
+  return (
+    <>
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={slide}
+          className="absolute inset-0 flex items-end"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+        >
+          <div className="contents">
+            <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
+              <motion.div
+                className="max-w-2xl text-white"
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
+              >
+                <p
+                  className={`mb-5 text-[11px] uppercase text-white/85 ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.4em]'
+                  }`}
+                >
+                  {isAr ? HERO_SLIDES[slide].tagAr : HERO_SLIDES[slide].tag}
+                </p>
+                <h1
+                  className={`mb-9 text-4xl font-extrabold uppercase md:text-6xl ${
+                    isAr
+                      ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
+                      : "font-['Outfit',sans-serif] leading-[1.04] tracking-tight"
+                  }`}
+                >
+                  {isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
+                </h1>
+                <Link
+                  to={searchPath(1)}
+                  className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                    isAr ? 'tracking-normal' : 'tracking-[0.32em]'
+                  }`}
+                >
+                  {t('Shop Now', 'تسوق الآن')}
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* static chrome: indicators + chevrons */}
+      <div className="absolute inset-x-0 bottom-9 z-10">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
+          <div className="flex items-center gap-6">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={isAr ? `الانتقال إلى الشريحة ${i + 1}` : `Go to slide ${i + 1}`}
+                onClick={() => setSlide(i)}
+                className={`flex items-center gap-2.5 text-sm font-light transition-colors ${
+                  i === slide ? 'text-white' : 'text-white/45 hover:text-white/75'
+                }`}
+              >
+                {i + 1}
+                <span
+                  className={`block h-px bg-white transition-all duration-500 ${i === slide ? 'w-9' : 'w-0'}`}
+                />
+              </button>
+            ))}
+          </div>
+          <div className="hidden items-center gap-3 md:flex">
+            <button
+              type="button"
+              aria-label={t('Previous slide', 'الشريحة السابقة')}
+              onClick={prev}
+              className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
+            >
+              <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
+            </button>
+            <button
+              type="button"
+              aria-label={t('Next slide', 'الشريحة التالية')}
+              onClick={next}
+              className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
+            >
+              <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function LookOneHome() {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const shell = useShell();
 
   /* shop-the-look: one open product card at a time, with a small close grace period */
   const [openSpot, setOpenSpot] = useState<string | null>(null);
@@ -1263,14 +1431,6 @@ export function LookOneHome() {
     return () => window.removeEventListener('keydown', onKey);
   }, [openSpot]);
 
-  /* hero auto-advance (resets after manual navigation too) */
-  useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
-    return () => clearInterval(id);
-  }, [slide]);
-
-  const prev = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  const next = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
 
   return (
     <div data-testid="home-page">
@@ -1278,7 +1438,7 @@ export function LookOneHome() {
       {/* 1. HERO SLIDER */}
       {/* ============================================================== */}
       <section data-testid="hero" className="relative h-[100svh] min-h-[600px] overflow-hidden bg-[#171512]">
-        {/* the room orbit, scrubbed by the pointer; poster-only on touch (one/HeroScrub) */}
+        {/* the room orbit: scrubbed by the pointer on desktop, by scrolling away on touch (one/HeroScrub) */}
         <HeroScrub
           poster="/looks/hero-scrub/poster.webp"
           alt={t('A sunlit living room with an olive green sofa', 'غرفة معيشة مضاءة بأريكة خضراء زيتونية')}
@@ -1286,94 +1446,7 @@ export function LookOneHome() {
         {/* subtle bottom gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/5" />
 
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={slide}
-            className="absolute inset-0 flex items-end"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
-          >
-            <div className="contents">
-              <div className="mx-auto w-full max-w-[1400px] px-6 pb-28 md:px-10 md:pb-32">
-                <motion.div
-                  className="max-w-2xl text-white"
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
-                >
-                  <p
-                    className={`mb-5 text-[11px] uppercase text-white/85 ${
-                      isAr ? 'tracking-normal' : 'tracking-[0.4em]'
-                    }`}
-                  >
-                    {isAr ? HERO_SLIDES[slide].tagAr : HERO_SLIDES[slide].tag}
-                  </p>
-                  <h1
-                    className={`mb-9 text-4xl font-extrabold uppercase md:text-6xl ${
-                      isAr
-                        ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                        : "font-['Outfit',sans-serif] leading-[1.04] tracking-tight"
-                    }`}
-                  >
-                    {isAr ? HERO_SLIDES[slide].ar : HERO_SLIDES[slide].en}
-                  </h1>
-                  <Link
-                    to={searchPath(1)}
-                    className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
-                      isAr ? 'tracking-normal' : 'tracking-[0.32em]'
-                    }`}
-                  >
-                    {t('Shop Now', 'تسوق الآن')}
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* static chrome: indicators + chevrons */}
-        <div className="absolute inset-x-0 bottom-9 z-10">
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
-            <div className="flex items-center gap-6">
-              {HERO_SLIDES.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  aria-label={isAr ? `الانتقال إلى الشريحة ${i + 1}` : `Go to slide ${i + 1}`}
-                  onClick={() => setSlide(i)}
-                  className={`flex items-center gap-2.5 text-sm font-light transition-colors ${
-                    i === slide ? 'text-white' : 'text-white/45 hover:text-white/75'
-                  }`}
-                >
-                  {i + 1}
-                  <span
-                    className={`block h-px bg-white transition-all duration-500 ${i === slide ? 'w-9' : 'w-0'}`}
-                  />
-                </button>
-              ))}
-            </div>
-            <div className="hidden items-center gap-3 md:flex">
-              <button
-                type="button"
-                aria-label={t('Previous slide', 'الشريحة السابقة')}
-                onClick={prev}
-                className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
-              >
-                <ChevronLeft size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
-              </button>
-              <button
-                type="button"
-                aria-label={t('Next slide', 'الشريحة التالية')}
-                onClick={next}
-                className="flex h-11 w-11 items-center justify-center border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-[#171512]"
-              >
-                <ChevronRight size={18} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
-              </button>
-            </div>
-          </div>
-        </div>
+        <HeroCopy />
       </section>
 
       {/* ============================================================== */}
@@ -1388,17 +1461,17 @@ export function LookOneHome() {
       <CategoryPanels />
 
       {/* ============================================================== */}
-      {/* 4. PROMO MOSAIC — five offer panels */}
+      {/* 4. TRENDING — the first products, straight after the categories — most interactive, live activity */}
       {/* ============================================================== */}
-      <PromoWall />
+      <Trending no="02" />
 
       {/* ============================================================== */}
-      {/* 17. SHOP THE LOOK — interactive room with product hotspots */}
+      {/* 5. SHOP THE LOOK — interactive room with product hotspots */}
       {/* ============================================================== */}
       <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
         {/* full-screen room with the title on it; opens out as it scrolls in (one/RoomStage) */}
         <RoomStage
-          eyebrow={t('The Room — 02', 'الغرفة — 02')}
+          eyebrow={t('The Room — 03', 'الغرفة — 03')}
           title={t('Shop the Look', 'تسوق الغرفة')}
           img={IMG.roomHotspots}
           alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
@@ -1416,79 +1489,17 @@ export function LookOneHome() {
           ))}
         </RoomStage>
 
-        {/* design assistance panel — kept, now sitting under the shoppable image */}
-        <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
-          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-            <Reveal className="lg:col-span-6">
-              <p
-                className={`text-[11px] uppercase ${
-                  isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
-                }`}
-                style={{ color: OLIVE }}
-              >
-                {t('Design Studio', 'استوديو التصميم')}
-              </p>
-              <a
-                href="#"
-                className={`group/da mt-4 inline-flex flex-wrap items-center gap-4 text-3xl font-extrabold uppercase md:text-4xl ${
-                  isAr
-                    ? "font-['Alexandria',sans-serif] leading-[1.2] tracking-normal"
-                    : "font-['Outfit',sans-serif] leading-[1.02] tracking-tight"
-                }`}
-              >
-                {t('Get Free Design Assistance', 'احصل على مساعدة التصميم مجاناً')}
-                <ArrowRight
-                  size={30}
-                  strokeWidth={1.5}
-                  className={`transition-transform duration-300 ${
-                    isAr ? 'rotate-180 group-hover/da:-translate-x-2' : 'group-hover/da:translate-x-2'
-                  }`}
-                />
-              </a>
-              <p
-                className={`mt-6 max-w-md text-sm font-light leading-relaxed text-neutral-600 md:text-[15px] ${
-                  isAr ? 'tracking-normal' : 'tracking-[0.04em]'
-                }`}
-              >
-                {t(
-                  'Our designers help you plan, style and furnish every room — at no cost.',
-                  'مصممونا يساعدونك في تخطيط كل غرفة وتنسيقها وتأثيثها — دون أي تكلفة.',
-                )}
-              </p>
-              <div className="mt-8">
-                <ViewMore label={t('Book a Free Session', 'احجز جلسة مجانية')} />
-              </div>
-            </Reveal>
-
-            {/* what's included */}
-            <Reveal className="lg:col-span-6" delay={0.15}>
-              <div className="border bg-white p-8 md:p-10" style={{ borderColor: HAIR }}>
-                <p
-                  className={`text-[10px] uppercase text-neutral-400 ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.3em]'
-                  }`}
-                >
-                  {t("What's included", 'ما الذي تشمله الخدمة')}
-                </p>
-                <ul className="mt-4 sm:grid sm:grid-cols-2 sm:gap-x-8">
-                  {DESIGN_ASSIST_ITEMS.map((item) => (
-                    <li key={item.en} className="border-b py-3.5" style={{ borderColor: HAIR }}>
-                      <span className="text-[13px] font-medium">{t(item.en, item.ar)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-          </div>
-        </div>
+        {/* the free design session — book it here, not just read about it (one/DesignStudio) */}
+        <DesignStudio />
       </section>
 
       {/* ============================================================== */}
+      {/* 6. PROMO MOSAIC — five offer panels */}
+      {/* ============================================================== */}
+      <PromoWall />
+
 
       {/* ============================================================== */}
-      {/* 5. TRENDING — most interactive, live activity */}
-      {/* ============================================================== */}
-      <Trending no="03" />
 
       {/* ============================================================== */}
 
@@ -1656,14 +1667,14 @@ export function LookOneHome() {
                 ))}
               </ol>
 
-              <button
-                type="button"
-                className={`mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+              <Link
+                to={`${lookBase(1)}/ai-designer`}
+                className={`inline-block mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
                 {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
-              </button>
+              </Link>
             </Reveal>
           </div>
         </div>
@@ -1697,14 +1708,14 @@ export function LookOneHome() {
               <p className="mt-7 max-w-md text-[15px] font-light leading-relaxed text-neutral-600">
                 {t(LOYALTY.body.en, LOYALTY.body.ar)}
               </p>
-              <button
-                type="button"
-                className={`mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+              <Link
+                to={`${lookBase(1)}/loyalty`}
+                className={`inline-block mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
                 {t(LOYALTY.cta.en, LOYALTY.cta.ar)}
-              </button>
+              </Link>
             </Reveal>
 
             <div className="lg:col-span-7 lg:pt-3">
@@ -1770,8 +1781,8 @@ export function LookOneHome() {
               )}
             </p>
             <div className="mt-10">
-              <a
-                href="#"
+              <Link
+                to={`${lookBase(1)}/b2b`}
                 className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11px] uppercase text-white transition-colors hover:border-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.3em]'
                 }`}
@@ -1784,7 +1795,7 @@ export function LookOneHome() {
                     isAr ? 'rotate-180 group-hover/b2b:-translate-x-1' : 'group-hover/b2b:translate-x-1'
                   }`}
                 />
-              </a>
+              </Link>
             </div>
           </Reveal>
         </div>
@@ -1834,7 +1845,7 @@ export function LookOneHome() {
                     {t(role.body.en, role.body.ar)}
                   </p>
                   <div className="mt-7">
-                    <ViewMore label={t(role.cta.en, role.cta.ar)} />
+                    <PartnerCta label={t(role.cta.en, role.cta.ar)} role={PARTNER_ROLES[i]} />
                   </div>
                 </div>
               </motion.div>
@@ -1863,6 +1874,7 @@ export function LookOneHome() {
               </div>
               <button
                 type="button"
+                onClick={() => shell.openAuth({ view: 'up', role: 'store' })}
                 className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
@@ -1897,7 +1909,7 @@ export function LookOneHome() {
                 title={t('The Design Blog', 'مدونة التصميم')}
               />
               <div className="pb-2">
-                <ViewMore label={t('All Articles', 'كل المقالات')} />
+                <ViewMore label={t('All Articles', 'كل المقالات')} to={`${lookBase(1)}/blog`} />
               </div>
             </div>
           </Reveal>
@@ -1912,7 +1924,7 @@ export function LookOneHome() {
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
                 className="group flex h-full flex-col"
               >
-                <a href="#" className="block overflow-hidden">
+                <Link to={`${lookBase(1)}/blog/${postSlug(post)}`} className="block overflow-hidden">
                   <div className="aspect-[4/3] overflow-hidden">
                     <img
                       src={post.img}
@@ -1920,7 +1932,7 @@ export function LookOneHome() {
                       className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                     />
                   </div>
-                </a>
+                </Link>
                 <p
                   className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
                   style={{ color: OLIVE }}
@@ -1934,15 +1946,15 @@ export function LookOneHome() {
                       : "font-['Marcellus',serif] leading-tight"
                   }`}
                 >
-                  <a href="#" className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
+                  <Link to={`${lookBase(1)}/blog/${postSlug(post)}`} className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">
                     {t(post.title.en, post.title.ar)}
-                  </a>
+                  </Link>
                 </h3>
                 <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
                   {t(post.excerpt.en, post.excerpt.ar)}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                  <ViewMore label={t('Read Article', 'اقرأ المقال')} />
+                  <ViewMore label={t('Read Article', 'اقرأ المقال')} to={`${lookBase(1)}/blog/${postSlug(post)}`} />
                   <span
                     className={`text-[10px] uppercase text-neutral-400 ${
                       isAr ? 'tracking-normal' : 'tracking-[0.22em]'
@@ -1960,15 +1972,19 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 26. APP PROMO */}
       {/* ============================================================== */}
-      <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
+      {/* the brand green (the original site's diyar-dark), same as the service tiles on the phone */}
+      <section data-testid="app-promo" className="py-20 text-[#F3ECDB] md:py-28" style={{ backgroundColor: '#1F3D3A' }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-            <Reveal className="lg:col-span-5">
-              <div className="overflow-hidden" style={{ backgroundColor: TILE }}>
+            {/* the phone sits on the left in both languages */}
+            <Reveal className={`lg:col-span-5 ${isAr ? 'lg:order-last' : ''}`}>
+              <div className="flex justify-center">
                 <img
-                  src={APP_PROMO.img}
+                  src="/looks/app-phone.webp"
                   alt={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
-                  className="aspect-[4/5] h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-auto max-h-[620px] w-auto max-w-[78%] object-contain drop-shadow-[0_40px_50px_rgba(0,0,0,0.45)] lg:max-w-full"
                 />
               </div>
             </Reveal>
@@ -1977,8 +1993,9 @@ export function LookOneHome() {
               <SectionHeading
                 eyebrow={t(`${APP_PROMO.eyebrow.en} — 19`, `${APP_PROMO.eyebrow.ar} — 19`)}
                 title={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+                light
               />
-              <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-neutral-600">
+              <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-[#F3ECDB]/75">
                 {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
               </p>
 
@@ -1992,7 +2009,7 @@ export function LookOneHome() {
                     transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
                     className="flex items-start gap-4"
                   >
-                    <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
+                    <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#A7B894]" />
                     <div className="min-w-0">
                       <h3
                         className={`font-bold uppercase ${
@@ -2001,7 +2018,7 @@ export function LookOneHome() {
                       >
                         {t(f.title.en, f.title.ar)}
                       </h3>
-                      <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
+                      <p className="mt-2 text-[13px] font-light leading-relaxed text-[#F3ECDB]/65">
                         {t(f.body.en, f.body.ar)}
                       </p>
                     </div>
@@ -2017,10 +2034,11 @@ export function LookOneHome() {
                   <button
                     key={store.label}
                     type="button"
-                    className="bg-[#171512] px-9 py-3.5 text-start text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
+                    onClick={() => shell.toast(t('The Diyar app arrives soon on both stores.', 'تطبيق ديار قريباً على المتجرين.'))}
+                    className="bg-[#F3ECDB] px-9 py-3.5 text-start text-[#1F3D3A] transition-colors duration-300 hover:bg-white"
                   >
                     <span
-                      className={`block text-[9px] uppercase text-white/60 ${
+                      className={`block text-[9px] uppercase text-[#1F3D3A]/65 ${
                         isAr ? 'tracking-normal' : 'tracking-[0.22em]'
                       }`}
                     >

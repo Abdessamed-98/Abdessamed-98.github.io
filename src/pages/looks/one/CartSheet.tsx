@@ -72,7 +72,7 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
           </Link>
         </div>
       ) : (
-        <ul className="divide-y" style={{ borderColor: HAIR }}>
+        <ul className="divide-y divide-[#E8E4DC]" style={{ borderColor: HAIR }}>
           {items.map((line) => {
             const name = t(line.product.name.en, line.product.name.ar);
             const store = storeOf(line.product.store);

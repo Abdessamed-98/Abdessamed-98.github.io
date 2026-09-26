@@ -1,7 +1,7 @@
 /** Look 1 — saved items drawer. */
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
-import { CATALOG, formatSAR, productPath, searchPath, storeOf } from '../lookShared';
+import { CATALOG, formatSAR, lookBase, productPath, searchPath, storeOf } from '../lookShared';
 import { HAIR, INK, TILE, primaryBtnCls, useLook } from './ui';
 import { Sheet } from './Sheet';
 import { useLookCart } from './cart';
@@ -23,6 +23,13 @@ export function WishlistSheet({ open, onClose, onAdded }: { open: boolean; onClo
       testId="wishlist-sheet"
       eyebrow={t('Saved', 'المحفوظات')}
       title={count ? t(`Wishlist · ${count}`, `المفضلة · ${count}`) : t('Wishlist', 'المفضلة')}
+      footer={
+        items.length > 0 ? (
+          <Link to={`${lookBase(1)}/wishlist`} onClick={onClose} data-testid="wishlist-page-link" className={`block w-full py-4 text-center ${primaryBtnCls(isAr)}`}>
+            {t('View Full List', 'عرض القائمة كاملة')}
+          </Link>
+        ) : undefined
+      }
     >
       {items.length === 0 ? (
         <div className="px-6 py-16 text-center">
@@ -35,7 +42,7 @@ export function WishlistSheet({ open, onClose, onAdded }: { open: boolean; onClo
           </Link>
         </div>
       ) : (
-        <ul className="divide-y" style={{ borderColor: HAIR }}>
+        <ul className="divide-y divide-[#E8E4DC]" style={{ borderColor: HAIR }}>
           {items.map((p) => {
             const name = t(p.name.en, p.name.ar);
             const store = storeOf(p.store);

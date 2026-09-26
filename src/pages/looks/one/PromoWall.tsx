@@ -63,7 +63,7 @@ function QuietPanel({ p, tall = false }: { p: PromoPanel; tall?: boolean; key?: 
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const title = isAr ? p.title.ar : p.title.en;
-  const href = p.query ? searchPath(1, p.query) : undefined;
+  const href = p.to ?? (p.query ? searchPath(1, p.query) : undefined);
 
   const inner = (
     <>

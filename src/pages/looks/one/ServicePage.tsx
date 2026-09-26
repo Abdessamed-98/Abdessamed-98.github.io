@@ -5,11 +5,15 @@
  * start as a request. So the page sells the work, states what is included and
  * what it costs to start, and ends in one action — request it.
  */
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import { SERVICES, lookBase, type LookService } from '../lookShared';
 import { Breadcrumb, HAIR, INK, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { useShell } from './shellContext';
+import { ServiceProviders } from './InfoPages';
+import { Lightbox } from './kit';
+import { SERVICE_GALLERY, type WorkShot } from './data';
 
 /** Services have no id of their own, so their English name becomes the slug. */
 export const serviceSlug = (s: LookService) => s.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -159,6 +163,10 @@ export default function ServicePage() {
           </aside>
         </div>
 
+        <ServiceGallery shots={SERVICE_GALLERY[service.en] ?? []} />
+
+        <ServiceProviders serviceEn={service.en} />
+
         {/* other services */}
         <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>
           <p className={`text-[10px] text-neutral-400 ${caps}`}>{t('Other services', 'خدمات أخرى')}</p>
@@ -199,5 +207,74 @@ export default function ServicePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Recent work                                                         */
+/* ------------------------------------------------------------------ */
+
+/** One large frame and four small ones; a phone swipes through them. Any frame opens the viewer. */
+function ServiceGallery({ shots }: { shots: WorkShot[] }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const caps = isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]';
+  const [shown, setShown] = useState<number | null>(null);
+  if (!shots.length) return null;
+  const tiles = shots.slice(0, 5);
+
+  return (
+    <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }} data-testid="service-gallery">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className={`text-[10px] text-[#5F5950] ${caps}`}>{t('Recent work', 'من أعمالنا')}</p>
+          <h2
+            className={`mt-2.5 font-extrabold ${
+              isAr ? "font-['Alexandria',sans-serif] text-2xl tracking-normal md:text-3xl" : "font-['Outfit',sans-serif] text-2xl uppercase tracking-tight md:text-3xl"
+            }`}
+          >
+            {t('Finished by our crews', 'نفّذتها فرقنا')}
+          </h2>
+        </div>
+        <button
+          type="button"
+          data-testid="service-gallery-all"
+          onClick={() => setShown(0)}
+          className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+          style={{ borderColor: INK }}
+        >
+          {t(`View all · ${shots.length}`, `عرض الكل · ${shots.length}`)}
+          <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+        </button>
+      </div>
+
+      <ul className="scrollbar-hide -mx-6 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 md:mx-0 md:grid md:h-[520px] md:grid-cols-4 md:grid-rows-2 md:gap-4 md:overflow-visible md:px-0">
+        {tiles.map((sh, i) => (
+          <li key={sh.img + i} className={`w-[82%] shrink-0 snap-start md:w-auto ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
+            <button
+              type="button"
+              data-testid="service-gallery-tile"
+              onClick={() => setShown(i)}
+              className="group relative block aspect-[4/3] h-full w-full cursor-zoom-in overflow-hidden text-start md:aspect-auto"
+              style={{ backgroundColor: TILE }}
+            >
+              <img src={sh.img} alt={t(sh.title.en, sh.title.ar)} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]" />
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-4 pb-3.5 pt-12 text-[12.5px] font-medium text-white md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100">
+                {t(sh.title.en, sh.title.ar)}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <Lightbox
+        images={shots.map((sh) => sh.img)}
+        index={shown ?? 0}
+        onIndex={setShown}
+        open={shown !== null}
+        onClose={() => setShown(null)}
+        caption={(i) => t(shots[i].title.en, shots[i].title.ar)}
+      />
+    </section>
   );
 }

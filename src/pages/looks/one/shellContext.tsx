@@ -5,12 +5,16 @@
  */
 import { createContext, useContext } from 'react';
 
+export type AuthRole = 'customer' | 'store' | 'provider' | 'affiliate';
+export type AuthIntent = { view?: 'in' | 'up'; role?: AuthRole };
+
 export type ShellApi = {
   openCart: () => void;
   openWishlist: () => void;
   /** request a service, optionally pre-filled with which one */
   openService: (service?: string) => void;
-  openAuth: () => void;
+  /** open sign-in; pass `{ view: 'up', role }` to land on registration */
+  openAuth: (intent?: AuthIntent) => void;
   openImageSearch: () => void;
   /** the signed-in visitor's name, or null */
   user: string | null;

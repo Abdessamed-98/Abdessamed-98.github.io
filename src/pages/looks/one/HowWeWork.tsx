@@ -6,11 +6,13 @@
  * middle of the viewport takes over the picture. It explains the service
  * business — visit, design, craft, install — rather than decorating it.
  *
+ * The four pictures are one illustrated set (public/looks/how), isometric
+ * rooms on cream, so the sequence reads as one story.
+ *
  * Self-contained on purpose: removing this file and its one line in
  * LookOneHome restores the page exactly.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { IMG } from '../lookShared';
 import { BG, INK, OLIVE, HAIR, TILE, useLook, Reveal, SectionHeading } from './ui';
 
 interface Step {
@@ -22,7 +24,7 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    img: IMG.roomHotspots,
+    img: '/looks/how/1-visit.webp',
     title: { en: 'Visit & Measure', ar: 'الزيارة والقياس' },
     body: {
       en: 'A designer comes to you, measures the space and learns how you actually live in it.',
@@ -31,7 +33,7 @@ const STEPS: Step[] = [
     fact: { en: 'Free home visit', ar: 'زيارة منزلية مجانية' },
   },
   {
-    img: '/looks/apartment.jpg',
+    img: '/looks/how/2-design.webp',
     title: { en: 'Design', ar: 'التصميم' },
     body: {
       en: 'You see the room in 3D — materials, colours and every piece placed — before anything is built.',
@@ -40,7 +42,7 @@ const STEPS: Step[] = [
     fact: { en: '3D before you commit', ar: 'تصميم ثلاثي الأبعاد قبل الالتزام' },
   },
   {
-    img: IMG.workshop,
+    img: '/looks/how/3-craft.webp',
     title: { en: 'Craft', ar: 'التصنيع' },
     body: {
       en: 'Each piece is built to your measurements in our partner workshops, and signed by the maker.',
@@ -49,7 +51,7 @@ const STEPS: Step[] = [
     fact: { en: 'Made to order', ar: 'مصنوع حسب الطلب' },
   },
   {
-    img: IMG.hero,
+    img: '/looks/how/4-install.webp',
     title: { en: 'Deliver & Install', ar: 'التوصيل والتركيب' },
     body: {
       en: 'Our own crews deliver and install everything, then leave the room ready to live in.',
@@ -162,7 +164,7 @@ export function HowWeWork() {
                     src={s.img}
                     alt=""
                     loading="lazy"
-                    className="mb-7 aspect-[4/3] w-full object-cover lg:hidden"
+                    className="mb-7 aspect-square w-full object-cover lg:hidden"
                   />
 
                   <div className="flex gap-6">

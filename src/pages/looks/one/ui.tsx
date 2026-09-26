@@ -129,7 +129,7 @@ export function SectionHeading({
 }
 
 /** Tiny letterspaced uppercase "VIEW MORE →" link with hairline underline. */
-export function ViewMore({ label, light = false, to }: { label?: string; light?: boolean; to?: string }) {
+export function ViewMore({ label, light = false, to, onClick }: { label?: string; light?: boolean; to?: string; onClick?: () => void }) {
   const isAr = useLang() === 'ar';
   const text = label ?? (isAr ? 'عرض المزيد' : 'View More');
   const cls = `group/vm inline-flex items-center gap-2.5 pb-1.5 border-b text-[11px] uppercase transition-colors ${
@@ -156,9 +156,9 @@ export function ViewMore({ label, light = false, to }: { label?: string; light?:
       {inner}
     </Link>
   ) : (
-    <a href="#" className={cls}>
+    <button type="button" onClick={onClick} className={cls}>
       {inner}
-    </a>
+    </button>
   );
 }
 
@@ -364,15 +364,15 @@ export function ProductCard({
           </span>
           {c.oldPrice && <span className="text-xs text-neutral-400 line-through">{formatSAR(c.oldPrice)}</span>}
         </div>
-        <button
-          type="button"
+        <Link
+          to={`${to}?ai=1`}
           className={`shrink-0 text-[10px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
             isAr ? 'tracking-normal' : 'tracking-[0.24em]'
           }`}
           style={{ color: RED }}
         >
           {t('Try with AI', 'جرب AI')}
-        </button>
+        </Link>
       </div>
 
       {/* add to cart — full card only; the rail stays quiet */}

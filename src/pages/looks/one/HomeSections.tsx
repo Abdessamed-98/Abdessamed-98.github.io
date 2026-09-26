@@ -119,6 +119,10 @@ function QuickRow({
   // rewinds — see the doubled run below, which is what lets it roll over.
   const rail = useRail({ page: true, auto: 3200, loop: true });
   const reduce = useReducedMotion();
+  // Phones get a fade only: a clip-path wipe plus a zoom on twenty tiles at once
+  // is costly to paint, and this row enters while the hero is being scrubbed
+  // by the scroll — it made the room stutter.
+  const [light] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
   const run = useRef<HTMLDivElement>(null);
   const shown = useInView(run, { once: true, margin: '-90px' });
   const on = shown || !!reduce;
@@ -162,8 +166,8 @@ function QuickRow({
             const dark = c.tone === 'dark';
             const inner = (
               <motion.div
-                initial={reduce || twin ? false : { opacity: 0, clipPath: 'inset(100% 0% 0% 0%)' }}
-                animate={on ? { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)' } : undefined}
+                initial={reduce || twin ? false : light ? { opacity: 0 } : { opacity: 0, clipPath: 'inset(100% 0% 0% 0%)' }}
+                animate={on ? (light ? { opacity: 1 } : { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)' }) : undefined}
                 transition={{ duration: 0.8, ease: EASE, delay: stepIn(i) }}
                 className="relative overflow-hidden border transition-colors duration-300"
                 style={{ borderColor: dark ? 'rgba(255,255,255,0.14)' : HAIR }}
@@ -172,7 +176,7 @@ function QuickRow({
                     It scales on a wrapper so the hover zoom below keeps its own
                     transform instead of being overwritten. */}
                 <motion.div
-                  initial={reduce || twin ? false : { scale: 1.16 }}
+                  initial={reduce || twin || light ? false : { scale: 1.16 }}
                   animate={on ? { scale: 1 } : undefined}
                   transition={{ duration: 1.2, ease: EASE, delay: stepIn(i) }}
                 >
@@ -312,8 +316,8 @@ export function PromoMosaic() {
             const cls = 'group/pp relative block aspect-[2/1] h-full w-full overflow-hidden';
             return (
               <Reveal key={p.title.en} delay={i * 0.05} className={SPAN_CLS[p.span]}>
-                {p.query ? (
-                  <Link to={searchPath(1, p.query)} className={cls}>
+                {p.to || p.query ? (
+                  <Link to={p.to ?? searchPath(1, p.query)} className={cls}>
                     {body}
                   </Link>
                 ) : (
@@ -1036,7 +1040,7 @@ export function ServicesIndex({ no }: { no: string }) {
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeading eyebrow={t(`Services — ${no}`, `الخدمات — ${no}`)} title={t('Our Services', 'خدماتنا')} />
-            <ViewMore label={t('All Services', 'كل الخدمات')} />
+            <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
           </div>
         </Reveal>
 
