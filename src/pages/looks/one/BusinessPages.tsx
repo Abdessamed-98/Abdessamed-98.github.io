@@ -47,7 +47,7 @@ function QuoteSheet({ open, onClose, company }: { open: boolean; onClose: () => 
       onClose={onClose}
       side="end"
       testId="quote-sheet"
-      eyebrow={company ? t(company.name.en, company.name.ar) : t('B2B Solutions', 'حلول الشركات')}
+      eyebrow={company ? t(company.name.en, company.name.ar) : 'B2B'}
       title={t('Request a Quote', 'اطلب عرض سعر')}
       footer={
         <button type="submit" form="quote-form" data-testid="quote-submit" className={`w-full py-4 ${primaryBtnCls(isAr)}`}>
@@ -119,7 +119,7 @@ export function B2BPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
         <div className="relative flex h-full min-h-[520px] items-end">
           <div className={`${CONTAINER} w-full pb-12 md:pb-16`}>
-            <p className={`text-[11px] text-white/80 ${caps}`}>{t('B2B Solutions', 'حلول الشركات')}</p>
+            <p className={`text-[11px] text-white/80 ${caps}`}>{'B2B'}</p>
             <h1 className={`mt-5 max-w-3xl text-white ${displayCls(isAr, 'xl')}`}>
               {t('Design, build and deliver — one contract', 'نصمّم وننفّذ ونسلّم — بعقد واحد')}
             </h1>
@@ -261,7 +261,7 @@ export function CompanyPage() {
   return (
     <main className="pt-[72px]" data-testid="company-page">
       <PageHead
-        crumbs={[home(t), { label: t('B2B Solutions', 'حلول الشركات'), to: `${lookBase(1)}/b2b` }, { label: t(c.name.en, c.name.ar) }]}
+        crumbs={[home(t), { label: 'B2B', to: `${lookBase(1)}/b2b` }, { label: t(c.name.en, c.name.ar) }]}
         eyebrow={t(c.sector.en, c.sector.ar)}
         title={t(c.name.en, c.name.ar)}
         intro={t(c.about.en, c.about.ar)}

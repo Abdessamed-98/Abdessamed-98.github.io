@@ -32,6 +32,7 @@ import {
   BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
   LookContext, useLook, useLang,
   Reveal, SectionHeading, ViewMore, ProductCard,
+  RAIL_MD, RAIL_LG, RAIL_ITEM_MD, RAIL_ITEM_LG, RAIL_VIEWPORT,
 } from './one/ui';
 import {
   QuickCategories, Trending, FeaturedDeals, CampaignBanner,
@@ -73,7 +74,7 @@ const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${look
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),
   'Design Consultation': `${lookBase(1)}/ai-designer`,
-  'B2B Solutions': `${lookBase(1)}/b2b`,
+  B2B: `${lookBase(1)}/b2b`,
   Services: `${lookBase(1)}/services`,
   Shop: searchPath(1),
   'About Us': `${lookBase(1)}/about`,
@@ -1549,14 +1550,15 @@ export function LookOneHome() {
             </div>
           </Reveal>
 
-          <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-14 md:mt-16 md:gap-x-6 lg:grid-cols-4">
+          <div className={`mt-12 ${RAIL_MD} gap-5 md:mt-16 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-14 lg:grid-cols-4`} data-testid="new-products-rail">
             {PRODUCTS.slice(0, 8).map((p, i) => (
               <motion.div
                 key={p.id}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
+                viewport={RAIL_VIEWPORT}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: (i % 4) * 0.05 }}
+                className="w-[68vw] shrink-0 snap-start md:w-auto md:shrink"
               >
                 <ProductCard p={p} testId="home-product-card" />
               </motion.div>
@@ -1820,14 +1822,15 @@ export function LookOneHome() {
             </div>
           </Reveal>
 
-          <div className="mt-12 grid gap-5 md:mt-16 md:gap-6 lg:grid-cols-3">
+          <div className={`mt-12 ${RAIL_LG} gap-4 md:mt-16 md:gap-6 lg:grid lg:grid-cols-3`} data-testid="partner-rail">
             {PARTNER.roles.map((role, i) => (
               <motion.div
                 key={role.title.en}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
+                viewport={RAIL_VIEWPORT}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
+                className={RAIL_ITEM_LG}
               >
                 <div
                   className="flex h-full flex-col border bg-white p-8 transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(23,21,18,0.10)] md:p-10"
@@ -1914,15 +1917,15 @@ export function LookOneHome() {
             </div>
           </Reveal>
 
-          <div className="mt-12 grid gap-x-6 gap-y-12 md:mt-16 md:grid-cols-3">
+          <div className={`mt-12 ${RAIL_MD} gap-4 md:mt-16 md:grid md:grid-cols-3 md:gap-x-6 md:gap-y-12`} data-testid="blog-rail">
             {BLOG_POSTS.map((post, i) => (
               <motion.article
                 key={post.title.en}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
+                viewport={RAIL_VIEWPORT}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
-                className="group flex h-full flex-col"
+                className={`group flex h-full flex-col ${RAIL_ITEM_MD}`}
               >
                 <Link to={`${lookBase(1)}/blog/${postSlug(post)}`} className="block overflow-hidden">
                   <div className="aspect-[4/3] overflow-hidden">

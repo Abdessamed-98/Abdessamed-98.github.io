@@ -14,7 +14,8 @@
  * flex ratios happen to leave. Panels wipe up into view one after another as
  * the band arrives, and the photograph settles out of a slow zoom.
  *
- * Touch has no hover, so below lg it is a column of the same 4:5 photographs.
+ * Touch has no hover, so below lg it is a sideways row of the same 4:5
+ * photographs, one category per card with the next peeking in.
  *
  * The reveal does not use whileInView. An IntersectionObserver only reports at
  * frame boundaries, so a fast flick or a jump down the page can carry a card
@@ -30,7 +31,7 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { CATEGORIES, searchPath } from '../lookShared';
-import { useLook, Reveal, SectionHeading, ViewMore } from './ui';
+import { useLook, Reveal, SectionHeading, ViewMore, RAIL_LG, RAIL_ITEM_LG } from './ui';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -194,11 +195,15 @@ export function CategoryPanels() {
         </div>
       </div>
 
-      {/* ---- touch: no hover, so the photographs stack at their own 4:5 ---- */}
-      <div className="mx-auto mt-10 grid max-w-[1400px] gap-5 px-6 sm:grid-cols-2 sm:gap-6 md:mt-14 md:px-10 lg:hidden">
-        {CATEGORIES.map((c, i) => (
-          <CategoryCard key={c.key} index={i} />
-        ))}
+      {/* ---- touch: no hover, so the photographs run as a sideways row at their own 4:5 ---- */}
+      <div className="mx-auto mt-10 max-w-[1400px] px-6 md:mt-14 md:px-10 lg:hidden">
+        <div className={`${RAIL_LG} gap-4 md:gap-6`} data-testid="categories-rail">
+          {CATEGORIES.map((c, i) => (
+            <div key={c.key} className={RAIL_ITEM_LG}>
+              <CategoryCard index={i} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

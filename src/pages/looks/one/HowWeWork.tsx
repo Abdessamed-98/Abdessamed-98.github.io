@@ -13,7 +13,7 @@
  * LookOneHome restores the page exactly.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BG, INK, OLIVE, HAIR, TILE, useLook, Reveal, SectionHeading } from './ui';
+import { BG, INK, OLIVE, HAIR, TILE, useLook, Reveal, SectionHeading, RAIL_LG, RAIL_ITEM_LG } from './ui';
 
 interface Step {
   img: string;
@@ -95,6 +95,24 @@ export function HowWeWork() {
   }, [active]);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  /* phone: the steps are a sideways row; the dots follow the swipe */
+  const [slide, setSlide] = useState(0);
+  const onRailScroll = () => {
+    const el = column.current;
+    const first = stepRefs.current[0];
+    if (!el || !first || window.matchMedia('(min-width: 1024px)').matches) return;
+    const step = first.offsetWidth + 16; // card + gap-4
+    setSlide(Math.min(STEPS.length - 1, Math.round(Math.abs(el.scrollLeft) / step)));
+  };
+  const goTo = (i: number) => {
+    const el = column.current;
+    const card = stepRefs.current[i];
+    if (!el || !card) return;
+    const step = card.offsetWidth + 16;
+    // in right-to-left the row scrolls toward negative offsets
+    el.scrollTo({ left: (isAr ? -1 : 1) * i * step, behavior: 'smooth' });
+  };
+
   /* The step crossing a thin band at the middle of the viewport owns the picture. */
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -135,7 +153,8 @@ export function HowWeWork() {
               The trailing padding keeps the sticky range open while the last step
               sits in the middle of the viewport; without it the picture starts
               leaving before step 4 is read. */}
-          <div ref={column} className="relative lg:pb-[14vh]">
+          <div className="min-w-0">
+          <div ref={column} onScroll={onRailScroll} data-testid="how-rail" className={`relative ${RAIL_LG} gap-4 lg:block lg:pb-[14vh]`}>
             {/* the hairline the run stands on, filled as far as the visitor has read */}
             <span
               aria-hidden
@@ -157,7 +176,7 @@ export function HowWeWork() {
                   data-step={i}
                   data-testid={`how-step-${i}`}
                   data-on={on}
-                  className="flex flex-col justify-center py-10 lg:min-h-[62vh] lg:py-0"
+                  className={`${RAIL_ITEM_LG} flex flex-col justify-start lg:min-h-[62vh] lg:justify-center`}
                 >
                   {/* touch: no sticky pane, so each step carries its own picture */}
                   <img
@@ -234,6 +253,26 @@ export function HowWeWork() {
                 </div>
               );
             })}
+          </div>
+
+          {/* phone: where you are in the four */}
+          <div className="mt-8 flex items-center justify-center gap-2 lg:hidden" data-testid="how-dots">
+            {STEPS.map((s, i) => (
+              <button
+                key={s.title.en}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={t(`Step ${i + 1}`, `الخطوة ${i + 1}`)}
+                aria-current={slide === i}
+                className="flex h-6 items-center"
+              >
+                <span
+                  className="block h-[3px] transition-all duration-300"
+                  style={{ width: slide === i ? 28 : 10, backgroundColor: slide === i ? OLIVE : '#D5CEC2' }}
+                />
+              </button>
+            ))}
+          </div>
           </div>
 
           {/* ---- the picture (it holds still) ---- */}

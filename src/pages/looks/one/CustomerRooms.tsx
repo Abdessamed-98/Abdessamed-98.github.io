@@ -17,7 +17,7 @@
  */
 import { motion, useTransform, type MotionValue } from 'motion/react';
 import { IMG, REVIEWS, type LookReview } from '../lookShared';
-import { CREAM, NIGHT, OLIVE_LT, Reveal, SectionHeading, Stars, useLook } from './ui';
+import { CREAM, NIGHT, OLIVE_LT, RAIL_ITEM_SM, RAIL_SM, Reveal, SectionHeading, Stars, useLook } from './ui';
 import { settle, usePinned } from './stage';
 
 /** The room each review is talking about, in REVIEWS order. */
@@ -52,7 +52,7 @@ function RoomCard({
   return (
     <motion.figure
       data-testid="customer-room"
-      className="group/cr relative z-10 flex h-full flex-col sm:row-span-4 sm:grid sm:grid-rows-subgrid sm:gap-y-0"
+      className={`group/cr relative z-10 flex h-full flex-col sm:row-span-4 sm:grid sm:grid-rows-subgrid sm:gap-y-0 ${RAIL_ITEM_SM}`}
       style={animate && !open ? { y } : undefined}
     >
       {/* the room — the part that actually persuades */}
@@ -148,7 +148,7 @@ export function CustomerRooms({ no }: { no: string }) {
               )}
             </div>
 
-            <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
+            <div className={`mt-12 ${RAIL_SM} gap-4 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 md:mt-16 lg:grid-cols-4`} data-testid="reviews-rail">
               {REVIEWS.map((r, i) => (
                 <RoomCard
                   key={r.name.en}

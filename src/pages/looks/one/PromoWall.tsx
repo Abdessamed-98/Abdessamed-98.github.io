@@ -18,22 +18,39 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { PROMO_PANELS, msUntilMidnight, searchPath, type PromoPanel } from '../lookShared';
-import { HAIR, OLIVE, useLook, useSeen } from './ui';
+import { HAIR, OLIVE, RAIL_ITEM_MD, RAIL_MD, useLook, useSeen } from './ui';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/** Milliseconds left today, ticking once a second — the lead offer's deadline. */
+function useCountdown() {
+  const [ms, setMs] = useState(msUntilMidnight);
+  useEffect(() => {
+    const id = window.setInterval(() => setMs(msUntilMidnight()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  return Math.max(0, ms);
+}
+
+/** The phone's version of the clock: one quiet line under the picture. */
+function ClockLine() {
+  const { lang, t } = useLook();
+  const left = useCountdown();
+  const hms = [Math.floor(left / 3.6e6), Math.floor(left / 6e4) % 60, Math.floor(left / 1000) % 60].map(pad2).join(':');
+  return (
+    <p className={`mt-3 flex items-center gap-2 text-[11px] font-medium ${lang === 'ar' ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`} style={{ color: '#B03A2E' }}>
+      <span className="h-1.5 w-1.5 animate-pulse bg-[#B03A2E]" aria-hidden />
+      {t('Ends tonight', 'ينتهي الليلة')}
+      <span dir="ltr" className="font-['Outfit',sans-serif] tabular-nums tracking-normal">{hms}</span>
+    </p>
+  );
+}
 
 /** Hours, minutes and seconds left today — the lead offer's deadline. */
 function Clock() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  const [ms, setMs] = useState(msUntilMidnight);
-
-  useEffect(() => {
-    const id = window.setInterval(() => setMs(msUntilMidnight()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const left = Math.max(0, ms);
+  const left = useCountdown();
   const parts = [
     { v: Math.floor(left / 3.6e6), l: { en: 'hrs', ar: 'ساعة' } },
     { v: Math.floor(left / 6e4) % 60, l: { en: 'min', ar: 'دقيقة' } },
@@ -59,7 +76,7 @@ function Clock() {
 }
 
 /** A quiet offer: the picture, then the words underneath it on the canvas. */
-function QuietPanel({ p, tall = false }: { p: PromoPanel; tall?: boolean; key?: string }) {
+function QuietPanel({ p, tall = false, lead = false }: { p: PromoPanel; tall?: boolean; lead?: boolean; key?: string }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const title = isAr ? p.title.ar : p.title.en;
@@ -73,8 +90,9 @@ function QuietPanel({ p, tall = false }: { p: PromoPanel; tall?: boolean; key?: 
           alt={title}
           loading="lazy"
           decoding="async"
-          className={`w-full object-cover transition-transform duration-[1200ms] ease-out group-hover/qp:scale-[1.05] ${
-            tall ? 'aspect-[4/3]' : 'aspect-[16/10]'
+          // on a phone every card in the row shares one picture shape
+          className={`aspect-[4/5] w-full object-cover transition-transform duration-[1200ms] ease-out group-hover/qp:scale-[1.05] ${
+            tall ? 'md:aspect-[4/3]' : 'md:aspect-[16/10]'
           }`}
         />
       </div>
@@ -93,6 +111,16 @@ function QuietPanel({ p, tall = false }: { p: PromoPanel; tall?: boolean; key?: 
       >
         {title}
       </h3>
+      {lead && <ClockLine />}
+      {lead ? (
+        <span
+          className={`mt-5 inline-block bg-[#171512] px-7 py-3 text-[11px] font-medium text-white transition-colors duration-300 group-hover/qp:bg-[#5A6B4D] ${
+            isAr ? 'tracking-normal' : 'uppercase tracking-[0.26em]'
+          }`}
+        >
+          {isAr ? p.cta.ar : p.cta.en}
+        </span>
+      ) : (
       <span
         className={`mt-4 inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] transition-colors ${
           isAr ? 'tracking-normal' : 'uppercase tracking-[0.26em]'
@@ -107,6 +135,7 @@ function QuietPanel({ p, tall = false }: { p: PromoPanel; tall?: boolean; key?: 
           }`}
         />
       </span>
+      )}
     </>
   );
 
@@ -179,29 +208,39 @@ export function PromoWall() {
       style={{ borderColor: HAIR }}
     >
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-        {/* one gap value everywhere: the same 16px between columns and rows */}
-        <div className="grid gap-4 lg:grid-cols-12">
+        {/* one gap value everywhere: the same 16px between columns and rows.
+            On a phone the two grids dissolve (display: contents) and all five
+            tiles run as one sideways row, the offer with the clock first. */}
+        <div className={`${RAIL_MD} gap-4 md:block`} data-testid="promo-rail">
+        <div className="contents md:grid md:gap-4 lg:grid-cols-12">
           {/* the one offer with a clock on it */}
-          <Tile seen={wall.seen} order={0} className="lg:col-span-8">
-            {leadHref ? (
-              <Link to={leadHref} className={leadCls} data-testid="promo-lead">{leadInner}</Link>
-            ) : (
-              <a href="#" className={leadCls} data-testid="promo-lead">{leadInner}</a>
-            )}
+          <Tile seen={wall.seen} order={0} className={`${RAIL_ITEM_MD} lg:col-span-8`}>
+            <div className="hidden h-full md:block">
+              {leadHref ? (
+                <Link to={leadHref} className={leadCls} data-testid="promo-lead">{leadInner}</Link>
+              ) : (
+                <a href="#" className={leadCls} data-testid="promo-lead">{leadInner}</a>
+              )}
+            </div>
+            {/* phone: the same card as the rest of the row, marked by its clock and a solid button */}
+            <div className="md:hidden" data-testid="promo-lead-card">
+              <QuietPanel p={lead} lead />
+            </div>
           </Tile>
 
           {/* the standing service, kept quiet beside it */}
-          <Tile seen={wall.seen} order={1} className="lg:col-span-4">
+          <Tile seen={wall.seen} order={1} className={`${RAIL_ITEM_MD} lg:col-span-4`}>
             <QuietPanel p={rest[0]} tall />
           </Tile>
         </div>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="contents md:mt-4 md:grid md:grid-cols-3 md:gap-4">
           {rest.slice(1).map((p, i) => (
-            <Tile key={p.title.en} seen={wall.seen} order={2 + i}>
+            <Tile key={p.title.en} seen={wall.seen} order={2 + i} className={RAIL_ITEM_MD}>
               <QuietPanel p={p} />
             </Tile>
           ))}
+        </div>
         </div>
       </div>
     </section>
