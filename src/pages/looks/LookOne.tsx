@@ -74,7 +74,7 @@ const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${look
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),
   'Design Consultation': `${lookBase(1)}/ai-designer`,
-  'B2B Solutions': `${lookBase(1)}/b2b`,
+  B2B: `${lookBase(1)}/b2b`,
   Services: `${lookBase(1)}/services`,
   Shop: searchPath(1),
   'About Us': `${lookBase(1)}/about`,

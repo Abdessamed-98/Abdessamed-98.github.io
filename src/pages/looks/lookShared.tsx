@@ -85,16 +85,16 @@ export const IMG = {
 export const HERO_SLIDES: LookSlide[] = [
   { img: IMG.hero, ar: 'ديـــار لكل دار', en: 'Diyar for Every Home', tag: 'NEW COLLECTION', tagAr: 'تشكيلة جديدة' },
   { img: IMG.workshop, ar: 'نصنع أثاثك كما تتخيله', en: 'Crafted to Your Vision', tag: 'CUSTOM MANUFACTURING', tagAr: 'تصنيع حسب الطلب' },
-  { img: IMG.loungeDark, ar: 'حلول متكاملة للشركات والمشاريع', en: 'Turnkey Project Solutions', tag: 'B2B SOLUTIONS', tagAr: 'حلول الشركات' },
+  { img: IMG.loungeDark, ar: 'حلول متكاملة للشركات والمشاريع', en: 'Turnkey Project Solutions', tag: 'B2B', tagAr: 'B2B' },
 ];
 
-export const NAV_LINKS = ['Home', 'Design Consultation', 'B2B Solutions', 'Services', 'Shop'] as const;
+export const NAV_LINKS = ['Home', 'Design Consultation', 'B2B', 'Services', 'Shop'] as const;
 
 /** Bilingual nav items (same order as NAV_LINKS). */
 export const NAV_ITEMS: Bi[] = [
   { en: 'Home', ar: 'الرئيسية' },
   { en: 'Design Consultation', ar: 'استشارات التصميم' },
-  { en: 'B2B Solutions', ar: 'خدمات الشركات' },
+  { en: 'B2B', ar: 'B2B' },
   { en: 'Services', ar: 'الخدمات' },
   { en: 'Shop', ar: 'المتجر' },
 ];
@@ -103,7 +103,7 @@ export const FOOTER_QUICK: Bi[] = [
   { en: 'Home', ar: 'الرئيسية' },
   { en: 'Shop', ar: 'المتجر' },
   { en: 'Services', ar: 'الخدمات' },
-  { en: 'B2B Solutions', ar: 'خدمات الشركات' },
+  { en: 'B2B', ar: 'B2B' },
   { en: 'About Us', ar: 'من نحن' },
   { en: 'Contact Us', ar: 'اتصل بنا' },
 ];
@@ -408,7 +408,7 @@ export const DESIGN_ASSIST_ITEMS: { en: string; ar: string }[] = [
 ];
 
 export const FOOTER_LINKS = {
-  quick: ['Home', 'Shop', 'Services', 'B2B Solutions', 'About Us', 'Contact Us'],
+  quick: ['Home', 'Shop', 'Services', 'B2B', 'About Us', 'Contact Us'],
   support: ['FAQ', 'Shipping & Delivery', 'Returns & Exchanges', 'Warranty', 'Track Order'],
   phone: '+966 54 576 5409',
   email: 'info@diyarteams.com',

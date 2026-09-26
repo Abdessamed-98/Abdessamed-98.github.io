@@ -766,7 +766,7 @@ export function PagesIndex() {
         { label: t('All services', 'كل الخدمات'), to: `${b}/services` },
         { label: t('A service', 'خدمة'), to: `${b}/service/interior-design` },
         { label: t('A provider', 'مقدم خدمة'), to: `${b}/provider/${PROVIDERS[0].id}` },
-        { label: t('B2B solutions', 'حلول الشركات'), to: `${b}/b2b` },
+        { label: 'B2B', to: `${b}/b2b` },
         { label: t('A fit-out company', 'شركة تجهيز'), to: `${b}/b2b/${COMPANIES[0].id}` },
         { label: t('Projects', 'المشاريع'), to: `${b}/projects` },
         { label: t('AI designer — restyle', 'المصمم الذكي — إعادة التصميم'), to: `${b}/ai-designer` },
