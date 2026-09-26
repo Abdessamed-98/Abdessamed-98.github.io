@@ -556,24 +556,7 @@ export function LoyaltyPage() {
       </div>
 
       <section className={`${CONTAINER} py-14 md:py-16`}>
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Tiers', 'المستويات')}</p>
-        <ul className="mt-5 grid gap-px sm:grid-cols-3" style={{ backgroundColor: HAIR }}>
-          {LOYALTY_TIERS.map((x) => {
-            const on = x === tier;
-            return (
-              <li key={x.name.en} className="p-6" style={{ backgroundColor: on ? TILE : '#FDFCF9' }}>
-                <div className="flex items-center justify-between">
-                  <p className="text-[17px] font-bold">{t(x.name.en, x.name.ar)}</p>
-                  {on && <span className={`text-[10px] font-semibold ${caps}`} style={{ color: OLIVE }}>{t('You', 'أنت')}</span>}
-                </div>
-                <p className="mt-1 font-['Outfit',sans-serif] text-[12px] tabular-nums" style={{ color: MUTED }}>{t(`From ${formatSAR(x.from)} pts`, `من ${formatSAR(x.from)} نقطة`)}</p>
-                <p className="mt-4 text-[13px] font-light" style={{ color: '#4A443C' }}>{t(x.perk.en, x.perk.ar)}</p>
-              </li>
-            );
-          })}
-        </ul>
-
-        <ul className="mt-12 grid gap-8 sm:grid-cols-3">
+        <ul className="grid gap-8 sm:grid-cols-3">
           {LOYALTY.perks.map((pk) => (
             <li key={pk.title.en}>
               <pk.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
@@ -585,7 +568,8 @@ export function LoyaltyPage() {
       </section>
 
       <section className="border-t py-14 md:py-16" style={{ borderColor: HAIR }}>
-        <div className={`${CONTAINER} lg:max-w-4xl lg:ms-0`}>
+        <div className={CONTAINER}>
+          <div className="lg:max-w-4xl">
           <Tabs
             testId="loyalty-tabs"
             value={tab}
@@ -610,6 +594,7 @@ export function LoyaltyPage() {
               </li>
             ))}
           </ul>
+          </div>
         </div>
       </section>
     </main>
