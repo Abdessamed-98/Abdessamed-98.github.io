@@ -1461,17 +1461,17 @@ export function LookOneHome() {
       <CategoryPanels />
 
       {/* ============================================================== */}
-      {/* 4. PROMO MOSAIC — five offer panels */}
+      {/* 4. TRENDING — the first products, straight after the categories — most interactive, live activity */}
       {/* ============================================================== */}
-      <PromoWall />
+      <Trending no="02" />
 
       {/* ============================================================== */}
-      {/* 17. SHOP THE LOOK — interactive room with product hotspots */}
+      {/* 5. SHOP THE LOOK — interactive room with product hotspots */}
       {/* ============================================================== */}
       <section data-testid="shop-the-look" className="border-t" style={{ borderColor: HAIR }}>
         {/* full-screen room with the title on it; opens out as it scrolls in (one/RoomStage) */}
         <RoomStage
-          eyebrow={t('The Room — 02', 'الغرفة — 02')}
+          eyebrow={t('The Room — 03', 'الغرفة — 03')}
           title={t('Shop the Look', 'تسوق الغرفة')}
           img={IMG.roomHotspots}
           alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
@@ -1494,11 +1494,12 @@ export function LookOneHome() {
       </section>
 
       {/* ============================================================== */}
+      {/* 6. PROMO MOSAIC — five offer panels */}
+      {/* ============================================================== */}
+      <PromoWall />
+
 
       {/* ============================================================== */}
-      {/* 5. TRENDING — most interactive, live activity */}
-      {/* ============================================================== */}
-      <Trending no="03" />
 
       {/* ============================================================== */}
 
