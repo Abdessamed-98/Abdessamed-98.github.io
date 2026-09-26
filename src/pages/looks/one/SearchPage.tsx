@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import {
   CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES,
   parseSearch, serializeSearch, filterCatalog, lookBase, searchPath,
@@ -19,6 +19,7 @@ import {
 } from './ui';
 import { EmptyState, Tabs, capsCls } from './kit';
 import { serviceSlug } from './ServicePage';
+import { PROVIDERS } from './data';
 
 type SearchTab = 'all' | 'products' | 'stores' | 'services';
 const TAB_KEYS: SearchTab[] = ['all', 'products', 'stores', 'services'];
@@ -331,12 +332,12 @@ export function LookOneSearch() {
         <div className="mx-auto grid max-w-[1400px] gap-12 px-6 py-10 md:px-10 md:py-12" data-testid="search-all-strips">
           {stores.length > 0 && (
             <Strip title={t('Stores', 'المتاجر')} more={stores.length > 4 ? () => setTab('stores') : undefined} count={stores.length}>
-              <StoreGrid stores={stores.slice(0, 4)} />
+              <StoreGrid stores={stores.slice(0, 4)} rail />
             </Strip>
           )}
           {services.length > 0 && (
             <Strip title={t('Services', 'الخدمات')} more={services.length > 4 ? () => setTab('services') : undefined} count={services.length}>
-              <ServiceGrid services={services.slice(0, 4)} />
+              <ServiceGrid services={services.slice(0, 4)} rail />
             </Strip>
           )}
         </div>
@@ -612,7 +613,7 @@ function Strip({ title, count, more, children }: { title: string; count: number;
   const { lang, t } = useLook();
   const caps = capsCls(lang === 'ar');
   return (
-    <section>
+    <section className="min-w-0">
       <div className="mb-5 flex items-baseline justify-between gap-4">
         <h2 className={`text-[13px] font-bold ${caps}`}>
           {title} <span className="font-['Outfit',sans-serif] text-[11px] font-medium" style={{ color: OLIVE }}>{count}</span>
@@ -628,28 +629,33 @@ function Strip({ title, count, more, children }: { title: string; count: number;
   );
 }
 
-function StoreGrid({ stores }: { stores: LookStore[] }) {
+/** Compact rows: stores and services are shortcuts here, the catalogue below is the main event. */
+const gridCls = 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4';
+/** On a phone the "All" strips swipe sideways, one card tall, so products stay close. */
+const railCls = 'scrollbar-hide -mx-6 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4';
+const railItemCls = 'w-[80%] shrink-0 snap-start sm:w-auto';
+const rowCls = 'group flex h-full items-center gap-3.5 border bg-white p-2.5 pe-4 transition-colors hover:border-[#171512]';
+
+function StoreGrid({ stores, rail = false }: { stores: LookStore[]; rail?: boolean }) {
   const { lang, t } = useLook();
   return (
-    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" data-testid="store-results">
+    <ul className={rail ? railCls : gridCls} data-testid="store-results">
       {stores.map((s) => (
-        <li key={s.key}>
-          <Link to={`${lookBase(1)}/store/${s.key}`} className="group block border transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
-            <div className="relative aspect-[16/10]" style={{ backgroundColor: TILE }}>
-              <div className="h-full w-full overflow-hidden">
-                <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
-              </div>
-              <span dir="ltr" className="absolute bottom-0 start-4 flex h-12 w-12 translate-y-1/2 items-center justify-center border-2 border-white bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white">
+        <li key={s.key} className={rail ? railItemCls : undefined}>
+          <Link to={`${lookBase(1)}/store/${s.key}`} className={rowCls} style={{ borderColor: HAIR }}>
+            <span className="relative h-16 w-16 shrink-0 overflow-hidden" style={{ backgroundColor: TILE }}>
+              <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
+              <span dir="ltr" className="absolute bottom-0 start-0 bg-[#171512] px-1.5 py-0.5 font-['Outfit',sans-serif] text-[9px] font-bold text-white">
                 {s.initials}
               </span>
-            </div>
-            <div className="px-4 pb-5 pt-9">
-              <p className="text-[15px] font-bold">{s.name[lang]}</p>
-              <p className="mt-1 text-[12px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</p>
-              <p className="mt-3 text-[11px]" style={{ color: '#5F5950' }}>
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-bold">{s.name[lang]}</span>
+              <span className="mt-0.5 block truncate text-[12px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</span>
+              <span className="mt-1 block text-[11px]" style={{ color: '#5F5950' }}>
                 ★ {s.rating.toFixed(1)} · {t(`${s.products} products`, `${s.products} منتج`)}
-              </p>
-            </div>
+              </span>
+            </span>
           </Link>
         </li>
       ))}
@@ -657,23 +663,32 @@ function StoreGrid({ stores }: { stores: LookStore[] }) {
   );
 }
 
-function ServiceGrid({ services }: { services: LookService[] }) {
-  const { lang } = useLook();
+function ServiceGrid({ services, rail = false }: { services: LookService[]; rail?: boolean }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
   return (
-    <ul className="grid grid-cols-2 gap-5 lg:grid-cols-4" data-testid="service-results">
-      {services.map((s) => (
-        <li key={s.en}>
-          <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className="group block">
-            <div className="relative aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
-              <img src={s.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
-              <span className="absolute start-3 top-3 flex h-9 w-9 items-center justify-center bg-white/90">
-                <s.icon size={16} strokeWidth={1.5} className="text-[#5A6B4D]" />
+    <ul className={rail ? railCls : gridCls} data-testid="service-results">
+      {services.map((s) => {
+        const partners = PROVIDERS.filter((p) => p.service === s.en).length;
+        return (
+          <li key={s.en} className={rail ? railItemCls : undefined}>
+            <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className={rowCls} style={{ borderColor: HAIR }}>
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center transition-colors group-hover:bg-[#5A6B4D]" style={{ backgroundColor: TILE }}>
+                <s.icon size={22} strokeWidth={1.4} className="text-[#5A6B4D] transition-colors group-hover:text-white" />
               </span>
-            </div>
-            <p className="mt-3 text-[14px] font-bold transition-colors group-hover:text-[#5A6B4D]">{lang === 'ar' ? s.ar : s.en}</p>
-          </Link>
-        </li>
-      ))}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14px] font-bold">{isAr ? s.ar : s.en}</span>
+                <span className="mt-1 block text-[11px]" style={{ color: '#5F5950' }}>
+                  {partners
+                    ? t(`${partners} partner${partners > 1 ? 's' : ''} · free visit`, `${partners} ${partners > 1 ? 'شركاء' : 'شريك'} · زيارة مجانية`)
+                    : t('Diyar crews · free visit', 'فرق ديار · زيارة مجانية')}
+                </span>
+              </span>
+              <ArrowRight size={14} strokeWidth={1.5} className={`shrink-0 text-[#5F5950] transition-transform duration-300 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
