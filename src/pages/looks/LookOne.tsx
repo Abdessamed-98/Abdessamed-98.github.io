@@ -1972,7 +1972,8 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 26. APP PROMO */}
       {/* ============================================================== */}
-      <section data-testid="app-promo" className="border-t bg-white py-20 md:py-28" style={{ borderColor: HAIR }}>
+      {/* the brand green (the original site's diyar-dark), same as the service tiles on the phone */}
+      <section data-testid="app-promo" className="py-20 text-[#F3ECDB] md:py-28" style={{ backgroundColor: '#1F3D3A' }}>
         <div className="mx-auto max-w-[1400px] px-6 md:px-10">
           <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
             {/* the phone sits on the left in both languages */}
@@ -1983,7 +1984,7 @@ export function LookOneHome() {
                   alt={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
                   loading="lazy"
                   decoding="async"
-                  className="h-auto max-h-[620px] w-auto max-w-[78%] object-contain drop-shadow-[0_40px_50px_rgba(23,21,18,0.22)] lg:max-w-full"
+                  className="h-auto max-h-[620px] w-auto max-w-[78%] object-contain drop-shadow-[0_40px_50px_rgba(0,0,0,0.45)] lg:max-w-full"
                 />
               </div>
             </Reveal>
@@ -1992,8 +1993,9 @@ export function LookOneHome() {
               <SectionHeading
                 eyebrow={t(`${APP_PROMO.eyebrow.en} — 19`, `${APP_PROMO.eyebrow.ar} — 19`)}
                 title={t(APP_PROMO.title.en, APP_PROMO.title.ar)}
+                light
               />
-              <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-neutral-600">
+              <p className="mt-7 max-w-lg text-[15px] font-light leading-relaxed text-[#F3ECDB]/75">
                 {t(APP_PROMO.body.en, APP_PROMO.body.ar)}
               </p>
 
@@ -2007,7 +2009,7 @@ export function LookOneHome() {
                     transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.05 }}
                     className="flex items-start gap-4"
                   >
-                    <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#5A6B4D]" />
+                    <f.icon size={24} strokeWidth={1} className="mt-0.5 shrink-0 text-[#A7B894]" />
                     <div className="min-w-0">
                       <h3
                         className={`font-bold uppercase ${
@@ -2016,7 +2018,7 @@ export function LookOneHome() {
                       >
                         {t(f.title.en, f.title.ar)}
                       </h3>
-                      <p className="mt-2 text-[13px] font-light leading-relaxed text-neutral-600">
+                      <p className="mt-2 text-[13px] font-light leading-relaxed text-[#F3ECDB]/65">
                         {t(f.body.en, f.body.ar)}
                       </p>
                     </div>
@@ -2033,10 +2035,10 @@ export function LookOneHome() {
                     key={store.label}
                     type="button"
                     onClick={() => shell.toast(t('The Diyar app arrives soon on both stores.', 'تطبيق ديار قريباً على المتجرين.'))}
-                    className="bg-[#171512] px-9 py-3.5 text-start text-white transition-colors duration-300 hover:bg-[#5A6B4D]"
+                    className="bg-[#F3ECDB] px-9 py-3.5 text-start text-[#1F3D3A] transition-colors duration-300 hover:bg-white"
                   >
                     <span
-                      className={`block text-[9px] uppercase text-white/60 ${
+                      className={`block text-[9px] uppercase text-[#1F3D3A]/65 ${
                         isAr ? 'tracking-normal' : 'tracking-[0.22em]'
                       }`}
                     >
