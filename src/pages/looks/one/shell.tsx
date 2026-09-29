@@ -22,7 +22,7 @@ import { AuthSheet } from './AuthSheet';
 import { ImageSearchSheet } from './ImageSearchSheet';
 
 /** Saved from the start so the wishlist drawer and page are never empty on a first look. */
-const SEED_WISHLIST = [2, 5, 11, 12, 4];
+const SEED_WISHLIST = [2, 5, 7, 9, 4];
 
 export function LookShell({ children }: { children: React.ReactNode }) {
   return (

@@ -315,7 +315,7 @@ export function ProductCard({
   return (
     <div className="group flex h-full flex-col" data-testid={testId}>
       {/* image tile */}
-      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
+      <div className="relative aspect-square overflow-hidden">
         {/* badges — sale first, then new, stacked at the start edge */}
         <div className="absolute start-4 top-4 z-10 flex flex-col gap-1.5">
           {c.sale && (

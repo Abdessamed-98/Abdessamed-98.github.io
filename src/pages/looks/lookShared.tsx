@@ -1158,17 +1158,17 @@ export const PROMO_PANELS: PromoPanel[] = [
 export interface TrendingItem { productId: number; views: number; likes: number; saves: number; hot?: boolean }
 
 export const TRENDING: TrendingItem[] = [
-  { productId: 13, views: 1842, likes: 312, saves: 148, hot: true },
+  { productId: 5, views: 1842, likes: 312, saves: 148, hot: true },
   { productId: 1, views: 1530, likes: 276, saves: 121, hot: true },
-  { productId: 10, views: 1207, likes: 198, saves: 96 },
+  { productId: 3, views: 1207, likes: 198, saves: 96 },
   { productId: 6, views: 1114, likes: 240, saves: 88, hot: true },
   { productId: 4, views: 968, likes: 154, saves: 77 },
-  { productId: 12, views: 902, likes: 221, saves: 64 },
+  { productId: 9, views: 902, likes: 221, saves: 64 },
 ];
 
 /** "Featured deals" — a countdown that ends at local midnight, over the discounted items. */
 export const FEATURED_DEALS = {
-  productIds: [2, 6, 4, 10, 13, 9] as number[],
+  productIds: [2, 6, 4, 7, 8, 9] as number[],
   /** Extra deal applied on top of the catalogue price for items without an oldPrice (percent). */
   fallbackDiscount: 15,
 };
@@ -1207,7 +1207,7 @@ export const CAMPAIGNS: Campaign[] = [
 ];
 
 /** "Suggested for you" — personalised picks (static for the demo). */
-export const SUGGESTED_IDS: number[] = [8, 5, 11, 7, 14];
+export const SUGGESTED_IDS: number[] = [8, 5, 3, 7, 2];
 
 /** Brand wordmarks strip (the original listed these brands). Rendered as type, no logos. */
 export const BRANDS: Bi[] = [
