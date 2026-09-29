@@ -21,7 +21,7 @@ import { serviceSlug } from './ServicePage';
 import {
   INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM,
   useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, primaryBtnCls, eyebrowCls,
-  useRail, RailArrows,
+  useRail, RailArrows, tileImg,
 } from './ui';
 
 /* ------------------------------------------------------------------ */
@@ -486,7 +486,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
 
   return (
     <div className="group flex h-full flex-col border bg-white" style={{ borderColor: HAIR }}>
-      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
+      <div className="relative aspect-square overflow-hidden">
         <span
           dir="ltr"
           className="absolute start-4 top-4 z-10 px-2 py-1 font-['Outfit',sans-serif] text-[11px] font-bold text-white"
@@ -496,7 +496,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
         </span>
         <Link to={to} className="block h-full w-full" aria-label={name}>
           <img
-            src={p.img}
+            src={tileImg(p.id, p.img)}
             alt={name}
             className="h-full w-full object-contain p-7 transition-transform duration-700 ease-out group-hover:scale-105"
           />
