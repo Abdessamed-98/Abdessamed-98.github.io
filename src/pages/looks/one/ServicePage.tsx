@@ -178,8 +178,8 @@ function OtherCategories({ current }: { current: LookService }) {
         {SERVICES.filter((s) => s !== current).slice(0, 4).map((s) => (
           <li key={s.en}>
             <Link to={categoryPath(s)} className="group block border transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
-              <div className="aspect-[4/3] overflow-hidden">
-                <img src={s.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105" />
+              <div className="aspect-[4/3] overflow-hidden" style={{ backgroundColor: categoryGround(s) }}>
+                <img src={categoryArt(s)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105" />
               </div>
               <span className="flex items-center justify-between gap-3 p-4">
                 <span className="text-[13px] font-bold">{t(s.en, s.ar)}</span>
@@ -256,8 +256,6 @@ export default function CategoryPage() {
           </ul>
         </section>
 
-        <ServiceGallery shots={SERVICE_GALLERY[cat.en] ?? []} />
-        <ServiceProviders serviceEn={cat.en} />
         <OtherCategories current={cat} />
       </div>
     </main>
