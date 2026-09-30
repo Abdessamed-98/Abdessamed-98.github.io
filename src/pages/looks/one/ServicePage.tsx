@@ -47,6 +47,56 @@ const CATEGORY_ART: Record<string, string> = {
   'Safety Equipment & Systems': 'إضاءة وكهرباء',
 };
 export const categoryArt = (s: LookService) => TILE_ART(CATEGORY_ART[s.en] ?? 'تركيب وصيانة');
+/** each tile's own green, read off its edges, so the banner around it has no seam */
+const CATEGORY_GROUND: Record<string, string> = {
+  'Interior Design': '#25433D',
+  'Door Solutions': '#1F3F3A',
+  'Custom Furniture': '#1D3532',
+  'Painting & Wall Finishes': '#213F3A',
+  'Flooring Solutions': '#1B3431',
+  'Finishing & Decorative': '#182E2C',
+  'Glass & Skylight Facades': '#172C2A',
+  'Safety Equipment & Systems': '#192E2C',
+};
+const categoryGround = (s: LookService) => CATEGORY_GROUND[s.en] ?? '#1F3D3A';
+
+/** A category's banner: its tile standing at one end, the name at the other, on the tile's own green. */
+function CategoryHero({ cat, count, crumbs }: { cat: LookService; count: number; crumbs: { label: string; to?: string }[] }) {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const feather = 'radial-gradient(closest-side, #000 72%, transparent 100%)';
+  return (
+    <div style={{ backgroundColor: categoryGround(cat) }} data-testid="category-hero">
+      <div className="mx-auto grid max-w-[1400px] items-center gap-6 px-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-10">
+        <div className="pb-4 pt-10 md:py-14">
+          <p className={`text-[11px] text-[#A7B894] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Service category', 'قسم خدمات')}</p>
+          <h1
+            className={`mt-3 font-extrabold text-white ${
+              isAr ? "font-['Alexandria',sans-serif] text-3xl leading-[1.2] md:text-5xl" : "font-['Outfit',sans-serif] text-3xl uppercase leading-[1.05] tracking-tight md:text-5xl"
+            }`}
+          >
+            {t(cat.en, cat.ar)}
+          </h1>
+          <p className="mt-3 text-[14px] text-white/70">{t(`${count} services`, `${count} خدمات`)}</p>
+          <nav className="mt-6 flex flex-wrap items-center gap-2 text-[11px] text-white/55" aria-label={t('Breadcrumb', 'مسار التنقل')}>
+            {crumbs.map((c, i) => (
+              <span key={c.label} className="flex items-center gap-2">
+                {i > 0 && <span aria-hidden>/</span>}
+                {c.to ? <Link to={c.to} className="transition-colors hover:text-white">{c.label}</Link> : <span className="text-white/85">{c.label}</span>}
+              </span>
+            ))}
+          </nav>
+        </div>
+        <img
+          src={categoryArt(cat)}
+          alt=""
+          className="mx-auto -mt-2 h-[180px] w-auto md:mt-0 md:h-[320px]"
+          style={{ WebkitMaskImage: feather, maskImage: feather }}
+        />
+      </div>
+    </div>
+  );
+}
 
 /** What every service includes — the promise is the same, the craft differs. */
 const INCLUDED: Bi[] = [
@@ -159,10 +209,9 @@ export default function CategoryPage() {
 
   return (
     <main className="pt-[72px]" data-testid="category-page">
-      <Hero
-        img={cat.img}
-        eyebrow={t('Service category', 'قسم خدمات')}
-        title={name}
+      <CategoryHero
+        cat={cat}
+        count={items.length}
         crumbs={[{ label: t('Home', 'الرئيسية'), to: lookBase(1) }, { label: t('Services', 'الخدمات'), to: `${lookBase(1)}/services` }, { label: name }]}
       />
 
