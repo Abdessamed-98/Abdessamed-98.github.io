@@ -1035,7 +1035,8 @@ export function PagesIndex() {
       title: t('Services & business', 'الخدمات والشركات'),
       items: [
         { label: t('All services', 'كل الخدمات'), to: `${b}/services` },
-        { label: t('A service', 'خدمة'), to: `${b}/service/interior-design` },
+        { label: t('A service category', 'قسم خدمات'), to: `${b}/services/interior-design` },
+        { label: t('A service', 'خدمة'), to: `${b}/services/interior-design/residential-design` },
         { label: t('A provider', 'مقدم خدمة'), to: `${b}/provider/${PROVIDERS[0].id}` },
         { label: 'B2B', to: `${b}/b2b` },
         { label: t('A fit-out company', 'شركة تجهيز'), to: `${b}/b2b/${COMPANIES[0].id}` },

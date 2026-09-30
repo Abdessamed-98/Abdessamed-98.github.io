@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { serviceSlug, subServicePath } from './one/ServicePage';
+import { categoryPath, servicePath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -69,9 +69,9 @@ export {
 /** Mega-menu / drawer shop groups map 1:1 onto the catalog categories, in order. */
 const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
 /** The services menu lists the eight services in SERVICES order. */
-const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${lookBase(1)}/service/${serviceSlug(SERVICES[i])}` : undefined);
-/** Each sub-service opens its service's page with it chosen. */
-const serviceItemTo = (i: number) => (SERVICES[i] ? (it: Bi) => subServicePath(SERVICES[i], it) : undefined);
+const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categoryPath(SERVICES[i]) : undefined);
+/** The menu's headings are categories; the items under them are the services. */
+const serviceItemTo = (i: number) => (SERVICES[i] ? (it: Bi) => servicePath(SERVICES[i], it) : undefined);
 /** Where the plain nav items go. */
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),

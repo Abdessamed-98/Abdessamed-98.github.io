@@ -16,7 +16,7 @@ import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
 import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
-import { serviceSlug, subServicePath } from './ServicePage';
+import { categoryPath, servicePath } from './ServicePage';
 import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, type Provider } from './data';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -80,7 +80,7 @@ export function ServicesIndex() {
                 className="flex flex-col border bg-white sm:flex-row"
                 style={{ borderColor: HAIR }}
               >
-                <Link to={`${lookBase(1)}/service/${serviceSlug(sv)}`} className="group relative block aspect-[16/9] shrink-0 overflow-hidden sm:aspect-auto sm:w-[38%]" style={{ backgroundColor: TILE }}>
+                <Link to={categoryPath(sv)} className="group relative block aspect-[16/9] shrink-0 overflow-hidden sm:aspect-auto sm:w-[38%]" style={{ backgroundColor: TILE }}>
                   <img src={sv.img} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
                   <span className="absolute start-3 top-3 flex h-9 w-9 items-center justify-center bg-white/90">
                     <sv.icon size={16} strokeWidth={1.5} className="text-[#5A6B4D]" />
@@ -88,7 +88,7 @@ export function ServicesIndex() {
                 </Link>
                 <div className="flex min-w-0 flex-1 flex-col p-5">
                   <Link
-                    to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
+                    to={categoryPath(sv)}
                     className={`text-[18px] font-extrabold leading-snug transition-colors hover:text-[#5A6B4D] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}
                   >
                     {t(sv.en, sv.ar)}
@@ -97,7 +97,7 @@ export function ServicesIndex() {
                     {items.map((it) => (
                       <li key={it.en}>
                         <Link
-                          to={subServicePath(sv, it)}
+                          to={servicePath(sv, it)}
                           data-testid="services-sub-link"
                           className="inline-block border px-2.5 py-1.5 text-[12px] transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white"
                           style={{ borderColor: HAIR, backgroundColor: needle ? '#F6F3EC' : undefined }}
@@ -108,20 +108,13 @@ export function ServicesIndex() {
                     ))}
                   </ul>
                   <div className="mt-auto flex items-center gap-3 pt-5">
-                    <button
-                      type="button"
-                      data-testid="service-card-request"
-                      onClick={() => openService(t(sv.en, sv.ar))}
-                      className={`px-5 py-2.5 ${primaryBtnCls(isAr)}`}
-                    >
-                      {t('Request', 'اطلب الخدمة')}
-                    </button>
                     <Link
-                      to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
-                      className="px-3 py-2.5 text-[12px] font-medium transition-colors hover:text-[#5A6B4D]"
-                      style={{ color: MUTED }}
+                      to={categoryPath(sv)}
+                      data-testid="service-card-open"
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 ${primaryBtnCls(isAr)}`}
                     >
-                      {t('Details', 'التفاصيل')}
+                      {t(`All ${items.length} services`, `كل الخدمات (${items.length})`)}
+                      <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                     </Link>
                   </div>
                 </div>
@@ -294,7 +287,7 @@ export function ProviderPage() {
             <p className="text-[19px] font-light leading-relaxed md:text-[22px] lg:col-span-7">{t(p.bio.en, p.bio.ar)}</p>
             <dl className="border lg:col-span-5" style={{ borderColor: HAIR }}>
               {[
-                { k: t('Service', 'الخدمة'), v: serviceName, to: service ? `${lookBase(1)}/service/${serviceSlug(service)}` : undefined },
+                { k: t('Service', 'الخدمة'), v: serviceName, to: service ? categoryPath(service) : undefined },
                 { k: t('Based in', 'المقر'), v: t(p.city.en, p.city.ar) },
                 { k: t('Covers', 'يغطي'), v: t('Within 60 km, visits in 3 days', 'حتى 60 كم، زيارة خلال 3 أيام') },
                 { k: t('Verified by Diyar', 'موثّق من ديار'), v: t('License, insurance, references', 'الترخيص والتأمين والمراجع') },

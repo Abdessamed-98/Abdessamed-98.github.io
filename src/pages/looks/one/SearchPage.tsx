@@ -18,7 +18,7 @@ import {
   useLook, SectionHeading, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
 } from './ui';
 import { EmptyState, Tabs, capsCls } from './kit';
-import { serviceSlug } from './ServicePage';
+import { categoryPath } from './ServicePage';
 import { PROVIDERS } from './data';
 
 type SearchTab = 'all' | 'products' | 'stores' | 'services';
@@ -673,7 +673,7 @@ function ServiceGrid({ services, rail = false }: { services: LookService[]; rail
         const partners = PROVIDERS.filter((p) => p.service === s.en).length;
         return (
           <li key={s.en} className={rail ? railItemCls : undefined}>
-            <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className={rowCls} style={{ borderColor: HAIR }}>
+            <Link to={categoryPath(s)} className={rowCls} style={{ borderColor: HAIR }}>
               <span className="flex h-16 w-16 shrink-0 items-center justify-center transition-colors group-hover:bg-[#5A6B4D]" style={{ backgroundColor: TILE }}>
                 <s.icon size={22} strokeWidth={1.4} className="text-[#5A6B4D] transition-colors group-hover:text-white" />
               </span>

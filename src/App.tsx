@@ -50,7 +50,7 @@ import { LookSwitcher } from './pages/looks/lookShared.tsx';
 import LookOne, { LookOneHome, LookOneSearch, LookOneProduct } from './pages/looks/LookOne.tsx';
 import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/CheckoutPage.tsx';
 import LookOneStore from './pages/looks/one/StorePage.tsx';
-import LookOneService from './pages/looks/one/ServicePage.tsx';
+import LookOneCategory, { ServiceDetailPage as LookOneServiceDetail, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
 import {
   ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
@@ -314,11 +314,13 @@ export default function App() {
           <Route path="search" element={<LookOneSearch />} />
           <Route path="product/:id" element={<LookOneProduct />} />
           <Route path="store/:key" element={<LookOneStore />} />
-          <Route path="service/:slug" element={<LookOneService />} />
+          <Route path="service/:slug" element={<LookOneServiceRedirect />} />
           <Route path="checkout" element={<LookOneCheckout />} />
           <Route path="order/:id" element={<LookOneOrder />} />
           <Route path="account/:section?" element={<LookOneAccount />} />
           <Route path="services" element={<LookOneServices />} />
+          <Route path="services/:category" element={<LookOneCategory />} />
+          <Route path="services/:category/:service" element={<LookOneServiceDetail />} />
           <Route path="provider/:id" element={<LookOneProvider />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
           <Route path="help/:topic?" element={<LookOneHelp />} />

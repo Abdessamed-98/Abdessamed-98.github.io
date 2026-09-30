@@ -17,7 +17,7 @@ import {
   msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, lookBase, ROOMS, SERVICES,
   type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory, type RoomKey,
 } from '../lookShared';
-import { serviceSlug } from './ServicePage';
+import { categoryPath } from './ServicePage';
 import {
   INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM,
   useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, primaryBtnCls, eyebrowCls,
@@ -1053,7 +1053,7 @@ export function ServicesIndex({ no }: { no: string }) {
                 return (
                   <li key={sv.en} className="border-b" style={{ borderColor: HAIR }}>
                     <Link
-                                            to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
+                                            to={categoryPath(sv)}
                       data-testid={`service-row-${i}`}
                       onMouseEnter={() => setActive(i)}
                       onFocus={() => setActive(i)}
