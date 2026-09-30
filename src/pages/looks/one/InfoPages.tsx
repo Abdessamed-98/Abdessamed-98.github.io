@@ -9,7 +9,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, ChevronDown, MessageSquare, Phone, Mail, Star, Briefcase, CalendarDays, Search } from 'lucide-react';
+import { ArrowRight, ChevronDown, MessageSquare, Phone, Mail, Star, Briefcase, CalendarDays, Search, X } from 'lucide-react';
 import { CATALOG, FOOTER_LINKS, SERVICES, SERVICES_MENU, lookBase, searchPath } from '../lookShared';
 import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, ProductCard, Stars, primaryBtnCls, useLook, useSeen } from './ui';
 import { useShell } from './shellContext';
@@ -28,12 +28,24 @@ const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'ا�
 export function ServicesIndex() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  const caps = capsCls(isAr);
   const { openService } = useShell();
-  const [active, setActive] = useState(0);
+  const [q, setQ] = useState('');
   const subCount = SERVICES_MENU.reduce((n, g) => n + g.items.length, 0);
-  const s = SERVICES[active];
-  const menu = SERVICES_MENU[active];
+
+  // what matches the search: a service by its own name shows all its sub-services;
+  // otherwise only the sub-services that match are kept
+  const needle = q.trim().toLowerCase();
+  const hit = (b: { en: string; ar: string }) => !needle || b.en.toLowerCase().includes(needle) || b.ar.includes(q.trim());
+  const rows = SERVICES.map((sv, i) => {
+    const items = SERVICES_MENU[i]?.items ?? [];
+    const own = hit(sv);
+    return { sv, i, items: own ? items : items.filter(hit), show: own || items.some(hit) };
+  }).filter((r) => r.show);
+
+  const jump = (i: number) => {
+    const el = document.getElementById(`service-${i}`);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 150, behavior: 'smooth' });
+  };
 
   return (
     <main className="pt-[72px]" data-testid="services-index">
@@ -42,138 +54,111 @@ export function ServicesIndex() {
         eyebrow={t('Diyar Services', 'خدمات ديار')}
         title={t('Services', 'الخدمات')}
         intro={t(`${SERVICES.length} services · ${subCount} specialities`, `${SERVICES.length} خدمات · ${subCount} خدمة فرعية`)}
-        aside={
-          <button type="button" data-testid="services-request" onClick={() => openService()} className={`px-9 py-4 ${primaryBtnCls(isAr)}`}>
-            {t('Request a Service', 'اطلب خدمة')}
-          </button>
-        }
       />
 
-      {/* ---- desktop: an index of the eight; the one you point at opens beside it ---- */}
-      <div className={`${CONTAINER} hidden py-14 lg:grid lg:grid-cols-12 lg:gap-14`}>
-        <ol className="lg:col-span-5" onMouseLeave={() => undefined}>
-          {SERVICES.map((sv, i) => {
-            const on = i === active;
-            return (
-              <li key={sv.en} className="border-t last:border-b" style={{ borderColor: HAIR }}>
-                <Link
-                  to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
-                  data-testid="service-tile"
-                  onMouseEnter={() => setActive(i)}
-                  onFocus={() => setActive(i)}
-                  className="group flex items-baseline gap-5 py-5"
-                >
-                  <span className="w-7 shrink-0 font-['Outfit',sans-serif] text-[12px] font-bold tabular-nums transition-colors" style={{ color: on ? OLIVE : '#B8B1A5' }} dir="ltr">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span
-                    className={`min-w-0 flex-1 font-extrabold leading-tight transition-colors duration-300 ${
-                      isAr ? "font-['Alexandria',sans-serif] text-[28px]" : "font-['Outfit',sans-serif] text-[26px] uppercase tracking-tight"
-                    }`}
-                    style={{ color: on ? INK : '#C9C4BA' }}
-                  >
-                    {t(sv.en, sv.ar)}
-                  </span>
-                  <span className={`shrink-0 text-[11px] transition-opacity ${on ? 'opacity-100' : 'opacity-0'}`} style={{ color: MUTED }}>
-                    {t(`${SERVICES_MENU[i].items.length} specialities`, `${SERVICES_MENU[i].items.length} خدمات فرعية`)}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
-
-        <div className="lg:col-span-7">
-          <div className="sticky top-[96px]" data-testid="services-panel">
-            <div className="relative aspect-[16/9] overflow-hidden" style={{ backgroundColor: TILE }}>
-              <AnimatePresence initial={false}>
-                <motion.img
-                  key={s.img + active}
-                  src={s.img}
-                  alt=""
-                  initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              </AnimatePresence>
-              <span className="absolute start-5 top-5 flex h-11 w-11 items-center justify-center bg-white/90">
-                <s.icon size={18} strokeWidth={1.5} className="text-[#5A6B4D]" />
-              </span>
-            </div>
-            <motion.div key={active} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <ul className="mt-6 grid grid-cols-2 gap-x-8">
-                {menu.items.map((it) => (
-                  <li key={it.en} className="border-b" style={{ borderColor: HAIR }}>
-                    <Link
-                      to={subServicePath(s, it)}
-                      data-testid="services-sub-link"
-                      className="group flex items-center justify-between gap-3 py-3.5 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]"
-                    >
-                      {t(it.en, it.ar)}
-                      <ArrowRight size={13} strokeWidth={1.5} className={`shrink-0 transition-transform ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-7 flex flex-wrap items-center gap-6">
-                <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className={`px-8 py-3.5 ${primaryBtnCls(isAr)}`}>
-                  {t(`About ${s.en}`, `عن ${s.ar}`)}
-                </Link>
-                <button type="button" onClick={() => openService(t(s.en, s.ar))} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
-                  {t('Request it', 'اطلبها')}
-                </button>
-              </div>
-            </motion.div>
-          </div>
+      {/* find a service: search, then one chip per service to jump to it */}
+      <div className={`${CONTAINER} pt-8`}>
+        <div className="flex h-12 max-w-xl items-center gap-3 border bg-white px-4 focus-within:border-[#171512]" style={{ borderColor: '#C9C2B4' }}>
+          <Search size={16} strokeWidth={1.5} style={{ color: MUTED }} />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            data-testid="services-search"
+            type="search"
+            placeholder={t('Search a service — e.g. SPC, wooden doors', 'ابحث عن خدمة — مثلاً: SPC، أبواب خشبية')}
+            aria-label={t('Search services', 'ابحث في الخدمات')}
+            className="h-full min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-[#8C857A] [&::-webkit-search-cancel-button]:hidden"
+          />
+          {q && (
+            <button type="button" onClick={() => setQ('')} aria-label={t('Clear', 'مسح')} className="text-[#5F5950] hover:text-[#171512]">
+              <X size={15} strokeWidth={1.5} />
+            </button>
+          )}
         </div>
+        {!needle && (
+          <div className="scrollbar-hide -mx-6 mt-4 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0">
+            {SERVICES.map((sv, i) => (
+              <button
+                key={sv.en}
+                type="button"
+                onClick={() => jump(i)}
+                className="shrink-0 border bg-white px-3.5 py-2 text-[12.5px] font-medium transition-colors hover:border-[#171512]"
+                style={{ borderColor: HAIR }}
+              >
+                {t(sv.en, sv.ar)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ---- phone and tablet: the same index as an accordion, one open at a time ---- */}
-      <div className={`${CONTAINER} py-10 lg:hidden`}>
-        <ol>
-          {SERVICES.map((sv, i) => {
-            const on = i === active;
-            return (
-              <li key={sv.en} className="border-t last:border-b" style={{ borderColor: HAIR }}>
-                <button
-                  type="button"
-                  aria-expanded={on}
-                  data-testid="service-tile"
-                  onClick={() => setActive(on ? -1 : i)}
-                  className="flex w-full items-center gap-4 py-5 text-start"
-                >
-                  <span className="w-6 shrink-0 font-['Outfit',sans-serif] text-[11px] font-bold tabular-nums" style={{ color: on ? OLIVE : '#B8B1A5' }} dir="ltr">
-                    {String(i + 1).padStart(2, '0')}
+      {/* every service, open: photo, its sub-services, request */}
+      <div className={`${CONTAINER} py-10 md:py-12`}>
+        {rows.length === 0 ? (
+          <EmptyState
+            title={t('No service matches that', 'لا توجد خدمة بهذا الاسم')}
+            body={t('Try another word, or tell us what you need.', 'جرّب كلمة أخرى، أو أخبرنا بما تحتاجه.')}
+            action={{ label: t('Request a Service', 'اطلب خدمة'), onClick: () => openService(q.trim() || undefined) }}
+          />
+        ) : (
+          <ul className="grid gap-5 md:grid-cols-2">
+            {rows.map(({ sv, i, items }) => (
+              <li
+                key={sv.en}
+                id={`service-${i}`}
+                data-testid="service-card"
+                className="flex flex-col border bg-white sm:flex-row"
+                style={{ borderColor: HAIR }}
+              >
+                <Link to={`${lookBase(1)}/service/${serviceSlug(sv)}`} className="group relative block aspect-[16/9] shrink-0 overflow-hidden sm:aspect-auto sm:w-[38%]" style={{ backgroundColor: TILE }}>
+                  <img src={sv.img} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+                  <span className="absolute start-3 top-3 flex h-9 w-9 items-center justify-center bg-white/90">
+                    <sv.icon size={16} strokeWidth={1.5} className="text-[#5A6B4D]" />
                   </span>
-                  <span className={`min-w-0 flex-1 text-[20px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+                </Link>
+                <div className="flex min-w-0 flex-1 flex-col p-5">
+                  <Link
+                    to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
+                    className={`text-[18px] font-extrabold leading-snug transition-colors hover:text-[#5A6B4D] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}
+                  >
                     {t(sv.en, sv.ar)}
-                  </span>
-                  <ChevronDown size={18} strokeWidth={1.4} className={`shrink-0 transition-transform duration-300 ${on ? 'rotate-180' : ''}`} style={{ color: OLIVE }} />
-                </button>
-                <motion.div initial={false} animate={{ height: on ? 'auto' : 0, opacity: on ? 1 : 0 }} transition={{ duration: 0.35, ease: 'easeOut' }} className="overflow-hidden">
-                  <div className="pb-6">
-                    <img src={sv.img} alt="" loading="lazy" className="aspect-[16/10] w-full object-cover" style={{ backgroundColor: TILE }} />
-                    <ul className="mt-3">
-                      {SERVICES_MENU[i].items.map((it) => (
-                        <li key={it.en} className="border-b" style={{ borderColor: HAIR }}>
-                          <Link to={subServicePath(sv, it)} className="flex items-center justify-between gap-3 py-3 text-[14px] font-medium">
-                            {t(it.en, it.ar)}
-                            <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} style={{ color: MUTED }} />
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link to={`${lookBase(1)}/service/${serviceSlug(sv)}`} className={`mt-5 block py-3.5 text-center ${primaryBtnCls(isAr)}`}>
-                      {t(`About ${sv.en}`, `عن ${sv.ar}`)}
+                  </Link>
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
+                    {items.map((it) => (
+                      <li key={it.en}>
+                        <Link
+                          to={subServicePath(sv, it)}
+                          data-testid="services-sub-link"
+                          className="inline-block border px-2.5 py-1.5 text-[12px] transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white"
+                          style={{ borderColor: HAIR, backgroundColor: needle ? '#F6F3EC' : undefined }}
+                        >
+                          {t(it.en, it.ar)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-auto flex items-center gap-3 pt-5">
+                    <button
+                      type="button"
+                      data-testid="service-card-request"
+                      onClick={() => openService(t(sv.en, sv.ar))}
+                      className={`px-5 py-2.5 ${primaryBtnCls(isAr)}`}
+                    >
+                      {t('Request', 'اطلب الخدمة')}
+                    </button>
+                    <Link
+                      to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
+                      className="px-3 py-2.5 text-[12px] font-medium transition-colors hover:text-[#5A6B4D]"
+                      style={{ color: MUTED }}
+                    >
+                      {t('Details', 'التفاصيل')}
                     </Link>
                   </div>
-                </motion.div>
+                </div>
               </li>
-            );
-          })}
-        </ol>
+            ))}
+          </ul>
+        )}
       </div>
     </main>
   );
