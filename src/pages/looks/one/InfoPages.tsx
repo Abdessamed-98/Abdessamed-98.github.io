@@ -11,7 +11,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, ChevronDown, MessageSquare, Phone, Mail, Star, Briefcase, CalendarDays, Search, X } from 'lucide-react';
 import { CATALOG, FOOTER_LINKS, SERVICES, SERVICES_MENU, lookBase, searchPath } from '../lookShared';
-import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, ProductCard, Stars, primaryBtnCls, useLook, useSeen } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, ProductCard, Stars, primaryBtnCls, useLook, useSeen } from './ui';
 import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
@@ -29,58 +29,34 @@ export function ServicesIndex() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const { openService } = useShell();
-  const [q, setQ] = useState('');
   const subCount = SERVICES_MENU.reduce((n, g) => n + g.items.length, 0);
-
-  // what matches the search: a service by its own name shows all its sub-services;
-  // otherwise only the sub-services that match are kept
-  const needle = q.trim().toLowerCase();
-  const hit = (b: { en: string; ar: string }) => !needle || b.en.toLowerCase().includes(needle) || b.ar.includes(q.trim());
-  const rows = SERVICES.map((sv, i) => {
-    const items = SERVICES_MENU[i]?.items ?? [];
-    const own = hit(sv);
-    return { sv, i, items: own ? items : items.filter(hit), show: own || items.some(hit) };
-  }).filter((r) => r.show);
+  const rows = SERVICES.map((sv, i) => ({ sv, i, items: SERVICES_MENU[i]?.items ?? [] }));
+  const needle = '';
 
   const jump = (i: number) => {
     const el = document.getElementById(`service-${i}`);
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 150, behavior: 'smooth' });
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
   };
 
   return (
     <main className="pt-[72px]" data-testid="services-index">
-      <PageHead
-        crumbs={[home(t), { label: t('Services', 'الخدمات') }]}
-        eyebrow={t('Diyar Services', 'خدمات ديار')}
-        title={t('Services', 'الخدمات')}
-        intro={t(`${SERVICES.length} services · ${subCount} specialities`, `${SERVICES.length} خدمات · ${subCount} خدمة فرعية`)}
-      />
-
-      {/* find a service: search, then one chip per service to jump to it */}
+      {/* one compact row: the title and count, the services to jump to beside it.
+          Finding a service by name is the header search's job (it knows sub-services too). */}
       <div className={`${CONTAINER} pt-8`}>
-        <div className="flex h-12 max-w-xl items-center gap-3 border bg-white px-4 focus-within:border-[#171512]" style={{ borderColor: '#C9C2B4' }}>
-          <Search size={16} strokeWidth={1.5} style={{ color: MUTED }} />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            data-testid="services-search"
-            type="search"
-            placeholder={t('Search a service — e.g. SPC, wooden doors', 'ابحث عن خدمة — مثلاً: SPC، أبواب خشبية')}
-            aria-label={t('Search services', 'ابحث في الخدمات')}
-            className="h-full min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-[#8C857A] [&::-webkit-search-cancel-button]:hidden"
-          />
-          {q && (
-            <button type="button" onClick={() => setQ('')} aria-label={t('Clear', 'مسح')} className="text-[#5F5950] hover:text-[#171512]">
-              <X size={15} strokeWidth={1.5} />
-            </button>
-          )}
-        </div>
-        {!needle && (
-          <div className="scrollbar-hide -mx-6 mt-4 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0">
+        <Breadcrumb items={[home(t), { label: t('Services', 'الخدمات') }]} />
+        <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+          <div className="flex shrink-0 items-baseline gap-4">
+            <h1 className={displayCls(isAr, 'md')}>{t('Services', 'الخدمات')}</h1>
+            <span className="text-[13px]" style={{ color: MUTED }}>
+              {t(`${SERVICES.length} services · ${subCount} specialities`, `${SERVICES.length} خدمات · ${subCount} خدمة فرعية`)}
+            </span>
+          </div>
+          <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:flex-wrap lg:justify-end lg:px-0">
             {SERVICES.map((sv, i) => (
               <button
                 key={sv.en}
                 type="button"
+                data-testid="services-jump"
                 onClick={() => jump(i)}
                 className="shrink-0 border bg-white px-3.5 py-2 text-[12.5px] font-medium transition-colors hover:border-[#171512]"
                 style={{ borderColor: HAIR }}
@@ -89,18 +65,12 @@ export function ServicesIndex() {
               </button>
             ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* every service, open: photo, its sub-services, request */}
-      <div className={`${CONTAINER} py-10 md:py-12`}>
-        {rows.length === 0 ? (
-          <EmptyState
-            title={t('No service matches that', 'لا توجد خدمة بهذا الاسم')}
-            body={t('Try another word, or tell us what you need.', 'جرّب كلمة أخرى، أو أخبرنا بما تحتاجه.')}
-            action={{ label: t('Request a Service', 'اطلب خدمة'), onClick: () => openService(q.trim() || undefined) }}
-          />
-        ) : (
+      <div className={`${CONTAINER} pb-14 pt-6 md:pt-8`}>
+        {(
           <ul className="grid gap-5 md:grid-cols-2">
             {rows.map(({ sv, i, items }) => (
               <li

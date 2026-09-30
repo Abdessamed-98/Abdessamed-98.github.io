@@ -9,7 +9,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import {
-  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES,
+  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES, SERVICES_MENU,
   parseSearch, serializeSearch, filterCatalog, lookBase, searchPath,
   type Lang, type SearchQuery, type SortKey, type LookStore, type LookService,
 } from '../lookShared';
@@ -170,7 +170,8 @@ export function LookOneSearch() {
   const needle = (query.q ?? '').trim().toLowerCase();
   const hit = (...xs: string[]) => !needle || xs.some((x) => x.toLowerCase().includes(needle));
   const stores = ALL_STORES.filter((s) => hit(s.name.en, s.name.ar, s.specialty.en, s.specialty.ar));
-  const services = SERVICES.filter((s) => hit(s.en, s.ar));
+  // a service matches by its own name or by any of its sub-services ("SPC" finds flooring)
+  const services = SERVICES.filter((s, i) => hit(s.en, s.ar, ...(SERVICES_MENU[i]?.items ?? []).flatMap((it) => [it.en, it.ar])));
 
   const update = useCallback(
     (patch: Partial<SearchQuery>) => setSp(withTab(serializeSearch({ ...query, ...patch }))),
