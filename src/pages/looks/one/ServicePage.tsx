@@ -33,6 +33,21 @@ export const servicePath = (s: LookService, it: Bi) => `${categoryPath(s)}/${sub
 /** kept for callers written before categories and services were split */
 export const subServicePath = servicePath;
 
+/* The client's own "خدمات ديار" artwork (public/categories/tiles, the same set as
+   the home page's services row), one tile per category — used for categories only. */
+const TILE_ART = (name: string) => `/categories/tiles/${name}.jpg`;
+const CATEGORY_ART: Record<string, string> = {
+  'Interior Design': 'تصميم داخلي',
+  'Door Solutions': 'تركيب وصيانة',
+  'Custom Furniture': 'نجارة مخصصة',
+  'Painting & Wall Finishes': 'دهانات',
+  'Flooring Solutions': 'استشارات تصميم',
+  'Finishing & Decorative': 'تنجيد وتجديد',
+  'Glass & Skylight Facades': 'تركيب الستائر',
+  'Safety Equipment & Systems': 'إضاءة وكهرباء',
+};
+export const categoryArt = (s: LookService) => TILE_ART(CATEGORY_ART[s.en] ?? 'تركيب وصيانة');
+
 /** What every service includes — the promise is the same, the craft differs. */
 const INCLUDED: Bi[] = [
   { en: 'A site visit and measurements', ar: 'زيارة ميدانية وأخذ المقاسات' },
@@ -162,7 +177,8 @@ export default function CategoryPage() {
           </div>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((it, i) => (
-              <li key={it.en} className="flex flex-col border bg-white p-5" style={{ borderColor: HAIR }} data-testid="category-service">
+              <li key={it.en} className="flex flex-col border bg-white" style={{ borderColor: HAIR }} data-testid="category-service">
+                <div className="px-5 pt-5">
                 <div className="flex items-start gap-4">
                   <span className="font-['Outfit',sans-serif] text-[12px] font-bold tabular-nums" style={{ color: OLIVE }} dir="ltr">
                     {String(i + 1).padStart(2, '0')}
@@ -171,7 +187,8 @@ export default function CategoryPage() {
                     {t(it.en, it.ar)}
                   </Link>
                 </div>
-                <div className="mt-6 flex items-center gap-3">
+                </div>
+                <div className="mt-auto flex items-center gap-3 px-5 pb-5 pt-6">
                   <button
                     type="button"
                     data-testid="category-service-request"

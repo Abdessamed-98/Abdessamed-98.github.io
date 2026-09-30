@@ -16,7 +16,7 @@ import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
 import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
-import { categoryPath, servicePath } from './ServicePage';
+import { categoryArt, categoryPath, servicePath } from './ServicePage';
 import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, SERVICE_GALLERY, type Provider } from './data';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -52,9 +52,8 @@ export function ServicesIndex() {
           {SERVICES.map((sv, i) => (
             <li key={sv.en} className="w-[124px] shrink-0 lg:w-auto">
               <button type="button" onClick={() => jump(i)} className="group block w-full text-start" data-testid="service-category-tile">
-                <span className="relative block aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
-                  <img src={sv.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
-                  <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                <span className="relative block aspect-square overflow-hidden" style={{ backgroundColor: '#1F3D3A' }}>
+                  <img src={categoryArt(sv)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
                   <span className="absolute bottom-2 start-2 flex h-7 w-7 items-center justify-center bg-white/90">
                     <sv.icon size={13} strokeWidth={1.6} className="text-[#5A6B4D]" />
                   </span>
