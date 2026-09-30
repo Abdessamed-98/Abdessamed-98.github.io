@@ -88,12 +88,12 @@ export const HERO_SLIDES: LookSlide[] = [
   { img: IMG.loungeDark, ar: 'حلول متكاملة للشركات والمشاريع', en: 'Turnkey Project Solutions', tag: 'B2B', tagAr: 'B2B' },
 ];
 
-export const NAV_LINKS = ['Home', 'Design Consultation', 'B2B', 'Services', 'Shop'] as const;
+export const NAV_LINKS = ['Home', 'Self Designer', 'B2B', 'Services', 'Shop'] as const;
 
 /** Bilingual nav items (same order as NAV_LINKS). */
 export const NAV_ITEMS: Bi[] = [
   { en: 'Home', ar: 'الرئيسية' },
-  { en: 'Design Consultation', ar: 'استشارات التصميم' },
+  { en: 'Self Designer', ar: 'المصمم الذاتي' },
   { en: 'B2B', ar: 'B2B' },
   { en: 'Services', ar: 'الخدمات' },
   { en: 'Shop', ar: 'المتجر' },

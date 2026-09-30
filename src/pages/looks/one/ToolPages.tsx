@@ -4,8 +4,10 @@
  * index of every page for review.
  */
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft, Heart, ShoppingBag } from 'lucide-react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft, Heart, ShoppingBag, Clock, MessageCircle, CheckCheck,
+} from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useWishlist } from '../../../context/WishlistContext';
 import { BLOG_POSTS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
@@ -26,10 +28,32 @@ const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'ا�
 /* AI designer                                                         */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The human designer — someone from the Diyar team, reached as a chat thread.
+ * The designer page hands over what the visitor was doing (the pieces in the
+ * room, or the style they tried) as the first message, ready to send, so the
+ * designer picks up from the visitor's own room rather than from "hello".
+ * Nothing replies automatically in this thread: it promises a person within
+ * minutes, and a canned instant answer would say otherwise.
+ */
+const DESIGNER_ID = 'diyar-designer';
+const DESIGNER_THREAD: ChatThread = {
+  id: DESIGNER_ID,
+  name: { en: 'Diyar Designer', ar: 'مصمم ديار' },
+  initials: 'DY',
+  role: { en: 'Diyar design team', ar: 'فريق التصميم في ديار' },
+  messages: [],
+};
+
 export function AIDesignerPage() {
-  const { t } = useLook();
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const navigate = useNavigate();
   const [sp, setSp] = useSearchParams();
   const mode = sp.get('mode') === 'compose' ? 'compose' : 'restyle';
+  // what the visitor is doing right now, kept current by whichever mode is open
+  const [note, setNote] = useState('');
+  const talk = () => navigate(`${lookBase(1)}/chat?with=${DESIGNER_ID}`, { state: { draft: note } });
   return (
     <main className="pt-[72px]" data-testid="ai-designer">
       <PageHead
@@ -49,18 +73,57 @@ export function AIDesignerPage() {
           ]}
         />
       </div>
-      <div className={`${CONTAINER} py-10 md:py-14`}>{mode === 'restyle' ? <Restyle /> : <Composer />}</div>
+      {/* the way to a person, in both modes */}
+      <div className={`${CONTAINER} pt-6`}>
+        <div
+          data-testid="human-designer"
+          className="flex flex-wrap items-center justify-between gap-4 border px-5 py-4"
+          style={{ borderColor: HAIR, backgroundColor: TILE }}
+        >
+          <div className="flex min-w-0 items-center gap-3.5">
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] text-white">
+              <MessageCircle size={18} strokeWidth={1.5} />
+              <span aria-hidden className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 border-2 border-[#F6F3EC]" style={{ backgroundColor: OLIVE }} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[14px] font-bold">{t("Want a designer's eye on it?", 'تحتاج رأي مصمم؟')}</span>
+              <span className="mt-0.5 flex items-center gap-1.5 text-[12px]" style={{ color: MUTED }}>
+                <Clock size={12} strokeWidth={1.8} className="shrink-0" />
+                {t('A designer from the Diyar team replies within minutes.', 'مصمم من فريق ديار يرد عليك خلال دقائق.')}
+              </span>
+            </span>
+          </div>
+          <button type="button" data-testid="talk-to-designer" onClick={talk} className={`px-7 py-3 max-sm:w-full ${primaryBtnCls(isAr)}`}>
+            {t('Chat with a designer', 'تحدث مع مصمم')}
+          </button>
+        </div>
+      </div>
+      <div className={`${CONTAINER} py-10 md:py-14`}>{mode === 'restyle' ? <Restyle onNote={setNote} /> : <Composer onNote={setNote} />}</div>
     </main>
   );
 }
 
-function Restyle() {
+function Restyle({ onNote }: { onNote: (note: string) => void }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const caps = capsCls(isAr);
   const [style, setStyle] = useState(STYLES[0].key);
   const [photo, setPhoto] = useState<string | null>(null);
   const [stage, setStage] = useState<'pick' | 'working' | 'done'>('pick');
+
+  // what to tell the designer, should the visitor ask for one
+  const styleName = STYLES.find((s) => s.key === style);
+  const note =
+    stage === 'done'
+      ? t(
+          `Hi — I restyled my room in the ${styleName?.en} style with the self designer and would like a designer's opinion.`,
+          `مرحباً، أعدت تصميم غرفتي بأسلوب ${styleName?.ar} في المصمم الذاتي وأحتاج رأي مصمم.`,
+        )
+      : t(
+          `Hi — I'm trying the self designer on my room (${styleName?.en} style) and would like a designer's opinion.`,
+          `مرحباً، أجرّب المصمم الذاتي على غرفتي (أسلوب ${styleName?.ar}) وأحتاج رأي مصمم.`,
+        );
+  useEffect(() => onNote(note), [note, onNote]);
   const file = useRef<HTMLInputElement>(null);
   const timer = useRef<number | null>(null);
   useEffect(() => () => {
@@ -201,7 +264,7 @@ interface Placed {
   w: number; // width, % of the stage
 }
 
-function Composer() {
+function Composer({ onNote }: { onNote: (note: string) => void }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const caps = capsCls(isAr);
@@ -264,6 +327,19 @@ function Composer() {
      when nothing is, it becomes a way into the cart instead. */
   const inCart = new Set(cartIds);
   const missing = products.filter((p) => !inCart.has(p.id));
+
+  // what to tell the designer, should the visitor ask for one: the room as it stands
+  const names = products.map((p) => t(p.name.en, p.name.ar));
+  const note = products.length
+    ? t(
+        `Hi — I put together a room with the self designer and would like a designer's opinion. Pieces: ${names.join(', ')}. Total ${formatSAR(total)} SAR.`,
+        `مرحباً، ركّبت غرفة في المصمم الذاتي وأحتاج رأي مصمم. القطع: ${names.join('، ')} — المجموع ${formatSAR(total)} ر.س.`,
+      )
+    : t(
+        "Hi — I'm putting a room together with the self designer and would like a designer's opinion.",
+        'مرحباً، أركّب غرفة في المصمم الذاتي وأحتاج رأي مصمم.',
+      );
+  useEffect(() => onNote(note), [note, onNote]);
 
   return (
     <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
@@ -491,10 +567,14 @@ export function ChatPage() {
   const caps = capsCls(isAr);
   const [sp, setSp] = useSearchParams();
   const want = sp.get('with');
+  // the designer page sends over what the visitor was doing, ready to send
+  const location = useLocation();
+  const handover = want === DESIGNER_ID ? (location.state as { draft?: string } | null)?.draft : undefined;
 
-  // a provider you have not written to yet gets a fresh thread
+  // a provider you have not written to yet gets a fresh thread; so does the Diyar designer
   const [threads, setThreads] = useState<ChatThread[]>(() => {
     const list = [...CHAT_THREADS];
+    if (want === DESIGNER_ID && !list.some((x) => x.id === DESIGNER_ID)) list.unshift(DESIGNER_THREAD);
     const pv = PROVIDERS.find((p) => p.id === want);
     if (want && pv && !list.some((x) => x.id === want)) {
       list.unshift({ id: pv.id, name: pv.name, initials: pv.initials, role: { en: 'Service provider', ar: 'مقدم خدمة' }, messages: [] });
@@ -502,9 +582,35 @@ export function ChatPage() {
     return list;
   });
   const active = threads.find((x) => x.id === want) ?? (want ? undefined : threads[0]);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(handover ?? '');
   const [typing, setTyping] = useState(false);
+  // shown under the visitor's message once it has gone to the designer
+  const [sentToDesigner, setSentToDesigner] = useState(false);
   const end = useRef<HTMLDivElement>(null);
+
+  /* The message box grows with what is in it, up to about five lines: a
+     handed-over room is a few lines long, and a one-line field would show the
+     visitor only its first few words of what they are about to send. */
+  const box = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const fit = () => {
+      const el = box.current;
+      if (!el) return;
+      el.style.height = 'auto';
+      // border-box: the height has to cover the borders as well as the content
+      el.style.height = `${Math.min(el.scrollHeight + (el.offsetHeight - el.clientHeight), 140)}px`;
+    };
+    fit();
+    // measured once before the Arabic face has loaded, the box comes out a line
+    // short; fit again when it lands, and whenever the width changes
+    let alive = true;
+    document.fonts?.ready.then(() => alive && fit());
+    window.addEventListener('resize', fit);
+    return () => {
+      alive = false;
+      window.removeEventListener('resize', fit);
+    };
+  }, [draft, active?.id]);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest' });
@@ -518,6 +624,11 @@ export function ChatPage() {
     const now = new Date().toTimeString().slice(0, 5);
     push(active.id, { from: 'me', at: now, text: { en: text, ar: text } });
     setDraft('');
+    // a person answers this one, within minutes — no instant canned reply
+    if (active.id === DESIGNER_ID) {
+      setSentToDesigner(true);
+      return;
+    }
     setTyping(true);
     window.setTimeout(() => {
       setTyping(false);
@@ -526,6 +637,7 @@ export function ChatPage() {
   };
 
   const isProvider = active ? PROVIDERS.some((p) => p.id === active.id) : false;
+  const isDesigner = active?.id === DESIGNER_ID;
   const open = !!(active && want);
 
   return (
@@ -602,7 +714,7 @@ export function ChatPage() {
                     <span className="block truncate text-[15px] font-bold">{t(active.name.en, active.name.ar)}</span>
                     <span className="flex items-center gap-1.5 text-[11px]" style={{ color: MUTED }}>
                       <span className="h-1.5 w-1.5" style={{ backgroundColor: OLIVE }} />
-                      {t('Online', 'متصل')} · {t(active.role.en, active.role.ar)}
+                      {isDesigner ? t('Replies within minutes', 'يرد خلال دقائق') : t('Online', 'متصل')} · {t(active.role.en, active.role.ar)}
                     </span>
                   </span>
                   {isProvider && (
@@ -617,10 +729,31 @@ export function ChatPage() {
                     <span className={caps}>{t('Today', 'اليوم')}</span>
                     <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
                   </p>
-                  {active.messages.length === 0 && (
-                    <p className="py-10 text-center text-[13px]" style={{ color: '#4A443C' }}>
-                      {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
-                    </p>
+                  {isDesigner ? (
+                    /* stays at the top of the thread: what to expect, from whom */
+                    <div
+                      data-testid="designer-notice"
+                      className="mx-auto flex max-w-md items-start gap-3 border bg-white px-4 py-3.5 text-[12.5px] leading-relaxed"
+                      style={{ borderColor: '#E2DCD1' }}
+                    >
+                      <Clock size={16} strokeWidth={1.6} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
+                      <span>
+                        <span className="block font-bold text-[#171512]">
+                          {t('A designer from the Diyar team will reply within minutes.', 'سيرد عليك مصمم من فريق ديار خلال دقائق.')}
+                        </span>
+                        <span className="mt-0.5 block" style={{ color: '#4A443C' }}>
+                          {handover
+                            ? t('What you were designing is already written in the message below — add anything, then send.', 'ما كنت تصممه مكتوب في الرسالة أدناه — أضف ما تريد ثم أرسل.')
+                            : t('Tell us about your room and what you need, and we will take it from there.', 'أخبرنا عن غرفتك وما تحتاجه، وسنكمل معك.')}
+                        </span>
+                      </span>
+                    </div>
+                  ) : (
+                    active.messages.length === 0 && (
+                      <p className="py-10 text-center text-[13px]" style={{ color: '#4A443C' }}>
+                        {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
+                      </p>
+                    )
                   )}
                   {active.messages.map((m, i) => (
                     <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
@@ -637,6 +770,12 @@ export function ChatPage() {
                       </div>
                     </div>
                   ))}
+                  {isDesigner && sentToDesigner && (
+                    <p data-testid="designer-receipt" className="flex items-center justify-end gap-1.5 text-[11px]" style={{ color: MUTED }}>
+                      <CheckCheck size={13} strokeWidth={1.8} style={{ color: OLIVE }} />
+                      {t('Sent · a designer will reply within minutes', 'أُرسلت · سيرد عليك مصمم خلال دقائق')}
+                    </p>
+                  )}
                   {typing && (
                     <div className="flex justify-start">
                       <span className="flex gap-1 border bg-white px-4 py-3.5" style={{ borderColor: '#E2DCD1' }} data-testid="chat-typing">
@@ -648,14 +787,23 @@ export function ChatPage() {
                   )}
                   <div ref={end} />
                 </div>
-                <form onSubmit={send} className="flex items-center gap-2 border-t bg-white p-3 md:p-4" style={{ borderColor: HAIR }}>
-                  <input
+                <form onSubmit={send} className="flex items-end gap-2 border-t bg-white p-3 md:p-4" style={{ borderColor: HAIR }}>
+                  <textarea
+                    ref={box}
+                    rows={1}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      // Enter sends, Shift+Enter breaks the line; leave IME composition alone
+                      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault();
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
                     data-testid="chat-input"
                     placeholder={t('Write a message', 'اكتب رسالة')}
                     aria-label={t('Message', 'الرسالة')}
-                    className="h-12 min-w-0 flex-1 border bg-white px-4 text-[13.5px] outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
+                    className="block max-h-[140px] min-h-12 min-w-0 flex-1 resize-none border bg-white px-4 py-3 text-[13.5px] leading-relaxed outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
                     style={{ borderColor: '#C9C2B4' }}
                   />
                   <button type="submit" data-testid="chat-send" aria-label={t('Send', 'إرسال')} className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#171512] text-white transition-colors hover:bg-[#5A6B4D]">

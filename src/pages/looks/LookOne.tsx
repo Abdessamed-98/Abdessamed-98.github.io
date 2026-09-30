@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { serviceSlug } from './one/ServicePage';
+import { serviceSlug, subServicePath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -70,10 +70,12 @@ export {
 const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
 /** The services menu lists the eight services in SERVICES order. */
 const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${lookBase(1)}/service/${serviceSlug(SERVICES[i])}` : undefined);
+/** Each sub-service opens its service's page with it chosen. */
+const serviceItemTo = (i: number) => (SERVICES[i] ? (it: Bi) => subServicePath(SERVICES[i], it) : undefined);
 /** Where the plain nav items go. */
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),
-  'Design Consultation': `${lookBase(1)}/ai-designer`,
+  'Self Designer': `${lookBase(1)}/ai-designer`,
   B2B: `${lookBase(1)}/b2b`,
   Services: `${lookBase(1)}/services`,
   Shop: searchPath(1),
@@ -257,7 +259,7 @@ function ShopHotspot({
 /* ------------------------------------------------------------------ */
 
 /** One mega-menu column: group title + subcategory links. `to` makes them real links. */
-function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; onNavigate?: () => void; key?: string | number }) {
+function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; key?: string | number }) {
   const isAr = useLang() === 'ar';
   const titleCls = `text-[11px] font-bold uppercase text-[#171512] ${
     isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
@@ -278,7 +280,7 @@ function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; o
         {group.items.map((it) => (
           <li key={it.en}>
             {to ? (
-              <Link to={to} onClick={onNavigate} className={itemCls}>
+              <Link to={itemTo ? itemTo(it) : to} onClick={onNavigate} className={itemCls}>
                 {isAr ? it.ar : it.en}
               </Link>
             ) : (
@@ -335,6 +337,7 @@ function DrawerGroup({
   group,
   open,
   to,
+  itemTo,
   onToggle,
   onNavigate,
 }: {
@@ -342,6 +345,8 @@ function DrawerGroup({
   open: boolean;
   /** Destination for the group's items (the category search). */
   to?: string;
+  /** A destination per item, when items have their own (sub-services). */
+  itemTo?: (it: Bi) => string;
   onToggle: () => void;
   onNavigate: () => void;
   key?: string | number;
@@ -386,7 +391,7 @@ function DrawerGroup({
             {group.items.map((it) => (
               <li key={it.en}>
                 {to ? (
-                  <Link to={to} onClick={onNavigate} className={itemCls}>
+                  <Link to={itemTo ? itemTo(it) : to} onClick={onNavigate} className={itemCls}>
                     {isAr ? it.ar : it.en}
                   </Link>
                 ) : (
@@ -412,6 +417,7 @@ function DrawerSection({
   onToggleGroup,
   onNavigate,
   groupTo,
+  groupItemTo,
   allLink,
 }: {
   label: string;
@@ -423,6 +429,8 @@ function DrawerSection({
   onNavigate: () => void;
   /** Destination per group index (category search); omitted for the services menu. */
   groupTo?: (i: number) => string | undefined;
+  /** Per-item destinations for group i (sub-services). */
+  groupItemTo?: (i: number) => ((it: Bi) => string) | undefined;
   /** Optional "Shop all" row at the top of the section. */
   allLink?: { to: string; label: string };
 }) {
@@ -479,6 +487,7 @@ function DrawerSection({
                   key={g.title.en}
                   group={g}
                   to={groupTo?.(i)}
+                  itemTo={groupItemTo?.(i)}
                   open={openGroup === g.title.en}
                   onToggle={() => onToggleGroup(g.title.en)}
                   onNavigate={onNavigate}
@@ -688,6 +697,7 @@ function MobileDrawer({
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
                 groupTo={serviceGroupTo}
+                groupItemTo={serviceItemTo}
                 allLink={{ to: `${lookBase(1)}/services`, label: t('All Services', 'كل الخدمات') }}
               />
 
@@ -940,9 +950,9 @@ export default function LookOne() {
                 }
                 if (item.en === 'Services') {
                   return (
-                    <button
+                    <Link
                       key={item.en}
-                      type="button"
+                      to={`${lookBase(1)}/services`}
                       data-testid="mega-services-trigger"
                       aria-haspopup="true"
                       aria-expanded={openMenu === 'services'}
@@ -950,14 +960,11 @@ export default function LookOne() {
                         cancelClose();
                         setOpenMenu('services');
                       }}
-                      onClick={() => {
-                        cancelClose();
-                        setOpenMenu((m) => (m === 'services' ? null : 'services'));
-                      }}
-                      className={`${navItemCls} cursor-pointer ${openMenu === 'services' ? 'after:w-full' : ''}`}
+                      onClick={closeMenu}
+                      className={`${navItemCls} ${openMenu === 'services' ? 'after:w-full' : ''}`}
                     >
                       {t(item.en, item.ar)}
-                    </button>
+                    </Link>
                   );
                 }
                 if (item.en === 'Home') {
@@ -1103,7 +1110,7 @@ export default function LookOne() {
                     {/* 8 service groups, 4 × 2 */}
                     <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10">
                       {SERVICES_MENU.map((group, i) => (
-                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} onNavigate={closeMenu} />
+                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} itemTo={serviceItemTo(i)} onNavigate={closeMenu} />
                       ))}
                     </div>
                     {/* single featured tile */}

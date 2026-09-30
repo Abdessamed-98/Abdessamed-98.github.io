@@ -5,10 +5,10 @@
  * start as a request. So the page sells the work, states what is included and
  * what it costs to start, and ends in one action — request it.
  */
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
-import { SERVICES, lookBase, type LookService } from '../lookShared';
+import { SERVICES, SERVICES_MENU, lookBase, type Bi, type LookService } from '../lookShared';
 import { Breadcrumb, HAIR, INK, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { useShell } from './shellContext';
 import { ServiceProviders } from './InfoPages';
@@ -17,6 +17,13 @@ import { SERVICE_GALLERY, type WorkShot } from './data';
 
 /** Services have no id of their own, so their English name becomes the slug. */
 export const serviceSlug = (s: LookService) => s.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/* Sub-services are the items listed under each service in the menu (SERVICES_MENU,
+   same order as SERVICES). They have no page of their own: a sub-service opens its
+   service's page with it chosen (?sub=…), and the request carries both names. */
+export const subSlug = (it: Bi) => it.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+export const subServicesOf = (s: LookService): Bi[] => SERVICES_MENU[SERVICES.indexOf(s)]?.items ?? [];
+export const subServicePath = (s: LookService, it: Bi) => `${lookBase(1)}/service/${serviceSlug(s)}?sub=${subSlug(it)}`;
 
 /** What every service includes — the promise is the same, the craft differs. */
 const INCLUDED: { en: string; ar: string }[] = [
@@ -42,6 +49,18 @@ export default function ServicePage() {
   const caps = isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]';
 
   const service = SERVICES.find((s) => serviceSlug(s) === slug);
+  const [sp, setSp] = useSearchParams();
+  const subs = service ? subServicesOf(service) : [];
+  const chosen = subs.find((it) => subSlug(it) === sp.get('sub'));
+  const subsRef = useRef<HTMLDivElement>(null);
+  // arriving from the menu with a sub-service: bring its list into view
+  useEffect(() => {
+    if (sp.get('sub') && subsRef.current) {
+      const y = subsRef.current.getBoundingClientRect().top + window.scrollY - 110;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
   if (!service) {
     return (
@@ -88,6 +107,43 @@ export default function ServicePage() {
         <div className="grid gap-12 py-12 lg:grid-cols-12 lg:gap-16 lg:py-16">
           {/* the work */}
           <div className="lg:col-span-7">
+            {subs.length > 0 && (
+              <div ref={subsRef} className="mb-12" data-testid="sub-services">
+                <h2
+                  className={`font-bold ${
+                    isAr ? "font-['Alexandria',sans-serif] text-[19px] tracking-normal" : "font-['Outfit',sans-serif] text-[15px] uppercase tracking-[0.18em]"
+                  }`}
+                >
+                  {t(`${service.en}: choose what you need`, `${service.ar}: اختر ما تحتاجه`)}
+                </h2>
+                <ul className="mt-5 grid gap-2 sm:grid-cols-2" role="radiogroup">
+                  {subs.map((it, i) => {
+                    const on = chosen === it;
+                    return (
+                      <li key={it.en}>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          data-testid="sub-service"
+                          onClick={() => setSp(on ? {} : { sub: subSlug(it) }, { replace: true })}
+                          className={`flex w-full items-center gap-4 border px-4 py-3.5 text-start transition-colors ${
+                            on ? 'border-[#171512] bg-[#171512] text-white' : 'bg-white hover:border-[#171512]'
+                          }`}
+                          style={on ? undefined : { borderColor: HAIR }}
+                        >
+                          <span className={`font-['Outfit',sans-serif] text-[11px] font-bold tabular-nums ${on ? 'text-white/60' : 'text-neutral-400'}`} dir="ltr">
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <span className="min-w-0 flex-1 text-[14px] font-bold">{t(it.en, it.ar)}</span>
+                          {on && <Check size={16} strokeWidth={2} />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
             <p className="max-w-xl text-[17px] font-light leading-[1.8] text-[#3F3A33]">
               {t(
                 `Our ${service.en.toLowerCase()} crews work the way a good contractor should: one scope, one quote, one team that finishes what it started — coordinated through Diyar, with the materials coming from the same marketplace you are browsing.`,
@@ -140,8 +196,13 @@ export default function ServicePage() {
                   isAr ? "font-['Alexandria',sans-serif] text-[22px] leading-snug tracking-normal" : "font-['Outfit',sans-serif] text-[22px] uppercase leading-tight tracking-tight"
                 }`}
               >
-                {t('Request this service', 'اطلب هذه الخدمة')}
+                {chosen ? t(chosen.en, chosen.ar) : t('Request this service', 'اطلب هذه الخدمة')}
               </p>
+              {chosen && (
+                <p className="mt-1.5 text-[12px] font-medium" style={{ color: OLIVE }} data-testid="request-chosen">
+                  {name}
+                </p>
+              )}
               <p className="mt-3 text-[13px] font-light leading-relaxed text-[#4A443C]">
                 {t(
                   'Tell us about the space and we will come back within one business day with a visit time.',
@@ -151,7 +212,7 @@ export default function ServicePage() {
               <button
                 type="button"
                 data-testid="request-service"
-                onClick={() => openService(name)}
+                onClick={() => openService(chosen ? `${name} · ${t(chosen.en, chosen.ar)}` : name)}
                 className={`mt-6 w-full py-4 ${primaryBtnCls(isAr)}`}
               >
                 {t('Request a Visit', 'اطلب زيارة')}

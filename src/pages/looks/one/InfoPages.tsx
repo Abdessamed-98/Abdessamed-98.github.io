@@ -8,15 +8,15 @@
  */
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, ChevronDown, MessageSquare, Phone, Mail, Star, Briefcase, CalendarDays, Search } from 'lucide-react';
-import { CATALOG, FOOTER_LINKS, SERVICES, lookBase, searchPath } from '../lookShared';
+import { CATALOG, FOOTER_LINKS, SERVICES, SERVICES_MENU, lookBase, searchPath } from '../lookShared';
 import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, ProductCard, Stars, primaryBtnCls, useLook, useSeen } from './ui';
 import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
 import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
-import { serviceSlug } from './ServicePage';
+import { serviceSlug, subServicePath } from './ServicePage';
 import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, type Provider } from './data';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -30,18 +30,18 @@ export function ServicesIndex() {
   const isAr = lang === 'ar';
   const caps = capsCls(isAr);
   const { openService } = useShell();
-  const grid = useSeen<HTMLUListElement>(0.15);
+  const [active, setActive] = useState(0);
+  const subCount = SERVICES_MENU.reduce((n, g) => n + g.items.length, 0);
+  const s = SERVICES[active];
+  const menu = SERVICES_MENU[active];
 
   return (
     <main className="pt-[72px]" data-testid="services-index">
       <PageHead
         crumbs={[home(t), { label: t('Services', 'الخدمات') }]}
         eyebrow={t('Diyar Services', 'خدمات ديار')}
-        title={t('Every trade, one request', 'كل الحِرف، بطلب واحد')}
-        intro={t(
-          'Design, build and finish — vetted crews, fixed quotes, and one Diyar guarantee over all of it.',
-          'تصميم وتنفيذ وتشطيب — فرق معتمدة، وعروض أسعار ثابتة، وضمان ديار واحد على كل ذلك.',
-        )}
+        title={t('Services', 'الخدمات')}
+        intro={t(`${SERVICES.length} services · ${subCount} specialities`, `${SERVICES.length} خدمات · ${subCount} خدمة فرعية`)}
         aside={
           <button type="button" data-testid="services-request" onClick={() => openService()} className={`px-9 py-4 ${primaryBtnCls(isAr)}`}>
             {t('Request a Service', 'اطلب خدمة')}
@@ -49,77 +49,132 @@ export function ServicesIndex() {
         }
       />
 
-      <div className={`${CONTAINER} py-12 md:py-16`}>
-        <ul ref={grid.ref} className="grid grid-cols-2 gap-x-4 gap-y-10 md:gap-x-6 lg:grid-cols-4">
-          {SERVICES.map((s, i) => {
-            const count = PROVIDERS.filter((p) => p.service === s.en).length;
+      {/* ---- desktop: an index of the eight; the one you point at opens beside it ---- */}
+      <div className={`${CONTAINER} hidden py-14 lg:grid lg:grid-cols-12 lg:gap-14`}>
+        <ol className="lg:col-span-5" onMouseLeave={() => undefined}>
+          {SERVICES.map((sv, i) => {
+            const on = i === active;
             return (
-              <motion.li
-                key={s.en}
-                initial={false}
-                animate={grid.seen ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
-                transition={{ duration: 0.7, delay: (i % 4) * 0.08 + Math.floor(i / 4) * 0.12, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className="group block" data-testid="service-tile">
-                  <div className="relative aspect-[4/5] overflow-hidden" style={{ backgroundColor: TILE }}>
-                    <img src={s.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.05]" />
-                    <span className="absolute start-3 top-3 font-['Outfit',sans-serif] text-[11px] font-bold tracking-[0.2em] text-white drop-shadow" dir="ltr">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span className="absolute bottom-3 start-3 flex h-10 w-10 items-center justify-center bg-white/90 transition-colors group-hover:bg-[#171512]">
-                      <s.icon size={17} strokeWidth={1.5} className="text-[#5A6B4D] transition-colors group-hover:text-white" />
-                    </span>
-                  </div>
-                  <p className="mt-4 text-[15px] font-bold leading-snug transition-colors group-hover:text-[#5A6B4D] md:text-[16px]">{t(s.en, s.ar)}</p>
-                  <p className={`mt-1.5 text-[10px] ${caps}`} style={{ color: MUTED }}>
-                    {count ? t(`${count} partner${count > 1 ? 's' : ''}`, `${count} ${count > 1 ? 'شركاء' : 'شريك'}`) : t('Diyar crews', 'فرق ديار')}
-                  </p>
+              <li key={sv.en} className="border-t last:border-b" style={{ borderColor: HAIR }}>
+                <Link
+                  to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
+                  data-testid="service-tile"
+                  onMouseEnter={() => setActive(i)}
+                  onFocus={() => setActive(i)}
+                  className="group flex items-baseline gap-5 py-5"
+                >
+                  <span className="w-7 shrink-0 font-['Outfit',sans-serif] text-[12px] font-bold tabular-nums transition-colors" style={{ color: on ? OLIVE : '#B8B1A5' }} dir="ltr">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span
+                    className={`min-w-0 flex-1 font-extrabold leading-tight transition-colors duration-300 ${
+                      isAr ? "font-['Alexandria',sans-serif] text-[28px]" : "font-['Outfit',sans-serif] text-[26px] uppercase tracking-tight"
+                    }`}
+                    style={{ color: on ? INK : '#C9C4BA' }}
+                  >
+                    {t(sv.en, sv.ar)}
+                  </span>
+                  <span className={`shrink-0 text-[11px] transition-opacity ${on ? 'opacity-100' : 'opacity-0'}`} style={{ color: MUTED }}>
+                    {t(`${SERVICES_MENU[i].items.length} specialities`, `${SERVICES_MENU[i].items.length} خدمات فرعية`)}
+                  </span>
                 </Link>
-              </motion.li>
+              </li>
             );
           })}
-        </ul>
+        </ol>
+
+        <div className="lg:col-span-7">
+          <div className="sticky top-[96px]" data-testid="services-panel">
+            <div className="relative aspect-[16/9] overflow-hidden" style={{ backgroundColor: TILE }}>
+              <AnimatePresence initial={false}>
+                <motion.img
+                  key={s.img + active}
+                  src={s.img}
+                  alt=""
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </AnimatePresence>
+              <span className="absolute start-5 top-5 flex h-11 w-11 items-center justify-center bg-white/90">
+                <s.icon size={18} strokeWidth={1.5} className="text-[#5A6B4D]" />
+              </span>
+            </div>
+            <motion.div key={active} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+              <ul className="mt-6 grid grid-cols-2 gap-x-8">
+                {menu.items.map((it) => (
+                  <li key={it.en} className="border-b" style={{ borderColor: HAIR }}>
+                    <Link
+                      to={subServicePath(s, it)}
+                      data-testid="services-sub-link"
+                      className="group flex items-center justify-between gap-3 py-3.5 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]"
+                    >
+                      {t(it.en, it.ar)}
+                      <ArrowRight size={13} strokeWidth={1.5} className={`shrink-0 transition-transform ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap items-center gap-6">
+                <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className={`px-8 py-3.5 ${primaryBtnCls(isAr)}`}>
+                  {t(`About ${s.en}`, `عن ${s.ar}`)}
+                </Link>
+                <button type="button" onClick={() => openService(t(s.en, s.ar))} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+                  {t('Request it', 'اطلبها')}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </div>
 
-      {/* providers */}
-      <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>
-        <div className={CONTAINER}>
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Partners', 'الشركاء')}</p>
-          <h2 className={`mt-2.5 ${displayCls(isAr, 'md')}`}>{t('Who does the work', 'من ينفّذ العمل')}</h2>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PROVIDERS.map((p) => (
-              <li key={p.id}>
-                <ProviderCard p={p} />
+      {/* ---- phone and tablet: the same index as an accordion, one open at a time ---- */}
+      <div className={`${CONTAINER} py-10 lg:hidden`}>
+        <ol>
+          {SERVICES.map((sv, i) => {
+            const on = i === active;
+            return (
+              <li key={sv.en} className="border-t last:border-b" style={{ borderColor: HAIR }}>
+                <button
+                  type="button"
+                  aria-expanded={on}
+                  data-testid="service-tile"
+                  onClick={() => setActive(on ? -1 : i)}
+                  className="flex w-full items-center gap-4 py-5 text-start"
+                >
+                  <span className="w-6 shrink-0 font-['Outfit',sans-serif] text-[11px] font-bold tabular-nums" style={{ color: on ? OLIVE : '#B8B1A5' }} dir="ltr">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className={`min-w-0 flex-1 text-[20px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+                    {t(sv.en, sv.ar)}
+                  </span>
+                  <ChevronDown size={18} strokeWidth={1.4} className={`shrink-0 transition-transform duration-300 ${on ? 'rotate-180' : ''}`} style={{ color: OLIVE }} />
+                </button>
+                <motion.div initial={false} animate={{ height: on ? 'auto' : 0, opacity: on ? 1 : 0 }} transition={{ duration: 0.35, ease: 'easeOut' }} className="overflow-hidden">
+                  <div className="pb-6">
+                    <img src={sv.img} alt="" loading="lazy" className="aspect-[16/10] w-full object-cover" style={{ backgroundColor: TILE }} />
+                    <ul className="mt-3">
+                      {SERVICES_MENU[i].items.map((it) => (
+                        <li key={it.en} className="border-b" style={{ borderColor: HAIR }}>
+                          <Link to={subServicePath(sv, it)} className="flex items-center justify-between gap-3 py-3 text-[14px] font-medium">
+                            {t(it.en, it.ar)}
+                            <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} style={{ color: MUTED }} />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link to={`${lookBase(1)}/service/${serviceSlug(sv)}`} className={`mt-5 block py-3.5 text-center ${primaryBtnCls(isAr)}`}>
+                      {t(`About ${sv.en}`, `عن ${sv.ar}`)}
+                    </Link>
+                  </div>
+                </motion.div>
               </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* how it works */}
-      <section style={{ backgroundColor: NIGHT }}>
-        <div className={`${CONTAINER} grid gap-10 py-14 md:py-20 lg:grid-cols-12`}>
-          <div className="lg:col-span-4">
-            <p className={`text-[10px] ${caps}`} style={{ color: OLIVE_LT }}>{t('How it works', 'كيف تعمل')}</p>
-            <h2 className={`mt-3 text-white ${displayCls(isAr, 'md')}`}>{t('Four steps, one contact', 'أربع خطوات، وجهة تواصل واحدة')}</h2>
-          </div>
-          <ol className="grid gap-px sm:grid-cols-2 lg:col-span-8 lg:grid-cols-4" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
-            {[
-              t('Tell us about the space', 'احكِ لنا عن المساحة'),
-              t('A visit and a fixed quote', 'زيارة وعرض سعر ثابت'),
-              t('A vetted crew does the work', 'فريق معتمد ينفّذ'),
-              t('You approve, we hand over', 'تعتمد النتيجة ونسلّم'),
-            ].map((step, i) => (
-              <li key={step} className="p-6" style={{ backgroundColor: NIGHT }}>
-                <span className="font-['Outfit',sans-serif] text-[28px] font-bold" style={{ color: OLIVE_LT }} dir="ltr">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <p className="mt-4 text-[14px] font-medium leading-snug text-white">{step}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+            );
+          })}
+        </ol>
+      </div>
     </main>
   );
 }
