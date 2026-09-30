@@ -21,7 +21,7 @@ export type ShellApi = {
   signIn: (name: string) => void;
   signOut: () => void;
   /** add to cart and confirm it, from anywhere */
-  addToCart: (productId: number, name: string, opts?: { colorKey?: string; qty?: number }) => void;
+  addToCart: (productId: number, name: string, opts?: { colorKey?: string; seats?: number; qty?: number }) => void;
   toast: (message: string) => void;
 };
 

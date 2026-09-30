@@ -5,7 +5,9 @@
  */
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft } from 'lucide-react';
+import { ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft, Heart, ShoppingBag } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { useWishlist } from '../../../context/WishlistContext';
 import { BLOG_POSTS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
 import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, primaryBtnCls, tileImg, useLook } from './ui';
 import { useShell } from './shellContext';
@@ -186,7 +188,10 @@ function Restyle() {
 }
 
 /** Pieces with a cut-out photo: those are the ones that can stand in a room. */
-const COMPOSABLE = CATALOG.filter((p) => p.id <= 9);
+const COMPOSABLE = new Set(CATALOG.filter((p) => p.id <= 9).map((p) => p.id));
+
+/** Where the pieces on the shelf come from: the visitor's own wishlist or cart. */
+type Source = 'wishlist' | 'cart';
 
 interface Placed {
   uid: number;
@@ -200,14 +205,28 @@ function Composer() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const caps = capsCls(isAr);
-  const { add } = useLookCart();
+  const { add, items: cartItems } = useLookCart();
+  const wishlist = useWishlist();
   const { toast, openCart } = useShell();
+  const reduce = useReducedMotion();
   const stage = useRef<HTMLDivElement>(null);
   const drag = useRef<{ uid: number; dx: number; dy: number } | null>(null);
-  const [placed, setPlaced] = useState<Placed[]>([
-    { uid: 1, id: 1, x: 50, y: 70, w: 44 },
-  ]);
-  const [sel, setSel] = useState<number | null>(1);
+
+  /* The shelf holds the visitor's own pieces — what they have saved, or what
+     is already in their cart — so the room is built from things they chose,
+     not from the whole catalogue. */
+  const [source, setSource] = useState<Source>('wishlist');
+  const cartIds = [...new Set(cartItems.map((i) => i.productId))];
+  const idsOf = (s: Source) => (s === 'wishlist' ? wishlist.ids : cartIds);
+  const shelf = idsOf(source)
+    .map((id) => CATALOG.find((c) => c.id === id))
+    .filter((p): p is (typeof CATALOG)[number] => Boolean(p));
+  const unplaceable = shelf.filter((p) => !COMPOSABLE.has(p.id)).length;
+
+  // the room opens with the first piece the visitor saved, if one can stand in it
+  const firstId = [...wishlist.ids, ...cartIds].find((id) => COMPOSABLE.has(id));
+  const [placed, setPlaced] = useState<Placed[]>(() => (firstId ? [{ uid: 1, id: firstId, x: 50, y: 70, w: 44 }] : []));
+  const [sel, setSel] = useState<number | null>(firstId ? 1 : null);
   const nextUid = useRef(2);
 
   const put = (id: number) => {
@@ -240,6 +259,11 @@ function Composer() {
   const selected = placed.find((p) => p.uid === sel);
   const products = placed.map((p) => CATALOG.find((c) => c.id === p.id)!).filter(Boolean);
   const total = products.reduce((s, p) => s + p.price, 0);
+  /* Pieces placed from the cart are already in it: adding the room again would
+     only raise their quantities. So the button adds just what is missing, and
+     when nothing is, it becomes a way into the cart instead. */
+  const inCart = new Set(cartIds);
+  const missing = products.filter((p) => !inCart.has(p.id));
 
   return (
     <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
@@ -309,26 +333,121 @@ function Composer() {
       </div>
 
       <div className="lg:col-span-4">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Pieces', 'القطع')}</p>
-        <ul className="mt-3 grid grid-cols-3 gap-2">
-          {COMPOSABLE.map((p) => (
-            <li key={p.id}>
+        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Pieces from', 'القطع من')}</p>
+
+        {/* where the shelf's pieces come from */}
+        <div
+          role="tablist"
+          aria-label={t('Pieces from', 'القطع من')}
+          data-testid="composer-source"
+          className="mt-3 grid grid-cols-2 border p-1"
+          style={{ borderColor: HAIR }}
+        >
+          {(
+            [
+              { key: 'wishlist', icon: Heart, label: t('Wishlist', 'المفضلة') },
+              { key: 'cart', icon: ShoppingBag, label: t('Cart', 'السلة') },
+            ] as const
+          ).map(({ key, icon: Icon, label }) => {
+            const on = key === source;
+            return (
               <button
+                key={key}
                 type="button"
-                data-testid="composer-add"
-                onClick={() => put(p.id)}
-                title={t(p.name.en, p.name.ar)}
-                className="group relative block aspect-square w-full border transition-colors hover:border-[#171512]"
-                style={{ borderColor: HAIR, backgroundColor: TILE }}
+                role="tab"
+                aria-selected={on}
+                data-testid={`composer-source-${key}`}
+                onClick={() => setSource(key)}
+                className="relative flex h-10 items-center justify-center"
               >
-                <img src={tileImg(p.id, p.img)} alt={t(p.name.en, p.name.ar)} className="h-full w-full object-contain p-2" />
-                <span className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center bg-white opacity-0 transition-opacity group-hover:opacity-100">
-                  <Plus size={11} strokeWidth={2} />
+                {on && (
+                  <motion.span
+                    layoutId="composer-source"
+                    aria-hidden
+                    className="absolute inset-0"
+                    style={{ backgroundColor: INK }}
+                    transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 42 }}
+                  />
+                )}
+                <span
+                  className={`relative z-10 flex items-center gap-2 text-[12.5px] font-semibold transition-colors duration-200 ${
+                    on ? 'text-white' : 'text-[#171512]'
+                  }`}
+                >
+                  <Icon size={15} strokeWidth={1.6} className={on && key === 'wishlist' ? 'fill-current' : ''} />
+                  {label}
+                  <span dir="ltr" className={`tabular-nums text-[11px] font-medium ${on ? 'text-white/60' : ''}`} style={on ? undefined : { color: MUTED }}>
+                    {idsOf(key).length}
+                  </span>
                 </span>
               </button>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
+
+        {shelf.length ? (
+          <ul className="mt-3 grid grid-cols-3 gap-2" data-testid="composer-shelf">
+            {shelf.map((p) => {
+              const ok = COMPOSABLE.has(p.id);
+              const name = t(p.name.en, p.name.ar);
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    data-testid="composer-add"
+                    data-placeable={ok}
+                    disabled={!ok}
+                    onClick={() => put(p.id)}
+                    title={ok ? name : t(`${p.name.en} — can't be placed in the room yet`, `${p.name.ar} — لا يمكن وضعها في الغرفة بعد`)}
+                    className="group relative block aspect-square w-full border transition-colors enabled:hover:border-[#171512] disabled:cursor-not-allowed"
+                    style={{ borderColor: HAIR, backgroundColor: TILE }}
+                  >
+                    <img
+                      src={tileImg(p.id, p.img)}
+                      alt={name}
+                      className={`h-full w-full object-contain p-2 ${ok ? '' : 'opacity-35 grayscale'}`}
+                    />
+                    {ok && (
+                      <span className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center bg-white opacity-0 transition-opacity group-hover:opacity-100">
+                        <Plus size={11} strokeWidth={2} />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          /* nothing saved here yet — say so, and say where the pieces come from */
+          <div data-testid="composer-empty" className="mt-3 border border-dashed px-5 py-8 text-center" style={{ borderColor: HAIR }}>
+            {source === 'wishlist' ? (
+              <Heart size={22} strokeWidth={1.3} className="mx-auto" style={{ color: MUTED }} />
+            ) : (
+              <ShoppingBag size={22} strokeWidth={1.3} className="mx-auto" style={{ color: MUTED }} />
+            )}
+            <p className="mt-3 text-[13px] font-bold">
+              {source === 'wishlist' ? t('Nothing saved yet', 'لا شيء في المفضلة بعد') : t('Your cart is empty', 'سلتك فارغة')}
+            </p>
+            <p className="mx-auto mt-1.5 max-w-[26ch] text-[12px] leading-relaxed" style={{ color: MUTED }}>
+              {source === 'wishlist'
+                ? t('Tap the heart on any piece in the shop and it appears here.', 'اضغط القلب على أي قطعة في المتجر لتظهر هنا.')
+                : t('Add pieces to your cart to place them in the room.', 'أضف قطعاً إلى سلتك لتضعها في الغرفة.')}
+            </p>
+            <Link to={searchPath(1)} className={`mt-4 inline-block border-b pb-1 text-[11px] ${caps}`} style={{ borderColor: INK }}>
+              {t('Browse the shop', 'تصفّح المتجر')}
+            </Link>
+          </div>
+        )}
+
+        {unplaceable > 0 && (
+          <p data-testid="composer-unplaceable" className="mt-2.5 text-[11.5px] leading-relaxed" style={{ color: MUTED }}>
+            {isAr
+              ? unplaceable === 1
+                ? 'قطعة واحدة هنا لا يمكن وضعها في الغرفة بعد.'
+                : `${unplaceable} قطع هنا لا يمكن وضعها في الغرفة بعد.`
+              : `${unplaceable} ${unplaceable === 1 ? 'piece' : 'pieces'} here can't be placed in the room yet.`}
+          </p>
+        )}
 
         <div className="mt-8 border-t pt-6" style={{ borderColor: HAIR }}>
           <div className="flex items-baseline justify-between gap-4">
@@ -342,13 +461,17 @@ function Composer() {
             data-testid="composer-to-cart"
             disabled={!products.length}
             onClick={() => {
-              products.forEach((p) => add(p.id));
-              toast(t('The room is in your cart.', 'الغرفة في سلتك.'));
+              if (missing.length) {
+                missing.forEach((p) => add(p.id));
+                toast(t('The room is in your cart.', 'الغرفة في سلتك.'));
+              }
               openCart();
             }}
             className={`mt-5 w-full py-4 disabled:opacity-50 ${primaryBtnCls(isAr)}`}
           >
-            {t('Add the room to cart', 'أضف الغرفة إلى السلة')}
+            {products.length && !missing.length
+              ? t('Everything is in your cart · View cart', 'كل القطع في سلتك · عرض السلة')
+              : t('Add the room to cart', 'أضف الغرفة إلى السلة')}
           </button>
         </div>
       </div>

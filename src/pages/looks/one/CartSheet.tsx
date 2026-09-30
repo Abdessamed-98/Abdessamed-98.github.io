@@ -5,6 +5,7 @@ import { formatSAR, lookBase, productPath, searchPath, storeOf } from '../lookSh
 import { HAIR, INK, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { Sheet } from './Sheet';
 import { useLookCart } from './cart';
+import { sizeLabel } from './sizes';
 
 export function CartSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lang, t } = useLook();
@@ -77,6 +78,7 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
             const name = t(line.product.name.en, line.product.name.ar);
             const store = storeOf(line.product.store);
             const colour = line.product.colors.find((c) => c.name.en === line.colorKey);
+            const size = sizeLabel(line.product, line.seats);
             return (
               <li key={line.uid} data-testid="cart-line" className="flex gap-4 px-6 py-5">
                 <Link to={productPath(1, line.product.id)} onClick={onClose} className="shrink-0">
@@ -100,6 +102,11 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
                   {colour && (
                     <p className="mt-0.5 text-[11px] font-light text-neutral-500">
                       {t('Colour', 'اللون')}: {t(colour.name.en, colour.name.ar)}
+                    </p>
+                  )}
+                  {size && (
+                    <p className="mt-0.5 text-[11px] font-light text-neutral-500">
+                      {t('Size', 'المقاس')}: {t(size.en, size.ar)}
                     </p>
                   )}
 

@@ -1,29 +1,36 @@
 /**
  * Look 1 — Product detail page.
- * Gallery | info (store, title, rating, price, availability, options, buy
- * actions, delivery block, design-assistance strip), details accordion,
- * "sold by" store card, related products, and a sticky buy bar on phones.
+ *
+ * Three columns, after the owner's brief: the gallery (thumbnails down the
+ * outer edge, a room-tour video last, "view in your space" on the picture), the
+ * buying column (price with VAT, colour, size, quantity, add to cart and buy
+ * now), and a sidebar with the seller, four promises and the services that go
+ * with the piece. Details sit in tabs under the first two columns; then similar
+ * pieces from other stores and a "complete the look" set. Below xl the sidebar
+ * becomes a row of three, and on a phone everything stacks, with a sticky buy
+ * bar.
  */
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import {
-  Heart, Share2, Minus, Plus, Check, ChevronDown, ChevronLeft, ChevronRight,
-  Truck, Wrench, RefreshCw, Sparkles,
+  Heart, Share2, Minus, Plus, Check, ChevronLeft, ChevronRight, ArrowRight,
+  Truck, Wrench, RefreshCw, ShieldCheck, ScanLine, Play, ShoppingCart, Star, MapPin,
 } from 'lucide-react';
 import {
-  CATEGORIES, AVAILABILITY_LABEL, formatSAR, storeOf, findProduct, relatedProducts,
-  lookBase, searchPath,
+  CATALOG, CATEGORIES, AVAILABILITY_LABEL, IMG, REVIEWS, STORE_LOCATIONS,
+  formatSAR, storeOf, findProduct, relatedProducts, lookBase, searchPath, productPath,
   type CatalogProduct,
 } from '../lookShared';
 import {
-  INK, OLIVE, HAIR, RED, TILE,
-  useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
+  INK, OLIVE, HAIR, RED, TILE, RAIL_MD,
+  useLook, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls, tileImg,
 } from './ui';
-import { Lightbox } from './kit';
+import { Lightbox, Tabs } from './kit';
 import { ShareSheet, TryAISheet } from './ProductSheets';
+import { sizeOptions } from './sizes';
 
 const AVAILABILITY_COLOR = { in_stock: OLIVE, low_stock: RED, made_to_order: '#8A8478' } as const;
 
@@ -71,31 +78,60 @@ function NotFound() {
 /* ------------------------------------------------------------------ */
 /* The page                                                            */
 /* ------------------------------------------------------------------ */
+
+/** What the gallery can show: the photographs, then the room tour. */
+type Media = { kind: 'img'; src: string } | { kind: 'video'; src: string; poster: string };
+const ROOM_TOUR = { kind: 'video', src: '/looks/video/room-tour.mp4', poster: '/looks/video/room-tour-poster.jpg' } as const;
+
+/** Services offered beside a piece of furniture, in the sidebar. */
+const FIT_SERVICES = [
+  { img: IMG.workshop, name: { en: 'Furniture assembly', ar: 'تركيب الأثاث' }, price: { en: 'From 150 SAR', ar: 'ابتداءً من 150 ر.س' } },
+  { img: IMG.catHome, name: { en: 'Interior design', ar: 'تصميم داخلي' }, price: { en: 'Consultation 299 SAR', ar: 'جلسة استشارة 299 ر.س' } },
+  { img: IMG.roomHotspots, name: { en: 'Wall painting', ar: 'دهان الجدران' }, price: { en: 'From 25 SAR/m²', ar: 'ابتداءً من 25 ر.س/م²' } },
+  { img: IMG.catOffice, name: { en: 'Floor tiling', ar: 'تركيب بلاط' }, price: { en: 'From 90 SAR/m²', ar: 'ابتداءً من 90 ر.س/م²' } },
+];
+
+/** Pieces that finish a room around the one on the page. */
+const LOOK_IDS = [10, 12, 14, 11];
+
+type InfoTab = 'description' | 'specs' | 'reviews' | 'returns' | 'shipping';
+
 function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
+  const navigate = useNavigate();
   const store = storeOf(p.store);
   const category = CATEGORIES.find((c) => c.key === p.category);
-  const related = relatedProducts(p);
+  const branch = STORE_LOCATIONS.find((l) => l.store === p.store);
 
   const [active, setActive] = useState(0);
   const [color, setColor] = useState(0);
+  const sizes = sizeOptions(p);
+  const [seats, setSeats] = useState<number | undefined>(sizes[0]?.seats);
+  const size = sizes.find((s) => s.seats === seats);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const shell = useShell();
   const wishlist = useWishlist();
-  const [openPanel, setOpenPanel] = useState<string | null>('description');
+  const [tab, setTab] = useState<InfoTab>('description');
   const [zoom, setZoom] = useState(false);
   // ?ai=1 (from a product card's "Try with AI") opens the sheet on arrival
   const [aiOpen, setAiOpen] = useState(() => new URLSearchParams(window.location.search).get('ai') === '1');
   const [shareOpen, setShareOpen] = useState(false);
   const addedTimer = useRef<number | null>(null);
 
+  const price = size?.price ?? p.price;
+  const oldPrice = size ? size.oldPrice : p.oldPrice;
+
   const addToCart = () => {
-    shell.addToCart(p.id, t(p.name.en, p.name.ar), { colorKey: p.colors[color]?.name.en, qty });
+    shell.addToCart(p.id, t(p.name.en, p.name.ar), { colorKey: p.colors[color]?.name.en, seats: size && size.seats !== sizes[0].seats ? size.seats : undefined, qty });
     setAdded(true);
     if (addedTimer.current !== null) window.clearTimeout(addedTimer.current);
     addedTimer.current = window.setTimeout(() => setAdded(false), 1800);
+  };
+  const buyNow = () => {
+    addToCart();
+    navigate(`${lookBase(1)}/checkout`);
   };
   useEffect(() => () => {
     if (addedTimer.current !== null) window.clearTimeout(addedTimer.current);
@@ -117,18 +153,25 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
     return () => io.disconnect();
   }, []);
 
-  const savePct = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+  const savePct = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
   const name = p.name[lang];
   const gallery = p.gallery.length ? p.gallery : [p.img];
-  const prevImg = () => setActive((i) => (i - 1 + gallery.length) % gallery.length);
-  const nextImg = () => setActive((i) => (i + 1) % gallery.length);
+  const media: Media[] = [...gallery.map((src) => ({ kind: 'img' as const, src })), ROOM_TOUR];
+  const current = media[active];
+  const prevImg = () => setActive((i) => (i - 1 + media.length) % media.length);
+  const nextImg = () => setActive((i) => (i + 1) % media.length);
 
-  const panels = [
-    { key: 'description', label: t('Description', 'الوصف'), body: p.description[lang] },
-    { key: 'dimensions', label: t('Dimensions', 'الأبعاد'), body: p.dimensions[lang] },
-    { key: 'materials', label: t('Materials', 'الخامات'), body: p.materials[lang] },
-    { key: 'care', label: t('Care', 'العناية'), body: p.care[lang] },
-  ];
+  // from other stores first: on a marketplace the useful comparison is the same piece elsewhere
+  const similar = [
+    ...CATALOG.filter((x) => x.id !== p.id && x.store !== p.store && x.category === p.category),
+    ...relatedProducts(p, 8).filter((x) => x.store !== p.store),
+  ]
+    .filter((x, i, a) => a.indexOf(x) === i)
+    .slice(0, 4);
+  const lookItems = LOOK_IDS.filter((id) => id !== p.id)
+    .map((id) => CATALOG.find((x) => x.id === id))
+    .filter((x): x is CatalogProduct => !!x)
+    .slice(0, 4);
 
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
@@ -137,8 +180,9 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
     { label: name },
   ];
 
-  const iconBtn = 'flex h-12 w-12 shrink-0 items-center justify-center border transition-colors hover:border-[#171512]';
   const labelCls = eyebrowCls(isAr, 'text-[10px] text-neutral-400');
+  const fieldLabel = `text-[12.5px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em] text-[11px]'}`;
+  const card = 'border bg-white';
 
   return (
     <div data-testid="product-page" className="pt-[72px]">
@@ -147,60 +191,118 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
       </div>
 
       {/* ---------------------------------------------------------- */}
-      {/* Gallery | Info                                              */}
+      {/* Gallery | Info | Sidebar — the owner's three-column brief     */}
       {/* ---------------------------------------------------------- */}
-      <div className="mx-auto max-w-[1400px] px-6 pt-8 pb-16 md:px-10 md:pt-10 md:pb-24">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-14 xl:gap-20">
-          {/* gallery */}
-          <div className="lg:col-span-7">
-            <div
-              className="relative aspect-square overflow-hidden lg:aspect-[5/4] xl:aspect-square"
-              style={{ backgroundColor: TILE }}
-              data-testid="gallery-main"
-            >
-              <AnimatePresence initial={false}>
-                <motion.img
-                  key={gallery[active]}
-                  src={gallery[active]}
-                  alt={`${name} — ${active + 1}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className={`absolute inset-0 h-full w-full ${
-                    active === 0 ? 'object-contain p-8 md:p-14' : 'object-cover'
-                  }`}
-                />
-              </AnimatePresence>
-              <button
-                type="button"
-                data-testid="gallery-zoom"
-                onClick={() => setZoom(true)}
-                aria-label={t('View full screen', 'عرض بملء الشاشة')}
-                className="absolute inset-0 z-[5] cursor-zoom-in"
-              />
-
-              {/* badges */}
-              <div className="absolute start-5 top-5 z-10 flex flex-col gap-1.5">
-                {p.oldPrice && (
-                  <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: RED }}>
-                    {t('Sale', 'تخفيض')}
-                  </span>
-                )}
-                {p.isNew && (
-                  <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
-                    {t('New', 'جديد')}
-                  </span>
-                )}
+      <div className="mx-auto max-w-[1400px] px-6 pt-8 pb-16 md:px-10 md:pt-10 md:pb-20">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-12 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)_minmax(0,3.5fr)] xl:gap-9">
+          {/* ---- gallery: thumbnails down the outer edge, the video last ---- */}
+          <div className="lg:col-span-7 xl:col-span-1" data-testid="product-gallery">
+            <div className="flex flex-col-reverse gap-3 lg:flex-row">
+              <div className="scrollbar-hide flex gap-3 overflow-x-auto lg:w-[84px] lg:shrink-0 lg:flex-col lg:overflow-visible" role="tablist" aria-label={t('Product media', 'صور المنتج')}>
+                {media.map((m, i) => (
+                  <button
+                    key={`${m.src}-${i}`}
+                    type="button"
+                    role="tab"
+                    data-testid={m.kind === 'video' ? 'gallery-video-thumb' : 'gallery-thumb'}
+                    aria-selected={i === active}
+                    aria-label={m.kind === 'video' ? t('Room tour video', 'فيديو جولة في الغرفة') : t(`Image ${i + 1}`, `الصورة ${i + 1}`)}
+                    onClick={() => setActive(i)}
+                    className={`relative aspect-square w-[72px] shrink-0 overflow-hidden border transition-colors lg:w-full ${
+                      i === active ? 'border-[#171512]' : 'border-[#E8E4DC] hover:border-[#171512]/40'
+                    }`}
+                    style={{ backgroundColor: TILE }}
+                  >
+                    <img
+                      src={m.kind === 'video' ? m.poster : i === 0 ? tileImg(p.id, m.src) : m.src}
+                      alt=""
+                      className={`h-full w-full ${m.kind === 'img' && i === 0 ? 'object-contain p-2' : 'object-cover'}`}
+                    />
+                    {m.kind === 'video' && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                        <span className="flex h-8 w-8 items-center justify-center bg-white/95 text-[#171512]">
+                          <Play size={13} strokeWidth={2} className="fill-[#171512]" />
+                        </span>
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
 
-              {/* arrows */}
-              {gallery.length > 1 && (
+              <div className="relative aspect-[4/5] min-w-0 flex-1 overflow-hidden" style={{ backgroundColor: TILE }} data-testid="gallery-main">
+                <AnimatePresence initial={false}>
+                  {current.kind === 'video' ? (
+                    <motion.video
+                      key="video"
+                      data-testid="gallery-video"
+                      src={current.src}
+                      poster={current.poster}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <motion.img
+                      key={current.src}
+                      src={active === 0 ? tileImg(p.id, current.src) : current.src}
+                      alt={`${name} — ${active + 1}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                      className={`absolute inset-0 h-full w-full ${active === 0 ? 'object-contain p-8 md:p-12' : 'object-cover'}`}
+                    />
+                  )}
+                </AnimatePresence>
+                {current.kind === 'img' && (
+                  <button
+                    type="button"
+                    data-testid="gallery-zoom"
+                    onClick={() => setZoom(true)}
+                    aria-label={t('View full screen', 'عرض بملء الشاشة')}
+                    className="absolute inset-0 z-[5] cursor-zoom-in"
+                  />
+                )}
+
+                {/* badges */}
+                <div className="absolute start-5 top-5 z-10 flex flex-col gap-1.5">
+                  {oldPrice && (
+                    <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: RED }}>
+                      {t('Sale', 'تخفيض')}
+                    </span>
+                  )}
+                  {p.isNew && (
+                    <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
+                      {t('New', 'جديد')}
+                    </span>
+                  )}
+                </div>
+
+                {/* view it in your own room — the AI try-on, on the picture itself */}
+                <button
+                  type="button"
+                  data-testid="try-with-ai"
+                  onClick={() => setAiOpen(true)}
+                  className={`absolute bottom-4 start-4 z-10 inline-flex items-center gap-2.5 bg-[#171512]/85 px-4 py-3 text-[12px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-[#171512] ${
+                    isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em] text-[11px]'
+                  }`}
+                >
+                  <ScanLine size={15} strokeWidth={1.5} />
+                  {t('View in your space', 'عرض في مساحتك')}
+                </button>
+
+                {/* arrows */}
                 <div className="absolute bottom-4 end-4 z-10 flex items-center gap-2">
                   <button
                     type="button"
                     onClick={prevImg}
-                    aria-label={t('Previous image', 'الصورة السابقة')}
+                    aria-label={t('Previous', 'السابق')}
                     className="flex h-10 w-10 items-center justify-center border border-[#171512]/20 bg-white/80 text-[#171512] backdrop-blur-sm transition-colors hover:bg-[#171512] hover:text-white"
                   >
                     <ChevronLeft size={16} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
@@ -208,308 +310,438 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   <button
                     type="button"
                     onClick={nextImg}
-                    aria-label={t('Next image', 'الصورة التالية')}
+                    aria-label={t('Next', 'التالي')}
                     className="flex h-10 w-10 items-center justify-center border border-[#171512]/20 bg-white/80 text-[#171512] backdrop-blur-sm transition-colors hover:bg-[#171512] hover:text-white"
                   >
                     <ChevronRight size={16} strokeWidth={1.25} className={isAr ? 'rotate-180' : undefined} />
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ---- info ---- */}
+          <div className="lg:col-span-5 xl:col-span-1">
+            <Link
+              to={`${lookBase(1)}/store/${store.key}`}
+              data-testid="product-store-link"
+              className={`${eyebrowCls(isAr, 'text-[10px]')} underline-offset-4 hover:underline`}
+              style={{ color: OLIVE }}
+            >
+              {store.name[lang]}
+            </Link>
+            <h1
+              data-testid="product-title"
+              className={`mt-3 text-2xl font-extrabold md:text-[30px] ${
+                isAr ? "font-['Alexandria',sans-serif] leading-[1.3] tracking-normal" : "font-['Outfit',sans-serif] uppercase leading-[1.08] tracking-tight"
+              }`}
+            >
+              {name}
+            </h1>
+            <p className="mt-3 line-clamp-3 text-[14px] font-light leading-relaxed text-neutral-600">{p.description[lang]}</p>
+
+            <button type="button" onClick={() => setTab('reviews')} className="mt-4 flex flex-wrap items-center gap-2.5" data-testid="product-rating">
+              <Stars rating={p.rating} />
+              <span className="text-[12.5px] font-bold">{p.rating}</span>
+              <span className="text-[12px] text-neutral-500 underline-offset-4 hover:underline">
+                ({isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`})
+              </span>
+            </button>
+
+            {/* price */}
+            <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1" data-testid="product-price">
+              <span className="font-['Outfit',sans-serif] text-[30px] font-bold leading-none tabular-nums">{formatSAR(price)}</span>
+              <span className={`text-[12px] font-medium text-neutral-500 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.1em]'}`}>
+                {t('SAR', 'ر.س')}
+              </span>
+              {oldPrice && (
+                <>
+                  <span className="text-[14px] text-neutral-400 line-through">{formatSAR(oldPrice)}</span>
+                  <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.22em]'}`} style={{ color: RED }}>
+                    {t(`Save ${savePct}%`, `وفّر ${savePct}%`)}
+                  </span>
+                </>
               )}
             </div>
+            <p className="mt-2 text-[12px] text-neutral-500" data-testid="vat-note">
+              {t('Price includes VAT', 'السعر شامل ضريبة القيمة المضافة')}
+            </p>
 
-            {/* thumbnails */}
-            {gallery.length > 1 && (
-              <div className="mt-4 grid grid-cols-5 gap-3 sm:grid-cols-6" role="tablist" aria-label={t('Product images', 'صور المنتج')}>
-                {gallery.map((g, i) => (
+            {/* availability */}
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="product-availability">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2" style={{ backgroundColor: AVAILABILITY_COLOR[p.availability] }} aria-hidden />
+                <span className={`text-[11px] font-semibold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>
+                  {AVAILABILITY_LABEL[p.availability][lang]}
+                </span>
+              </span>
+              <span className="text-[12.5px] text-neutral-500">{p.leadTime[lang]}</span>
+            </div>
+
+            {/* colour */}
+            <div className="mt-7 border-t pt-6" style={{ borderColor: HAIR }}>
+              <p className={fieldLabel}>
+                {t('Colour', 'اللون')}: <span className="font-normal text-neutral-600" data-testid="selected-color">{p.colors[color]?.name[lang]}</span>
+              </p>
+              <div className="mt-3.5 flex flex-wrap gap-3">
+                {p.colors.map((c, i) => (
                   <button
-                    key={`${g}-${i}`}
+                    key={c.name.en}
                     type="button"
-                    role="tab"
-                    data-testid="gallery-thumb"
-                    aria-selected={i === active}
-                    aria-label={t(`Image ${i + 1}`, `الصورة ${i + 1}`)}
-                    onClick={() => setActive(i)}
-                    className={`aspect-square overflow-hidden border transition-colors ${
-                      i === active ? 'border-[#171512]' : 'border-transparent hover:border-[#171512]/40'
+                    data-testid="color-swatch"
+                    aria-label={c.name[lang]}
+                    aria-pressed={i === color}
+                    title={c.name[lang]}
+                    onClick={() => setColor(i)}
+                    className={`h-8 w-8 border border-[#171512]/10 transition-all ${
+                      i === color ? 'ring-1 ring-[#171512] ring-offset-2 ring-offset-[#FDFCF9]' : 'hover:ring-1 hover:ring-[#171512]/40 hover:ring-offset-2 hover:ring-offset-[#FDFCF9]'
                     }`}
-                    style={{ backgroundColor: TILE }}
-                  >
-                    <img src={g} alt="" className={`h-full w-full ${i === 0 ? 'object-contain p-2' : 'object-cover'}`} />
-                  </button>
+                    style={{ backgroundColor: c.hex }}
+                  />
                 ))}
+              </div>
+            </div>
+
+            {/* size — sofas only */}
+            {sizes.length > 0 && (
+              <div className="mt-6" data-testid="size-options">
+                <p className={fieldLabel}>{t('Size', 'المقاس')}:</p>
+                <div className="mt-3 flex flex-wrap gap-2" role="radiogroup">
+                  {sizes.map((s) => {
+                    const on = s.seats === seats;
+                    return (
+                      <button
+                        key={s.seats}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        data-testid={`size-${s.seats}`}
+                        onClick={() => setSeats(s.seats)}
+                        className={`border px-4 py-2.5 text-[12.5px] transition-colors ${
+                          on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'
+                        }`}
+                        style={on ? undefined : { borderColor: '#C9C2B4' }}
+                      >
+                        {s.label[lang]}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
-            {/* details accordion — under the gallery on desktop */}
-            <div className="mt-12 hidden lg:block">
-              <Details panels={panels} open={openPanel} onToggle={(k) => setOpenPanel((c) => (c === k ? null : k))} isAr={isAr} />
+            {/* quantity */}
+            <div className="mt-6 inline-flex h-11 items-stretch border" style={{ borderColor: '#C9C2B4' }} data-testid="qty-stepper">
+              <button
+                type="button"
+                onClick={() => setQty((q) => clampQty(q - 1))}
+                disabled={qty <= 1}
+                aria-label={t('Decrease quantity', 'تقليل الكمية')}
+                className="flex w-11 items-center justify-center transition-colors hover:bg-[#F6F3EC] disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <Minus size={14} strokeWidth={1.5} />
+              </button>
+              <input
+                data-testid="qty-input"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={10}
+                value={qty}
+                onChange={(e) => setQty(clampQty(Number(e.target.value)))}
+                aria-label={t('Quantity', 'الكمية')}
+                className="w-12 bg-transparent text-center text-[14px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <button
+                type="button"
+                onClick={() => setQty((q) => clampQty(q + 1))}
+                disabled={qty >= 10}
+                aria-label={t('Increase quantity', 'زيادة الكمية')}
+                className="flex w-11 items-center justify-center transition-colors hover:bg-[#F6F3EC] disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <Plus size={14} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* buy */}
+            <button
+              ref={buyRef}
+              type="button"
+              data-testid="add-to-cart"
+              onClick={addToCart}
+              aria-live="polite"
+              className={`mt-5 inline-flex h-12 w-full items-center justify-center gap-2.5 px-6 ${primaryBtnCls(isAr)} ${added ? '!bg-[#5A6B4D]' : ''}`}
+            >
+              {added ? <Check size={15} strokeWidth={2} /> : <ShoppingCart size={15} strokeWidth={1.5} />}
+              {added ? t('Added', 'أُضيف') : t('Add to Cart', 'أضف إلى السلة')}
+            </button>
+            <button
+              type="button"
+              data-testid="buy-now"
+              onClick={buyNow}
+              className={`mt-3 inline-flex h-12 w-full items-center justify-center border text-[12px] font-medium transition-colors hover:bg-[#171512] hover:text-white ${
+                isAr ? 'tracking-normal' : 'uppercase tracking-[0.24em] text-[11px]'
+              }`}
+              style={{ borderColor: INK }}
+            >
+              {t('Buy Now', 'اشترِ الآن')}
+            </button>
+
+            <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-[12.5px]">
+              <button
+                type="button"
+                data-testid="wishlist-toggle"
+                onClick={() => wishlist.toggle(p.id)}
+                aria-pressed={wishlist.has(p.id)}
+                className={`inline-flex items-center gap-2 transition-colors hover:text-[#171512] ${wishlist.has(p.id) ? 'text-[#B03A2E]' : 'text-neutral-600'}`}
+              >
+                <Heart size={16} strokeWidth={1.5} className={wishlist.has(p.id) ? 'fill-[#B03A2E]' : 'fill-transparent'} />
+                {wishlist.has(p.id) ? t('Saved', 'في المفضلة') : t('Add to wishlist', 'أضف للمفضلة')}
+              </button>
+              <button
+                type="button"
+                data-testid="share-open"
+                onClick={() => setShareOpen(true)}
+                className="inline-flex items-center gap-2 text-neutral-600 transition-colors hover:text-[#171512]"
+              >
+                <Share2 size={16} strokeWidth={1.5} />
+                {t('Share', 'مشاركة')}
+              </button>
             </div>
           </div>
 
-          {/* info */}
-          <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-[96px]">
+          {/* ---- sidebar: the seller, the promises, the services ---- */}
+          <aside className="grid gap-5 lg:col-span-12 lg:grid-cols-3 xl:col-span-1 xl:row-span-2 xl:grid-cols-1 xl:content-start" data-testid="product-sidebar">
+            {/* sold by */}
+            <div className={`${card} p-5`} style={{ borderColor: HAIR }} data-testid="sold-by">
+              <p className="text-[12.5px] font-bold">{t('Sold by', 'يُباع بواسطة')}</p>
+              <div className="mt-4 flex items-center gap-4">
+                <span dir="ltr" className="flex h-14 w-14 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[14px] font-bold text-white" aria-hidden>
+                  {store.initials}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-[14.5px] font-bold">{store.name[lang]}</p>
+                  <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-neutral-500">
+                    <Star size={12} strokeWidth={1.5} className="fill-[#D9A441] text-[#D9A441]" />
+                    <span className="font-bold text-[#171512]">{store.rating}</span>
+                    ({isAr ? `${formatSAR(store.products)} منتج` : `${formatSAR(store.products)} products`})
+                  </p>
+                  <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-neutral-500">
+                    <MapPin size={12} strokeWidth={1.5} />
+                    {branch ? `${branch.district[lang]} · ${t('Jeddah', 'جدة')}` : t('Online store', 'متجر إلكتروني')}
+                  </p>
+                </div>
+              </div>
               <Link
-                to={searchPath(1, { store: store.key })}
-                data-testid="product-store-link"
-                className={`${eyebrowCls(isAr, 'text-[10px]')} underline-offset-4 hover:underline`}
-                style={{ color: OLIVE }}
+                to={`${lookBase(1)}/store/${store.key}`}
+                className="mt-5 flex h-11 items-center justify-center gap-2 border text-[12px] font-medium transition-colors hover:bg-[#171512] hover:text-white"
+                style={{ borderColor: INK }}
               >
-                {store.name[lang]}
+                {t('Visit store', 'زيارة المتجر')}
+                <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
               </Link>
-              <h1
-                data-testid="product-title"
-                className={`mt-3 text-2xl font-extrabold uppercase md:text-[32px] ${
-                  isAr ? "font-['Alexandria',sans-serif] leading-[1.3] tracking-normal" : "font-['Outfit',sans-serif] leading-[1.08] tracking-tight"
-                }`}
-              >
-                {name}
-              </h1>
+            </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Stars rating={p.rating} />
-                <span className="text-[12px] font-medium">{p.rating}</span>
-                <span className="text-[12px] text-neutral-500">
-                  ({isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`})
-                </span>
-              </div>
+            {/* the promises, as a 2×2 */}
+            <ul className={`${card} grid grid-cols-2`} style={{ borderColor: HAIR }} data-testid="delivery-block">
+              {[
+                { icon: Wrench, title: t('Installation', 'خدمة التركيب'), sub: t('On request', 'متاحة عند الطلب') },
+                { icon: Truck, title: t('Free delivery', 'توصيل مجاني'), sub: t('In 1–3 days', 'من 1 - 3 أيام') },
+                { icon: ShieldCheck, title: t('2-year warranty', 'ضمان سنتين'), sub: t('From the store', 'من المتجر') },
+                { icon: RefreshCw, title: t('Easy returns', 'إرجاع سهل'), sub: t('Within 14 days', 'خلال 14 يوم') },
+              ].map((row, i) => (
+                <li
+                  key={row.title}
+                  className={`flex flex-col items-center px-3 py-5 text-center ${i % 2 === 0 ? 'border-e' : ''} ${i < 2 ? 'border-b' : ''}`}
+                  style={{ borderColor: HAIR }}
+                >
+                  <row.icon size={22} strokeWidth={1.3} style={{ color: INK }} />
+                  <p className="mt-3 text-[12.5px] font-bold">{row.title}</p>
+                  <p className="mt-1 text-[11px] text-neutral-500">{row.sub}</p>
+                </li>
+              ))}
+            </ul>
 
-              {/* price */}
-              <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1" data-testid="product-price">
-                <span className="text-[28px] font-bold leading-none">{formatSAR(p.price)}</span>
-                <span className={`text-[11px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
-                  {t('SAR', 'ر.س')}
-                </span>
-                {p.oldPrice && (
-                  <>
-                    <span className="text-[14px] text-neutral-400 line-through">{formatSAR(p.oldPrice)}</span>
-                    <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.22em]'}`} style={{ color: RED }}>
-                      {t(`Save ${savePct}%`, `وفّر ${savePct}%`)}
-                    </span>
-                  </>
-                )}
-              </div>
-              <p className={`mt-2 text-[11px] text-neutral-400 ${isAr ? 'tracking-normal' : 'tracking-[0.06em]'}`}>
-                {t('Incl. VAT', 'شامل الضريبة')} · <span className="uppercase">SKU</span> <span dir="ltr">{p.sku}</span>
-              </p>
-
-              {/* availability */}
-              <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="product-availability">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2" style={{ backgroundColor: AVAILABILITY_COLOR[p.availability] }} aria-hidden />
-                  <span className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}>
-                    {AVAILABILITY_LABEL[p.availability][lang]}
-                  </span>
-                </span>
-                <span className="text-[12.5px] text-neutral-500">{p.leadTime[lang]}</span>
-              </div>
-
-              <p className="mt-6 text-[14.5px] font-light leading-relaxed text-neutral-600">{p.description[lang]}</p>
-
-              {/* colour */}
-              <div className="mt-8 border-t pt-7" style={{ borderColor: HAIR }}>
-                <p className={labelCls}>
-                  {t('Colour', 'اللون')} — <span className="text-[#171512]" data-testid="selected-color">{p.colors[color]?.name[lang]}</span>
-                </p>
-                <div className="mt-3.5 flex flex-wrap gap-3">
-                  {p.colors.map((c, i) => (
+            {/* services that fit this product */}
+            <div className={`${card} p-5`} style={{ borderColor: HAIR }} data-testid="fit-services">
+              <p className={`text-[17px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t('Services for this piece', 'خدمات تناسب هذا المنتج')}</p>
+              <p className="mt-1.5 text-[12px] text-neutral-500">{t('Finish the room with our vetted crews', 'أضف لمساتك الأخيرة مع خدماتنا الموثوقة')}</p>
+              <ul className="mt-4 divide-y divide-[#E8E4DC]">
+                {FIT_SERVICES.map((sv) => (
+                  <li key={sv.name.en}>
                     <button
-                      key={c.name.en}
                       type="button"
-                      data-testid="color-swatch"
-                      aria-label={c.name[lang]}
-                      aria-pressed={i === color}
-                      title={c.name[lang]}
-                      onClick={() => setColor(i)}
-                      className={`h-8 w-8 border border-[#171512]/10 transition-all ${
-                        i === color ? 'ring-1 ring-[#171512] ring-offset-2 ring-offset-[#FDFCF9]' : 'hover:ring-1 hover:ring-[#171512]/40 hover:ring-offset-2 hover:ring-offset-[#FDFCF9]'
-                      }`}
-                      style={{ backgroundColor: c.hex }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* quantity + add to cart */}
-              <div className="mt-7 flex items-stretch gap-3">
-                <div className="inline-flex h-12 shrink-0 items-stretch border" style={{ borderColor: INK }} data-testid="qty-stepper">
-                  <button
-                    type="button"
-                    onClick={() => setQty((q) => clampQty(q - 1))}
-                    disabled={qty <= 1}
-                    aria-label={t('Decrease quantity', 'تقليل الكمية')}
-                    className="flex w-11 items-center justify-center transition-colors hover:bg-[#171512] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#171512]"
-                  >
-                    <Minus size={14} strokeWidth={1.5} />
-                  </button>
-                  <input
-                    data-testid="qty-input"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={10}
-                    value={qty}
-                    onChange={(e) => setQty(clampQty(Number(e.target.value)))}
-                    aria-label={t('Quantity', 'الكمية')}
-                    className="w-12 border-x bg-transparent text-center text-[14px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    style={{ borderColor: INK }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setQty((q) => clampQty(q + 1))}
-                    disabled={qty >= 10}
-                    aria-label={t('Increase quantity', 'زيادة الكمية')}
-                    className="flex w-11 items-center justify-center transition-colors hover:bg-[#171512] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#171512]"
-                  >
-                    <Plus size={14} strokeWidth={1.5} />
-                  </button>
-                </div>
-                <button
-                  ref={buyRef}
-                  type="button"
-                  data-testid="add-to-cart"
-                  onClick={addToCart}
-                  aria-live="polite"
-                  className={`inline-flex h-12 flex-1 items-center justify-center gap-2 px-6 ${primaryBtnCls(isAr)} ${added ? '!bg-[#5A6B4D]' : ''}`}
-                >
-                  {added && <Check size={14} strokeWidth={2} />}
-                  {added ? t('Added', 'أُضيف') : t('Add to Cart', 'أضف إلى السلة')}
-                </button>
-              </div>
-
-              <div className="mt-3 flex items-stretch gap-3">
-                <button
-                  type="button"
-                  data-testid="try-with-ai"
-                  onClick={() => setAiOpen(true)}
-                  className={`inline-flex h-12 flex-1 items-center justify-center gap-2.5 border px-6 text-[11px] font-semibold uppercase transition-colors duration-300 hover:text-white ${
-                    isAr ? 'tracking-normal' : 'tracking-[0.24em]'
-                  }`}
-                  style={{ borderColor: RED, color: RED }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = RED; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                >
-                  <Sparkles size={14} strokeWidth={1.5} />
-                  {t('Try with AI', 'جرب AI')}
-                </button>
-                <button
-                  type="button"
-                  data-testid="wishlist-toggle"
-                  onClick={() => wishlist.toggle(p.id)}
-                  aria-pressed={wishlist.has(p.id)}
-                  aria-label={t('Add to wishlist', 'أضف إلى المفضلة')}
-                  className={`${iconBtn} ${wishlist.has(p.id) ? 'text-[#B03A2E]' : ''}`}
-                  style={{ borderColor: wishlist.has(p.id) ? RED : HAIR }}
-                >
-                  <Heart size={18} strokeWidth={1.25} className={wishlist.has(p.id) ? 'fill-[#B03A2E]' : 'fill-transparent'} />
-                </button>
-                <button type="button" data-testid="share-open" onClick={() => setShareOpen(true)} aria-label={t('Share', 'مشاركة')} className={iconBtn} style={{ borderColor: HAIR }}>
-                  <Share2 size={18} strokeWidth={1.25} />
-                </button>
-              </div>
-
-              {/* delivery & installation */}
-              <ul className="mt-8 divide-y divide-[#E8E4DC] border" style={{ borderColor: HAIR }} data-testid="delivery-block">
-                {[
-                  { icon: Truck, title: p.leadTime[lang], sub: t('Kingdom-wide delivery', 'توصيل لكل مناطق المملكة') },
-                  { icon: Wrench, title: t('Professional installation by Diyar crews', 'تركيب احترافي بفرق ديار'), sub: t('Assembly included with delivery', 'التجميع مشمول مع التوصيل') },
-                  { icon: RefreshCw, title: t('14-day returns · Frame warranty', 'إرجاع خلال 14 يوماً · ضمان الهيكل'), sub: t('Secure payment — Mada, Apple Pay, split payments', 'دفع آمن — مدى وأبل باي والتقسيط') },
-                ].map((row) => (
-                  <li key={row.title} className="flex items-start gap-4 px-5 py-4" style={{ borderColor: HAIR }}>
-                    <row.icon size={18} strokeWidth={1.25} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-medium leading-snug">{row.title}</p>
-                      <p className="mt-1 text-[12px] font-light leading-relaxed text-neutral-500">{row.sub}</p>
-                    </div>
+                      data-testid="fit-service"
+                      onClick={() => shell.openService(t(sv.name.en, sv.name.ar))}
+                      className="group flex w-full items-center gap-3.5 py-3 text-start"
+                    >
+                      <img src={sv.img} alt="" loading="lazy" className="h-14 w-14 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-bold">{t(sv.name.en, sv.name.ar)}</span>
+                        <span className="mt-0.5 block truncate text-[11.5px] text-neutral-500">{t(sv.price.en, sv.price.ar)}</span>
+                      </span>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center border transition-colors group-hover:bg-[#171512] group-hover:text-white" style={{ borderColor: '#C9C2B4' }}>
+                        <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+                      </span>
+                    </button>
                   </li>
                 ))}
               </ul>
-
-              {/* design assistance */}
-              <div
-                className="mt-4 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6"
-                style={{ backgroundColor: TILE }}
-                data-testid="design-assist-cta"
-              >
-                <div className="min-w-0">
-                  <p className={eyebrowCls(isAr, 'text-[10px]')} style={{ color: OLIVE }}>
-                    {t('Design Studio', 'استوديو التصميم')}
-                  </p>
-                  <p className="mt-1.5 text-[13.5px] font-medium leading-snug">
-                    {t('Not sure it fits? Book a free design session', 'غير متأكد من المقاس؟ احجز جلسة تصميم مجانية')}
-                  </p>
-                </div>
-                <button type="button" onClick={() => shell.openService(t('Interior Design', 'التصميم الداخلي'))} className={`shrink-0 px-6 py-3 ${primaryBtnCls(isAr)}`}>
-                  {t('Book Now', 'احجز الآن')}
-                </button>
-              </div>
-
-              {/* sold by */}
-              <div className="mt-8 border bg-white p-6" style={{ borderColor: HAIR }} data-testid="sold-by">
-                <p className={labelCls}>{t('Sold by', 'يُباع بواسطة')}</p>
-                <div className="mt-4 flex items-start gap-5">
-                  <span
-                    dir="ltr"
-                    className="flex h-14 w-14 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[15px] font-bold tracking-[0.06em] text-white"
-                    aria-hidden="true"
-                  >
-                    {store.initials}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h2 className={`font-bold uppercase ${isAr ? 'text-[15px] tracking-normal' : 'text-[13px] tracking-[0.18em]'}`}>
-                      {store.name[lang]}
-                    </h2>
-                    <p className="mt-1 text-[13px] font-light leading-relaxed text-neutral-600">{store.specialty[lang]}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                      <Stars rating={store.rating} />
-                      <span className="text-[12px] font-medium text-neutral-500">{store.rating}</span>
-                      <span className={labelCls}>
-                        {isAr ? `${formatSAR(store.products)} منتج` : `${formatSAR(store.products)} products`}
-                      </span>
-                    </div>
-                    <div className="mt-5">
-                      <ViewMore label={t('Visit store', 'زيارة المتجر')} to={searchPath(1, { store: store.key })} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* details accordion — inline on phones/tablets */}
-              <div className="mt-10 lg:hidden">
-                <Details panels={panels} open={openPanel} onToggle={(k) => setOpenPanel((c) => (c === k ? null : k))} isAr={isAr} />
-              </div>
             </div>
-          </div>
+          </aside>
+
+          {/* ---- details as tabs, under the gallery and the info ---- */}
+          <section className="lg:col-span-12 xl:col-span-2" data-testid="product-details">
+            <Tabs
+              testId="product-tabs"
+              value={tab}
+              onChange={setTab}
+              items={[
+                { key: 'description', label: t('Description', 'الوصف') },
+                { key: 'specs', label: t('Specifications', 'المواصفات') },
+                { key: 'reviews', label: t('Reviews', 'المراجعات'), count: p.reviews },
+                { key: 'returns', label: t('Returns', 'سياسة الإرجاع') },
+                { key: 'shipping', label: t('Shipping & installation', 'الشحن والتركيب') },
+              ]}
+            />
+            <div className="py-7" data-testid={`product-tab-${tab}`}>
+              {tab === 'description' && (
+                <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-neutral-700">{p.description[lang]}</p>
+              )}
+              {tab === 'specs' && (
+                <dl className="grid max-w-3xl border sm:grid-cols-2" style={{ borderColor: HAIR }}>
+                  {[
+                    [t('Dimensions', 'الأبعاد'), p.dimensions[lang]],
+                    [t('Materials', 'الخامات'), p.materials[lang]],
+                    [t('Care', 'العناية'), p.care[lang]],
+                    [t('Size', 'المقاس'), size ? size.label[lang] : '—'],
+                    [t('Colour', 'اللون'), p.colors[color]?.name[lang] ?? '—'],
+                    ['SKU', p.sku],
+                  ].map(([k, v]) => (
+                    <div key={k} className="border-b p-4 sm:odd:border-e" style={{ borderColor: HAIR }}>
+                      <dt className={labelCls}>{k}</dt>
+                      <dd className="mt-1.5 text-[13.5px] leading-relaxed" dir={k === 'SKU' ? 'ltr' : undefined}>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {tab === 'reviews' && (
+                <div className="grid gap-8 md:grid-cols-[200px_minmax(0,1fr)]">
+                  <div>
+                    <p className="font-['Outfit',sans-serif] text-[52px] font-bold leading-none">{p.rating}</p>
+                    <div className="mt-2"><Stars rating={Math.round(p.rating)} /></div>
+                    <p className="mt-2 text-[12px] text-neutral-500">{isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`}</p>
+                  </div>
+                  <ul>
+                    {REVIEWS.slice(0, 3).map((r, i) => (
+                      <li key={r.name.en} className={`py-5 ${i ? 'border-t' : 'pt-0'}`} style={{ borderColor: HAIR }}>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-[13.5px] font-bold">{r.name[lang]} <span className="font-normal text-neutral-500">· {r.city[lang]}</span></span>
+                          <Stars rating={r.rating} />
+                        </div>
+                        <p className="mt-2.5 text-[14px] font-light leading-relaxed text-neutral-700">{r.text[lang]}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {tab === 'returns' && (
+                <div className="max-w-3xl space-y-3 text-[14.5px] font-light leading-relaxed text-neutral-700">
+                  <p>{t('Return within 14 days of delivery, in original condition, for a full refund.', 'يمكنك الإرجاع خلال 14 يوماً من التوصيل، بحالته الأصلية، واسترداد كامل المبلغ.')}</p>
+                  <p>{t('Made-to-order sizes and fabrics are returnable only if they arrive faulty.', 'المقاسات والأقمشة المصنوعة حسب الطلب لا تُرجع إلا في حال وصولها بعيب.')}</p>
+                  <Link to={`${lookBase(1)}/help/returns`} className="inline-block border-b pb-0.5 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+                    {t('Read the full policy', 'اقرأ السياسة كاملة')}
+                  </Link>
+                </div>
+              )}
+              {tab === 'shipping' && (
+                <div className="max-w-3xl space-y-3 text-[14.5px] font-light leading-relaxed text-neutral-700">
+                  <p>{p.leadTime[lang]} — {t('delivered anywhere in the Kingdom; free over 3,000 SAR.', 'التوصيل لكل مناطق المملكة، ومجاني فوق 3,000 ر.س.')}</p>
+                  <p>{t('Our crews carry it in, assemble it and take the packaging away.', 'فرقنا تُدخل القطعة وتجمّعها وتأخذ مواد التغليف معها.')}</p>
+                  <Link to={`${lookBase(1)}/help/shipping`} className="inline-block border-b pb-0.5 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+                    {t('Delivery details', 'تفاصيل التوصيل')}
+                  </Link>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
       {/* ---------------------------------------------------------- */}
-      {/* Related                                                     */}
+      {/* Similar pieces from other stores                             */}
       {/* ---------------------------------------------------------- */}
-      {related.length > 0 && (
-        <section className="border-t py-20 md:py-28" style={{ borderColor: HAIR }} data-testid="related-products">
+      {similar.length > 0 && (
+        <section className="border-t py-16 md:py-20" style={{ borderColor: HAIR }} data-testid="related-products">
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <Reveal>
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <SectionHeading
-                  size="sm"
-                  eyebrow={t('Related', 'مقترحات')}
-                  title={t('You may also like', 'قد يعجبك أيضاً')}
-                />
-                <div className="pb-2">
-                  <ViewMore
-                    label={category ? t(`All ${category.en}`, `كل ${category.ar}`) : t('View All', 'عرض الكل')}
-                    to={searchPath(1, category ? { category: category.key } : undefined)}
-                  />
-                </div>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <div>
+                <h2 className={`text-2xl font-extrabold md:text-[28px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+                  {t('Similar pieces from other stores', 'منتجات مشابهة من متاجر أخرى')}
+                </h2>
+                <p className="mt-2 text-[13.5px] font-light text-neutral-600">
+                  {t('Compare the same look across the marketplace', 'اكتشف تصاميم مشابهة تناسب ذوقك من متاجر مختلفة')}
+                </p>
               </div>
-            </Reveal>
-            <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-14 md:mt-16 md:gap-x-6 lg:grid-cols-4">
-              {related.map((r, i) => (
-                <Reveal key={r.id} delay={(i % 4) * 0.05}>
+              <ViewMore label={t('View more', 'عرض المزيد')} to={searchPath(1, category ? { category: category.key } : undefined)} />
+            </div>
+            <div className={`mt-10 ${RAIL_MD} gap-5 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-4`}>
+              {similar.map((r) => (
+                <div key={r.id} className="w-[68vw] shrink-0 snap-start md:w-auto">
                   <ProductCard p={r} testId="related-card" />
-                </Reveal>
+                </div>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------------------------------------------------------- */}
+      {/* Complete the look                                            */}
+      {/* ---------------------------------------------------------- */}
+      {lookItems.length > 0 && (
+        <section className="pb-20 md:pb-24" data-testid="complete-the-look">
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+            <div className="grid overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1.3fr)]" style={{ backgroundColor: TILE }}>
+              <div className="flex flex-col justify-center p-7 md:p-10">
+                <p className={`text-[26px] font-extrabold leading-tight md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+                  {t('Complete the look', 'أكمل إطلالة مساحتك')}
+                </p>
+                <p className="mt-3 text-[13px] font-light leading-relaxed text-neutral-600">
+                  {t(`A curated set chosen to sit with ${p.name.en}`, `مجموعة مختارة بعناية لتنسجم مع ${p.name.ar}`)}
+                </p>
+                <button
+                  type="button"
+                  data-testid="shop-the-set"
+                  onClick={() => {
+                    lookItems.forEach((x) => shell.addToCart(x.id, t(x.name.en, x.name.ar)));
+                    shell.toast(t('The set is in your cart.', 'تمت إضافة المجموعة إلى السلة.'));
+                    shell.openCart();
+                  }}
+                  className={`mt-7 inline-flex items-center gap-2.5 self-start px-7 py-3.5 ${primaryBtnCls(isAr)}`}
+                >
+                  {t('Shop the set', 'تسوق المجموعة')}
+                  <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+                </button>
+              </div>
+              <ul className="grid grid-cols-2 gap-3 px-7 pb-7 sm:grid-cols-4 lg:px-0 lg:py-8">
+                {lookItems.map((x) => (
+                  <li key={x.id}>
+                    <Link to={productPath(1, x.id)} className="group block bg-white p-2.5" data-testid="look-item">
+                      <div className="aspect-square overflow-hidden">
+                        <img src={tileImg(x.id, x.img)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      </div>
+                      <p className="mt-2.5 truncate text-[12.5px] font-bold">{x.name[lang]}</p>
+                      <p className="mt-0.5 font-['Outfit',sans-serif] text-[12px] font-medium tabular-nums">
+                        {formatSAR(x.price)} <span className="text-neutral-500">{t('SAR', 'ر.س')}</span>
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="relative hidden min-h-[260px] lg:block">
+                <img src={gallery[1] ?? IMG.catHome} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+              </div>
             </div>
           </div>
         </section>
@@ -530,7 +762,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
           <div className="min-w-0">
             <p className={`truncate ${labelCls}`}>{store.name[lang]}</p>
             <p className="mt-0.5 text-[15px] font-bold leading-none">
-              {formatSAR(p.price)}{' '}
+              {formatSAR(price)}{' '}
               <span className={`text-[10px] font-normal uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
                 {t('SAR', 'ر.س')}
               </span>
@@ -550,7 +782,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
 
       <Lightbox
         images={gallery}
-        index={active}
+        index={Math.min(active, gallery.length - 1)}
         onIndex={setActive}
         open={zoom}
         onClose={() => setZoom(false)}
@@ -558,64 +790,6 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
       />
       <TryAISheet open={aiOpen} onClose={() => setAiOpen(false)} p={p} />
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} title={name} />
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Details accordion                                                   */
-/* ------------------------------------------------------------------ */
-function Details({
-  panels,
-  open,
-  onToggle,
-  isAr,
-}: {
-  panels: { key: string; label: string; body: string }[];
-  open: string | null;
-  onToggle: (key: string) => void;
-  isAr: boolean;
-}) {
-  return (
-    <div className="border-t" style={{ borderColor: HAIR }} data-testid="product-details">
-      {panels.map((pn) => {
-        const isOpen = open === pn.key;
-        return (
-          <div key={pn.key} className="border-b" style={{ borderColor: HAIR }}>
-            <button
-              type="button"
-              onClick={() => onToggle(pn.key)}
-              aria-expanded={isOpen}
-              data-testid={`details-${pn.key}`}
-              className="flex w-full items-center justify-between gap-4 py-5 text-start transition-colors hover:text-[#5A6B4D]"
-            >
-              <span className={`text-[11px] font-bold uppercase ${isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.2em]'}`}>
-                {pn.label}
-              </span>
-              <ChevronDown
-                size={16}
-                strokeWidth={1.5}
-                className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-                style={{ color: OLIVE }}
-              />
-            </button>
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  key="body"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.26, ease: 'easeOut' }}
-                  className="overflow-hidden"
-                >
-                  <p className="pb-6 text-[14px] font-light leading-relaxed text-neutral-600">{pn.body}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
     </div>
   );
 }
