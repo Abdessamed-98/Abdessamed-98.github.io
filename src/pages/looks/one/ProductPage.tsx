@@ -25,7 +25,7 @@ import {
   type CatalogProduct,
 } from '../lookShared';
 import {
-  INK, OLIVE, HAIR, RED, TILE, RAIL_MD,
+  INK, OLIVE, HAIR, RED, TILE,
   useLook, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls, tileImg,
 } from './ui';
 import { Lightbox, Tabs } from './kit';
@@ -186,14 +186,14 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
 
   return (
     <div data-testid="product-page" className="pt-[72px]">
-      <div className="mx-auto max-w-[1400px] px-6 pt-8 md:px-10 md:pt-10">
+      <div className="mx-auto max-w-[1480px] px-5 pt-8 md:px-6 md:pt-10">
         <Breadcrumb items={crumbs} />
       </div>
 
       {/* ---------------------------------------------------------- */}
       {/* Gallery | Info | Sidebar — the owner's three-column brief     */}
       {/* ---------------------------------------------------------- */}
-      <div className="mx-auto max-w-[1400px] px-6 pt-8 pb-16 md:px-10 md:pt-10 md:pb-20">
+      <div className="mx-auto max-w-[1480px] px-5 pt-8 pb-16 md:px-6 md:pt-10 md:pb-20">
         <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-12 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)_minmax(0,3.5fr)] xl:gap-9">
           {/* ---- gallery: thumbnails down the outer edge, the video last ---- */}
           <div className="lg:col-span-7 xl:col-span-1" data-testid="product-gallery">
@@ -673,7 +673,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
       {/* ---------------------------------------------------------- */}
       {similar.length > 0 && (
         <section className="border-t py-16 md:py-20" style={{ borderColor: HAIR }} data-testid="related-products">
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <div className="mx-auto max-w-[1480px] px-5 md:px-6">
             <div className="flex flex-wrap items-end justify-between gap-6">
               <div>
                 <h2 className={`text-2xl font-extrabold md:text-[28px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
@@ -685,7 +685,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               </div>
               <ViewMore label={t('View more', 'عرض المزيد')} to={searchPath(1, category ? { category: category.key } : undefined)} />
             </div>
-            <div className={`mt-10 ${RAIL_MD} gap-5 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-4`}>
+            <div className="scrollbar-hide -mx-5 mt-10 flex snap-x snap-mandatory scroll-px-5 gap-5 overflow-x-auto overflow-y-hidden px-5 md:mx-0 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-12 md:overflow-visible md:px-0 lg:grid-cols-4">
               {similar.map((r) => (
                 <div key={r.id} className="w-[68vw] shrink-0 snap-start md:w-auto">
                   <ProductCard p={r} testId="related-card" />
@@ -701,7 +701,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
       {/* ---------------------------------------------------------- */}
       {lookItems.length > 0 && (
         <section className="pb-20 md:pb-24" data-testid="complete-the-look">
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+          <div className="mx-auto max-w-[1480px] px-5 md:px-6">
             <div className="grid overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1.3fr)]" style={{ backgroundColor: TILE }}>
               <div className="flex flex-col justify-center p-7 md:p-10">
                 <p className={`text-[26px] font-extrabold leading-tight md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
