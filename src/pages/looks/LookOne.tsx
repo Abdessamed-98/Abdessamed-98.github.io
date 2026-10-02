@@ -23,7 +23,7 @@ import {
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
   FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR,
-  SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED, SHOP_ROOMS,
   ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
   lookBase, searchPath, productPath,
   type Lang, type MenuGroup, type Bi, type RoomHotspot, type CategoryKey,
@@ -1405,6 +1405,9 @@ export function LookOneHome() {
 
   /* shop-the-look: one open product card at a time, with a small close grace period */
   const [openSpot, setOpenSpot] = useState<string | null>(null);
+  /* the room on show: the client asked for several, picked from image cards */
+  const [roomKey, setRoomKey] = useState<string>(SHOP_ROOMS[0].key);
+  const shopRoom = SHOP_ROOMS.find((r) => r.key === roomKey) ?? SHOP_ROOMS[0];
   const spotTimer = useRef<number | null>(null);
   const cancelSpotClose = () => {
     if (spotTimer.current !== null) {
@@ -1488,10 +1491,43 @@ export function LookOneHome() {
         <RoomStage
           eyebrow={t('The Room — 03', 'الغرفة — 03')}
           title={t('Shop the Look', 'تسوق الغرفة')}
-          img={IMG.roomHotspots}
-          alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
+          img={shopRoom.img}
+          alt={t(`${shopRoom.name.en} with shoppable products`, `${shopRoom.name.ar} بمنتجات قابلة للتسوق`)}
+          selector={
+            <div
+              role="radiogroup"
+              aria-label={t('Choose a room', 'اختر الغرفة')}
+              data-testid="room-selector"
+              className="scrollbar-hide flex gap-2 overflow-x-auto px-6 md:gap-2.5 md:overflow-visible md:px-0"
+            >
+              {SHOP_ROOMS.map((r) => {
+                const on = r.key === shopRoom.key;
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    data-testid={`room-pick-${r.key}`}
+                    onClick={() => {
+                      setOpenSpot(null);
+                      setRoomKey(r.key);
+                    }}
+                    className={`group relative block w-[104px] shrink-0 overflow-hidden border-2 text-start transition-colors md:w-[112px] ${
+                      on ? 'border-[#171512] md:border-white' : 'border-transparent hover:border-[#171512]/40 md:hover:border-white/70'
+                    }`}
+                  >
+                    <img src={r.img} alt="" loading="lazy" className={`aspect-[4/3] w-full object-cover transition-opacity ${on ? '' : 'opacity-80 group-hover:opacity-100'}`} />
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-1.5 pt-5 text-[11px] font-medium leading-tight text-white">
+                      {t(r.name.en, r.name.ar)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          }
         >
-          {ROOM_HOTSPOTS.map((h, i) => (
+          {shopRoom.spots.map((h, i) => (
             <ShopHotspot
               key={h.id}
               h={h}

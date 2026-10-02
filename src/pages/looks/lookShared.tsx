@@ -915,6 +915,144 @@ export const CATALOG: CatalogProduct[] = [
   },
 ];
 
+/* ------------------------------------------------------------------ */
+/* Shop the Look — five rooms, each with its own shoppable pieces      */
+/* ------------------------------------------------------------------ */
+
+/** A room in the Shop the Look selector: one 2:1 photograph and the points on it. */
+export interface ShopRoom {
+  key: RoomKey;
+  name: Bi;
+  img: string;
+  spots: RoomHotspot[];
+}
+
+/** One piece in a room photo: enough to make both its catalogue entry and its point. */
+interface RoomPiece {
+  id: number;
+  room: RoomKey;
+  slug: string;
+  name: Bi;
+  /** the small label on the point's card */
+  label: Bi;
+  category: CategoryKey;
+  store: StoreKey;
+  price: number;
+  colors: CatalogColor[];
+  dimensions: Bi;
+  materials: Bi;
+  care: Bi;
+  /** where the point sits, in % of the photograph */
+  left: number;
+  top: number;
+}
+
+const L_FURNITURE: Bi = { en: 'Home Furniture', ar: 'الأثاث المنزلي' };
+const L_OFFICE: Bi = { en: 'Office Furniture', ar: 'الأثاث المكتبي' };
+const L_LIGHT: Bi = { en: 'Lighting', ar: 'الإنارات' };
+const L_RUG: Bi = { en: 'Rugs', ar: 'السجاد' };
+const L_ART: Bi = { en: 'Wall Art', ar: 'اللوحات' };
+const L_DECOR: Bi = { en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' };
+const FABRIC_CARE: Bi = { en: 'Vacuum with a soft brush; blot spills at once; covers are dry-clean only.', ar: 'نظّف بالمكنسة بفرشاة ناعمة، وجفّف الانسكابات فوراً، والأغطية تُنظف تنظيفاً جافاً فقط.' };
+const RUG_CARE: Bi = { en: 'Vacuum without a beater bar; rotate twice a year; spot clean with mild soap.', ar: 'نظّف بالمكنسة دون فرشاة دوّارة، ودوّرها مرتين سنوياً، ونظّف البقع بصابون لطيف.' };
+const LAMP_CARE: Bi = { en: 'Dust with a dry cloth; switch off before changing the bulb.', ar: 'امسح بقماشة جافة، وأطفئ المصباح قبل تغيير اللمبة.' };
+const PRINT_CARE: Bi = { en: 'Dust the frame with a dry cloth; keep out of direct sunlight.', ar: 'امسح الإطار بقماشة جافة، وأبعد اللوحة عن الشمس المباشرة.' };
+const PRINT_DIMS: Bi = { en: '90 × 70 cm, framed', ar: '90 × 70 سم مع الإطار' };
+const PRINT_MAT: Bi = { en: 'Giclée print on cotton paper, solid oak frame, glass front.', ar: 'طباعة فنية على ورق قطني، إطار من البلوط الصلب، واجهة زجاجية.' };
+const OAK: Bi = { en: 'Solid oak with a clear matt lacquer.', ar: 'بلوط صلب بطلاء شفاف مطفي.' };
+
+const ROOM_PIECES: RoomPiece[] = [
+  // living room (the olive sofa is catalogue piece 1)
+  { id: 15, room: 'living', slug: 'armchair', name: { en: 'Linen Armchair', ar: 'كرسي بذراعين من الكتان' }, label: L_FURNITURE, category: 'home', store: 'diyar', price: 2450, colors: [C.sand, C.olive, C.taupe], dimensions: { en: 'W 88 × D 90 × H 82 cm', ar: 'العرض 88 × العمق 90 × الارتفاع 82 سم' }, materials: { en: 'Solid beech frame, foam and fibre cushions, linen-blend upholstery, oak feet.', ar: 'هيكل من الزان الصلب، وسائد إسفنج وألياف، تنجيد كتان مخلوط، أرجل من البلوط.' }, care: FABRIC_CARE, left: 19, top: 60 },
+  { id: 16, room: 'living', slug: 'coffee-table', name: { en: 'Oak Coffee Table', ar: 'طاولة قهوة من البلوط' }, label: L_FURNITURE, category: 'home', store: 'bk', price: 1350, colors: [C.sand, C.walnut], dimensions: { en: 'W 120 × D 60 × H 45 cm', ar: 'العرض 120 × العمق 60 × الارتفاع 45 سم' }, materials: OAK, care: WOOD_CARE, left: 59, top: 68 },
+  { id: 17, room: 'living', slug: 'floor-lamp', name: { en: 'Wooden Floor Lamp with Linen Shade', ar: 'مصباح أرضي خشبي بغطاء كتان' }, label: L_LIGHT, category: 'lighting', store: 'ld', price: 890, colors: [C.sand, C.charcoal], dimensions: { en: 'H 155 cm · Shade Ø 42 cm', ar: 'الارتفاع 155 سم · قطر الغطاء 42 سم' }, materials: { en: 'Oak stem, linen drum shade, weighted steel base.', ar: 'عمود من البلوط، غطاء كتان أسطواني، قاعدة فولاذية ثقيلة.' }, care: LAMP_CARE, left: 28, top: 30 },
+  { id: 18, room: 'living', slug: 'rug', name: { en: 'Flat-Weave Wool Rug', ar: 'سجادة صوف منسوجة' }, label: L_RUG, category: 'rugs', store: 'ns', price: 1900, colors: [C.sand, C.taupe], dimensions: { en: '200 × 300 cm', ar: '200 × 300 سم' }, materials: { en: 'Hand-woven wool on a cotton warp.', ar: 'صوف منسوج يدوياً على سدى قطني.' }, care: RUG_CARE, left: 78, top: 86 },
+  { id: 19, room: 'living', slug: 'print', name: { en: 'Framed Landscape Print — Hills', ar: 'لوحة منظر طبيعي بإطار — التلال' }, label: L_ART, category: 'decor', store: 'zk', price: 420, colors: [C.sand], dimensions: PRINT_DIMS, materials: PRINT_MAT, care: PRINT_CARE, left: 64, top: 24 },
+  // bedroom
+  { id: 20, room: 'bedroom', slug: 'bed', name: { en: 'Upholstered Bed Frame', ar: 'سرير منجّد' }, label: L_FURNITURE, category: 'home', store: 'diyar', price: 4200, colors: [C.taupe, C.sand, C.olive], dimensions: { en: 'For a 180 × 200 cm mattress · Headboard H 110 cm', ar: 'لمرتبة 180 × 200 سم · ارتفاع اللوح 110 سم' }, materials: { en: 'Solid pine frame, slatted base, linen-blend upholstery.', ar: 'هيكل من الصنوبر الصلب، قاعدة شرائح، تنجيد كتان مخلوط.' }, care: FABRIC_CARE, left: 56, top: 45 },
+  { id: 21, room: 'bedroom', slug: 'throw', name: { en: 'Olive Linen Throw', ar: 'بطانية كتان زيتونية' }, label: L_DECOR, category: 'decor', store: 'ns', price: 380, colors: [C.olive, C.sand], dimensions: { en: '140 × 220 cm', ar: '140 × 220 سم' }, materials: { en: 'Washed linen with a fringed edge.', ar: 'كتان مغسول بحافة مهدّبة.' }, care: LINEN_CARE, left: 39.5, top: 68 },
+  { id: 22, room: 'bedroom', slug: 'bedside', name: { en: 'Oak Bedside Table', ar: 'طاولة سرير من البلوط' }, label: L_FURNITURE, category: 'home', store: 'bk', price: 690, colors: [C.sand, C.walnut], dimensions: { en: 'W 50 × D 40 × H 52 cm · two drawers', ar: 'العرض 50 × العمق 40 × الارتفاع 52 سم · درجان' }, materials: OAK, care: WOOD_CARE, left: 27, top: 60 },
+  { id: 23, room: 'bedroom', slug: 'wardrobe', name: { en: 'Three-Door Wardrobe', ar: 'خزانة ملابس بثلاثة أبواب' }, label: L_FURNITURE, category: 'home', store: 'bk', price: 3600, colors: [C.ivory, C.sand], dimensions: { en: 'W 150 × D 60 × H 220 cm', ar: 'العرض 150 × العمق 60 × الارتفاع 220 سم' }, materials: { en: 'Lacquered MDF fronts, oak-veneer interior, soft-close hinges.', ar: 'واجهات MDF مطلية، داخل بقشرة البلوط، مفصلات إغلاق هادئ.' }, care: WOOD_CARE, left: 81, top: 43 },
+  { id: 24, room: 'bedroom', slug: 'rug', name: { en: 'Jute Bedroom Rug', ar: 'سجادة جوت لغرفة النوم' }, label: L_RUG, category: 'rugs', store: 'ns', price: 1250, colors: [C.sand], dimensions: { en: '240 × 340 cm', ar: '240 × 340 سم' }, materials: { en: 'Braided natural jute.', ar: 'جوت طبيعي مجدول.' }, care: RUG_CARE, left: 76, top: 88 },
+  { id: 25, room: 'bedroom', slug: 'print', name: { en: 'Framed Landscape Print — Lake', ar: 'لوحة منظر طبيعي بإطار — البحيرة' }, label: L_ART, category: 'decor', store: 'zk', price: 390, colors: [C.sand], dimensions: PRINT_DIMS, materials: PRINT_MAT, care: PRINT_CARE, left: 47, top: 26 },
+  // dining room
+  { id: 26, room: 'dining', slug: 'table', name: { en: 'Oak Dining Table for Six', ar: 'طاولة طعام بلوط لستة أشخاص' }, label: L_FURNITURE, category: 'home', store: 'bk', price: 4800, colors: [C.sand, C.walnut], dimensions: { en: 'W 180 × D 95 × H 76 cm', ar: 'العرض 180 × العمق 95 × الارتفاع 76 سم' }, materials: OAK, care: WOOD_CARE, left: 39.5, top: 55 },
+  { id: 27, room: 'dining', slug: 'chair', name: { en: 'Upholstered Dining Chair', ar: 'كرسي طعام منجّد' }, label: L_FURNITURE, category: 'home', store: 'diyar', price: 650, colors: [C.sand, C.taupe, C.olive], dimensions: { en: 'W 48 × D 56 × H 86 cm', ar: 'العرض 48 × العمق 56 × الارتفاع 86 سم' }, materials: { en: 'Oak legs, moulded foam seat, woven fabric.', ar: 'أرجل من البلوط، مقعد إسفنج مقولب، قماش منسوج.' }, care: FABRIC_CARE, left: 56, top: 68 },
+  { id: 28, room: 'dining', slug: 'pendant', name: { en: 'Linen Drum Pendant', ar: 'إنارة معلقة بغطاء كتان' }, label: L_LIGHT, category: 'lighting', store: 'ld', price: 780, colors: [C.sand, C.brass], dimensions: { en: 'Shade Ø 60 × H 25 cm · adjustable drop', ar: 'قطر الغطاء 60 × الارتفاع 25 سم · تعليق قابل للتعديل' }, materials: { en: 'Linen shade, brass stem and ceiling plate.', ar: 'غطاء كتان، عمود وقاعدة سقف من النحاس.' }, care: LAMP_CARE, left: 46, top: 18 },
+  { id: 29, room: 'dining', slug: 'sideboard', name: { en: 'White Sideboard', ar: 'بوفيه أبيض' }, label: L_FURNITURE, category: 'home', store: 'bk', price: 2900, colors: [C.ivory, C.sand], dimensions: { en: 'W 180 × D 45 × H 75 cm', ar: 'العرض 180 × العمق 45 × الارتفاع 75 سم' }, materials: { en: 'Lacquered MDF, push-to-open doors, oak legs.', ar: 'MDF مطلي، أبواب تفتح بالضغط، أرجل من البلوط.' }, care: WOOD_CARE, left: 78, top: 57 },
+  { id: 30, room: 'dining', slug: 'print', name: { en: 'Framed Landscape Print — Meadow', ar: 'لوحة منظر طبيعي بإطار — المرج' }, label: L_ART, category: 'decor', store: 'zk', price: 520, colors: [C.sand], dimensions: { en: '100 × 100 cm, framed', ar: '100 × 100 سم مع الإطار' }, materials: PRINT_MAT, care: PRINT_CARE, left: 79, top: 28 },
+  // majlis
+  { id: 31, room: 'majlis', slug: 'sofa', name: { en: 'Corner Majlis Sofa', ar: 'أريكة مجلس زاوية' }, label: L_FURNITURE, category: 'home', store: 'dw', price: 9800, colors: [C.sand, C.taupe, C.olive], dimensions: { en: '420 × 260 cm · Seat H 42 cm', ar: '420 × 260 سم · ارتفاع المقعد 42 سم' }, materials: { en: 'Solid beech frame, high-resilience foam, woven fabric, removable back cushions.', ar: 'هيكل من الزان الصلب، إسفنج عالي المرونة، قماش منسوج، وسائد ظهر قابلة للفك.' }, care: FABRIC_CARE, left: 59, top: 53 },
+  { id: 32, room: 'majlis', slug: 'coffee-table', name: { en: 'Walnut Coffee Table', ar: 'طاولة قهوة من الجوز' }, label: L_FURNITURE, category: 'home', store: 'bk', price: 1650, colors: [C.walnut], dimensions: { en: 'W 130 × D 70 × H 40 cm', ar: 'العرض 130 × العمق 70 × الارتفاع 40 سم' }, materials: { en: 'Solid walnut with an oiled finish.', ar: 'جوز صلب بتشطيب زيتي.' }, care: WOOD_CARE, left: 52, top: 66 },
+  { id: 33, room: 'majlis', slug: 'rug', name: { en: 'Textured Area Rug', ar: 'سجادة بنسيج بارز' }, label: L_RUG, category: 'rugs', store: 'ns', price: 2400, colors: [C.sand, C.taupe], dimensions: { en: '300 × 400 cm', ar: '300 × 400 سم' }, materials: { en: 'Wool and viscose loop pile.', ar: 'وبر حلقي من الصوف والفسكوز.' }, care: RUG_CARE, left: 79, top: 86 },
+  { id: 34, room: 'majlis', slug: 'cushions', name: { en: 'Cushion Set — Olive & Cream', ar: 'طقم وسائد — زيتوني وكريمي' }, label: L_DECOR, category: 'decor', store: 'zk', price: 320, colors: [C.olive, C.cream], dimensions: { en: 'Set of 2 · 50 × 50 cm', ar: 'طقم من قطعتين · 50 × 50 سم' }, materials: { en: 'Linen covers with feather inserts.', ar: 'أغطية كتان بحشوة ريش.' }, care: LINEN_CARE, left: 27, top: 51 },
+  { id: 35, room: 'majlis', slug: 'print', name: { en: 'Framed Landscape Print — Dunes', ar: 'لوحة منظر طبيعي بإطار — الكثبان' }, label: L_ART, category: 'decor', store: 'zk', price: 450, colors: [C.sand], dimensions: PRINT_DIMS, materials: PRINT_MAT, care: PRINT_CARE, left: 64, top: 26.5 },
+  // home office
+  { id: 36, room: 'office', slug: 'desk', name: { en: 'Oak Writing Desk', ar: 'مكتب كتابة من البلوط' }, label: L_OFFICE, category: 'office', store: 'mk', price: 2200, colors: [C.sand, C.walnut], dimensions: { en: 'W 140 × D 65 × H 75 cm · one drawer', ar: 'العرض 140 × العمق 65 × الارتفاع 75 سم · درج واحد' }, materials: OAK, care: WOOD_CARE, left: 41, top: 55 },
+  { id: 37, room: 'office', slug: 'chair', name: { en: 'Fabric Office Chair', ar: 'كرسي مكتب قماشي' }, label: L_OFFICE, category: 'office', store: 'mk', price: 1450, colors: [C.taupe, C.charcoal], dimensions: { en: 'W 64 × D 62 × H 92–102 cm', ar: 'العرض 64 × العمق 62 × الارتفاع 92–102 سم' }, materials: { en: 'Woven fabric, moulded foam, aluminium five-star base, soft castors.', ar: 'قماش منسوج، إسفنج مقولب، قاعدة ألمنيوم خماسية، عجلات ناعمة.' }, care: FABRIC_CARE, left: 57.5, top: 59 },
+  { id: 38, room: 'office', slug: 'desk-lamp', name: { en: 'Olive Desk Lamp', ar: 'مصباح مكتب زيتوني' }, label: L_LIGHT, category: 'lighting', store: 'ld', price: 340, colors: [C.olive, C.charcoal], dimensions: { en: 'H 48 cm · adjustable arm', ar: 'الارتفاع 48 سم · ذراع قابلة للتعديل' }, materials: { en: 'Powder-coated steel.', ar: 'فولاذ مطلي بالبودرة.' }, care: LAMP_CARE, left: 45, top: 37 },
+  { id: 39, room: 'office', slug: 'bookshelf', name: { en: 'Open Bookshelf', ar: 'مكتبة برفوف مفتوحة' }, label: L_OFFICE, category: 'office', store: 'mk', price: 1750, colors: [C.ivory, C.sand], dimensions: { en: 'W 90 × D 32 × H 200 cm · five shelves', ar: 'العرض 90 × العمق 32 × الارتفاع 200 سم · خمسة رفوف' }, materials: { en: 'Lacquered MDF with a fixed back panel.', ar: 'MDF مطلي بلوح خلفي ثابت.' }, care: WOOD_CARE, left: 81, top: 37 },
+  { id: 40, room: 'office', slug: 'rug', name: { en: 'Woven Office Rug', ar: 'سجادة مكتب منسوجة' }, label: L_RUG, category: 'rugs', store: 'ns', price: 980, colors: [C.sand], dimensions: { en: '160 × 230 cm', ar: '160 × 230 سم' }, materials: { en: 'Flat-woven wool and jute.', ar: 'صوف وجوت بنسج مسطّح.' }, care: RUG_CARE, left: 34, top: 88 },
+  { id: 41, room: 'office', slug: 'plant', name: { en: 'Olive Tree in Ceramic Pot', ar: 'شجرة زيتون في أصيص خزفي' }, label: L_DECOR, category: 'decor', store: 'zk', price: 540, colors: [C.ivory], dimensions: { en: 'H 150 cm · Pot Ø 35 cm', ar: 'الارتفاع 150 سم · قطر الأصيص 35 سم' }, materials: { en: 'Preserved olive tree in a glazed ceramic pot.', ar: 'شجرة زيتون محفوظة في أصيص خزفي مزجج.' }, care: { en: 'Dust the leaves with a soft brush; keep away from heat.', ar: 'انفض الأوراق بفرشاة ناعمة، وأبعدها عن الحرارة.' }, left: 26, top: 45 },
+];
+
+const ROOM_NAMES: Record<string, Bi> = {
+  living: { en: 'Living Room', ar: 'غرفة المعيشة' },
+  bedroom: { en: 'Bedroom', ar: 'غرفة النوم' },
+  dining: { en: 'Dining Room', ar: 'غرفة الطعام' },
+  majlis: { en: 'Majlis', ar: 'المجلس' },
+  office: { en: 'Home Office', ar: 'المكتب المنزلي' },
+};
+const roomImg = (room: string) => `/looks/rooms/${room}.webp`;
+const pieceImg = (p: RoomPiece) => `/looks/rooms/items/${p.room}-${p.slug}.webp`;
+
+// the pieces are real catalogue entries, so a point's "view product" and "add to cart" work
+CATALOG.push(
+  ...ROOM_PIECES.map((p): CatalogProduct => ({
+    id: p.id,
+    img: pieceImg(p),
+    gallery: [pieceImg(p), roomImg(p.room)],
+    name: p.name,
+    store: p.store,
+    category: p.category,
+    room: p.room,
+    style: 'modern',
+    price: p.price,
+    rating: 4.6 + ((p.id * 3) % 4) / 10,
+    reviews: 18 + ((p.id * 37) % 140),
+    sku: `SL-${p.room.slice(0, 2).toUpperCase()}-${String(p.id).padStart(4, '0')}`,
+    colors: p.colors,
+    dimensions: p.dimensions,
+    materials: p.materials,
+    care: p.care,
+    description: {
+      en: `${p.name.en}, as shown in the ${ROOM_NAMES[p.room].en.toLowerCase()} on the home page. Every piece in that room can be bought on its own or together.`,
+      ar: `${p.name.ar}، كما يظهر في ${ROOM_NAMES[p.room].ar} في الصفحة الرئيسية. يمكن شراء كل قطعة في تلك الغرفة منفردة أو مع بقية القطع.`,
+    },
+    availability: 'in_stock',
+    leadTime: D57,
+  })),
+);
+
+/** a point opens its card away from the nearest edge of the photograph */
+const spotOf = (id: string, productId: number, thumb: string, name: Bi, category: Bi, price: number, left: number, top: number): RoomHotspot => ({
+  id, productId, thumb, name, category, price,
+  left: `${left}%`, top: `${top}%`,
+  align: left > 50 ? 'left' : 'right',
+  vAlign: top > 50 ? 'top' : 'bottom',
+});
+
+export const SHOP_ROOMS: ShopRoom[] = (['living', 'bedroom', 'dining', 'majlis', 'office'] as const).map((key) => ({
+  key,
+  name: ROOM_NAMES[key],
+  img: roomImg(key),
+  spots: [
+    // the living room's sofa is the olive three-seater already in the catalogue
+    ...(key === 'living' ? [spotOf('living-sofa', 1, '/looks/cutout/p01.webp', CATALOG[0].name, L_FURNITURE, CATALOG[0].price, 79, 53)] : []),
+    ...ROOM_PIECES.filter((p) => p.room === key).map((p) => spotOf(`${p.room}-${p.slug}`, p.id, pieceImg(p), p.name, p.label, p.price, p.left, p.top)),
+  ],
+}));
+
 /** Diyar's own storefront — not in STORES (those are partner vendors). */
 export const DIYAR_STORE: LookStore = {
   key: 'diyar', name: { en: 'Diyar Home', ar: 'ديار هوم' },
