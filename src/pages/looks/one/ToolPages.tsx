@@ -3,7 +3,7 @@
  * compose one from real pieces), chat, the rewards page, the journal, and an
  * index of every page for review.
  */
-import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft, Heart, ShoppingBag, Clock, MessageCircle, CheckCheck,
@@ -596,6 +596,33 @@ export function ChatPage() {
   const [pickOpen, setPickOpen] = useState(false);
   const [picked, setPicked] = useState<number[]>([]);
   const file = useRef<HTMLInputElement>(null);
+
+  /* Dropping things on the conversation: image files become photos, and a
+     product dragged in from the wishlist, the shop or a product page (its link
+     or its picture) becomes that piece. Pasting an image works the same way. */
+  const [dropping, setDropping] = useState(false);
+  const dragDepth = useRef(0);
+  const stagePhotos = (files: File[]) => {
+    const imgs = files.filter((f) => f.type.startsWith('image/'));
+    if (imgs.length) setStaged((l) => [...l, ...imgs.map((f) => ({ kind: 'photo' as const, src: URL.createObjectURL(f) }))]);
+    return imgs.length;
+  };
+  const productIdsIn = (dt: DataTransfer): number[] => {
+    const text = [dt.getData('text/uri-list'), dt.getData('text/plain'), dt.getData('text/html')].join(' ');
+    const ids = new Set<number>();
+    for (const m of text.matchAll(/\/look\/1\/product\/(\d+)/g)) ids.add(Number(m[1]));
+    for (const m of text.matchAll(/\/looks\/cutout\/p0?(\d+)\.webp/g)) ids.add(Number(m[1]));
+    return [...ids].filter((id) => CATALOG.some((x) => x.id === id));
+  };
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDropping(false);
+    const files: File[] = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+    if (stagePhotos(files)) return;
+    const ids = productIdsIn(e.dataTransfer);
+    if (ids.length) setStaged((l) => [...l, ...ids.map((id) => ({ kind: 'product' as const, id }))]);
+  };
   // shown under the visitor's message once it has gone to the designer
   const [sentToDesigner, setSentToDesigner] = useState(false);
   const end = useRef<HTMLDivElement>(null);
@@ -722,7 +749,28 @@ export function ChatPage() {
 
             {/* conversation */}
             {active ? (
-              <section className={`${want ? 'flex' : 'hidden md:flex'} min-h-0 flex-col`}>
+              <section
+                data-testid="chat-drop"
+                className={`${want ? 'flex' : 'hidden md:flex'} relative min-h-0 flex-col`}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  dragDepth.current += 1;
+                  setDropping(true);
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDragLeave={() => {
+                  dragDepth.current = Math.max(0, dragDepth.current - 1);
+                  if (dragDepth.current === 0) setDropping(false);
+                }}
+                onDrop={onDrop}
+              >
+                {dropping && (
+                  <div className="pointer-events-none absolute inset-2 z-20 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#5A6B4D] bg-[#FDFCF9]/92 text-center" data-testid="chat-drop-hint">
+                    <ImagePlus size={26} strokeWidth={1.4} style={{ color: OLIVE }} />
+                    <p className="text-[15px] font-bold">{t('Drop it here', 'أفلت هنا')}</p>
+                    <p className="text-[12.5px]" style={{ color: MUTED }}>{t('Photos, or pieces from your wishlist', 'صور، أو قطع من المفضلة')}</p>
+                  </div>
+                )}
                 <header className="flex h-[73px] shrink-0 items-center gap-3 border-b bg-white px-5" style={{ borderColor: HAIR }}>
                   <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
                     <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
@@ -904,6 +952,10 @@ export function ChatPage() {
                     rows={1}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
+                    onPaste={(e) => {
+                      const files: File[] = e.clipboardData.files ? Array.from(e.clipboardData.files) : [];
+                      if (stagePhotos(files)) e.preventDefault();
+                    }}
                     onKeyDown={(e) => {
                       // Enter sends, Shift+Enter breaks the line; leave IME composition alone
                       if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
