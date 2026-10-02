@@ -1254,7 +1254,7 @@ export function LookSwitcher() {
   // direction and the current site to compare it against
   const looks = [
     { to: '/look/1', label: '1' },
-    { to: '/', label: '4' },
+    { to: '/', label: '2' },
   ];
   // a look's search and product pages still belong to that look
   const isActive = (to: string) =>

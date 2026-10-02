@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
-  FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
+  FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
   ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
   lookBase, searchPath, productPath,
@@ -44,7 +44,7 @@ import { categoryPath, servicePath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
-import { AnnouncementBar, FloatingContact, PromoPopup } from './one/Overlays';
+import { AnnouncementBar, FloatingContact, PromoPopup, SideContact } from './one/Overlays';
 import { useShell, type AuthRole } from './one/shellContext';
 import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
 import { HeroScrub } from './one/HeroScrub';
@@ -1252,16 +1252,24 @@ export default function LookOne() {
               </div>
             </div>
 
-            <div className="mt-16 border-t border-[#EFE9DD]/10 pt-8 text-center">
+            <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-[#EFE9DD]/10 pb-14 pt-8 sm:flex-row sm:pb-0 sm:pe-24">
               <p className={`text-xs font-light text-[#EFE9DD]/40 ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}>
                 {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار. جميع الحقوق محفوظة.')}
               </p>
+              {/* design review: this look (1) or the original site (2) */}
+              <div className="flex items-center gap-3" data-testid="look-switch">
+                <span className={`text-[11px] text-[#EFE9DD]/45 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Design', 'التصميم')}</span>
+                <div dir="ltr" role="group" aria-label={t('Design version', 'نسخة التصميم')} className="flex border border-[#EFE9DD]/30 font-['Outfit',sans-serif] text-[12px] font-semibold">
+                  <span aria-current="page" className="flex h-8 w-10 items-center justify-center bg-[#EFE9DD] text-[#14120F]">1</span>
+                  <Link to="/" data-testid="look-switch-2" className="flex h-8 w-10 items-center justify-center text-[#EFE9DD]/70 transition-colors hover:bg-[#EFE9DD]/10 hover:text-[#EFE9DD]">2</Link>
+                </div>
+              </div>
             </div>
           </div>
         </footer>
 
-        {/* the product page carries a sticky buy bar on phones — lift the pill above it */}
-        <LookSwitcher raiseOnMobile={pathname.includes('/product/')} />
+        {/* a designer or WhatsApp, at the side; the look switch moved into the footer */}
+        <SideContact />
         <FloatingContact />
         <PromoPopup active={isHome} />
         {/* first load of the session: the page arrives through the logo (one/LoadReveal) */}
