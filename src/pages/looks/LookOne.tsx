@@ -1475,6 +1475,9 @@ export function LookOneHome() {
         <HeroCopy />
       </section>
 
+      {/* the stores, with a badge on any that has offers (client note: «إضافة شريط البراندات») */}
+      <BrandsStrip />
+
       {/* ============================================================== */}
       {/* 2. QUICK CATEGORIES — the original's icon strip under the hero */}
       {/* ============================================================== */}
@@ -1945,11 +1948,6 @@ export function LookOneHome() {
           </Reveal>
         </div>
       </section>
-
-      {/* ============================================================== */}
-      {/* 23. BRANDS STRIP — typographic wordmarks */}
-      {/* ============================================================== */}
-      <BrandsStrip />
 
       {/* ============================================================== */}
       {/* ============================================================== */}
