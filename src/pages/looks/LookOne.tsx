@@ -44,7 +44,7 @@ import { categoryPath, servicePath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
-import { AnnouncementBar, FloatingContact, PromoPopup, SideContact } from './one/Overlays';
+import { AnnouncementBar, PromoPopup, SideContact } from './one/Overlays';
 import { useShell, type AuthRole } from './one/shellContext';
 import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
 import { HeroScrub } from './one/HeroScrub';
@@ -1252,7 +1252,7 @@ export default function LookOne() {
               </div>
             </div>
 
-            <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-[#EFE9DD]/10 pb-14 pt-8 sm:flex-row sm:pb-0 sm:pe-24">
+            <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-[#EFE9DD]/10 pt-8 sm:flex-row">
               <p className={`text-xs font-light text-[#EFE9DD]/40 ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}>
                 {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار. جميع الحقوق محفوظة.')}
               </p>
@@ -1270,7 +1270,6 @@ export default function LookOne() {
 
         {/* a designer or WhatsApp, at the side; the look switch moved into the footer */}
         <SideContact />
-        <FloatingContact />
         <PromoPopup active={isHome} />
         {/* first load of the session: the page arrives through the logo (one/LoadReveal) */}
         <LoadReveal />

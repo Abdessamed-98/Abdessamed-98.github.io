@@ -290,7 +290,7 @@ export function SideContact() {
   const hello = encodeURIComponent(t('Hello Diyar, I have a question.', 'مرحباً ديار، لدي استفسار.'));
   const item = 'group/sc flex h-11 items-center overflow-hidden text-white shadow-[0_10px_26px_rgba(23,21,18,0.22)] md:h-12';
   const icon = 'flex h-11 w-11 shrink-0 items-center justify-center md:h-12 md:w-12';
-  const label = `max-w-0 whitespace-nowrap text-[12px] font-medium opacity-0 transition-all duration-300 group-hover/sc:max-w-[160px] group-hover/sc:pe-4 group-hover/sc:opacity-100 group-focus-visible/sc:max-w-[160px] group-focus-visible/sc:pe-4 group-focus-visible/sc:opacity-100 ${
+  const label = `max-w-0 whitespace-nowrap text-[12px] font-medium opacity-0 transition-all duration-300 group-hover/sc:max-w-[180px] group-hover/sc:pl-1.5 group-hover/sc:pr-5 group-hover/sc:opacity-100 group-focus-visible/sc:max-w-[180px] group-focus-visible/sc:pl-1.5 group-focus-visible/sc:pr-5 group-focus-visible/sc:opacity-100 ${
     lang === 'ar' ? '' : 'uppercase tracking-[0.12em] text-[11px]'
   }`;
   return (
