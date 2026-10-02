@@ -679,6 +679,35 @@ export function BrandsStrip() {
   const offerOf = (key: string) =>
     Math.max(0, ...CATALOG.filter((p) => p.store === key && p.oldPrice).map((p) => Math.round((1 - p.price / (p.oldPrice as number)) * 100)));
 
+  /* The band is moved by hand rather than by a CSS animation, so that pausing
+     can ease: the speed glides to zero under the pointer and back up when it
+     leaves, instead of freezing and jerking off again. */
+  const track = useRef<HTMLUListElement>(null);
+  const hovered = useRef(false);
+  useEffect(() => {
+    const el = track.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const SPEED = 42; // px per second at full pace
+    let x = 0;
+    let rate = 1;
+    let last = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      // ease the pace towards its target: about half a second to stop or start
+      rate += ((hovered.current ? 0 : 1) - rate) * Math.min(1, dt * 6);
+      const half = el.scrollWidth / 2;
+      if (half > 0) {
+        x = (x + SPEED * rate * dt) % half;
+        el.style.transform = `translate3d(${-x}px,0,0)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   const logos = (copy: number) =>
     BRANDS.map((b) => {
       const off = b.store ? offerOf(b.store) : 0;
@@ -691,7 +720,7 @@ export function BrandsStrip() {
             aria-label={name}
             title={name}
             tabIndex={copy > 0 ? -1 : undefined}
-            className="relative flex h-14 items-center opacity-80 transition-opacity duration-300 hover:opacity-100"
+            className="group/brand relative flex h-14 items-center opacity-80 transition-opacity duration-300 hover:opacity-100"
           >
             {b.logo ? (
               <img src={b.logo} alt={name} className="h-9 w-auto max-w-none md:h-11" />
@@ -704,7 +733,7 @@ export function BrandsStrip() {
               <span
                 data-testid={copy === 0 ? 'brand-offer' : undefined}
                 dir={isAr ? 'rtl' : 'ltr'}
-                className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+                className="absolute -right-5 -top-3 origin-center rotate-[10deg] whitespace-nowrap px-2.5 py-1 text-[12.5px] font-bold leading-none text-white shadow-[0_3px_8px_rgba(176,58,46,0.35)] transition-transform duration-300 ease-out group-hover/brand:scale-125 md:-right-6 md:text-[13px]"
                 style={{ backgroundColor: RED }}
               >
                 {t('Offers', 'عروض')}
@@ -716,22 +745,20 @@ export function BrandsStrip() {
     });
 
   return (
-    <section data-testid="brands-strip" className="overflow-hidden border-b bg-white py-7 md:py-9" style={{ borderColor: HAIR }} aria-label={t('Brands on Diyar', 'علامات على ديار')}>
+    <section data-testid="brands-strip" className="overflow-hidden border-b bg-white py-3 md:py-4" style={{ borderColor: HAIR }} aria-label={t('Brands on Diyar', 'علامات على ديار')}>
       {/* an endless band: the list twice, slid by exactly one list's width. It always runs
           left-to-right in the markup so the loop point is the same in both languages;
-          hovering pauses it, and reduced motion leaves a plain swipe row. */}
-      <style>{`
-        @keyframes diyar-brands { from { transform: translateX(0) } to { transform: translateX(-50%) } }
-        .diyar-brands-track { animation: diyar-brands 48s linear infinite; }
-        .diyar-brands:hover .diyar-brands-track, .diyar-brands:focus-within .diyar-brands-track { animation-play-state: paused; }
-        @media (prefers-reduced-motion: reduce) { .diyar-brands-track { animation: none; } .diyar-brands { overflow-x: auto; } }
-      `}</style>
+          reduced motion leaves a plain swipe row. */}
       <div
         dir="ltr"
-        className="diyar-brands scrollbar-hide"
+        className="scrollbar-hide motion-reduce:overflow-x-auto"
+        onMouseEnter={() => (hovered.current = true)}
+        onMouseLeave={() => (hovered.current = false)}
+        onFocus={() => (hovered.current = true)}
+        onBlur={() => (hovered.current = false)}
         style={{ maskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)' }}
       >
-        <ul className="diyar-brands-track flex w-max items-center pt-2" data-testid="brands-track">
+        <ul ref={track} className="flex w-max items-center pb-5 pt-9 will-change-transform md:pb-6 md:pt-10" data-testid="brands-track">
           {logos(0)}
           {logos(1)}
         </ul>
