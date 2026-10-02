@@ -13,7 +13,7 @@ import {
   ArrowRight, ChevronLeft, ChevronRight, Eye, Heart, Bookmark, Check,
 } from 'lucide-react';
 import {
-  QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, NEWSLETTER, ALL_STORES, CATALOG,
+  QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, NEWSLETTER, BRANDS, CATALOG,
   msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, lookBase, ROOMS, SERVICES,
   type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory, type RoomKey,
 } from '../lookShared';
@@ -670,8 +670,8 @@ export function SuggestedForYou({ no }: { no: string }) {
  * linking to its page, with a badge when it has pieces on offer right now. The
  * badge is worked out from the catalogue (the largest reduction among that
  * store's pieces), so it appears and disappears with the offers themselves.
- * A store's mark is `logo` on its entry in lookShared; until one is supplied
- * its initials stand in.
+ * The list and the logos are BRANDS in lookShared; a brand whose logo has not
+ * arrived yet is set as a plain wordmark in the same tile.
  */
 export function BrandsStrip() {
   const { lang, t } = useLook();
@@ -683,27 +683,27 @@ export function BrandsStrip() {
       <div className={CONTAINER}>
         <div className="flex items-center gap-6">
           <p className={`hidden shrink-0 lg:block ${eyebrowCls(isAr, 'text-[10px] text-neutral-400')}`}>{t('Brands on Diyar', 'علامات على ديار')}</p>
-          <ul className="scrollbar-hide -mx-6 flex min-w-0 flex-1 snap-x gap-2.5 overflow-x-auto scroll-px-6 px-6 py-2 md:-mx-10 md:scroll-px-10 md:px-10 lg:mx-0 lg:justify-between lg:overflow-visible lg:px-0">
-            {ALL_STORES.map((s) => {
-              const off = offerOf(s.key);
+          <ul className="scrollbar-hide -mx-6 flex min-w-0 flex-1 snap-x gap-2.5 overflow-x-auto scroll-px-6 px-6 py-2 md:-mx-10 md:scroll-px-10 md:px-10 lg:mx-0 lg:flex-wrap lg:justify-center lg:gap-3 lg:overflow-visible lg:px-0">
+            {BRANDS.map((b) => {
+              const off = b.store ? offerOf(b.store) : 0;
+              const name = b.name[lang];
               return (
-                <li key={s.key} className="shrink-0 snap-start">
+                <li key={b.name.en} className="shrink-0 snap-start">
                   <Link
-                    to={`${lookBase(1)}/store/${s.key}`}
+                    to={b.store ? `${lookBase(1)}/store/${b.store}` : searchPath(1, { q: name })}
                     data-testid="brand-chip"
-                    className="group relative flex items-center gap-3 border bg-white py-2.5 pe-5 ps-2.5 transition-colors hover:border-[#171512]"
+                    aria-label={name}
+                    title={name}
+                    className="group relative flex h-[68px] w-[168px] items-center justify-center border bg-white px-4 transition-colors hover:border-[#171512]"
                     style={{ borderColor: HAIR }}
                   >
-                    {s.logo ? (
-                      <img src={s.logo} alt="" loading="lazy" className="h-10 w-10 shrink-0 object-contain" />
+                    {b.logo ? (
+                      <img src={b.logo} alt={name} loading="lazy" className="max-h-[40px] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.04]" />
                     ) : (
-                      <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white transition-colors group-hover:bg-[#5A6B4D]">
-                        {s.initials}
+                      <span className={`whitespace-nowrap text-[17px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.08em] text-[14px]"}`}>
+                        {name}
                       </span>
                     )}
-                    <span className={`whitespace-nowrap text-[13.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.1em] text-[12px]"}`}>
-                      {s.name[lang]}
-                    </span>
                     {off > 0 && (
                       <span data-testid="brand-offer" className="absolute -top-2 end-2 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
                         {t(`Up to ${off}% off`, `خصم حتى ${off}%`)}

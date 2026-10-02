@@ -1348,15 +1348,24 @@ export const CAMPAIGNS: Campaign[] = [
 export const SUGGESTED_IDS: number[] = [8, 5, 3, 7, 2];
 
 /** Brand wordmarks strip (the original listed these brands). Rendered as type, no logos. */
-export const BRANDS: Bi[] = [
-  { en: 'IKEA', ar: 'إيكيا' },
-  { en: 'Ashley', ar: 'أشلي' },
-  { en: 'West Elm', ar: 'ويست إلم' },
-  { en: 'BoConcept', ar: 'بوكونسبت' },
-  { en: 'Pottery Barn', ar: 'بوتري بارن' },
-  { en: 'Natuzzi', ar: 'ناتوزي' },
-  { en: 'Herman Miller', ar: 'هيرمان ميلر' },
-  { en: 'Muji', ar: 'موجي' },
+/** The brands strip under the hero: the marketplace's stores first, then other
+ *  brands sold on it. `store` links the chip to that store's page and gives it
+ *  its offer badge; `logo` is a transparent lockup in public/looks/brands — a
+ *  brand without one is set as a plain wordmark until its logo arrives. */
+export interface StripBrand { name: Bi; logo?: string; store?: StoreKey }
+const brandLogo = (k: string) => `/looks/brands/${k}.webp`;
+export const BRANDS: StripBrand[] = [
+  { store: 'diyar', name: { en: 'Diyar Home', ar: 'ديار هوم' }, logo: brandLogo('diyar') },
+  { store: 'bk', name: { en: 'Bayt Al-Khashab', ar: 'بيت الخشب' }, logo: brandLogo('bk') },
+  { store: 'ld', name: { en: 'Lamsat Daw', ar: 'لمسة ضوء' } },
+  { store: 'dw', name: { en: 'Diwan', ar: 'ديوان' }, logo: brandLogo('dw') },
+  { store: 'ns', name: { en: 'Naseej', ar: 'نسيج' } },
+  { store: 'zk', name: { en: 'Zukhruf', ar: 'زخرف' }, logo: brandLogo('zk') },
+  { store: 'mk', name: { en: 'Maktabi', ar: 'مكتبي' }, logo: brandLogo('mk') },
+  { name: { en: 'Almajlis', ar: 'المجلس' }, logo: brandLogo('almajlis') },
+  { name: { en: 'Atheer Almanzil', ar: 'أثير المنزل' }, logo: brandLogo('atheer') },
+  { name: { en: 'Masaken', ar: 'مساكن' }, logo: brandLogo('masaken') },
+  { name: { en: 'Wahat Almanzil', ar: 'واحة المنزل' }, logo: brandLogo('wahat') },
 ];
 
 /** Standalone newsletter section (the original's closing section). */
