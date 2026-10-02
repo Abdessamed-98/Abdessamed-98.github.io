@@ -1693,8 +1693,7 @@ export function LookOneHome() {
                 'الغرفة نفسها قبل ترتيب ديار وبعده',
               )}
               className="aspect-[4/3] h-full w-full lg:aspect-auto lg:min-h-[680px]"
-            />
-            <div className="pointer-events-none absolute inset-0 hidden lg:block lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
+            />
           </Reveal>
 
           {/* copy */}
