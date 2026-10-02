@@ -148,21 +148,24 @@ function ShopHotspot({
 
   /* open the card away from the nearest image edge — physical, never mirrored */
   const cardPos: CSSProperties = {
-    ...(h.align === 'left' ? { right: '-6px' } : { left: '-6px' }),
-    ...(h.vAlign === 'top' ? { bottom: 'calc(100% + 14px)' } : { top: 'calc(100% + 14px)' }),
+    ...(h.align === 'left' ? { right: '9px' } : { left: '9px' }),
+    // the card starts at the edge of the 44px target, so the pointer never crosses a gap on the way to it
+    ...(h.vAlign === 'top' ? { bottom: '100%' } : { top: '100%' }),
   };
 
   return (
     <div
-      className="absolute z-10"
+      // centred on the point; an open point sits above its neighbours so their dots cannot steal the hover
+      className={`absolute -translate-x-1/2 -translate-y-1/2 ${open ? 'z-30' : 'z-10'}`}
       style={{ top: h.top, left: h.left }}
       onMouseEnter={onOpen}
       onMouseLeave={onScheduleClose}
     >
-      <div className="relative h-3.5 w-3.5">
+      {/* a 44px target around a 14px dot: easy to catch, and it does not move under the pointer */}
+      <div className="relative h-11 w-11">
         {/* slow pulsing halo */}
         <motion.span
-          className="pointer-events-none absolute inset-0 rounded-full bg-white/60"
+          className="pointer-events-none absolute inset-[15px] rounded-full bg-white/60"
           animate={{ scale: [1, 2.6], opacity: [0.7, 0] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut', delay }}
         />
@@ -174,10 +177,14 @@ function ShopHotspot({
           aria-expanded={open}
           onClick={onToggle}
           onFocus={onOpen}
-          className={`absolute inset-0 rounded-full border border-[#5A6B4D] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.25)] transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-            open ? 'scale-[1.35]' : 'hover:scale-[1.35]'
-          }`}
-        />
+          className="group/dot absolute inset-0 flex items-center justify-center rounded-full focus:outline-none"
+        >
+          <span
+            className={`block h-3.5 w-3.5 rounded-full border border-[#5A6B4D] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.25)] transition-transform duration-300 group-focus-visible/dot:ring-2 group-focus-visible/dot:ring-white ${
+              open ? 'scale-[1.5]' : 'group-hover/dot:scale-[1.5]'
+            }`}
+          />
+        </button>
 
         {/* product card */}
         <AnimatePresence>
@@ -186,7 +193,8 @@ function ShopHotspot({
               key="card"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
+              // a closing card must not catch the pointer on its way out
+              exit={{ opacity: 0, y: 6, pointerEvents: 'none' }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
               style={{ ...cardPos, borderColor: HAIR }}
               className={`absolute z-20 w-[212px] cursor-default border bg-white text-start shadow-[0_18px_44px_rgba(23,21,18,0.22)] sm:w-[260px] ${
@@ -1417,7 +1425,7 @@ export function LookOneHome() {
   };
   const scheduleSpotClose = () => {
     cancelSpotClose();
-    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 120);
+    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 260);
   };
   const spotOpenedAt = useRef(0);
   const openSpotNow = (id: string) => {
