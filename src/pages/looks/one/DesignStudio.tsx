@@ -111,11 +111,12 @@ export function DesignStudio() {
   const animate = !reduce;
 
   const board = useRef<HTMLDivElement>(null);
-  /* Starts only once about two thirds of the board is on screen, and is
-     finished just as the whole of it is — clear of the sticky header — so the
-     build happens in view, not while the board is still coming up from the
-     bottom edge (which is how it first shipped: 'start 95%' → 'center 55%'). */
-  const { scrollYProgress: p } = useScroll({ target: board, offset: ['start 55%', 'center 42%'] });
+  /* Starts as the board's top edge comes onto the screen and is finished a
+     little before the whole board is in view, so the pieces are already
+     arriving while the heading beside them is being read. (It was held back
+     to 'start 55%' → 'center 42%' for a while, which left the board's half of
+     the section empty for the first part of the scroll.) */
+  const { scrollYProgress: p } = useScroll({ target: board, offset: ['start 92%', 'center 58%'] });
 
   return (
     <div data-testid="design-studio" className="overflow-x-clip border-t" style={{ borderColor: HAIR, backgroundColor: TILE }}>
