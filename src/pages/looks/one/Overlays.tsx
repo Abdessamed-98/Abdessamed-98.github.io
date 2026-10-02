@@ -15,7 +15,6 @@ import { ArrowRight, MessageSquareText, Phone, Sparkles, X, MessageSquare, Penci
 import { FOOTER_LINKS, lookBase, searchPath } from '../lookShared';
 import { primaryBtnCls, useLook } from './ui';
 import { capsCls } from './kit';
-import { useShell } from './shellContext';
 
 const DISMISS_KEY = 'diyar-look1-announce';
 const PROMO_KEY = 'diyar-look1-promo';
@@ -280,12 +279,11 @@ function WhatsAppIcon({ size = 20 }: { size?: number }) {
 
 /**
  * Two ways to a person, where the look switcher used to hang: Diyar's own
- * designer (a consultation request with the design team — not the AI tool), and
+ * designer (a chat with the design team — not the AI tool), and
  * WhatsApp. Icons at rest; the label slides out on hover or focus.
  */
 export function SideContact() {
   const { lang, t } = useLook();
-  const { openService } = useShell();
   const phone = FOOTER_LINKS.phone.replace(/[^0-9]/g, '');
   const hello = encodeURIComponent(t('Hello Diyar, I have a question.', 'مرحباً ديار، لدي استفسار.'));
   const item = 'group/sc flex h-11 items-center overflow-hidden text-white shadow-[0_10px_26px_rgba(23,21,18,0.22)] md:h-12';
@@ -295,16 +293,16 @@ export function SideContact() {
   }`;
   return (
     <div dir="ltr" className="fixed left-0 top-1/2 z-[45] flex -translate-y-1/2 flex-col items-start gap-1.5" data-testid="side-contact">
-      <button
-        type="button"
+      {/* the same conversation the AI designer's "chat with a designer" opens: Diyar's own designer */}
+      <Link
+        to={`${lookBase(1)}/chat?with=diyar-designer`}
         data-testid="side-designer"
         aria-label={t('Consult a designer', 'استشر مصمم')}
-        onClick={() => openService(t('Interior Design · Design Consultation', 'التصميم الداخلي · الاستشارات التصميمية'))}
         className={`${item} border border-s-0 border-white/15 bg-[#171512] transition-colors hover:bg-[#5A6B4D]`}
       >
         <span className={icon}><PencilRuler size={19} strokeWidth={1.5} /></span>
         <span className={label} dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t('Consult a designer', 'استشر مصمم')}</span>
-      </button>
+      </Link>
       <a
         data-testid="side-whatsapp"
         aria-label={t('WhatsApp', 'واتساب')}

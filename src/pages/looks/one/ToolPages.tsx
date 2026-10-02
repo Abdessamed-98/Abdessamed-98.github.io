@@ -96,7 +96,7 @@ export function AIDesignerPage() {
               className={`inline-flex items-center justify-center gap-2 px-5 py-3 ${primaryBtnCls(isAr)}`}
             >
               <MessageCircle size={14} strokeWidth={1.6} />
-              {t('Chat with a designer', 'تحدث مع مصمم')}
+              {t('Consult a designer', 'استشر مصمم')}
             </button>
           </div>
         </div>
