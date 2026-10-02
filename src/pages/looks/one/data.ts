@@ -282,7 +282,8 @@ export interface ChatThread {
   name: Bi;
   initials: string;
   role: Bi;
-  messages: { from: 'me' | 'them'; text: Bi; at: string }[];
+  /** a message is text, and may carry a photo or a piece from the catalogue */
+  messages: { from: 'me' | 'them'; text: Bi; at: string; img?: string; productId?: number }[];
 }
 
 export const CHAT_THREADS: ChatThread[] = [

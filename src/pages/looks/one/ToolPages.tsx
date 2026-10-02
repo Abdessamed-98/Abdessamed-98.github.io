@@ -7,11 +7,12 @@ import { useEffect, useRef, useState, type FormEvent, type PointerEvent as React
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft, Heart, ShoppingBag, Clock, MessageCircle, CheckCheck,
+  ImagePlus, Image as ImageIcon, X, Check,
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useWishlist } from '../../../context/WishlistContext';
 import { BLOG_POSTS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
-import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, primaryBtnCls, tileImg, useLook } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, primaryBtnCls, tileImg, useLook } from './ui';
 import { useShell } from './shellContext';
 import { useLookCart } from './cart';
 import { BeforeAfter } from './BeforeAfter';
@@ -21,6 +22,7 @@ import {
   postBySlug, postSlug, type ChatThread,
 } from './data';
 import { NotFoundPage } from './InfoPages';
+import { Sheet } from './Sheet';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -56,49 +58,50 @@ export function AIDesignerPage() {
   const talk = () => navigate(`${lookBase(1)}/chat?with=${DESIGNER_ID}`, { state: { draft: note } });
   return (
     <main className="pt-[72px]" data-testid="ai-designer">
-      <PageHead
-        crumbs={[home(t), { label: t('AI Designer', 'المصمم الذكي') }]}
-        eyebrow={t('Diyar AI', 'ديار الذكي')}
-        title={t('Design the room before you buy', 'صمّم الغرفة قبل أن تشتري')}
-        intro={t('Restyle a photo of your room, or build one from pieces in the shop.', 'أعد تصميم صورة غرفتك، أو ابنِ غرفة من قطع المتجر.')}
-      />
+      {/* A compact head, like the services page: the title and its line share one
+          row, and the tabs share theirs with the way to a person — so the tool
+          starts near the top instead of under a half-empty masthead and a strip. */}
       <div className={`${CONTAINER} pt-8`}>
-        <Tabs
-          testId="ai-tabs"
-          value={mode}
-          onChange={(k) => setSp(k === 'restyle' ? {} : { mode: k }, { replace: true })}
-          items={[
-            { key: 'restyle', label: t('Restyle my room', 'أعد تصميم غرفتي') },
-            { key: 'compose', label: t('Compose a room', 'ركّب غرفة') },
-          ]}
-        />
-      </div>
-      {/* the way to a person, in both modes */}
-      <div className={`${CONTAINER} pt-6`}>
-        <div
-          data-testid="human-designer"
-          className="flex flex-wrap items-center justify-between gap-4 border px-5 py-4"
-          style={{ borderColor: HAIR, backgroundColor: TILE }}
-        >
-          <div className="flex min-w-0 items-center gap-3.5">
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] text-white">
-              <MessageCircle size={18} strokeWidth={1.5} />
-              <span aria-hidden className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 border-2 border-[#F6F3EC]" style={{ backgroundColor: OLIVE }} />
+        <Breadcrumb items={[home(t), { label: t('AI Designer', 'المصمم الذكي') }]} />
+        <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className={displayCls(isAr, 'md')}>{t('Design the room before you buy', 'صمّم الغرفة قبل أن تشتري')}</h1>
+          <span className="text-[13px]" style={{ color: MUTED }}>
+            {t('Restyle a photo of your room, or build one from pieces in the shop.', 'أعد تصميم صورة غرفتك، أو ابنِ غرفة من قطع المتجر.')}
+          </span>
+        </div>
+
+        <div className="mt-6 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:border-b" style={{ borderColor: HAIR }}>
+          <Tabs
+            testId="ai-tabs"
+            value={mode}
+            onChange={(k) => setSp(k === 'restyle' ? {} : { mode: k }, { replace: true })}
+            items={[
+              { key: 'restyle', label: t('Restyle my room', 'أعد تصميم غرفتي') },
+              { key: 'compose', label: t('Compose a room', 'ركّب غرفة') },
+            ]}
+          />
+          {/* the way to a person, in both modes */}
+          <div
+            data-testid="human-designer"
+            className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-4 lg:mt-0 lg:shrink-0 lg:pb-3"
+          >
+            <span className="flex items-center justify-center gap-1.5 text-[12px] sm:justify-start" style={{ color: MUTED }}>
+              <Clock size={12} strokeWidth={1.8} className="shrink-0" />
+              {t('A Diyar designer replies within minutes', 'مصمم من فريق ديار يرد خلال دقائق')}
             </span>
-            <span className="min-w-0">
-              <span className="block text-[14px] font-bold">{t("Want a designer's eye on it?", 'تحتاج رأي مصمم؟')}</span>
-              <span className="mt-0.5 flex items-center gap-1.5 text-[12px]" style={{ color: MUTED }}>
-                <Clock size={12} strokeWidth={1.8} className="shrink-0" />
-                {t('A designer from the Diyar team replies within minutes.', 'مصمم من فريق ديار يرد عليك خلال دقائق.')}
-              </span>
-            </span>
+            <button
+              type="button"
+              data-testid="talk-to-designer"
+              onClick={talk}
+              className={`inline-flex items-center justify-center gap-2 px-5 py-3 ${primaryBtnCls(isAr)}`}
+            >
+              <MessageCircle size={14} strokeWidth={1.6} />
+              {t('Chat with a designer', 'تحدث مع مصمم')}
+            </button>
           </div>
-          <button type="button" data-testid="talk-to-designer" onClick={talk} className={`px-7 py-3 max-sm:w-full ${primaryBtnCls(isAr)}`}>
-            {t('Chat with a designer', 'تحدث مع مصمم')}
-          </button>
         </div>
       </div>
-      <div className={`${CONTAINER} py-10 md:py-14`}>{mode === 'restyle' ? <Restyle onNote={setNote} /> : <Composer onNote={setNote} />}</div>
+      <div className={`${CONTAINER} py-8 md:py-10`}>{mode === 'restyle' ? <Restyle onNote={setNote} /> : <Composer onNote={setNote} />}</div>
     </main>
   );
 }
@@ -560,6 +563,7 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
 /* ------------------------------------------------------------------ */
 
 type Msg = ChatThread['messages'][number];
+type Attachment = { kind: 'photo'; src: string } | { kind: 'product'; id: number };
 
 export function ChatPage() {
   const { lang, t } = useLook();
@@ -584,6 +588,14 @@ export function ChatPage() {
   const active = threads.find((x) => x.id === want) ?? (want ? undefined : threads[0]);
   const [draft, setDraft] = useState(handover ?? '');
   const [typing, setTyping] = useState(false);
+  /* attachments waiting to go with the next message: photos from the device, or
+     pieces from the wishlist (the client's note: «إمكانية إلقاء صور حتى من المفضلة») */
+  const wishlist = useWishlist();
+  const [staged, setStaged] = useState<Attachment[]>([]);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [pickOpen, setPickOpen] = useState(false);
+  const [picked, setPicked] = useState<number[]>([]);
+  const file = useRef<HTMLInputElement>(null);
   // shown under the visitor's message once it has gone to the designer
   const [sentToDesigner, setSentToDesigner] = useState(false);
   const end = useRef<HTMLDivElement>(null);
@@ -619,11 +631,17 @@ export function ChatPage() {
   const push = (id: string, m: Msg) => setThreads((l) => l.map((x) => (x.id === id ? { ...x, messages: [...x.messages, m] } : x)));
   const send = (e: FormEvent) => {
     e.preventDefault();
-    if (!active || !draft.trim()) return;
+    if (!active || (!draft.trim() && staged.length === 0)) return;
     const text = draft.trim();
     const now = new Date().toTimeString().slice(0, 5);
-    push(active.id, { from: 'me', at: now, text: { en: text, ar: text } });
+    // attachments go first, each as its own message, then the words
+    for (const a of staged) {
+      push(active.id, { from: 'me', at: now, text: { en: '', ar: '' }, ...(a.kind === 'photo' ? { img: a.src } : { productId: a.id }) });
+    }
+    if (text) push(active.id, { from: 'me', at: now, text: { en: text, ar: text } });
     setDraft('');
+    setStaged([]);
+    setAttachOpen(false);
     // a person answers this one, within minutes — no instant canned reply
     if (active.id === DESIGNER_ID) {
       setSentToDesigner(true);
@@ -758,13 +776,30 @@ export function ChatPage() {
                   {active.messages.map((m, i) => (
                     <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`max-w-[78%] px-4 py-3 text-[13.5px] leading-relaxed md:max-w-[62%] ${
+                        className={`max-w-[78%] ${m.img || m.productId !== undefined ? 'p-1.5 pb-2' : 'px-4 py-3'} text-[13.5px] leading-relaxed md:max-w-[62%] ${
                           m.from === 'me' ? 'bg-[#171512] text-white' : 'border bg-white text-[#171512] shadow-[0_1px_2px_rgba(23,21,18,0.06)]'
                         }`}
                         style={m.from === 'me' ? undefined : { borderColor: '#E2DCD1' }}
                       >
+                        {m.img && <img src={m.img} alt={t('Photo', 'صورة')} data-testid="chat-photo" className="mb-1 block max-h-[260px] w-auto max-w-full" />}
+                        {m.productId !== undefined &&
+                          (() => {
+                            const pr = CATALOG.find((x) => x.id === m.productId);
+                            if (!pr) return null;
+                            return (
+                              <Link to={productPath(1, pr.id)} data-testid="chat-product" className="mb-1 flex w-[220px] max-w-full items-center gap-3 bg-white p-2 text-[#171512]">
+                                <img src={tileImg(pr.id, pr.img)} alt="" className="h-14 w-14 shrink-0 object-contain" style={{ backgroundColor: TILE }} />
+                                <span className="min-w-0">
+                                  <span className="block truncate text-[12.5px] font-bold">{pr.name[lang]}</span>
+                                  <span className="mt-0.5 block font-['Outfit',sans-serif] text-[12px] tabular-nums">
+                                    {formatSAR(pr.price)} <span style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
+                                  </span>
+                                </span>
+                              </Link>
+                            );
+                          })()}
                         {t(m.text.en, m.text.ar)}
-                        <span className={`mt-1 block text-[10px] ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
+                        <span className={`mt-1 block text-[10px] ${m.img || m.productId !== undefined ? 'px-1.5' : ''} ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
                           {m.at}
                         </span>
                       </div>
@@ -787,7 +822,83 @@ export function ChatPage() {
                   )}
                   <div ref={end} />
                 </div>
-                <form onSubmit={send} className="flex items-end gap-2 border-t bg-white p-3 md:p-4" style={{ borderColor: HAIR }}>
+                {staged.length > 0 && (
+                  <ul className="scrollbar-hide flex gap-2 overflow-x-auto border-t bg-white px-3 pt-3 md:px-4" style={{ borderColor: HAIR }} data-testid="chat-staged">
+                    {staged.map((a, i) => {
+                      const pr = a.kind === 'product' ? CATALOG.find((x) => x.id === a.id) : undefined;
+                      return (
+                        <li key={i} className="relative h-16 w-16 shrink-0 border" style={{ borderColor: HAIR, backgroundColor: TILE }}>
+                          <img src={a.kind === 'photo' ? a.src : pr ? tileImg(pr.id, pr.img) : ''} alt="" className={`h-full w-full ${a.kind === 'photo' ? 'object-cover' : 'object-contain p-1'}`} />
+                          {a.kind === 'product' && <Heart size={11} strokeWidth={2} className="absolute bottom-1 start-1 fill-[#B03A2E] text-[#B03A2E]" />}
+                          <button
+                            type="button"
+                            aria-label={t('Remove', 'إزالة')}
+                            onClick={() => setStaged((l) => l.filter((_, k) => k !== i))}
+                            className="absolute -end-1.5 -top-1.5 flex h-5 w-5 items-center justify-center bg-[#171512] text-white"
+                          >
+                            <X size={11} strokeWidth={2} />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <form onSubmit={send} className={`relative flex items-end gap-2 bg-white p-3 md:p-4 ${staged.length ? '' : 'border-t'}`} style={{ borderColor: HAIR }}>
+                  <input
+                    ref={file}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    data-testid="chat-file"
+                    onChange={(e) => {
+                      const files: File[] = e.target.files ? Array.from(e.target.files) : [];
+                      if (files.length) setStaged((l) => [...l, ...files.map((f) => ({ kind: 'photo' as const, src: URL.createObjectURL(f) }))]);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    data-testid="chat-attach"
+                    aria-label={t('Attach a photo', 'إرفاق صورة')}
+                    aria-expanded={attachOpen}
+                    onClick={() => setAttachOpen((o) => !o)}
+                    className="flex h-12 w-12 shrink-0 items-center justify-center border transition-colors hover:border-[#171512]"
+                    style={{ borderColor: '#C9C2B4' }}
+                  >
+                    <ImagePlus size={18} strokeWidth={1.5} />
+                  </button>
+                  {attachOpen && (
+                    <div className="absolute bottom-full start-3 z-10 mb-1 w-[230px] border bg-white shadow-[0_18px_44px_rgba(23,21,18,0.16)] md:start-4" style={{ borderColor: HAIR }} data-testid="chat-attach-menu">
+                      <button
+                        type="button"
+                        data-testid="chat-attach-device"
+                        onClick={() => {
+                          setAttachOpen(false);
+                          file.current?.click();
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3.5 text-start text-[13px] font-medium transition-colors hover:bg-[#F6F3EC]"
+                      >
+                        <ImageIcon size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
+                        {t('Photo from your device', 'صورة من جهازك')}
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="chat-attach-wishlist"
+                        onClick={() => {
+                          setAttachOpen(false);
+                          setPicked([]);
+                          setPickOpen(true);
+                        }}
+                        className="flex w-full items-center gap-3 border-t px-4 py-3.5 text-start text-[13px] font-medium transition-colors hover:bg-[#F6F3EC]"
+                        style={{ borderColor: HAIR }}
+                      >
+                        <Heart size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
+                        {t('From your wishlist', 'من المفضلة')}
+                        <span className="ms-auto font-['Outfit',sans-serif] text-[11px]" style={{ color: MUTED }}>{wishlist.count}</span>
+                      </button>
+                    </div>
+                  )}
                   <textarea
                     ref={box}
                     rows={1}
@@ -817,6 +928,70 @@ export function ChatPage() {
           </div>
         </div>
       </div>
+
+      <Sheet
+        open={pickOpen}
+        onClose={() => setPickOpen(false)}
+        side="center"
+        testId="chat-wishlist-sheet"
+        eyebrow={t('Wishlist', 'المفضلة')}
+        title={t('Send saved pieces', 'أرسل من قطعك المحفوظة')}
+        footer={
+          wishlist.count > 0 ? (
+            <button
+              type="button"
+              data-testid="chat-wishlist-add"
+              disabled={picked.length === 0}
+              onClick={() => {
+                setStaged((l) => [...l, ...picked.map((id) => ({ kind: 'product' as const, id }))]);
+                setPickOpen(false);
+              }}
+              className={`w-full py-4 disabled:opacity-50 ${primaryBtnCls(isAr)}`}
+            >
+              {picked.length ? t(`Attach ${picked.length}`, `إرفاق ${picked.length}`) : t('Choose pieces', 'اختر القطع')}
+            </button>
+          ) : undefined
+        }
+      >
+        {wishlist.count === 0 ? (
+          <div className="px-6 py-14 text-center">
+            <p className="text-[14px] font-light" style={{ color: '#4A443C' }}>{t('Your wishlist is empty.', 'قائمة المفضلة فارغة.')}</p>
+            <Link to={searchPath(1)} className="mt-5 inline-block border-b pb-1 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+              {t('Browse the shop', 'تصفّح المتجر')}
+            </Link>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-3 gap-2.5 p-5">
+            {wishlist.ids.map((id) => {
+              const pr = CATALOG.find((x) => x.id === id);
+              if (!pr) return null;
+              const on = picked.includes(id);
+              return (
+                <li key={id}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    data-testid="chat-wishlist-item"
+                    onClick={() => setPicked((l) => (on ? l.filter((x) => x !== id) : [...l, id]))}
+                    className="relative block w-full border-2 text-start transition-colors"
+                    style={{ borderColor: on ? INK : 'transparent' }}
+                  >
+                    <span className="block aspect-square" style={{ backgroundColor: TILE }}>
+                      <img src={tileImg(pr.id, pr.img)} alt="" className="h-full w-full object-contain p-2" />
+                    </span>
+                    <span className="mt-1.5 block truncate px-1 pb-1 text-[11.5px] font-medium">{pr.name[lang]}</span>
+                    {on && (
+                      <span className="absolute end-1.5 top-1.5 flex h-5 w-5 items-center justify-center bg-[#171512] text-white">
+                        <Check size={12} strokeWidth={2.5} />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Sheet>
     </main>
   );
 }
