@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useWishlist } from '../../../context/WishlistContext';
-import { BLOG_POSTS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, primaryBtnCls, tileImg, useLook } from './ui';
+import { ALL_STORES, BLOG_POSTS, BRANDS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
+import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, RED, TILE, StoreMark, primaryBtnCls, tileImg, useLook } from './ui';
 import { useShell } from './shellContext';
 import { useLookCart } from './cart';
 import { BeforeAfter } from './BeforeAfter';
@@ -563,6 +563,9 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
 /* ------------------------------------------------------------------ */
 
 type Msg = ChatThread['messages'][number];
+/** a conversation with a store wears that store's mark; Diyar's own threads wear Diyar's */
+const threadMark = (id: string) =>
+  ALL_STORES.find((x) => x.key === id)?.mark ?? (id === 'support' || id === DESIGNER_ID ? ALL_STORES[0].mark : undefined);
 type Attachment = { kind: 'photo'; src: string } | { kind: 'product'; id: number };
 
 export function ChatPage() {
@@ -729,7 +732,7 @@ export function ChatPage() {
                         style={{ borderColor: HAIR, backgroundColor: on ? TILE : undefined }}
                       >
                         {on && <span aria-hidden className="absolute inset-y-0 start-0 w-[3px] bg-[#171512]" />}
-                        <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{th.initials}</span>
+                        <StoreMark store={{ initials: th.initials, mark: threadMark(th.id) }} className={`h-10 w-10 text-[11px] ${threadMark(th.id) ? 'border border-[#E8E4DC]' : ''}`} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
                             <span className="truncate text-[13.5px] font-bold">{t(th.name.en, th.name.ar)}</span>
@@ -775,7 +778,7 @@ export function ChatPage() {
                   <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
                     <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                   </button>
-                  <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{active.initials}</span>
+                  <StoreMark store={{ initials: active.initials, mark: threadMark(active.id) }} className={`h-10 w-10 text-[11px] ${threadMark(active.id) ? 'border border-[#E8E4DC]' : ''}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-bold">{t(active.name.en, active.name.ar)}</span>
                     <span className="flex items-center gap-1.5 text-[11px]" style={{ color: MUTED }}>
@@ -1220,6 +1223,71 @@ export function ArticlePage() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Brands — every brand on the marketplace                              */
+/* ------------------------------------------------------------------ */
+
+export function BrandsPage() {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const withOffers = new Set(CATALOG.filter((p) => p.oldPrice).map((p) => p.store as string));
+  return (
+    <main className="pt-[72px]" data-testid="brands-page">
+      <div className={`${CONTAINER} pt-8`}>
+        <Breadcrumb items={[home(t), { label: t('Brands', 'العلامات') }]} />
+        <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className={displayCls(isAr, 'md')}>{t('Brands', 'العلامات')}</h1>
+          <span className="text-[13px]" style={{ color: MUTED }}>{t(`${BRANDS.length} brands on Diyar`, `${BRANDS.length} علامة على ديار`)}</span>
+        </div>
+      </div>
+      <div className={`${CONTAINER} pb-16 pt-8`}>
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {BRANDS.map((b) => {
+            const store = b.store ? ALL_STORES.find((x) => x.key === b.store) : undefined;
+            const count = b.store ? CATALOG.filter((p) => p.store === b.store).length : 0;
+            const name = b.name[lang];
+            return (
+              <li key={b.name.en}>
+                <Link
+                  to={b.store ? `${lookBase(1)}/store/${b.store}` : searchPath(1, { q: name })}
+                  data-testid="brand-card"
+                  className="group relative flex h-full flex-col border bg-white transition-colors hover:border-[#171512]"
+                  style={{ borderColor: HAIR }}
+                >
+                  <span className="flex h-[132px] items-center justify-center px-6">
+                    {b.logo ? (
+                      <img src={b.logo} alt={name} loading="lazy" className="max-h-[58px] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.04]" />
+                    ) : (
+                      <span className="flex items-center gap-3">
+                        {b.mark && <img src={b.mark} alt="" loading="lazy" className="h-12 w-12 object-contain" />}
+                        <span className={`text-[20px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.06em]"}`}>{name}</span>
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex items-center justify-between gap-3 border-t px-4 py-3" style={{ borderColor: HAIR }}>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13px] font-bold">{name}</span>
+                      <span className="block truncate text-[11.5px]" style={{ color: MUTED }}>
+                        {store ? `${store.specialty[lang]} · ${t(`${count} pieces`, `${count} قطعة`)}` : t('Sold on Diyar', 'تُباع على ديار')}
+                      </span>
+                    </span>
+                    <ArrowRight size={13} strokeWidth={1.5} className={`shrink-0 ${isAr ? 'rotate-180' : ''}`} style={{ color: MUTED }} />
+                  </span>
+                  {b.store && withOffers.has(b.store) && (
+                    <span className="absolute -top-2 end-3 rotate-[6deg] px-2.5 py-1 text-[12px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
+                      {t('Offers', 'عروض')}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </main>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Review index — every page and overlay in Look 1                     */
 /* ------------------------------------------------------------------ */
 
@@ -1238,6 +1306,7 @@ export function PagesIndex() {
         { label: t('Product', 'المنتج'), to: productPath(1, 1) },
         { label: t('Store', 'المتجر'), to: `${b}/store/bk` },
         { label: t('Store — reviews', 'المتجر — التقييمات'), to: `${b}/store/bk?tab=reviews` },
+        { label: t('Brands', 'العلامات'), to: `${b}/brands` },
         { label: t('Wishlist page', 'صفحة المفضلة'), to: `${b}/wishlist` },
         { label: t('Checkout', 'الدفع'), to: `${b}/checkout` },
       ],

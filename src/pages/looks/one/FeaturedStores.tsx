@@ -81,8 +81,8 @@ export function FeaturedStores({ no }: { no: string }) {
                       aria-hidden
                       className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden bg-[#FDFCF9] md:h-[72px] md:w-[72px]"
                     >
-                      {s.logo ? (
-                        <img src={s.logo} alt="" className="h-full w-full object-contain p-3" />
+                      {s.mark ? (
+                        <img src={s.mark} alt="" loading="lazy" className="h-full w-full object-contain p-2.5" />
                       ) : (
                         <span
                           dir="ltr"

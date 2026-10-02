@@ -26,7 +26,7 @@ import {
 } from '../lookShared';
 import {
   INK, OLIVE, HAIR, RED, TILE,
-  useLook, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls, tileImg,
+  useLook, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls, tileImg, StoreMark,
 } from './ui';
 import { Lightbox, Tabs } from './kit';
 import { ShareSheet, TryAISheet } from './ProductSheets';
@@ -516,9 +516,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             <div className={`${card} p-5`} style={{ borderColor: HAIR }} data-testid="sold-by">
               <p className="text-[12.5px] font-bold">{t('Sold by', 'يُباع بواسطة')}</p>
               <div className="mt-4 flex items-center gap-4">
-                <span dir="ltr" className="flex h-14 w-14 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[14px] font-bold text-white" aria-hidden>
-                  {store.initials}
-                </span>
+                <StoreMark store={store} className={`h-14 w-14 text-[14px] ${store.mark ? 'border border-[#E8E4DC]' : ''}`} />
                 <div className="min-w-0">
                   <p className="truncate text-[14.5px] font-bold">{store.name[lang]}</p>
                   <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-neutral-500">

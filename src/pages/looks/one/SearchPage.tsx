@@ -10,12 +10,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import {
   CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES, SERVICES_MENU,
-  parseSearch, serializeSearch, filterCatalog, lookBase, searchPath,
-  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService,
+  parseSearch, serializeSearch, filterCatalog, lookBase, searchPath, storeOf,
+  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService, type StoreKey,
 } from '../lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE,
   useLook, SectionHeading, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
+  StoreMark,
 } from './ui';
 import { EmptyState, Tabs, capsCls } from './kit';
 import { categoryPath } from './ServicePage';
@@ -94,6 +95,9 @@ function Facets({
                                 : 'border-[#171512]/40 group-hover:border-[#171512]'
                           }`}
                         />
+                        {f.key === 'store' && storeOf(o.key as StoreKey).mark && (
+                          <img src={storeOf(o.key as StoreKey).mark} alt="" loading="lazy" className="h-4 w-4 shrink-0 object-contain" />
+                        )}
                         <span className="truncate">{o.label}</span>
                       </span>
                       <span className={`shrink-0 text-[11px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
@@ -646,9 +650,13 @@ function StoreGrid({ stores, rail = false }: { stores: LookStore[]; rail?: boole
           <Link to={`${lookBase(1)}/store/${s.key}`} className={rowCls} style={{ borderColor: HAIR }}>
             <span className="relative h-16 w-16 shrink-0 overflow-hidden" style={{ backgroundColor: TILE }}>
               <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
-              <span dir="ltr" className="absolute bottom-0 start-0 bg-[#171512] px-1.5 py-0.5 font-['Outfit',sans-serif] text-[9px] font-bold text-white">
-                {s.initials}
-              </span>
+              {s.mark ? (
+                <StoreMark store={s} className="absolute bottom-0 start-0 h-7 w-7" />
+              ) : (
+                <span dir="ltr" className="absolute bottom-0 start-0 bg-[#171512] px-1.5 py-0.5 font-['Outfit',sans-serif] text-[9px] font-bold text-white">
+                  {s.initials}
+                </span>
+              )}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[14px] font-bold">{s.name[lang]}</span>

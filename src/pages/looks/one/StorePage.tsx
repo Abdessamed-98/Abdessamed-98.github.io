@@ -27,7 +27,7 @@ import {
   type RoomKey,
   type StoreKey,
 } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars, StoreMark } from './ui';
 import { RatingInput, ServiceOffers, Tabs, TextArea } from './kit';
 import { Sheet } from './Sheet';
 import { useShell } from './shellContext';
@@ -95,13 +95,17 @@ export default function StorePage() {
             <div className="flex flex-wrap items-end justify-between gap-8">
               <div className="min-w-0">
                 <div className="flex items-center gap-4">
-                  <span
-                    dir="ltr"
-                    aria-hidden
-                    className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/70 font-['Outfit',sans-serif] text-[16px] font-bold tracking-[0.06em] text-white"
-                  >
-                    {store.initials}
-                  </span>
+                  {store.mark ? (
+                    <StoreMark store={store} className="h-16 w-16 md:h-[72px] md:w-[72px]" />
+                  ) : (
+                    <span
+                      dir="ltr"
+                      aria-hidden
+                      className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/70 font-['Outfit',sans-serif] text-[16px] font-bold tracking-[0.06em] text-white"
+                    >
+                      {store.initials}
+                    </span>
+                  )}
                   <p className={`text-[11px] text-white/85 ${caps}`}>{t('Marketplace store', 'متجر في المنصة')}</p>
                 </div>
 
@@ -267,12 +271,7 @@ export default function StorePage() {
                   className="group flex items-center gap-4 border p-4 transition-colors hover:border-[#171512]"
                   style={{ borderColor: HAIR }}
                 >
-                  <span
-                    dir="ltr"
-                    className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white transition-colors group-hover:bg-[#5A6B4D]"
-                  >
-                    {s.initials}
-                  </span>
+                  <StoreMark store={s} className={`h-11 w-11 text-[12px] ${s.mark ? 'border border-[#E8E4DC]' : ''}`} />
                   <span className="min-w-0">
                     <span className="block truncate text-[13px] font-bold">{t(s.name.en, s.name.ar)}</span>
                     <span className="mt-1 block truncate text-[11px] font-light" style={{ color: MUTED }}>

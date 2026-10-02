@@ -62,7 +62,7 @@ import {
 } from './pages/looks/one/BusinessPages.tsx';
 import {
   AIDesignerPage as LookOneAIDesigner, ChatPage as LookOneChat, LoyaltyPage as LookOneLoyalty,
-  BlogIndexPage as LookOneBlog, ArticlePage as LookOneArticle, PagesIndex as LookOnePages,
+  BlogIndexPage as LookOneBlog, ArticlePage as LookOneArticle, PagesIndex as LookOnePages, BrandsPage as LookOneBrands,
 } from './pages/looks/one/ToolPages.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
@@ -323,6 +323,7 @@ export default function App() {
           <Route path="services/:category/:service" element={<LookOneServiceDetail />} />
           <Route path="provider/:id" element={<LookOneProvider />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
+          <Route path="brands" element={<LookOneBrands />} />
           <Route path="help/:topic?" element={<LookOneHelp />} />
           <Route path="b2b" element={<LookOneB2B />} />
           <Route path="b2b/:id" element={<LookOneCompany />} />

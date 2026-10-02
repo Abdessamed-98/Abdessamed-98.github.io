@@ -11,8 +11,8 @@ import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { Star, ArrowRight, Heart, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import {
-  formatSAR, storeOf, productPath,
-  type Lang, type LookProduct, type CatalogProduct,
+  formatSAR, storeOf, productPath, findProduct,
+  type Lang, type LookProduct, type CatalogProduct, type LookStore,
 } from '../lookShared';
 
 /* ------------------------------------------------------------------ */
@@ -221,6 +221,27 @@ export const eyebrowCls = (isAr: boolean, extra = 'text-[10px] text-neutral-400'
   `uppercase ${extra} ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`;
 
 /* ------------------------------------------------------------------ */
+/* Store mark                                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A store's square mark on a white tile — or its initials on ink until it has
+ * one. The caller sets the size (and the type size for the initials) through
+ * `className`, so the same piece serves a 16px line and a 72px tile.
+ */
+export function StoreMark({ store, className = 'h-11 w-11 text-[12px]' }: { store: Pick<LookStore, 'mark' | 'initials'>; className?: string }) {
+  return store.mark ? (
+    <span aria-hidden className={`flex shrink-0 items-center justify-center overflow-hidden bg-white ${className}`} data-testid="store-mark">
+      <img src={store.mark} alt="" loading="lazy" className="h-full w-full object-contain p-[12%]" />
+    </span>
+  ) : (
+    <span aria-hidden dir="ltr" className={`flex shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] font-bold text-white ${className}`}>
+      {store.initials}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Product card                                                        */
 /* ------------------------------------------------------------------ */
 
@@ -229,6 +250,8 @@ interface CardData {
   id: number;
   img: string;
   brand: string;
+  /** the seller's mark, shown beside the brand line */
+  mark?: string;
   name: string;
   rating: number;
   reviews?: number;
@@ -259,6 +282,7 @@ function toCard(p: LookProduct | CatalogProduct, lang: Lang): CardData {
       id: p.id,
       img: p.img,
       brand: store.name[lang],
+      mark: store.mark,
       name: p.name[lang],
       rating: p.rating,
       reviews: p.reviews,
@@ -272,6 +296,7 @@ function toCard(p: LookProduct | CatalogProduct, lang: Lang): CardData {
     id: p.id,
     img: p.img,
     brand: lang === 'ar' && p.brand === 'DIYAR HOME' ? 'ديار هوم' : p.brand,
+    mark: (() => { const c = findProduct(String(p.id)); return c ? storeOf(c.store).mark : undefined; })(),
     name: lang === 'ar' ? p.nameAr : p.nameEn,
     rating: p.rating,
     price: p.price,
@@ -365,7 +390,10 @@ export function ProductCard({
       </div>
 
       {/* info */}
-      <p className={`mt-5 ${eyebrowCls(isAr)}`}>{c.brand}</p>
+      <p className={`mt-5 flex items-center gap-2 ${eyebrowCls(isAr)}`}>
+        {c.mark && <img src={c.mark} alt="" loading="lazy" className="h-4 w-4 shrink-0 object-contain" />}
+        {c.brand}
+      </p>
       <h3 className="mt-1.5 truncate text-sm font-medium" title={c.name}>
         <Link to={to} className="decoration-[#5A6B4D] underline-offset-4 hover:underline">
           {c.name}

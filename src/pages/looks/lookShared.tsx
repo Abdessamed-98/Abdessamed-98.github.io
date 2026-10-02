@@ -572,9 +572,11 @@ export type StoreKey = 'diyar' | 'bk' | 'ld' | 'dw' | 'ns' | 'zk' | 'mk';
 
 export interface LookStore {
   key: StoreKey; name: Bi; specialty: Bi; initials: string; rating: number; products: number; cover: string;
-  /** A real shop mark, once the partners supply one. Until then the card falls
-   *  back to `initials`, so dropping logos in is this one field and no more. */
+  /** The brand's wide lockup (mark and name), in public/looks/brands. Until one is
+   *  supplied the name is set in type instead. */
   logo?: string;
+  /** The square mark alone, for small places; `initials` stand in without it. */
+  mark?: string;
 }
 
 export const STORES: LookStore[] = [
@@ -582,36 +584,42 @@ export const STORES: LookStore[] = [
     key: 'bk',
     name: { en: 'Bayt Al-Khashab', ar: 'بيت الخشب' },
     specialty: { en: 'Solid wood & custom joinery', ar: 'الخشب الصلب والنجارة المخصصة' },
+    mark: '/looks/brands/bk-mark.webp', logo: '/looks/brands/bk.webp',
     initials: 'BK', rating: 4.9, products: 412, cover: IMG.workshop,
   },
   {
     key: 'ld',
     name: { en: 'Lamsat Daw', ar: 'لمسة ضوء' },
     specialty: { en: 'Designer lighting', ar: 'إنارات مصممة' },
+    mark: '/looks/brands/ld-mark.webp',
     initials: 'LD', rating: 4.8, products: 268, cover: IMG.catLighting,
   },
   {
     key: 'dw',
     name: { en: 'Diwan', ar: 'ديوان' },
     specialty: { en: 'Majlis & seating', ar: 'المجالس والجلسات' },
+    mark: '/looks/brands/dw-mark.webp', logo: '/looks/brands/dw.webp',
     initials: 'DW', rating: 4.7, products: 531, cover: IMG.loungeDark,
   },
   {
     key: 'ns',
     name: { en: 'Naseej', ar: 'نسيج' },
     specialty: { en: 'Rugs & textiles', ar: 'السجاد والمنسوجات' },
+    mark: '/looks/brands/ns-mark.webp',
     initials: 'NS', rating: 4.9, products: 349, cover: IMG.bedroom,
   },
   {
     key: 'zk',
     name: { en: 'Zukhruf', ar: 'زخرف' },
     specialty: { en: 'Decor & accessories', ar: 'الديكور والإكسسوارات' },
+    mark: '/looks/brands/zk-mark.webp', logo: '/looks/brands/zk.webp',
     initials: 'ZK', rating: 4.8, products: 604, cover: IMG.roomHotspots,
   },
   {
     key: 'mk',
     name: { en: 'Maktabi', ar: 'مكتبي' },
     specialty: { en: 'Office & workspace', ar: 'الأثاث المكتبي' },
+    mark: '/looks/brands/mk-mark.webp', logo: '/looks/brands/mk.webp',
     initials: 'MK', rating: 4.6, products: 187, cover: IMG.catOffice,
   },
 ];
@@ -1057,6 +1065,7 @@ export const SHOP_ROOMS: ShopRoom[] = (['living', 'bedroom', 'dining', 'majlis',
 export const DIYAR_STORE: LookStore = {
   key: 'diyar', name: { en: 'Diyar Home', ar: 'ديار هوم' },
   specialty: { en: 'Diyar\'s own collection', ar: 'تشكيلة ديار الخاصة' },
+  mark: '/looks/brands/diyar-mark.webp', logo: '/looks/brands/diyar.webp',
   initials: 'DH', rating: 4.9, products: 5, cover: IMG.hero,
 };
 
@@ -1352,20 +1361,21 @@ export const SUGGESTED_IDS: number[] = [8, 5, 3, 7, 2];
  *  brands sold on it. `store` links the chip to that store's page and gives it
  *  its offer badge; `logo` is a transparent lockup in public/looks/brands — a
  *  brand without one is set as a plain wordmark until its logo arrives. */
-export interface StripBrand { name: Bi; logo?: string; store?: StoreKey }
+export interface StripBrand { name: Bi; logo?: string; mark?: string; store?: StoreKey }
 const brandLogo = (k: string) => `/looks/brands/${k}.webp`;
+const brandMark = (k: string) => `/looks/brands/${k}-mark.webp`;
 export const BRANDS: StripBrand[] = [
-  { store: 'diyar', name: { en: 'Diyar Home', ar: 'ديار هوم' }, logo: brandLogo('diyar') },
-  { store: 'bk', name: { en: 'Bayt Al-Khashab', ar: 'بيت الخشب' }, logo: brandLogo('bk') },
-  { store: 'ld', name: { en: 'Lamsat Daw', ar: 'لمسة ضوء' } },
-  { store: 'dw', name: { en: 'Diwan', ar: 'ديوان' }, logo: brandLogo('dw') },
-  { store: 'ns', name: { en: 'Naseej', ar: 'نسيج' } },
-  { store: 'zk', name: { en: 'Zukhruf', ar: 'زخرف' }, logo: brandLogo('zk') },
-  { store: 'mk', name: { en: 'Maktabi', ar: 'مكتبي' }, logo: brandLogo('mk') },
-  { name: { en: 'Almajlis', ar: 'المجلس' }, logo: brandLogo('almajlis') },
-  { name: { en: 'Atheer Almanzil', ar: 'أثير المنزل' }, logo: brandLogo('atheer') },
-  { name: { en: 'Masaken', ar: 'مساكن' }, logo: brandLogo('masaken') },
-  { name: { en: 'Wahat Almanzil', ar: 'واحة المنزل' }, logo: brandLogo('wahat') },
+  { store: 'diyar', name: { en: 'Diyar Home', ar: 'ديار هوم' }, logo: brandLogo('diyar'), mark: brandMark('diyar') },
+  { store: 'bk', name: { en: 'Bayt Al-Khashab', ar: 'بيت الخشب' }, logo: brandLogo('bk'), mark: brandMark('bk') },
+  { store: 'ld', name: { en: 'Lamsat Daw', ar: 'لمسة ضوء' }, mark: brandMark('ld') },
+  { store: 'dw', name: { en: 'Diwan', ar: 'ديوان' }, logo: brandLogo('dw'), mark: brandMark('dw') },
+  { store: 'ns', name: { en: 'Naseej', ar: 'نسيج' }, mark: brandMark('ns') },
+  { store: 'zk', name: { en: 'Zukhruf', ar: 'زخرف' }, logo: brandLogo('zk'), mark: brandMark('zk') },
+  { store: 'mk', name: { en: 'Maktabi', ar: 'مكتبي' }, logo: brandLogo('mk'), mark: brandMark('mk') },
+  { name: { en: 'Almajlis', ar: 'المجلس' }, logo: brandLogo('almajlis'), mark: brandMark('almajlis') },
+  { name: { en: 'Atheer Almanzil', ar: 'أثير المنزل' }, logo: brandLogo('atheer'), mark: brandMark('atheer') },
+  { name: { en: 'Masaken', ar: 'مساكن' }, logo: brandLogo('masaken'), mark: brandMark('masaken') },
+  { name: { en: 'Wahat Almanzil', ar: 'واحة المنزل' }, logo: brandLogo('wahat'), mark: brandMark('wahat') },
 ];
 
 /** Standalone newsletter section (the original's closing section). */

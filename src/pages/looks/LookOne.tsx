@@ -21,7 +21,7 @@ import {
   Menu, X, ChevronDown, Phone, Mail,
 } from 'lucide-react';
 import {
-  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
+  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, ALL_STORES,
   FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR,
   SHOP_MENU, SERVICES_MENU, MENU_FEATURED, SHOP_ROOMS,
   ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
@@ -1095,7 +1095,28 @@ export default function LookOne() {
                       />
                     </div>
                   </div>
-                  <div className="mt-6 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu}>
+                  {/* shop by brand: the stores' own logos */}
+                  <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu} data-testid="mega-brands">
+                    <p className={`shrink-0 text-[11px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by brand', 'تسوق حسب العلامة')}</p>
+                    <ul className="flex min-w-0 flex-1 items-center gap-7 overflow-hidden">
+                      {ALL_STORES.map((st) => (
+                        <li key={st.key} className="shrink-0">
+                          <Link to={`${lookBase(1)}/store/${st.key}`} aria-label={t(st.name.en, st.name.ar)} title={t(st.name.en, st.name.ar)} className="flex h-9 items-center gap-2 opacity-75 transition-opacity hover:opacity-100">
+                            {st.logo ? (
+                              <img src={st.logo} alt="" loading="lazy" className="h-7 w-auto" />
+                            ) : (
+                              <>
+                                {st.mark && <img src={st.mark} alt="" loading="lazy" className="h-7 w-7 object-contain" />}
+                                <span className="whitespace-nowrap text-[13px] font-bold">{t(st.name.en, st.name.ar)}</span>
+                              </>
+                            )}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <ViewMore label={t('All brands', 'كل العلامات')} to={`${lookBase(1)}/brands`} />
+                  </div>
+                  <div className="mt-5 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} to={searchPath(1)} />
                   </div>
                 </div>
