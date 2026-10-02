@@ -678,43 +678,63 @@ export function BrandsStrip() {
   const isAr = lang === 'ar';
   const offerOf = (key: string) =>
     Math.max(0, ...CATALOG.filter((p) => p.store === key && p.oldPrice).map((p) => Math.round((1 - p.price / (p.oldPrice as number)) * 100)));
+
+  const logos = (copy: number) =>
+    BRANDS.map((b) => {
+      const off = b.store ? offerOf(b.store) : 0;
+      const name = b.name[lang];
+      return (
+        <li key={`${copy}-${b.name.en}`} className="shrink-0 px-7 md:px-10" aria-hidden={copy > 0}>
+          <Link
+            to={b.store ? `${lookBase(1)}/store/${b.store}` : searchPath(1, { q: name })}
+            data-testid={copy === 0 ? 'brand-chip' : undefined}
+            aria-label={name}
+            title={name}
+            tabIndex={copy > 0 ? -1 : undefined}
+            className="relative flex h-14 items-center opacity-80 transition-opacity duration-300 hover:opacity-100"
+          >
+            {b.logo ? (
+              <img src={b.logo} alt={name} className="h-9 w-auto max-w-none md:h-11" />
+            ) : (
+              <span className={`whitespace-nowrap text-[19px] font-extrabold md:text-[22px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.08em]"}`}>
+                {name}
+              </span>
+            )}
+            {off > 0 && (
+              <span
+                data-testid={copy === 0 ? 'brand-offer' : undefined}
+                dir={isAr ? 'rtl' : 'ltr'}
+                className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+                style={{ backgroundColor: RED }}
+              >
+                {t('Offers', 'عروض')}
+              </span>
+            )}
+          </Link>
+        </li>
+      );
+    });
+
   return (
-    <section data-testid="brands-strip" className="border-b py-7 md:py-8" style={{ borderColor: HAIR }}>
-      <div className={CONTAINER}>
-        <div className="flex items-center gap-6">
-          <p className={`hidden shrink-0 lg:block ${eyebrowCls(isAr, 'text-[10px] text-neutral-400')}`}>{t('Brands on Diyar', 'علامات على ديار')}</p>
-          <ul className="scrollbar-hide -mx-6 flex min-w-0 flex-1 snap-x gap-2.5 overflow-x-auto scroll-px-6 px-6 py-2 md:-mx-10 md:scroll-px-10 md:px-10 lg:mx-0 lg:flex-wrap lg:justify-center lg:gap-3 lg:overflow-visible lg:px-0">
-            {BRANDS.map((b) => {
-              const off = b.store ? offerOf(b.store) : 0;
-              const name = b.name[lang];
-              return (
-                <li key={b.name.en} className="shrink-0 snap-start">
-                  <Link
-                    to={b.store ? `${lookBase(1)}/store/${b.store}` : searchPath(1, { q: name })}
-                    data-testid="brand-chip"
-                    aria-label={name}
-                    title={name}
-                    className="group relative flex h-[68px] w-[168px] items-center justify-center border bg-white px-4 transition-colors hover:border-[#171512]"
-                    style={{ borderColor: HAIR }}
-                  >
-                    {b.logo ? (
-                      <img src={b.logo} alt={name} loading="lazy" className="max-h-[40px] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.04]" />
-                    ) : (
-                      <span className={`whitespace-nowrap text-[17px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.08em] text-[14px]"}`}>
-                        {name}
-                      </span>
-                    )}
-                    {off > 0 && (
-                      <span data-testid="brand-offer" className="absolute -top-2 end-2 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
-                        {t(`Up to ${off}% off`, `خصم حتى ${off}%`)}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+    <section data-testid="brands-strip" className="overflow-hidden border-b bg-white py-7 md:py-9" style={{ borderColor: HAIR }} aria-label={t('Brands on Diyar', 'علامات على ديار')}>
+      {/* an endless band: the list twice, slid by exactly one list's width. It always runs
+          left-to-right in the markup so the loop point is the same in both languages;
+          hovering pauses it, and reduced motion leaves a plain swipe row. */}
+      <style>{`
+        @keyframes diyar-brands { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+        .diyar-brands-track { animation: diyar-brands 48s linear infinite; }
+        .diyar-brands:hover .diyar-brands-track, .diyar-brands:focus-within .diyar-brands-track { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) { .diyar-brands-track { animation: none; } .diyar-brands { overflow-x: auto; } }
+      `}</style>
+      <div
+        dir="ltr"
+        className="diyar-brands scrollbar-hide"
+        style={{ maskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)' }}
+      >
+        <ul className="diyar-brands-track flex w-max items-center pt-2" data-testid="brands-track">
+          {logos(0)}
+          {logos(1)}
+        </ul>
       </div>
     </section>
   );
