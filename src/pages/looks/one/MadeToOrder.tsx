@@ -95,7 +95,7 @@ export function MadeToOrder({ no }: { no: string }) {
               <button type="button" onClick={() => openService(t('Custom Furniture', 'تنفيذ الأثاث'))} className={`${primaryBtnCls(isAr)} px-10 py-4`}>
                 {t('Request a Quote', 'اطلب عرض سعر')}
               </button>
-              <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} to={`${lookBase(1)}/search?tab=stores`} />
+              <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} to={`${lookBase(1)}/stores`} />
             </div>
           </Reveal>
         </div>

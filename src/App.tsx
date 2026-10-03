@@ -54,7 +54,7 @@ import LookOneCategory, { ServiceDetailPage as LookOneServiceDetail, LegacyServi
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
 import {
   ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
-  HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound,
+  HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound, StoresPage as LookOneStores,
 } from './pages/looks/one/InfoPages.tsx';
 import {
   B2BPage as LookOneB2B, CompanyPage as LookOneCompany, ProjectsPage as LookOneProjects,
@@ -323,6 +323,7 @@ export default function App() {
           <Route path="services/:category/:service" element={<LookOneServiceDetail />} />
           <Route path="provider/:id" element={<LookOneProvider />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
+          <Route path="stores" element={<LookOneStores />} />
           <Route path="brands" element={<LookOneBrands />} />
           <Route path="help/:topic?" element={<LookOneHelp />} />
           <Route path="b2b" element={<LookOneB2B />} />

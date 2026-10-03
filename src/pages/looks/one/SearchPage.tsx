@@ -336,7 +336,7 @@ export function LookOneSearch() {
       {tab === 'all' && (stores.length > 0 || services.length > 0) && (
         <div className="mx-auto grid max-w-[1400px] gap-12 px-6 py-10 md:px-10 md:py-12" data-testid="search-all-strips">
           {stores.length > 0 && (
-            <Strip title={t('Stores', 'المتاجر')} more={stores.length > 4 ? () => setTab('stores') : undefined} count={stores.length}>
+            <Strip title={t('Stores', 'المتاجر')} moreTo={`${lookBase(1)}/stores`} count={stores.length}>
               <StoreGrid stores={stores.slice(0, 4)} rail />
             </Strip>
           )}
@@ -614,7 +614,7 @@ export function LookOneSearch() {
 /* ------------------------------------------------------------------ */
 /* Store and service results                                           */
 /* ------------------------------------------------------------------ */
-function Strip({ title, count, more, children }: { title: string; count: number; more?: () => void; children: ReactNode }) {
+function Strip({ title, count, more, moreTo, children }: { title: string; count: number; more?: () => void; moreTo?: string; children: ReactNode }) {
   const { lang, t } = useLook();
   const caps = capsCls(lang === 'ar');
   return (
@@ -623,6 +623,11 @@ function Strip({ title, count, more, children }: { title: string; count: number;
         <h2 className={`text-[13px] font-bold ${caps}`}>
           {title} <span className="font-['Outfit',sans-serif] text-[11px] font-medium" style={{ color: OLIVE }}>{count}</span>
         </h2>
+        {moreTo && (
+          <Link to={moreTo} className={`border-b pb-1 text-[12px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            {t('See all', 'عرض الكل')}
+          </Link>
+        )}
         {more && (
           <button type="button" onClick={more} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
             {t('See all', 'عرض الكل')}

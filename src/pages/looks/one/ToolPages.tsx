@@ -1306,6 +1306,7 @@ export function PagesIndex() {
         { label: t('Product', 'المنتج'), to: productPath(1, 1) },
         { label: t('Store', 'المتجر'), to: `${b}/store/bk` },
         { label: t('Store — reviews', 'المتجر — التقييمات'), to: `${b}/store/bk?tab=reviews` },
+        { label: t('Stores', 'المتاجر'), to: `${b}/stores` },
         { label: t('Brands', 'العلامات'), to: `${b}/brands` },
         { label: t('Wishlist page', 'صفحة المفضلة'), to: `${b}/wishlist` },
         { label: t('Checkout', 'الدفع'), to: `${b}/checkout` },

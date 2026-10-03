@@ -288,7 +288,7 @@ export default function StorePage() {
           <Breadcrumb
             items={[
               { label: t('Home', 'الرئيسية'), to: lookBase(1) },
-              { label: t('Stores', 'المتاجر'), to: `${searchPath(1)}?tab=stores` },
+              { label: t('Stores', 'المتاجر'), to: `${lookBase(1)}/stores` },
               { label: t(store.name.en, store.name.ar) },
             ]}
           />
