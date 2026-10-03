@@ -75,7 +75,7 @@ export default function DashboardLayout() {
   const links = role ? NAV_LINKS[role] : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="dash min-h-screen bg-gray-50 flex" dir="rtl">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -202,7 +202,7 @@ export default function DashboardLayout() {
                             <p className="text-xs text-gray-500 line-clamp-2 mb-2">
                               {i === 1 ? 'تم استلام طلب جديد بقيمة 1,250 ر.س. يرجى تجهيز الطلب بأسرع وقت.' : 'تم تحديث سياسات التسعير، يرجى مراجعة الشروط والأحكام الجديدة.'}
                             </p>
-                            <span className="text-[10px] text-gray-400">منذ ساعتين</span>
+                            <span className="text-xs text-gray-400">منذ ساعتين</span>
                           </div>
                         </div>
                       ))}

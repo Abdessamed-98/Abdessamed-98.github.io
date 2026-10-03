@@ -94,7 +94,7 @@ export default function DesignerDesigns() {
             <ul className="mt-4 space-y-2">
               {open.pins.map((p, i) => (
                 <li key={p.productId} className="flex items-center gap-3 text-sm">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-diyar-dark text-[11px] font-bold text-white">{i + 1}</span>
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-diyar-dark text-xs font-bold text-white">{i + 1}</span>
                   <span className="min-w-0 flex-1 truncate text-gray-700">{productOf(p.productId)?.name.ar}</span>
                   <span className="shrink-0 font-bold text-diyar-dark">{sar(productOf(p.productId)?.price ?? 0)} ر.س</span>
                 </li>

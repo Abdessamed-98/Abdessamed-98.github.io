@@ -362,8 +362,8 @@ export default function DesignerStudio() {
                           <img src={productImg(p.id)} alt="" loading="lazy" className={`h-full w-full ${hasCutout(p.id) ? 'object-contain p-2' : 'object-cover'}`} />
                         </span>
                         <span className="mt-2 block truncate text-xs font-bold text-gray-800">{p.name.ar}</span>
-                        <span className="block text-[11px] text-gray-500">{sar(p.price)} ر.س</span>
-                        <span className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white ${on ? 'bg-diyar-brown' : 'bg-diyar-dark/70'}`}>
+                        <span className="block text-xs text-gray-500">{sar(p.price)} ر.س</span>
+                        <span className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white ${on ? 'bg-diyar-brown' : 'bg-diyar-dark/70'}`}>
                           {on ? at + 1 : <Plus size={14} />}
                         </span>
                       </button>
@@ -413,7 +413,7 @@ export default function DesignerStudio() {
                     const pr = productOf(p.productId);
                     return pr ? (
                       <li key={p.productId} className="flex items-center gap-3 text-sm">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-diyar-dark text-[11px] font-bold text-white">{i + 1}</span>
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-diyar-dark text-xs font-bold text-white">{i + 1}</span>
                         <span className="min-w-0 flex-1 truncate text-gray-700">{pr.name.ar}</span>
                         <span className="shrink-0 font-bold text-diyar-dark">{sar(pr.price)} ر.س</span>
                       </li>

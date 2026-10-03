@@ -71,7 +71,7 @@ export default function DesignerChat() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <h4 className="truncate font-bold text-diyar-dark">{r.client}</h4>
-                    <span className="shrink-0 text-[11px] text-gray-400">{r.date}</span>
+                    <span className="shrink-0 text-xs text-gray-400">{r.date}</span>
                   </div>
                   <p className="mt-0.5 truncate text-xs text-gray-500">{done ? 'أرسلتَ التصميم' : r.status === 'working' ? 'تعمل على التصميم' : `أرسل صورة ${r.room}`}</p>
                 </div>
@@ -121,7 +121,7 @@ export default function DesignerChat() {
                   </div>
                 )}
                 {m.text && <p className={m.design ? 'px-2' : ''}>{m.text}</p>}
-                <span className={`mt-1 block text-[11px] ${m.img || m.design ? 'px-2' : ''} ${m.from === 'me' ? 'text-white/50' : 'text-gray-400'}`}>{m.at}</span>
+                <span className={`mt-1 block text-xs ${m.img || m.design ? 'px-2' : ''} ${m.from === 'me' ? 'text-white/50' : 'text-gray-400'}`}>{m.at}</span>
               </div>
             </div>
           ))}

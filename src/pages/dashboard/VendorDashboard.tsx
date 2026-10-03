@@ -119,7 +119,7 @@ export default function VendorDashboard() {
                   </div>
                   <div className="text-left shrink-0">
                     <span className="block text-sm font-bold text-diyar-dark">1,250 ر.س</span>
-                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-block mt-1">قيد التجهيز</span>
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-block mt-1">قيد التجهيز</span>
                   </div>
                 </Link>
              ))}
