@@ -402,21 +402,17 @@ export function StoresPage() {
             const off = offerOf(s.key);
             return (
               <li key={s.key} className="flex flex-col border bg-white" style={{ borderColor: HAIR }} data-testid="store-card">
-                <Link to={`${lookBase(1)}/store/${s.key}`} className="group relative block aspect-[21/9] overflow-hidden" style={{ backgroundColor: TILE }}>
-                  <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
-                  <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+                <Link to={`${lookBase(1)}/store/${s.key}`} className="group relative flex items-center gap-4 px-5 pt-5">
+                  <StoreMark store={s} className={`h-16 w-16 text-[16px] ${s.mark ? 'border border-[#E8E4DC]' : ''}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className={`block truncate text-[20px] font-extrabold leading-tight transition-colors group-hover:text-[#5A6B4D] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>{s.name[lang]}</span>
+                    <span className="mt-1 block truncate text-[14px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</span>
+                  </span>
                   {off > 0 && (
-                    <span className="absolute end-4 top-4 rotate-[6deg] px-2.5 py-1 text-[12px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
+                    <span className="shrink-0 rotate-[6deg] px-2.5 py-1 text-[12px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
                       {t('Offers', 'عروض')}
                     </span>
                   )}
-                  <span className="absolute bottom-4 start-4 flex items-end gap-4">
-                    <StoreMark store={s} className="h-16 w-16 text-[16px]" />
-                    <span className="pb-1 text-white">
-                      <span className={`block text-[22px] font-extrabold leading-tight ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>{s.name[lang]}</span>
-                      <span className="mt-1 block text-[15px] font-light text-white/85">{s.specialty[lang]}</span>
-                    </span>
-                  </span>
                 </Link>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-4 text-[15px]" style={{ color: '#4A443C' }}>
                   <span className="flex items-center gap-1.5 font-bold text-[#171512]">
