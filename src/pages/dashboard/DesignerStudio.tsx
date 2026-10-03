@@ -190,8 +190,8 @@ export default function DesignerStudio() {
           وصل التصميم إلى محادثة العميل مع {pins.length} منتجات بقيمة {sar(total)} ر.س. ستصلك إشعارات عند مشاهدته وعند الشراء منه.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link to="/dashboard/designer/designs" className="rounded-xl bg-diyar-brown px-6 py-3 text-sm font-bold text-white transition hover:bg-[#8A6D46]">
-            عرض تصاميمي المرسلة
+          <Link to={`/dashboard/designer/chat/${req.id}`} data-testid="studio-back-chat" className="rounded-xl bg-diyar-brown px-6 py-3 text-sm font-bold text-white transition hover:bg-[#8A6D46]">
+            العودة إلى المحادثة
           </Link>
           <Link to="/look/1/chat?with=diyar-designer" data-testid="studio-open-chat" className="flex items-center gap-2 rounded-xl border border-gray-200 px-6 py-3 text-sm font-bold text-diyar-dark transition hover:bg-gray-50">
             <MessageSquare size={16} /> كما يراه العميل في المحادثة
@@ -205,7 +205,7 @@ export default function DesignerStudio() {
     <div className="space-y-6" dir="rtl" data-testid="designer-studio">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard/designer/requests" className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50">
+          <Link to={`/dashboard/designer/chat/${req.id}`} className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50">
             <ArrowRight size={20} />
           </Link>
           <div>
@@ -370,7 +370,7 @@ export default function DesignerStudio() {
         {/* ---------------- the request, the pieces, the catalogue ---------------- */}
         <div className="space-y-4">
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 font-bold text-diyar-dark">طلب العميل</h3>
+            <h3 className="mb-3 font-bold text-diyar-dark">ما كتبه العميل</h3>
             <p className="mb-4 text-sm leading-relaxed text-gray-600">{req.note}</p>
             <div className="space-y-2 text-xs text-gray-500">
               <div className="flex items-center gap-2">

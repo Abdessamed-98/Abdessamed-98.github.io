@@ -88,7 +88,7 @@ import AffiliatePayouts from './pages/dashboard/AffiliatePayouts.tsx';
 import AffiliateSettings from './pages/dashboard/AffiliateSettings.tsx';
 import Notifications from './pages/dashboard/Notifications.tsx';
 import DesignerDashboard from './pages/dashboard/DesignerDashboard.tsx';
-import DesignerRequests from './pages/dashboard/DesignerRequests.tsx';
+import DesignerChat from './pages/dashboard/DesignerChat.tsx';
 import DesignerStudio from './pages/dashboard/DesignerStudio.tsx';
 import DesignerDesigns from './pages/dashboard/DesignerDesigns.tsx';
 import DesignerFinance from './pages/dashboard/DesignerFinance.tsx';
@@ -375,7 +375,8 @@ export default function App() {
           <Route path="affiliate/notifications" element={<Notifications />} />
 
           <Route path="designer" element={<DesignerDashboard />} />
-          <Route path="designer/requests" element={<DesignerRequests />} />
+          <Route path="designer/chat" element={<DesignerChat />} />
+          <Route path="designer/chat/:id" element={<DesignerChat />} />
           <Route path="designer/studio" element={<DesignerStudio />} />
           <Route path="designer/studio/:id" element={<DesignerStudio />} />
           <Route path="designer/designs" element={<DesignerDesigns />} />

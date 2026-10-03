@@ -26,7 +26,7 @@ export default function DesignerDesigns() {
           <h2 className="text-2xl font-bold text-diyar-dark">تصاميمي المرسلة</h2>
           <p className="mt-1 text-sm text-gray-500">كل تصميم أرسلته لعميل، وما اشتراه منه، وعمولتك عنه.</p>
         </div>
-        <Link to="/dashboard/designer/requests" className="flex items-center gap-2 rounded-xl bg-diyar-brown px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#8A6D46]">
+        <Link to="/dashboard/designer/chat" className="flex items-center gap-2 rounded-xl bg-diyar-brown px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#8A6D46]">
           <Plus size={18} /> تصميم جديد
         </Link>
       </div>

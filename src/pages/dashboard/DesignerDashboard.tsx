@@ -19,7 +19,7 @@ export default function DesignerDashboard() {
   const sold = PAST_DESIGNS.reduce((n, d) => n + d.bought, 0);
 
   const stats = [
-    { label: 'طلبات بانتظارك', value: String(waiting.length), icon: Inbox, tone: 'bg-purple-50 text-purple-600' },
+    { label: 'محادثات بانتظار تصميمك', value: String(waiting.length), icon: Inbox, tone: 'bg-purple-50 text-purple-600' },
     { label: 'تصاميم أُرسلت هذا الشهر', value: String(PAST_DESIGNS.length + sentNow.length), icon: Images, tone: 'bg-blue-50 text-blue-600' },
     { label: 'مبيعات من تصاميمك', value: sar(sold), unit: 'ر.س', icon: ShoppingBag, tone: 'bg-amber-50 text-amber-600' },
     { label: 'عمولتك هذا الشهر', value: sar(Math.round(sold * COMMISSION)), unit: 'ر.س', icon: DollarSign, tone: 'bg-green-50 text-green-600' },
@@ -69,13 +69,13 @@ export default function DesignerDashboard() {
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between">
             <h3 className="font-bold text-diyar-dark">غرف بانتظار تصميمك</h3>
-            <Link to="/dashboard/designer/requests" className="text-sm font-medium text-diyar-brown hover:underline">
+            <Link to="/dashboard/designer/chat" className="text-sm font-medium text-diyar-brown hover:underline">
               عرض الكل
             </Link>
           </div>
           <div className="space-y-4">
             {waiting.map((r) => (
-              <Link key={r.id} to={`/dashboard/designer/studio/${r.id}`} className="group flex items-center gap-3">
+              <Link key={r.id} to={`/dashboard/designer/chat/${r.id}`} className="group flex items-center gap-3">
                 <img src={r.photo} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" />
                 <div className="min-w-0 flex-1">
                   <h4 className="truncate font-bold text-diyar-dark transition-colors group-hover:text-diyar-brown">
@@ -88,7 +88,7 @@ export default function DesignerDashboard() {
                 <ArrowLeft size={16} className="shrink-0 text-gray-300 group-hover:text-diyar-brown" />
               </Link>
             ))}
-            {waiting.length === 0 && <p className="text-sm text-gray-400">لا توجد طلبات بانتظارك الآن.</p>}
+            {waiting.length === 0 && <p className="text-sm text-gray-400">لا توجد غرف بانتظارك الآن.</p>}
           </div>
         </div>
       </div>

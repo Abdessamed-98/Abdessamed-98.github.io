@@ -18,7 +18,7 @@ import {
   BarChart,
   ChevronDown,
   Palette,
-  Inbox,
+  MessageSquare,
   Images
 } from 'lucide-react';
 
@@ -56,7 +56,7 @@ export default function DashboardLayout() {
     ],
     designer: [
       { name: 'الرئيسية', path: '/dashboard/designer', icon: LayoutDashboard },
-      { name: 'طلبات العملاء', path: '/dashboard/designer/requests', icon: Inbox },
+      { name: 'المحادثات', path: '/dashboard/designer/chat', icon: MessageSquare },
       { name: 'استوديو التصميم', path: '/dashboard/designer/studio', icon: Palette },
       { name: 'تصاميمي', path: '/dashboard/designer/designs', icon: Images },
       { name: 'المالية', path: '/dashboard/designer/finance', icon: Wallet },
@@ -102,7 +102,7 @@ export default function DashboardLayout() {
             <ul className="space-y-1 px-3">
               {links.map((link) => {
                 const Icon = link.icon;
-                const isActive = location.pathname === link.path || (link.path.endsWith('/studio') && location.pathname.startsWith(`${link.path}/`));
+                const isActive = location.pathname === link.path || (/\/(studio|chat)$/.test(link.path) && location.pathname.startsWith(`${link.path}/`));
                 return (
                   <li key={link.path}>
                     <Link

@@ -22,7 +22,7 @@ export default function DesignerSettings() {
     <div className="max-w-4xl space-y-6" data-testid="designer-settings">
       <div>
         <h2 className="text-2xl font-bold text-diyar-dark">إعدادات الحساب</h2>
-        <p className="mt-1 text-sm text-gray-500">ملفك كمصمم في فريق ديار، وتوفرك لاستقبال طلبات العملاء.</p>
+        <p className="mt-1 text-sm text-gray-500">ملفك كمصمم في فريق ديار، وتوفرك لاستقبال محادثات العملاء.</p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-gray-100 pb-2 scrollbar-hide">
@@ -48,7 +48,7 @@ export default function DesignerSettings() {
           <div className="space-y-8">
             <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
               <div>
-                <h4 className="font-bold text-diyar-dark">متاح لاستقبال الطلبات</h4>
+                <h4 className="font-bold text-diyar-dark">متاح لاستقبال المحادثات</h4>
                 <p className="mt-1 text-sm text-gray-500">عند الإيقاف لن تصلك غرف جديدة من «استشر مصمم».</p>
               </div>
               <label className="relative inline-flex cursor-pointer items-center">
@@ -135,7 +135,7 @@ export default function DesignerSettings() {
               <h3 className="mb-6 font-bold text-diyar-dark">إعدادات الإشعارات</h3>
               <div className="space-y-4">
                 {[
-                  { id: 1, title: 'طلبات تصميم جديدة', desc: 'إشعار عند وصول غرفة جديدة من عميل' },
+                  { id: 1, title: 'محادثات جديدة', desc: 'إشعار عند وصول غرفة جديدة من عميل' },
                   { id: 2, title: 'الرسائل والمحادثات', desc: 'إشعارات الرسائل الجديدة من العملاء' },
                   { id: 3, title: 'مشاهدة التصميم', desc: 'إشعار عندما يفتح العميل التصميم الذي أرسلته' },
                   { id: 4, title: 'شراء من تصميمك', desc: 'إشعار عند شراء العميل قطعاً من تصميمك' },
