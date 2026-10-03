@@ -71,7 +71,8 @@ const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
 /** The services menu lists the eight services in SERVICES order. */
 const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categoryPath(SERVICES[i]) : undefined);
 /** The menu's headings are categories; the items under them are the services. */
-const serviceItemTo = (i: number) => (SERVICES[i] ? (it: Bi) => servicePath(SERVICES[i], it) : undefined);
+/** The services menu lists categories only; what is in a category is on its page. */
+const SERVICE_CATEGORY_ROWS: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: [] }));
 /** Where the plain nav items go. */
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),
@@ -361,6 +362,15 @@ function DrawerGroup({
 }) {
   const isAr = useLang() === 'ar';
   const itemCls = 'block py-2 ps-4 text-[12.5px] leading-relaxed text-neutral-500 transition-colors hover:text-[#171512]';
+  if (to && group.items.length === 0) {
+    return (
+      <li className="border-t" style={{ borderColor: HAIR }}>
+        <Link to={to} onClick={onNavigate} className={`block py-3 text-start text-[14px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
+          {isAr ? group.title.ar : group.title.en}
+        </Link>
+      </li>
+    );
+  }
   return (
     <li className="border-t" style={{ borderColor: HAIR }}>
       <button
@@ -698,14 +708,13 @@ function MobileDrawer({
               />
               <DrawerSection
                 label={t('Services', 'الخدمات')}
-                groups={SERVICES_MENU}
+                groups={SERVICE_CATEGORY_ROWS}
                 open={section === 'services'}
                 onToggle={() => toggleSection('services')}
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
                 groupTo={serviceGroupTo}
-                groupItemTo={serviceItemTo}
                 allLink={{ to: `${lookBase(1)}/services`, label: t('All Services', 'كل الخدمات') }}
               />
 
@@ -1136,10 +1145,22 @@ export default function LookOne() {
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
-                    {/* 8 service groups, 4 × 2 */}
-                    <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10">
-                      {SERVICES_MENU.map((group, i) => (
-                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} itemTo={serviceItemTo(i)} onNavigate={closeMenu} />
+                    {/* the eight service categories — each opens its own page, where its services are listed */}
+                    <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3">
+                      {SERVICES.map((s) => (
+                        <Link
+                          key={s.en}
+                          to={categoryPath(s)}
+                          onClick={closeMenu}
+                          data-testid="mega-service-category"
+                          className="group/sc flex items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
+                          style={{ borderColor: HAIR }}
+                        >
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white" style={{ backgroundColor: '#F6F3EC' }}>
+                            <s.icon size={19} strokeWidth={1.4} />
+                          </span>
+                          <span className={`text-[14px] font-bold leading-snug text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
+                        </Link>
                       ))}
                     </div>
                     {/* single featured tile */}
