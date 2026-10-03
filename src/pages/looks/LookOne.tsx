@@ -78,7 +78,7 @@ const NAV_TO: Record<string, string> = {
   'Self Designer': `${lookBase(1)}/ai-designer`,
   B2B: `${lookBase(1)}/b2b`,
   Services: `${lookBase(1)}/services`,
-  Shop: searchPath(1),
+  Shop: `${lookBase(1)}/stores`,
   'About Us': `${lookBase(1)}/about`,
   'Contact Us': `${lookBase(1)}/contact`,
 };
@@ -937,11 +937,11 @@ export default function LookOne() {
             <nav className="hidden items-center gap-6 lg:flex">
               {NAV_ITEMS.map((item) => {
                 if (item.en === 'Shop') {
-                  /* Shop is a real link to the listing; hovering still opens its mega menu */
+                  /* Shop opens the stores page; hovering still opens its mega menu (categories and brands) */
                   return (
                     <Link
                       key={item.en}
-                      to={searchPath(1)}
+                      to={`${lookBase(1)}/stores`}
                       data-testid="mega-shop-trigger"
                       aria-haspopup="true"
                       aria-expanded={openMenu === 'shop'}

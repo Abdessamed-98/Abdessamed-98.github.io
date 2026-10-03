@@ -17,7 +17,7 @@
  */
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { STORES, formatSAR, searchPath } from '../lookShared';
+import { STORES, formatSAR, lookBase } from '../lookShared';
 import { HAIR, Reveal, SectionHeading, ViewMore, useLook, RAIL_SM, RAIL_ITEM_SM, RAIL_VIEWPORT } from './ui';
 
 export function FeaturedStores({ no }: { no: string }) {
@@ -34,7 +34,7 @@ export function FeaturedStores({ no }: { no: string }) {
               title={t('Featured Stores', 'متاجر مختارة')}
             />
             <div className="pb-2">
-              <ViewMore label={t('All Stores', 'كل المتاجر')} to={searchPath(1)} />
+              <ViewMore label={t('All Stores', 'كل المتاجر')} to={`${lookBase(1)}/stores`} />
             </div>
           </div>
         </Reveal>
@@ -52,7 +52,7 @@ export function FeaturedStores({ no }: { no: string }) {
                 className={RAIL_ITEM_SM}
               >
                 <Link
-                  to={searchPath(1, { store: s.key })}
+                  to={`${lookBase(1)}/store/${s.key}`}
                   data-testid="store-card"
                   aria-label={name}
                   className="group/st relative block overflow-hidden"

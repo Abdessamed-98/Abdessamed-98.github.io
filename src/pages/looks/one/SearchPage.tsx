@@ -653,16 +653,8 @@ function StoreGrid({ stores, rail = false }: { stores: LookStore[]; rail?: boole
       {stores.map((s) => (
         <li key={s.key} className={rail ? railItemCls : undefined}>
           <Link to={`${lookBase(1)}/store/${s.key}`} className={rowCls} style={{ borderColor: HAIR }}>
-            <span className="relative h-16 w-16 shrink-0 overflow-hidden" style={{ backgroundColor: TILE }}>
-              <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
-              {s.mark ? (
-                <StoreMark store={s} className="absolute bottom-0 start-0 h-7 w-7" />
-              ) : (
-                <span dir="ltr" className="absolute bottom-0 start-0 bg-[#171512] px-1.5 py-0.5 font-['Outfit',sans-serif] text-[9px] font-bold text-white">
-                  {s.initials}
-                </span>
-              )}
-            </span>
+            {/* the store's own mark, nothing else */}
+            <StoreMark store={s} className={`h-16 w-16 text-[15px] ${s.mark ? 'border border-[#E8E4DC]' : ''}`} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[15px] font-bold">{s.name[lang]}</span>
               <span className="mt-0.5 block truncate text-[14px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</span>
