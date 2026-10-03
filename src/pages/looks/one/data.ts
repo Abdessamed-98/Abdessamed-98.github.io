@@ -283,7 +283,7 @@ export interface ChatThread {
   initials: string;
   role: Bi;
   /** a message is text, and may carry a photo or a piece from the catalogue */
-  messages: { from: 'me' | 'them'; text: Bi; at: string; img?: string; productId?: number }[];
+  messages: { from: 'me' | 'them'; text: Bi; at: string; img?: string; productId?: number; design?: import('../../dashboard/designerData').SentDesign }[];
 }
 
 export const CHAT_THREADS: ChatThread[] = [

@@ -23,6 +23,8 @@ import {
 } from './data';
 import { NotFoundPage } from './InfoPages';
 import { Sheet } from './Sheet';
+import { ChatDesign } from './ChatDesign';
+import { loadSent } from '../../dashboard/designerData';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -581,7 +583,17 @@ export function ChatPage() {
   // a provider you have not written to yet gets a fresh thread; so does the Diyar designer
   const [threads, setThreads] = useState<ChatThread[]>(() => {
     const list = [...CHAT_THREADS];
-    if (want === DESIGNER_ID && !list.some((x) => x.id === DESIGNER_ID)) list.unshift(DESIGNER_THREAD);
+    // what the designer sent from their studio: the client's room, then the design made on it
+    const designs = loadSent();
+    if ((want === DESIGNER_ID || designs.length) && !list.some((x) => x.id === DESIGNER_ID)) {
+      list.unshift({
+        ...DESIGNER_THREAD,
+        messages: designs.flatMap((d): Msg[] => [
+          { from: 'me', at: d.sentAt, text: { en: '', ar: '' }, img: d.photo },
+          { from: 'them', at: d.sentAt, text: { en: d.note, ar: d.note }, design: d },
+        ]),
+      });
+    }
     const pv = PROVIDERS.find((p) => p.id === want);
     if (want && pv && !list.some((x) => x.id === want)) {
       list.unshift({ id: pv.id, name: pv.name, initials: pv.initials, role: { en: 'Service provider', ar: 'مقدم خدمة' }, messages: [] });
@@ -827,7 +839,7 @@ export function ChatPage() {
                   {active.messages.map((m, i) => (
                     <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`max-w-[78%] ${m.img || m.productId !== undefined ? 'p-1.5 pb-2' : 'px-4 py-3'} text-[15px] leading-relaxed md:max-w-[62%] ${
+                        className={`${m.design ? 'w-full max-w-[460px] p-1.5 pb-2' : `max-w-[78%] md:max-w-[62%] ${m.img || m.productId !== undefined ? 'p-1.5 pb-2' : 'px-4 py-3'}`} text-[15px] leading-relaxed ${
                           m.from === 'me' ? 'bg-[#171512] text-white' : 'border bg-white text-[#171512] shadow-[0_1px_2px_rgba(23,21,18,0.06)]'
                         }`}
                         style={m.from === 'me' ? undefined : { borderColor: '#E2DCD1' }}
@@ -849,8 +861,9 @@ export function ChatPage() {
                               </Link>
                             );
                           })()}
-                        {t(m.text.en, m.text.ar)}
-                        <span className={`mt-1 block text-[13px] ${m.img || m.productId !== undefined ? 'px-1.5' : ''} ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
+                        {m.design && <ChatDesign design={m.design} />}
+                        {m.design ? <span className="block px-1.5 pt-1">{m.text.ar}</span> : t(m.text.en, m.text.ar)}
+                        <span className={`mt-1 block text-[13px] ${m.img || m.productId !== undefined || m.design ? 'px-1.5' : ''} ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
                           {m.at}
                         </span>
                       </div>

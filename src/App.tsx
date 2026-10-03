@@ -87,6 +87,12 @@ import AffiliateReports from './pages/dashboard/AffiliateReports.tsx';
 import AffiliatePayouts from './pages/dashboard/AffiliatePayouts.tsx';
 import AffiliateSettings from './pages/dashboard/AffiliateSettings.tsx';
 import Notifications from './pages/dashboard/Notifications.tsx';
+import DesignerDashboard from './pages/dashboard/DesignerDashboard.tsx';
+import DesignerRequests from './pages/dashboard/DesignerRequests.tsx';
+import DesignerStudio from './pages/dashboard/DesignerStudio.tsx';
+import DesignerDesigns from './pages/dashboard/DesignerDesigns.tsx';
+import DesignerFinance from './pages/dashboard/DesignerFinance.tsx';
+import DesignerSettings from './pages/dashboard/DesignerSettings.tsx';
 
 function MobileBottomNav({ onOpenCart, isLoggedIn }: { onOpenCart: () => void, isLoggedIn: boolean }) {
   const location = useLocation();
@@ -367,6 +373,15 @@ export default function App() {
           <Route path="affiliate/payouts" element={<AffiliatePayouts />} />
           <Route path="affiliate/settings" element={<AffiliateSettings />} />
           <Route path="affiliate/notifications" element={<Notifications />} />
+
+          <Route path="designer" element={<DesignerDashboard />} />
+          <Route path="designer/requests" element={<DesignerRequests />} />
+          <Route path="designer/studio" element={<DesignerStudio />} />
+          <Route path="designer/studio/:id" element={<DesignerStudio />} />
+          <Route path="designer/designs" element={<DesignerDesigns />} />
+          <Route path="designer/finance" element={<DesignerFinance />} />
+          <Route path="designer/settings" element={<DesignerSettings />} />
+          <Route path="designer/notifications" element={<Notifications />} />
           <Route path="*" element={<div className="p-8 text-center text-gray-500 font-bold bg-white m-4 rounded-xl">هذه الصفحة قيد التطوير (Mockup)</div>} />
         </Route>
       </Routes>
