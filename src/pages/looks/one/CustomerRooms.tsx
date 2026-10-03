@@ -65,7 +65,7 @@ function RoomCard({
           className="aspect-[4/5] w-full object-cover transition-transform duration-[1200ms] ease-out group-hover/cr:scale-[1.04]"
         />
         <span
-          className={`absolute bottom-3 start-3 bg-black/45 px-3 py-1.5 text-[10px] text-white backdrop-blur-sm ${
+          className={`absolute bottom-3 start-3 bg-black/45 px-3 py-1.5 text-[11px] text-white backdrop-blur-sm ${
             isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'
           }`}
         >
@@ -77,16 +77,16 @@ function RoomCard({
         <Stars light rating={r.rating} />
       </div>
 
-      <blockquote className="mt-5 text-[14px] font-light leading-relaxed text-[#F6F3EC]/75">
+      <blockquote className="mt-5 text-[15px] font-light leading-relaxed text-[#F6F3EC]/75">
         {t(r.text.en, r.text.ar)}
       </blockquote>
 
       <figcaption className="mt-6 border-t border-white/12 pt-5">
-        <p className={`font-bold ${isAr ? 'text-[13px] tracking-normal' : 'text-[11.5px] uppercase tracking-[0.18em]'}`}>
+        <p className={`font-bold ${isAr ? 'text-[13px] tracking-normal' : 'text-[12px] uppercase tracking-[0.18em]'}`}>
           {t(r.name.en, r.name.ar)}
         </p>
         <p
-          className={`mt-1.5 text-[10px] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.24em]'}`}
+          className={`mt-1.5 text-[11px] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.24em]'}`}
           style={{ color: OLIVE_LT }}
         >
           {t(r.city.en, r.city.ar)}
@@ -177,7 +177,7 @@ function Heading({ no }: { no: string }) {
         eyebrow={t(`Customers — ${no}`, `عملاؤنا — ${no}`)}
         title={t('What They Say', 'ماذا يقولون')}
       />
-      <p className="max-w-sm pb-2 text-[14px] font-light leading-relaxed text-[#F6F3EC]/55">
+      <p className="max-w-sm pb-2 text-[15px] font-light leading-relaxed text-[#F6F3EC]/55">
         {t(
           'Rooms our customers finished with Diyar — and what they said about them.',
           'غرف أنجزها عملاؤنا مع ديار — وما قالوه عنها.',

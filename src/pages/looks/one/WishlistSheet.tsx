@@ -33,7 +33,7 @@ export function WishlistSheet({ open, onClose, onAdded }: { open: boolean; onClo
     >
       {items.length === 0 ? (
         <div className="px-6 py-16 text-center">
-          <p className={`text-[11px] text-neutral-400 ${caps}`}>{t('Empty', 'فارغة')}</p>
+          <p className={`text-[11.5px] text-neutral-400 ${caps}`}>{t('Empty', 'فارغة')}</p>
           <p className="mt-3 text-[15px] font-light text-neutral-600">
             {t('Tap the heart on a product to save it here.', 'اضغط القلب على أي منتج ليُحفظ هنا.')}
           </p>
@@ -56,11 +56,11 @@ export function WishlistSheet({ open, onClose, onAdded }: { open: boolean; onClo
                   <Link
                     to={productPath(1, p.id)}
                     onClick={onClose}
-                    className="text-[13px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]"
+                    className="text-[14.5px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]"
                   >
                     {name}
                   </Link>
-                  <p className="mt-1 text-[11px] font-light text-neutral-500">{t(store.name.en, store.name.ar)}</p>
+                  <p className="mt-1 text-[13px] font-light text-neutral-500">{t(store.name.en, store.name.ar)}</p>
                   <span className="mt-1 font-['Outfit',sans-serif] text-[14px] font-bold tabular-nums" style={{ color: INK }}>
                     {formatSAR(p.price)}
                   </span>
@@ -73,7 +73,7 @@ export function WishlistSheet({ open, onClose, onAdded }: { open: boolean; onClo
                       remove(p.id);
                       onAdded(name);
                     }}
-                    className={`mt-3 self-start border-b pb-1 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+                    className={`mt-3 self-start border-b pb-1 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
                     style={{ borderColor: INK }}
                   >
                     {t('Move to Cart', 'نقل إلى السلة')}

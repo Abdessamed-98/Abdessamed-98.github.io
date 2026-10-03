@@ -3,11 +3,16 @@
  * compose one from real pieces), chat, the rewards page, the journal, and an
  * index of every page for review.
  */
-import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft } from 'lucide-react';
-import { BLOG_POSTS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
-import { HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, TILE, primaryBtnCls, tileImg, useLook } from './ui';
+import { useEffect, useRef, useState, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  ArrowRight, Send, Sparkles, Upload, Trash2, Plus, Minus, ChevronLeft, Heart, ShoppingBag, Clock, MessageCircle, CheckCheck,
+  ImagePlus, Image as ImageIcon, X, Check,
+} from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { useWishlist } from '../../../context/WishlistContext';
+import { ALL_STORES, BLOG_POSTS, BRANDS, CATALOG, LOYALTY, STYLES, formatSAR, lookBase, productPath, searchPath } from '../lookShared';
+import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, RED, TILE, StoreMark, primaryBtnCls, tileImg, useLook } from './ui';
 import { useShell } from './shellContext';
 import { useLookCart } from './cart';
 import { BeforeAfter } from './BeforeAfter';
@@ -17,6 +22,9 @@ import {
   postBySlug, postSlug, type ChatThread,
 } from './data';
 import { NotFoundPage } from './InfoPages';
+import { Sheet } from './Sheet';
+import { ChatDesign } from './ChatDesign';
+import { loadSent } from '../../dashboard/designerData';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -24,41 +32,103 @@ const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'ا�
 /* AI designer                                                         */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The human designer — someone from the Diyar team, reached as a chat thread.
+ * The designer page hands over what the visitor was doing (the pieces in the
+ * room, or the style they tried) as the first message, ready to send, so the
+ * designer picks up from the visitor's own room rather than from "hello".
+ * Nothing replies automatically in this thread: it promises a person within
+ * minutes, and a canned instant answer would say otherwise.
+ */
+const DESIGNER_ID = 'diyar-designer';
+const DESIGNER_THREAD: ChatThread = {
+  id: DESIGNER_ID,
+  name: { en: 'Diyar Designer', ar: 'مصمم ديار' },
+  initials: 'DY',
+  role: { en: 'Diyar design team', ar: 'فريق التصميم في ديار' },
+  messages: [],
+};
+
 export function AIDesignerPage() {
-  const { t } = useLook();
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const navigate = useNavigate();
   const [sp, setSp] = useSearchParams();
   const mode = sp.get('mode') === 'compose' ? 'compose' : 'restyle';
+  // what the visitor is doing right now, kept current by whichever mode is open
+  const [note, setNote] = useState('');
+  const talk = () => navigate(`${lookBase(1)}/chat?with=${DESIGNER_ID}`, { state: { draft: note } });
   return (
     <main className="pt-[72px]" data-testid="ai-designer">
-      <PageHead
-        crumbs={[home(t), { label: t('AI Designer', 'المصمم الذكي') }]}
-        eyebrow={t('Diyar AI', 'ديار الذكي')}
-        title={t('Design the room before you buy', 'صمّم الغرفة قبل أن تشتري')}
-        intro={t('Restyle a photo of your room, or build one from pieces in the shop.', 'أعد تصميم صورة غرفتك، أو ابنِ غرفة من قطع المتجر.')}
-      />
+      {/* A compact head, like the services page: the title and its line share one
+          row, and the tabs share theirs with the way to a person — so the tool
+          starts near the top instead of under a half-empty masthead and a strip. */}
       <div className={`${CONTAINER} pt-8`}>
-        <Tabs
-          testId="ai-tabs"
-          value={mode}
-          onChange={(k) => setSp(k === 'restyle' ? {} : { mode: k }, { replace: true })}
-          items={[
-            { key: 'restyle', label: t('Restyle my room', 'أعد تصميم غرفتي') },
-            { key: 'compose', label: t('Compose a room', 'ركّب غرفة') },
-          ]}
-        />
+        <Breadcrumb items={[home(t), { label: t('AI Designer', 'المصمم الذكي') }]} />
+        <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className={displayCls(isAr, 'md')}>{t('Design the room before you buy', 'صمّم الغرفة قبل أن تشتري')}</h1>
+          <span className="text-[14.5px]" style={{ color: MUTED }}>
+            {t('Restyle a photo of your room, or build one from pieces in the shop.', 'أعد تصميم صورة غرفتك، أو ابنِ غرفة من قطع المتجر.')}
+          </span>
+        </div>
+
+        <div className="mt-6 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:border-b" style={{ borderColor: HAIR }}>
+          <Tabs
+            testId="ai-tabs"
+            value={mode}
+            onChange={(k) => setSp(k === 'restyle' ? {} : { mode: k }, { replace: true })}
+            items={[
+              { key: 'restyle', label: t('Restyle my room', 'أعد تصميم غرفتي') },
+              { key: 'compose', label: t('Compose a room', 'ركّب غرفة') },
+            ]}
+          />
+          {/* the way to a person, in both modes */}
+          <div
+            data-testid="human-designer"
+            className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-4 lg:mt-0 lg:shrink-0 lg:pb-3"
+          >
+            <span className="flex items-center justify-center gap-1.5 text-[14px] sm:justify-start" style={{ color: MUTED }}>
+              <Clock size={12} strokeWidth={1.8} className="shrink-0" />
+              {t('A Diyar designer replies within minutes', 'مصمم من فريق ديار يرد خلال دقائق')}
+            </span>
+            <button
+              type="button"
+              data-testid="talk-to-designer"
+              onClick={talk}
+              className={`inline-flex items-center justify-center gap-2 px-5 py-3 ${primaryBtnCls(isAr)}`}
+            >
+              <MessageCircle size={14} strokeWidth={1.6} />
+              {t('Consult a designer', 'استشر مصمم')}
+            </button>
+          </div>
+        </div>
       </div>
-      <div className={`${CONTAINER} py-10 md:py-14`}>{mode === 'restyle' ? <Restyle /> : <Composer />}</div>
+      <div className={`${CONTAINER} py-8 md:py-10`}>{mode === 'restyle' ? <Restyle onNote={setNote} /> : <Composer onNote={setNote} />}</div>
     </main>
   );
 }
 
-function Restyle() {
+function Restyle({ onNote }: { onNote: (note: string) => void }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const caps = capsCls(isAr);
   const [style, setStyle] = useState(STYLES[0].key);
   const [photo, setPhoto] = useState<string | null>(null);
   const [stage, setStage] = useState<'pick' | 'working' | 'done'>('pick');
+
+  // what to tell the designer, should the visitor ask for one
+  const styleName = STYLES.find((s) => s.key === style);
+  const note =
+    stage === 'done'
+      ? t(
+          `Hi — I restyled my room in the ${styleName?.en} style with the self designer and would like a designer's opinion.`,
+          `مرحباً، أعدت تصميم غرفتي بأسلوب ${styleName?.ar} في المصمم الذاتي وأحتاج رأي مصمم.`,
+        )
+      : t(
+          `Hi — I'm trying the self designer on my room (${styleName?.en} style) and would like a designer's opinion.`,
+          `مرحباً، أجرّب المصمم الذاتي على غرفتي (أسلوب ${styleName?.ar}) وأحتاج رأي مصمم.`,
+        );
+  useEffect(() => onNote(note), [note, onNote]);
   const file = useRef<HTMLInputElement>(null);
   const timer = useRef<number | null>(null);
   useEffect(() => () => {
@@ -94,15 +164,15 @@ function Restyle() {
             {stage === 'working' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#171512]/30 text-white">
                 <Sparkles size={24} strokeWidth={1.4} className="animate-pulse" />
-                <span className={`text-[11px] font-medium ${caps}`}>{t('Designing…', 'جاري التصميم…')}</span>
+                <span className={`text-[11.5px] font-medium ${caps}`}>{t('Designing…', 'جاري التصميم…')}</span>
               </div>
             )}
             {stage === 'done' && photo && (
-              <div className="absolute inset-x-4 bottom-4 bg-white/95 p-4 text-[13px]" data-testid="restyle-result">
+              <div className="absolute inset-x-4 bottom-4 bg-white/95 p-4 text-[14.5px]" data-testid="restyle-result">
                 {t('Your photo is saved to this session. Styled results for your own photos arrive with the app — the sample room shows the full effect.', 'حُفظت صورتك لهذه الجلسة. نتائج صورك الخاصة تأتي مع التطبيق — الغرفة النموذجية تعرض النتيجة كاملة.')}
               </div>
             )}
-            <span className={`absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[10px] font-semibold ${caps}`}>
+            <span className={`absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[11px] font-semibold ${caps}`}>
               {photo ? t('Your photo', 'صورتك') : t('Sample room', 'غرفة نموذجية')}
             </span>
           </div>
@@ -110,7 +180,7 @@ function Restyle() {
       </div>
 
       <div className="lg:col-span-4">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('1 · The room', '1 · الغرفة')}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('1 · The room', '1 · الغرفة')}</p>
         <input
           ref={file}
           type="file"
@@ -130,7 +200,7 @@ function Restyle() {
               setPhoto(null);
               setStage('pick');
             }}
-            className="border px-3 py-3 text-[12px] font-medium transition-colors"
+            className="border px-3 py-3 text-[14px] font-medium transition-colors"
             style={{ borderColor: photo ? HAIR : INK, backgroundColor: photo ? '#FFFFFF' : TILE }}
           >
             {t('Sample room', 'غرفة نموذجية')}
@@ -138,7 +208,7 @@ function Restyle() {
           <button
             type="button"
             onClick={() => file.current?.click()}
-            className="inline-flex items-center justify-center gap-2 border px-3 py-3 text-[12px] font-medium"
+            className="inline-flex items-center justify-center gap-2 border px-3 py-3 text-[14px] font-medium"
             style={{ borderColor: photo ? INK : HAIR, backgroundColor: photo ? TILE : '#FFFFFF' }}
           >
             <Upload size={13} strokeWidth={1.5} />
@@ -146,7 +216,7 @@ function Restyle() {
           </button>
         </div>
 
-        <p className={`mt-8 text-[10px] ${caps}`} style={{ color: MUTED }}>{t('2 · The style', '2 · الأسلوب')}</p>
+        <p className={`mt-8 text-[11px] ${caps}`} style={{ color: MUTED }}>{t('2 · The style', '2 · الأسلوب')}</p>
         <div className="mt-3 grid grid-cols-3 gap-2" role="radiogroup">
           {STYLES.map((s) => {
             const on = s.key === style;
@@ -166,7 +236,7 @@ function Restyle() {
                 <span className="block aspect-square overflow-hidden border-2 transition-colors" style={{ borderColor: on ? INK : 'transparent' }}>
                   <img src={s.img} alt="" className="h-full w-full object-cover" />
                 </span>
-                <span className={`mt-1.5 block text-[11px] ${on ? 'font-bold' : 'font-medium'}`}>{t(s.en, s.ar)}</span>
+                <span className={`mt-1.5 block text-[13px] ${on ? 'font-bold' : 'font-medium'}`}>{t(s.en, s.ar)}</span>
               </button>
             );
           })}
@@ -176,7 +246,7 @@ function Restyle() {
           <Sparkles size={14} strokeWidth={1.5} />
           {stage === 'done' ? t('Design again', 'صمّم مجدداً') : t('Design it', 'صمّمها')}
         </button>
-        <Link to={searchPath(1, { style })} className={`mt-4 flex items-center justify-center gap-2 text-[11px] font-medium ${caps}`} style={{ color: MUTED }}>
+        <Link to={searchPath(1, { style })} className={`mt-4 flex items-center justify-center gap-2 text-[11.5px] font-medium ${caps}`} style={{ color: MUTED }}>
           {t('Shop this style', 'تسوّق هذا الأسلوب')}
           <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
         </Link>
@@ -186,7 +256,10 @@ function Restyle() {
 }
 
 /** Pieces with a cut-out photo: those are the ones that can stand in a room. */
-const COMPOSABLE = CATALOG.filter((p) => p.id <= 9);
+const COMPOSABLE = new Set(CATALOG.filter((p) => p.id <= 9).map((p) => p.id));
+
+/** Where the pieces on the shelf come from: the visitor's own wishlist or cart. */
+type Source = 'wishlist' | 'cart';
 
 interface Placed {
   uid: number;
@@ -196,18 +269,32 @@ interface Placed {
   w: number; // width, % of the stage
 }
 
-function Composer() {
+function Composer({ onNote }: { onNote: (note: string) => void }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const caps = capsCls(isAr);
-  const { add } = useLookCart();
+  const { add, items: cartItems } = useLookCart();
+  const wishlist = useWishlist();
   const { toast, openCart } = useShell();
+  const reduce = useReducedMotion();
   const stage = useRef<HTMLDivElement>(null);
   const drag = useRef<{ uid: number; dx: number; dy: number } | null>(null);
-  const [placed, setPlaced] = useState<Placed[]>([
-    { uid: 1, id: 1, x: 50, y: 70, w: 44 },
-  ]);
-  const [sel, setSel] = useState<number | null>(1);
+
+  /* The shelf holds the visitor's own pieces — what they have saved, or what
+     is already in their cart — so the room is built from things they chose,
+     not from the whole catalogue. */
+  const [source, setSource] = useState<Source>('wishlist');
+  const cartIds = [...new Set(cartItems.map((i) => i.productId))];
+  const idsOf = (s: Source) => (s === 'wishlist' ? wishlist.ids : cartIds);
+  const shelf = idsOf(source)
+    .map((id) => CATALOG.find((c) => c.id === id))
+    .filter((p): p is (typeof CATALOG)[number] => Boolean(p));
+  const unplaceable = shelf.filter((p) => !COMPOSABLE.has(p.id)).length;
+
+  // the room opens with the first piece the visitor saved, if one can stand in it
+  const firstId = [...wishlist.ids, ...cartIds].find((id) => COMPOSABLE.has(id));
+  const [placed, setPlaced] = useState<Placed[]>(() => (firstId ? [{ uid: 1, id: firstId, x: 50, y: 70, w: 44 }] : []));
+  const [sel, setSel] = useState<number | null>(firstId ? 1 : null);
   const nextUid = useRef(2);
 
   const put = (id: number) => {
@@ -240,6 +327,24 @@ function Composer() {
   const selected = placed.find((p) => p.uid === sel);
   const products = placed.map((p) => CATALOG.find((c) => c.id === p.id)!).filter(Boolean);
   const total = products.reduce((s, p) => s + p.price, 0);
+  /* Pieces placed from the cart are already in it: adding the room again would
+     only raise their quantities. So the button adds just what is missing, and
+     when nothing is, it becomes a way into the cart instead. */
+  const inCart = new Set(cartIds);
+  const missing = products.filter((p) => !inCart.has(p.id));
+
+  // what to tell the designer, should the visitor ask for one: the room as it stands
+  const names = products.map((p) => t(p.name.en, p.name.ar));
+  const note = products.length
+    ? t(
+        `Hi — I put together a room with the self designer and would like a designer's opinion. Pieces: ${names.join(', ')}. Total ${formatSAR(total)} SAR.`,
+        `مرحباً، ركّبت غرفة في المصمم الذاتي وأحتاج رأي مصمم. القطع: ${names.join('، ')} — المجموع ${formatSAR(total)} ر.س.`,
+      )
+    : t(
+        "Hi — I'm putting a room together with the self designer and would like a designer's opinion.",
+        'مرحباً، أركّب غرفة في المصمم الذاتي وأحتاج رأي مصمم.',
+      );
+  useEffect(() => onNote(note), [note, onNote]);
 
   return (
     <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
@@ -278,14 +383,14 @@ function Composer() {
               />
             );
           })}
-          <span className={`pointer-events-none absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[10px] font-semibold ${caps}`}>
+          <span className={`pointer-events-none absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[11px] font-semibold ${caps}`}>
             {t('Drag to arrange', 'اسحب للترتيب')}
           </span>
         </div>
 
         {selected && (
           <div className="mt-3 flex flex-wrap items-center gap-3 border p-3" style={{ borderColor: HAIR }} data-testid="composer-controls">
-            <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{t(CATALOG.find((c) => c.id === selected.id)!.name.en, CATALOG.find((c) => c.id === selected.id)!.name.ar)}</span>
+            <span className="min-w-0 flex-1 truncate text-[14.5px] font-bold">{t(CATALOG.find((c) => c.id === selected.id)!.name.en, CATALOG.find((c) => c.id === selected.id)!.name.ar)}</span>
             <button type="button" aria-label={t('Smaller', 'أصغر')} onClick={() => patch(selected.uid, { w: Math.max(10, selected.w - 4) })} className="flex h-9 w-9 items-center justify-center border" style={{ borderColor: HAIR }}>
               <Minus size={14} strokeWidth={1.5} />
             </button>
@@ -309,32 +414,127 @@ function Composer() {
       </div>
 
       <div className="lg:col-span-4">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Pieces', 'القطع')}</p>
-        <ul className="mt-3 grid grid-cols-3 gap-2">
-          {COMPOSABLE.map((p) => (
-            <li key={p.id}>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Pieces from', 'القطع من')}</p>
+
+        {/* where the shelf's pieces come from */}
+        <div
+          role="tablist"
+          aria-label={t('Pieces from', 'القطع من')}
+          data-testid="composer-source"
+          className="mt-3 grid grid-cols-2 border p-1"
+          style={{ borderColor: HAIR }}
+        >
+          {(
+            [
+              { key: 'wishlist', icon: Heart, label: t('Wishlist', 'المفضلة') },
+              { key: 'cart', icon: ShoppingBag, label: t('Cart', 'السلة') },
+            ] as const
+          ).map(({ key, icon: Icon, label }) => {
+            const on = key === source;
+            return (
               <button
+                key={key}
                 type="button"
-                data-testid="composer-add"
-                onClick={() => put(p.id)}
-                title={t(p.name.en, p.name.ar)}
-                className="group relative block aspect-square w-full border transition-colors hover:border-[#171512]"
-                style={{ borderColor: HAIR, backgroundColor: TILE }}
+                role="tab"
+                aria-selected={on}
+                data-testid={`composer-source-${key}`}
+                onClick={() => setSource(key)}
+                className="relative flex h-10 items-center justify-center"
               >
-                <img src={tileImg(p.id, p.img)} alt={t(p.name.en, p.name.ar)} className="h-full w-full object-contain p-2" />
-                <span className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center bg-white opacity-0 transition-opacity group-hover:opacity-100">
-                  <Plus size={11} strokeWidth={2} />
+                {on && (
+                  <motion.span
+                    layoutId="composer-source"
+                    aria-hidden
+                    className="absolute inset-0"
+                    style={{ backgroundColor: INK }}
+                    transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 42 }}
+                  />
+                )}
+                <span
+                  className={`relative z-10 flex items-center gap-2 text-[14px] font-semibold transition-colors duration-200 ${
+                    on ? 'text-white' : 'text-[#171512]'
+                  }`}
+                >
+                  <Icon size={15} strokeWidth={1.6} className={on && key === 'wishlist' ? 'fill-current' : ''} />
+                  {label}
+                  <span dir="ltr" className={`tabular-nums text-[11.5px] font-medium ${on ? 'text-white/60' : ''}`} style={on ? undefined : { color: MUTED }}>
+                    {idsOf(key).length}
+                  </span>
                 </span>
               </button>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
+
+        {shelf.length ? (
+          <ul className="mt-3 grid grid-cols-3 gap-2" data-testid="composer-shelf">
+            {shelf.map((p) => {
+              const ok = COMPOSABLE.has(p.id);
+              const name = t(p.name.en, p.name.ar);
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    data-testid="composer-add"
+                    data-placeable={ok}
+                    disabled={!ok}
+                    onClick={() => put(p.id)}
+                    title={ok ? name : t(`${p.name.en} — can't be placed in the room yet`, `${p.name.ar} — لا يمكن وضعها في الغرفة بعد`)}
+                    className="group relative block aspect-square w-full border transition-colors enabled:hover:border-[#171512] disabled:cursor-not-allowed"
+                    style={{ borderColor: HAIR, backgroundColor: TILE }}
+                  >
+                    <img
+                      src={tileImg(p.id, p.img)}
+                      alt={name}
+                      className={`h-full w-full object-contain p-2 ${ok ? '' : 'opacity-35 grayscale'}`}
+                    />
+                    {ok && (
+                      <span className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center bg-white opacity-0 transition-opacity group-hover:opacity-100">
+                        <Plus size={11} strokeWidth={2} />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          /* nothing saved here yet — say so, and say where the pieces come from */
+          <div data-testid="composer-empty" className="mt-3 border border-dashed px-5 py-8 text-center" style={{ borderColor: HAIR }}>
+            {source === 'wishlist' ? (
+              <Heart size={22} strokeWidth={1.3} className="mx-auto" style={{ color: MUTED }} />
+            ) : (
+              <ShoppingBag size={22} strokeWidth={1.3} className="mx-auto" style={{ color: MUTED }} />
+            )}
+            <p className="mt-3 text-[14.5px] font-bold">
+              {source === 'wishlist' ? t('Nothing saved yet', 'لا شيء في المفضلة بعد') : t('Your cart is empty', 'سلتك فارغة')}
+            </p>
+            <p className="mx-auto mt-1.5 max-w-[26ch] text-[14px] leading-relaxed" style={{ color: MUTED }}>
+              {source === 'wishlist'
+                ? t('Tap the heart on any piece in the shop and it appears here.', 'اضغط القلب على أي قطعة في المتجر لتظهر هنا.')
+                : t('Add pieces to your cart to place them in the room.', 'أضف قطعاً إلى سلتك لتضعها في الغرفة.')}
+            </p>
+            <Link to={searchPath(1)} className={`mt-4 inline-block border-b pb-1 text-[11.5px] ${caps}`} style={{ borderColor: INK }}>
+              {t('Browse the shop', 'تصفّح المتجر')}
+            </Link>
+          </div>
+        )}
+
+        {unplaceable > 0 && (
+          <p data-testid="composer-unplaceable" className="mt-2.5 text-[13px] leading-relaxed" style={{ color: MUTED }}>
+            {isAr
+              ? unplaceable === 1
+                ? 'قطعة واحدة هنا لا يمكن وضعها في الغرفة بعد.'
+                : `${unplaceable} قطع هنا لا يمكن وضعها في الغرفة بعد.`
+              : `${unplaceable} ${unplaceable === 1 ? 'piece' : 'pieces'} here can't be placed in the room yet.`}
+          </p>
+        )}
 
         <div className="mt-8 border-t pt-6" style={{ borderColor: HAIR }}>
           <div className="flex items-baseline justify-between gap-4">
-            <span className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t(`In the room · ${products.length}`, `في الغرفة · ${products.length}`)}</span>
+            <span className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t(`In the room · ${products.length}`, `في الغرفة · ${products.length}`)}</span>
             <span className="font-['Outfit',sans-serif] text-[20px] font-bold tabular-nums">
-              {formatSAR(total)} <span className="text-[11px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
+              {formatSAR(total)} <span className="text-[13px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
             </span>
           </div>
           <button
@@ -342,13 +542,17 @@ function Composer() {
             data-testid="composer-to-cart"
             disabled={!products.length}
             onClick={() => {
-              products.forEach((p) => add(p.id));
-              toast(t('The room is in your cart.', 'الغرفة في سلتك.'));
+              if (missing.length) {
+                missing.forEach((p) => add(p.id));
+                toast(t('The room is in your cart.', 'الغرفة في سلتك.'));
+              }
               openCart();
             }}
             className={`mt-5 w-full py-4 disabled:opacity-50 ${primaryBtnCls(isAr)}`}
           >
-            {t('Add the room to cart', 'أضف الغرفة إلى السلة')}
+            {products.length && !missing.length
+              ? t('Everything is in your cart · View cart', 'كل القطع في سلتك · عرض السلة')
+              : t('Add the room to cart', 'أضف الغرفة إلى السلة')}
           </button>
         </div>
       </div>
@@ -361,6 +565,10 @@ function Composer() {
 /* ------------------------------------------------------------------ */
 
 type Msg = ChatThread['messages'][number];
+/** a conversation with a store wears that store's mark; Diyar's own threads wear Diyar's */
+const threadMark = (id: string) =>
+  ALL_STORES.find((x) => x.key === id)?.mark ?? (id === 'support' || id === DESIGNER_ID ? ALL_STORES[0].mark : undefined);
+type Attachment = { kind: 'photo'; src: string } | { kind: 'product'; id: number };
 
 export function ChatPage() {
   const { lang, t } = useLook();
@@ -368,10 +576,24 @@ export function ChatPage() {
   const caps = capsCls(isAr);
   const [sp, setSp] = useSearchParams();
   const want = sp.get('with');
+  // the designer page sends over what the visitor was doing, ready to send
+  const location = useLocation();
+  const handover = want === DESIGNER_ID ? (location.state as { draft?: string } | null)?.draft : undefined;
 
-  // a provider you have not written to yet gets a fresh thread
+  // a provider you have not written to yet gets a fresh thread; so does the Diyar designer
   const [threads, setThreads] = useState<ChatThread[]>(() => {
     const list = [...CHAT_THREADS];
+    // what the designer sent from their studio: the client's room, then the design made on it
+    const designs = loadSent();
+    if ((want === DESIGNER_ID || designs.length) && !list.some((x) => x.id === DESIGNER_ID)) {
+      list.unshift({
+        ...DESIGNER_THREAD,
+        messages: designs.flatMap((d): Msg[] => [
+          { from: 'me', at: d.sentAt, text: { en: '', ar: '' }, img: d.photo },
+          { from: 'them', at: d.sentAt, text: { en: d.note, ar: d.note }, design: d },
+        ]),
+      });
+    }
     const pv = PROVIDERS.find((p) => p.id === want);
     if (want && pv && !list.some((x) => x.id === want)) {
       list.unshift({ id: pv.id, name: pv.name, initials: pv.initials, role: { en: 'Service provider', ar: 'مقدم خدمة' }, messages: [] });
@@ -379,9 +601,70 @@ export function ChatPage() {
     return list;
   });
   const active = threads.find((x) => x.id === want) ?? (want ? undefined : threads[0]);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(handover ?? '');
   const [typing, setTyping] = useState(false);
+  /* attachments waiting to go with the next message: photos from the device, or
+     pieces from the wishlist (the client's note: «إمكانية إلقاء صور حتى من المفضلة») */
+  const wishlist = useWishlist();
+  const [staged, setStaged] = useState<Attachment[]>([]);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [pickOpen, setPickOpen] = useState(false);
+  const [picked, setPicked] = useState<number[]>([]);
+  const file = useRef<HTMLInputElement>(null);
+
+  /* Dropping things on the conversation: image files become photos, and a
+     product dragged in from the wishlist, the shop or a product page (its link
+     or its picture) becomes that piece. Pasting an image works the same way. */
+  const [dropping, setDropping] = useState(false);
+  const dragDepth = useRef(0);
+  const stagePhotos = (files: File[]) => {
+    const imgs = files.filter((f) => f.type.startsWith('image/'));
+    if (imgs.length) setStaged((l) => [...l, ...imgs.map((f) => ({ kind: 'photo' as const, src: URL.createObjectURL(f) }))]);
+    return imgs.length;
+  };
+  const productIdsIn = (dt: DataTransfer): number[] => {
+    const text = [dt.getData('text/uri-list'), dt.getData('text/plain'), dt.getData('text/html')].join(' ');
+    const ids = new Set<number>();
+    for (const m of text.matchAll(/\/look\/1\/product\/(\d+)/g)) ids.add(Number(m[1]));
+    for (const m of text.matchAll(/\/looks\/cutout\/p0?(\d+)\.webp/g)) ids.add(Number(m[1]));
+    return [...ids].filter((id) => CATALOG.some((x) => x.id === id));
+  };
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDropping(false);
+    const files: File[] = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+    if (stagePhotos(files)) return;
+    const ids = productIdsIn(e.dataTransfer);
+    if (ids.length) setStaged((l) => [...l, ...ids.map((id) => ({ kind: 'product' as const, id }))]);
+  };
+  // shown under the visitor's message once it has gone to the designer
+  const [sentToDesigner, setSentToDesigner] = useState(false);
   const end = useRef<HTMLDivElement>(null);
+
+  /* The message box grows with what is in it, up to about five lines: a
+     handed-over room is a few lines long, and a one-line field would show the
+     visitor only its first few words of what they are about to send. */
+  const box = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const fit = () => {
+      const el = box.current;
+      if (!el) return;
+      el.style.height = 'auto';
+      // border-box: the height has to cover the borders as well as the content
+      el.style.height = `${Math.min(el.scrollHeight + (el.offsetHeight - el.clientHeight), 140)}px`;
+    };
+    fit();
+    // measured once before the Arabic face has loaded, the box comes out a line
+    // short; fit again when it lands, and whenever the width changes
+    let alive = true;
+    document.fonts?.ready.then(() => alive && fit());
+    window.addEventListener('resize', fit);
+    return () => {
+      alive = false;
+      window.removeEventListener('resize', fit);
+    };
+  }, [draft, active?.id]);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest' });
@@ -390,11 +673,22 @@ export function ChatPage() {
   const push = (id: string, m: Msg) => setThreads((l) => l.map((x) => (x.id === id ? { ...x, messages: [...x.messages, m] } : x)));
   const send = (e: FormEvent) => {
     e.preventDefault();
-    if (!active || !draft.trim()) return;
+    if (!active || (!draft.trim() && staged.length === 0)) return;
     const text = draft.trim();
     const now = new Date().toTimeString().slice(0, 5);
-    push(active.id, { from: 'me', at: now, text: { en: text, ar: text } });
+    // attachments go first, each as its own message, then the words
+    for (const a of staged) {
+      push(active.id, { from: 'me', at: now, text: { en: '', ar: '' }, ...(a.kind === 'photo' ? { img: a.src } : { productId: a.id }) });
+    }
+    if (text) push(active.id, { from: 'me', at: now, text: { en: text, ar: text } });
     setDraft('');
+    setStaged([]);
+    setAttachOpen(false);
+    // a person answers this one, within minutes — no instant canned reply
+    if (active.id === DESIGNER_ID) {
+      setSentToDesigner(true);
+      return;
+    }
     setTyping(true);
     window.setTimeout(() => {
       setTyping(false);
@@ -403,6 +697,7 @@ export function ChatPage() {
   };
 
   const isProvider = active ? PROVIDERS.some((p) => p.id === active.id) : false;
+  const isDesigner = active?.id === DESIGNER_ID;
   const open = !!(active && want);
 
   return (
@@ -412,13 +707,13 @@ export function ChatPage() {
         <div className={`${CONTAINER} max-md:!px-0`}>
           <div className={`${open ? 'hidden md:flex' : 'flex'} flex-wrap items-end justify-between gap-4 px-6 pb-6 pt-8 md:px-0 md:pt-0`}>
             <div>
-              <p className={`text-[10px] ${caps}`} style={{ color: OLIVE }}>{t('Messages', 'الرسائل')}</p>
+              <p className={`text-[11px] ${caps}`} style={{ color: OLIVE }}>{t('Messages', 'الرسائل')}</p>
               <h1 className={`mt-2 ${displayCls(isAr, 'md')}`}>{t('Conversations', 'المحادثات')}</h1>
-              <p className="mt-2 text-[13px] font-light" style={{ color: '#4A443C' }}>
+              <p className="mt-2 text-[14.5px] font-light" style={{ color: '#4A443C' }}>
                 {t('Support replies within minutes, 9 am – 11 pm.', 'فريق الدعم يرد خلال دقائق، من 9 صباحاً حتى 11 مساءً.')}
               </p>
             </div>
-            <Link to={`${lookBase(1)}/help`} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            <Link to={`${lookBase(1)}/help`} className={`border-b pb-1 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
               {t('Help centre', 'مركز المساعدة')}
             </Link>
           </div>
@@ -431,9 +726,9 @@ export function ChatPage() {
           >
             {/* threads */}
             <aside className={`${open ? 'hidden md:flex' : 'flex'} min-h-0 flex-col border-e`} style={{ borderColor: HAIR }}>
-              <p className={`flex h-[73px] shrink-0 items-center justify-between border-b px-5 text-[11px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
+              <p className={`flex h-[73px] shrink-0 items-center justify-between border-b px-5 text-[11.5px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
                 {t('Inbox', 'البريد')}
-                <span className="font-['Outfit',sans-serif] text-[10px] font-medium" style={{ color: MUTED }}>{threads.length}</span>
+                <span className="font-['Outfit',sans-serif] text-[13px] font-medium" style={{ color: MUTED }}>{threads.length}</span>
               </p>
               <ul className="min-h-0 flex-1 overflow-y-auto">
                 {threads.map((th) => {
@@ -449,14 +744,14 @@ export function ChatPage() {
                         style={{ borderColor: HAIR, backgroundColor: on ? TILE : undefined }}
                       >
                         {on && <span aria-hidden className="absolute inset-y-0 start-0 w-[3px] bg-[#171512]" />}
-                        <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{th.initials}</span>
+                        <StoreMark store={{ initials: th.initials, mark: threadMark(th.id) }} className={`h-10 w-10 text-[13px] ${threadMark(th.id) ? 'border border-[#E8E4DC]' : ''}`} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
-                            <span className="truncate text-[13.5px] font-bold">{t(th.name.en, th.name.ar)}</span>
-                            {last && <span className="shrink-0 text-[10px]" style={{ color: MUTED }} dir="ltr">{last.at}</span>}
+                            <span className="truncate text-[15px] font-bold">{t(th.name.en, th.name.ar)}</span>
+                            {last && <span className="shrink-0 text-[13px]" style={{ color: MUTED }} dir="ltr">{last.at}</span>}
                           </span>
-                          <span className="mt-0.5 block text-[10px] font-medium" style={{ color: OLIVE }}>{t(th.role.en, th.role.ar)}</span>
-                          <span className="mt-1 block truncate text-[12px]" style={{ color: '#4A443C' }}>
+                          <span className="mt-0.5 block text-[13px] font-medium" style={{ color: OLIVE }}>{t(th.role.en, th.role.ar)}</span>
+                          <span className="mt-1 block truncate text-[14px]" style={{ color: '#4A443C' }}>
                             {last ? t(last.text.en, last.text.ar) : t('No messages yet', 'لا توجد رسائل بعد')}
                           </span>
                         </span>
@@ -469,51 +764,117 @@ export function ChatPage() {
 
             {/* conversation */}
             {active ? (
-              <section className={`${want ? 'flex' : 'hidden md:flex'} min-h-0 flex-col`}>
+              <section
+                data-testid="chat-drop"
+                className={`${want ? 'flex' : 'hidden md:flex'} relative min-h-0 flex-col`}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  dragDepth.current += 1;
+                  setDropping(true);
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDragLeave={() => {
+                  dragDepth.current = Math.max(0, dragDepth.current - 1);
+                  if (dragDepth.current === 0) setDropping(false);
+                }}
+                onDrop={onDrop}
+              >
+                {dropping && (
+                  <div className="pointer-events-none absolute inset-2 z-20 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#5A6B4D] bg-[#FDFCF9]/92 text-center" data-testid="chat-drop-hint">
+                    <ImagePlus size={26} strokeWidth={1.4} style={{ color: OLIVE }} />
+                    <p className="text-[15px] font-bold">{t('Drop it here', 'أفلت هنا')}</p>
+                    <p className="text-[14px]" style={{ color: MUTED }}>{t('Photos, or pieces from your wishlist', 'صور، أو قطع من المفضلة')}</p>
+                  </div>
+                )}
                 <header className="flex h-[73px] shrink-0 items-center gap-3 border-b bg-white px-5" style={{ borderColor: HAIR }}>
                   <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
                     <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                   </button>
-                  <span dir="ltr" className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[11px] font-bold text-white">{active.initials}</span>
+                  <StoreMark store={{ initials: active.initials, mark: threadMark(active.id) }} className={`h-10 w-10 text-[13px] ${threadMark(active.id) ? 'border border-[#E8E4DC]' : ''}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-bold">{t(active.name.en, active.name.ar)}</span>
-                    <span className="flex items-center gap-1.5 text-[11px]" style={{ color: MUTED }}>
+                    <span className="flex items-center gap-1.5 text-[13px]" style={{ color: MUTED }}>
                       <span className="h-1.5 w-1.5" style={{ backgroundColor: OLIVE }} />
-                      {t('Online', 'متصل')} · {t(active.role.en, active.role.ar)}
+                      {isDesigner ? t('Replies within minutes', 'يرد خلال دقائق') : t('Online', 'متصل')} · {t(active.role.en, active.role.ar)}
                     </span>
                   </span>
                   {isProvider && (
-                    <Link to={`${lookBase(1)}/provider/${active.id}`} className={`hidden shrink-0 border px-4 py-2 text-[10.5px] font-medium transition-colors hover:border-[#171512] sm:block ${caps}`} style={{ borderColor: '#C9C2B4' }}>
+                    <Link to={`${lookBase(1)}/provider/${active.id}`} className={`hidden shrink-0 border px-4 py-2 text-[11px] font-medium transition-colors hover:border-[#171512] sm:block ${caps}`} style={{ borderColor: '#C9C2B4' }}>
                       {t('View profile', 'عرض الملف')}
                     </Link>
                   )}
                 </header>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6 md:px-8" style={{ backgroundColor: TILE }} data-testid="chat-log">
-                  <p className="flex items-center gap-3 pb-2 text-[10px]" style={{ color: MUTED }}>
+                  <p className="flex items-center gap-3 pb-2 text-[13px]" style={{ color: MUTED }}>
                     <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
                     <span className={caps}>{t('Today', 'اليوم')}</span>
                     <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
                   </p>
-                  {active.messages.length === 0 && (
-                    <p className="py-10 text-center text-[13px]" style={{ color: '#4A443C' }}>
-                      {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
-                    </p>
+                  {isDesigner ? (
+                    /* stays at the top of the thread: what to expect, from whom */
+                    <div
+                      data-testid="designer-notice"
+                      className="mx-auto flex max-w-md items-start gap-3 border bg-white px-4 py-3.5 text-[14px] leading-relaxed"
+                      style={{ borderColor: '#E2DCD1' }}
+                    >
+                      <Clock size={16} strokeWidth={1.6} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
+                      <span>
+                        <span className="block font-bold text-[#171512]">
+                          {t('A designer from the Diyar team will reply within minutes.', 'سيرد عليك مصمم من فريق ديار خلال دقائق.')}
+                        </span>
+                        <span className="mt-0.5 block" style={{ color: '#4A443C' }}>
+                          {handover
+                            ? t('What you were designing is already written in the message below — add anything, then send.', 'ما كنت تصممه مكتوب في الرسالة أدناه — أضف ما تريد ثم أرسل.')
+                            : t('Tell us about your room and what you need, and we will take it from there.', 'أخبرنا عن غرفتك وما تحتاجه، وسنكمل معك.')}
+                        </span>
+                      </span>
+                    </div>
+                  ) : (
+                    active.messages.length === 0 && (
+                      <p className="py-10 text-center text-[14.5px]" style={{ color: '#4A443C' }}>
+                        {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
+                      </p>
+                    )
                   )}
                   {active.messages.map((m, i) => (
                     <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`max-w-[78%] px-4 py-3 text-[13.5px] leading-relaxed md:max-w-[62%] ${
+                        className={`${m.design ? 'w-full max-w-[460px] p-1.5 pb-2' : `max-w-[78%] md:max-w-[62%] ${m.img || m.productId !== undefined ? 'p-1.5 pb-2' : 'px-4 py-3'}`} text-[15px] leading-relaxed ${
                           m.from === 'me' ? 'bg-[#171512] text-white' : 'border bg-white text-[#171512] shadow-[0_1px_2px_rgba(23,21,18,0.06)]'
                         }`}
                         style={m.from === 'me' ? undefined : { borderColor: '#E2DCD1' }}
                       >
-                        {t(m.text.en, m.text.ar)}
-                        <span className={`mt-1 block text-[10px] ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
+                        {m.img && <img src={m.img} alt={t('Photo', 'صورة')} data-testid="chat-photo" className="mb-1 block max-h-[260px] w-auto max-w-full" />}
+                        {m.productId !== undefined &&
+                          (() => {
+                            const pr = CATALOG.find((x) => x.id === m.productId);
+                            if (!pr) return null;
+                            return (
+                              <Link to={productPath(1, pr.id)} data-testid="chat-product" className="mb-1 flex w-[220px] max-w-full items-center gap-3 bg-white p-2 text-[#171512]">
+                                <img src={tileImg(pr.id, pr.img)} alt="" className="h-14 w-14 shrink-0 object-contain" style={{ backgroundColor: TILE }} />
+                                <span className="min-w-0">
+                                  <span className="block truncate text-[14px] font-bold">{pr.name[lang]}</span>
+                                  <span className="mt-0.5 block font-['Outfit',sans-serif] text-[12px] tabular-nums">
+                                    {formatSAR(pr.price)} <span style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
+                                  </span>
+                                </span>
+                              </Link>
+                            );
+                          })()}
+                        {m.design && <ChatDesign design={m.design} />}
+                        {m.design ? <span className="block px-1.5 pt-1">{m.text.ar}</span> : t(m.text.en, m.text.ar)}
+                        <span className={`mt-1 block text-[13px] ${m.img || m.productId !== undefined || m.design ? 'px-1.5' : ''} ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
                           {m.at}
                         </span>
                       </div>
                     </div>
                   ))}
+                  {isDesigner && sentToDesigner && (
+                    <p data-testid="designer-receipt" className="flex items-center justify-end gap-1.5 text-[13px]" style={{ color: MUTED }}>
+                      <CheckCheck size={13} strokeWidth={1.8} style={{ color: OLIVE }} />
+                      {t('Sent · a designer will reply within minutes', 'أُرسلت · سيرد عليك مصمم خلال دقائق')}
+                    </p>
+                  )}
                   {typing && (
                     <div className="flex justify-start">
                       <span className="flex gap-1 border bg-white px-4 py-3.5" style={{ borderColor: '#E2DCD1' }} data-testid="chat-typing">
@@ -525,14 +886,103 @@ export function ChatPage() {
                   )}
                   <div ref={end} />
                 </div>
-                <form onSubmit={send} className="flex items-center gap-2 border-t bg-white p-3 md:p-4" style={{ borderColor: HAIR }}>
+                {staged.length > 0 && (
+                  <ul className="scrollbar-hide flex gap-2 overflow-x-auto border-t bg-white px-3 pt-3 md:px-4" style={{ borderColor: HAIR }} data-testid="chat-staged">
+                    {staged.map((a, i) => {
+                      const pr = a.kind === 'product' ? CATALOG.find((x) => x.id === a.id) : undefined;
+                      return (
+                        <li key={i} className="relative h-16 w-16 shrink-0 border" style={{ borderColor: HAIR, backgroundColor: TILE }}>
+                          <img src={a.kind === 'photo' ? a.src : pr ? tileImg(pr.id, pr.img) : ''} alt="" className={`h-full w-full ${a.kind === 'photo' ? 'object-cover' : 'object-contain p-1'}`} />
+                          {a.kind === 'product' && <Heart size={11} strokeWidth={2} className="absolute bottom-1 start-1 fill-[#B03A2E] text-[#B03A2E]" />}
+                          <button
+                            type="button"
+                            aria-label={t('Remove', 'إزالة')}
+                            onClick={() => setStaged((l) => l.filter((_, k) => k !== i))}
+                            className="absolute -end-1.5 -top-1.5 flex h-5 w-5 items-center justify-center bg-[#171512] text-white"
+                          >
+                            <X size={11} strokeWidth={2} />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <form onSubmit={send} className={`relative flex items-end gap-2 bg-white p-3 md:p-4 ${staged.length ? '' : 'border-t'}`} style={{ borderColor: HAIR }}>
                   <input
+                    ref={file}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    data-testid="chat-file"
+                    onChange={(e) => {
+                      const files: File[] = e.target.files ? Array.from(e.target.files) : [];
+                      if (files.length) setStaged((l) => [...l, ...files.map((f) => ({ kind: 'photo' as const, src: URL.createObjectURL(f) }))]);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    data-testid="chat-attach"
+                    aria-label={t('Attach a photo', 'إرفاق صورة')}
+                    aria-expanded={attachOpen}
+                    onClick={() => setAttachOpen((o) => !o)}
+                    className="flex h-12 w-12 shrink-0 items-center justify-center border transition-colors hover:border-[#171512]"
+                    style={{ borderColor: '#C9C2B4' }}
+                  >
+                    <ImagePlus size={18} strokeWidth={1.5} />
+                  </button>
+                  {attachOpen && (
+                    <div className="absolute bottom-full start-3 z-10 mb-1 w-[230px] border bg-white shadow-[0_18px_44px_rgba(23,21,18,0.16)] md:start-4" style={{ borderColor: HAIR }} data-testid="chat-attach-menu">
+                      <button
+                        type="button"
+                        data-testid="chat-attach-device"
+                        onClick={() => {
+                          setAttachOpen(false);
+                          file.current?.click();
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3.5 text-start text-[14.5px] font-medium transition-colors hover:bg-[#F6F3EC]"
+                      >
+                        <ImageIcon size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
+                        {t('Photo from your device', 'صورة من جهازك')}
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="chat-attach-wishlist"
+                        onClick={() => {
+                          setAttachOpen(false);
+                          setPicked([]);
+                          setPickOpen(true);
+                        }}
+                        className="flex w-full items-center gap-3 border-t px-4 py-3.5 text-start text-[14.5px] font-medium transition-colors hover:bg-[#F6F3EC]"
+                        style={{ borderColor: HAIR }}
+                      >
+                        <Heart size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
+                        {t('From your wishlist', 'من المفضلة')}
+                        <span className="ms-auto font-['Outfit',sans-serif] text-[13px]" style={{ color: MUTED }}>{wishlist.count}</span>
+                      </button>
+                    </div>
+                  )}
+                  <textarea
+                    ref={box}
+                    rows={1}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
+                    onPaste={(e) => {
+                      const files: File[] = e.clipboardData.files ? Array.from(e.clipboardData.files) : [];
+                      if (stagePhotos(files)) e.preventDefault();
+                    }}
+                    onKeyDown={(e) => {
+                      // Enter sends, Shift+Enter breaks the line; leave IME composition alone
+                      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault();
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
                     data-testid="chat-input"
                     placeholder={t('Write a message', 'اكتب رسالة')}
                     aria-label={t('Message', 'الرسالة')}
-                    className="h-12 min-w-0 flex-1 border bg-white px-4 text-[13.5px] outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
+                    className="block max-h-[140px] min-h-12 min-w-0 flex-1 resize-none border bg-white px-4 py-3 text-[15px] leading-relaxed outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
                     style={{ borderColor: '#C9C2B4' }}
                   />
                   <button type="submit" data-testid="chat-send" aria-label={t('Send', 'إرسال')} className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#171512] text-white transition-colors hover:bg-[#5A6B4D]">
@@ -541,11 +991,75 @@ export function ChatPage() {
                 </form>
               </section>
             ) : (
-              <div className="hidden items-center justify-center text-[13px] md:flex" style={{ color: MUTED, backgroundColor: TILE }}>{t('Choose a conversation', 'اختر محادثة')}</div>
+              <div className="hidden items-center justify-center text-[14.5px] md:flex" style={{ color: MUTED, backgroundColor: TILE }}>{t('Choose a conversation', 'اختر محادثة')}</div>
             )}
           </div>
         </div>
       </div>
+
+      <Sheet
+        open={pickOpen}
+        onClose={() => setPickOpen(false)}
+        side="center"
+        testId="chat-wishlist-sheet"
+        eyebrow={t('Wishlist', 'المفضلة')}
+        title={t('Send saved pieces', 'أرسل من قطعك المحفوظة')}
+        footer={
+          wishlist.count > 0 ? (
+            <button
+              type="button"
+              data-testid="chat-wishlist-add"
+              disabled={picked.length === 0}
+              onClick={() => {
+                setStaged((l) => [...l, ...picked.map((id) => ({ kind: 'product' as const, id }))]);
+                setPickOpen(false);
+              }}
+              className={`w-full py-4 disabled:opacity-50 ${primaryBtnCls(isAr)}`}
+            >
+              {picked.length ? t(`Attach ${picked.length}`, `إرفاق ${picked.length}`) : t('Choose pieces', 'اختر القطع')}
+            </button>
+          ) : undefined
+        }
+      >
+        {wishlist.count === 0 ? (
+          <div className="px-6 py-14 text-center">
+            <p className="text-[15px] font-light" style={{ color: '#4A443C' }}>{t('Your wishlist is empty.', 'قائمة المفضلة فارغة.')}</p>
+            <Link to={searchPath(1)} className="mt-5 inline-block border-b pb-1 text-[14px] font-medium" style={{ borderColor: INK }}>
+              {t('Browse the shop', 'تصفّح المتجر')}
+            </Link>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-3 gap-2.5 p-5">
+            {wishlist.ids.map((id) => {
+              const pr = CATALOG.find((x) => x.id === id);
+              if (!pr) return null;
+              const on = picked.includes(id);
+              return (
+                <li key={id}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    data-testid="chat-wishlist-item"
+                    onClick={() => setPicked((l) => (on ? l.filter((x) => x !== id) : [...l, id]))}
+                    className="relative block w-full border-2 text-start transition-colors"
+                    style={{ borderColor: on ? INK : 'transparent' }}
+                  >
+                    <span className="block aspect-square" style={{ backgroundColor: TILE }}>
+                      <img src={tileImg(pr.id, pr.img)} alt="" className="h-full w-full object-contain p-2" />
+                    </span>
+                    <span className="mt-1.5 block truncate px-1 pb-1 text-[13px] font-medium">{pr.name[lang]}</span>
+                    {on && (
+                      <span className="absolute end-1.5 top-1.5 flex h-5 w-5 items-center justify-center bg-[#171512] text-white">
+                        <Check size={12} strokeWidth={2.5} />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Sheet>
     </main>
   );
 }
@@ -567,14 +1081,14 @@ export function LoyaltyPage() {
       <div style={{ backgroundColor: NIGHT }}>
         <div className={`${CONTAINER} grid gap-10 py-14 md:py-20 lg:grid-cols-12`}>
           <div className="lg:col-span-7">
-            <p className={`text-[11px] ${caps}`} style={{ color: OLIVE_LT }}>{t(LOYALTY.eyebrow.en, LOYALTY.eyebrow.ar)}</p>
+            <p className={`text-[11.5px] ${caps}`} style={{ color: OLIVE_LT }}>{t(LOYALTY.eyebrow.en, LOYALTY.eyebrow.ar)}</p>
             <h1 className={`mt-4 text-white ${displayCls(isAr, 'xl')}`}>{t(LOYALTY.title.en, LOYALTY.title.ar)}</h1>
             <p className="mt-5 max-w-lg text-[15px] font-light leading-relaxed text-white/70">{t(LOYALTY.body.en, LOYALTY.body.ar)}</p>
           </div>
           <div className="border p-7 lg:col-span-5" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
-            <p className={`text-[10px] ${caps}`} style={{ color: 'rgba(246,243,236,0.6)' }}>{t('Your balance', 'رصيدك')}</p>
+            <p className={`text-[11px] ${caps}`} style={{ color: 'rgba(246,243,236,0.6)' }}>{t('Your balance', 'رصيدك')}</p>
             <p className="mt-2 font-['Outfit',sans-serif] text-[52px] font-bold leading-none tabular-nums text-white" data-testid="loyalty-points">{formatSAR(LOYALTY_POINTS)}</p>
-            <p className="mt-2 text-[13px] text-white/70">
+            <p className="mt-2 text-[14.5px] text-white/70">
               {t(`${tier.name.en} member · worth ${formatSAR(LOYALTY_POINTS / 10)} SAR`, `عضو ${tier.name.ar} · بقيمة ${formatSAR(LOYALTY_POINTS / 10)} ر.س`)}
             </p>
             {next && (
@@ -582,7 +1096,7 @@ export function LoyaltyPage() {
                 <div className="mt-6 h-1 w-full bg-white/15">
                   <div className="h-full" style={{ width: `${progress * 100}%`, backgroundColor: OLIVE_LT }} />
                 </div>
-                <p className="mt-2 text-[11px] text-white/60">
+                <p className="mt-2 text-[13px] text-white/60">
                   {t(`${formatSAR(next.from - LOYALTY_POINTS)} points to ${next.name.en}`, `${formatSAR(next.from - LOYALTY_POINTS)} نقطة للمستوى ${next.name.ar}`)}
                 </p>
               </>
@@ -600,7 +1114,7 @@ export function LoyaltyPage() {
             <li key={pk.title.en}>
               <pk.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
               <p className="mt-4 text-[15px] font-bold">{t(pk.title.en, pk.title.ar)}</p>
-              <p className="mt-2 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(pk.body.en, pk.body.ar)}</p>
+              <p className="mt-2 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(pk.body.en, pk.body.ar)}</p>
             </li>
           ))}
         </ul>
@@ -623,8 +1137,8 @@ export function LoyaltyPage() {
             {rows.map((h) => (
               <li key={h.label.en + h.date.en} className="flex items-center justify-between gap-4 border-b py-4" style={{ borderColor: HAIR }} data-testid="loyalty-row">
                 <span>
-                  <span className="block text-[14px] font-medium">{t(h.label.en, h.label.ar)}</span>
-                  <span className="mt-0.5 block text-[11px]" style={{ color: MUTED }}>{t(h.date.en, h.date.ar)}</span>
+                  <span className="block text-[15px] font-medium">{t(h.label.en, h.label.ar)}</span>
+                  <span className="mt-0.5 block text-[13px]" style={{ color: MUTED }}>{t(h.date.en, h.date.ar)}</span>
                 </span>
                 <span className="font-['Outfit',sans-serif] text-[15px] font-bold tabular-nums" dir="ltr" style={{ color: h.points > 0 ? OLIVE : '#B03A2E' }}>
                   {h.points > 0 ? '+' : ''}
@@ -657,11 +1171,11 @@ export function BlogIndexPage() {
               <img src={p.img} alt="" loading="lazy" className={`w-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.04] ${i === 0 ? 'aspect-[16/9]' : 'aspect-[4/3]'}`} />
             </Link>
             <div className={i === 0 ? 'lg:col-span-4' : ''}>
-              <p className={`mt-5 text-[10px] ${caps}`} style={{ color: OLIVE }}>{t(p.category.en, p.category.ar)} · {t(`${p.readMins} min`, `${p.readMins} د`)}</p>
+              <p className={`mt-5 text-[11px] ${caps}`} style={{ color: OLIVE }}>{t(p.category.en, p.category.ar)} · {t(`${p.readMins} min`, `${p.readMins} د`)}</p>
               <h2 className={`mt-3 font-bold leading-snug ${i === 0 ? 'text-[26px] md:text-[32px]' : 'text-[20px]'}`}>
                 <Link to={`${lookBase(1)}/blog/${postSlug(p)}`} className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">{t(p.title.en, p.title.ar)}</Link>
               </h2>
-              <p className="mt-3 text-[14px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(p.excerpt.en, p.excerpt.ar)}</p>
+              <p className="mt-3 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(p.excerpt.en, p.excerpt.ar)}</p>
             </div>
           </article>
         ))}
@@ -699,12 +1213,12 @@ export function ArticlePage() {
         ))}
         <div className="mt-12 flex flex-wrap items-center gap-6 border-t pt-8" style={{ borderColor: HAIR }}>
           <Link to={searchPath(1, { category: 'lighting' })} className={`px-8 py-4 ${primaryBtnCls(isAr)}`}>{t('Shop the edit', 'تسوّق المختارات')}</Link>
-          <Link to={`${lookBase(1)}/blog`} className={`text-[11px] font-medium ${caps}`} style={{ color: MUTED }}>{t('All articles', 'كل المقالات')}</Link>
+          <Link to={`${lookBase(1)}/blog`} className={`text-[11.5px] font-medium ${caps}`} style={{ color: MUTED }}>{t('All articles', 'كل المقالات')}</Link>
         </div>
       </article>
       <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>
         <div className={CONTAINER}>
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Keep reading', 'تابع القراءة')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Keep reading', 'تابع القراءة')}</p>
           <ul className="mt-6 grid gap-6 md:grid-cols-3">
             {more.map((p) => (
               <li key={p.title.en}>
@@ -717,6 +1231,71 @@ export function ArticlePage() {
           </ul>
         </div>
       </section>
+    </main>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Brands — every brand on the marketplace                              */
+/* ------------------------------------------------------------------ */
+
+export function BrandsPage() {
+  const { lang, t } = useLook();
+  const isAr = lang === 'ar';
+  const withOffers = new Set(CATALOG.filter((p) => p.oldPrice).map((p) => p.store as string));
+  return (
+    <main className="pt-[72px]" data-testid="brands-page">
+      <div className={`${CONTAINER} pt-8`}>
+        <Breadcrumb items={[home(t), { label: t('Brands', 'العلامات') }]} />
+        <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className={displayCls(isAr, 'md')}>{t('Brands', 'العلامات')}</h1>
+          <span className="text-[14.5px]" style={{ color: MUTED }}>{t(`${BRANDS.length} brands on Diyar`, `${BRANDS.length} علامة على ديار`)}</span>
+        </div>
+      </div>
+      <div className={`${CONTAINER} pb-16 pt-8`}>
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {BRANDS.map((b) => {
+            const store = b.store ? ALL_STORES.find((x) => x.key === b.store) : undefined;
+            const count = b.store ? CATALOG.filter((p) => p.store === b.store).length : 0;
+            const name = b.name[lang];
+            return (
+              <li key={b.name.en}>
+                <Link
+                  to={b.store ? `${lookBase(1)}/store/${b.store}` : searchPath(1, { q: name })}
+                  data-testid="brand-card"
+                  className="group relative flex h-full flex-col border bg-white transition-colors hover:border-[#171512]"
+                  style={{ borderColor: HAIR }}
+                >
+                  <span className="flex h-[132px] items-center justify-center px-6">
+                    {b.logo ? (
+                      <img src={b.logo} alt={name} loading="lazy" className="max-h-[58px] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.04]" />
+                    ) : (
+                      <span className="flex items-center gap-3">
+                        {b.mark && <img src={b.mark} alt="" loading="lazy" className="h-12 w-12 object-contain" />}
+                        <span className={`text-[20px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.06em]"}`}>{name}</span>
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex items-center justify-between gap-3 border-t px-4 py-3" style={{ borderColor: HAIR }}>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[14.5px] font-bold">{name}</span>
+                      <span className="block truncate text-[13px]" style={{ color: MUTED }}>
+                        {store ? `${store.specialty[lang]} · ${t(`${count} pieces`, `${count} قطعة`)}` : t('Sold on Diyar', 'تُباع على ديار')}
+                      </span>
+                    </span>
+                    <ArrowRight size={13} strokeWidth={1.5} className={`shrink-0 ${isAr ? 'rotate-180' : ''}`} style={{ color: MUTED }} />
+                  </span>
+                  {b.store && withOffers.has(b.store) && (
+                    <span className="absolute -top-2 end-3 rotate-[6deg] px-2.5 py-1 text-[12px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
+                      {t('Offers', 'عروض')}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </main>
   );
 }
@@ -740,6 +1319,8 @@ export function PagesIndex() {
         { label: t('Product', 'المنتج'), to: productPath(1, 1) },
         { label: t('Store', 'المتجر'), to: `${b}/store/bk` },
         { label: t('Store — reviews', 'المتجر — التقييمات'), to: `${b}/store/bk?tab=reviews` },
+        { label: t('Stores', 'المتاجر'), to: `${b}/stores` },
+        { label: t('Brands', 'العلامات'), to: `${b}/brands` },
         { label: t('Wishlist page', 'صفحة المفضلة'), to: `${b}/wishlist` },
         { label: t('Checkout', 'الدفع'), to: `${b}/checkout` },
       ],
@@ -764,7 +1345,8 @@ export function PagesIndex() {
       title: t('Services & business', 'الخدمات والشركات'),
       items: [
         { label: t('All services', 'كل الخدمات'), to: `${b}/services` },
-        { label: t('A service', 'خدمة'), to: `${b}/service/interior-design` },
+        { label: t('A service category', 'قسم خدمات'), to: `${b}/services/interior-design` },
+        { label: t('A service', 'خدمة'), to: `${b}/services/interior-design/residential-design` },
         { label: t('A provider', 'مقدم خدمة'), to: `${b}/provider/${PROVIDERS[0].id}` },
         { label: 'B2B', to: `${b}/b2b` },
         { label: t('A fit-out company', 'شركة تجهيز'), to: `${b}/b2b/${COMPANIES[0].id}` },
@@ -814,7 +1396,7 @@ export function PagesIndex() {
       <div className={`${CONTAINER} grid gap-10 py-12 md:grid-cols-2 md:py-16 lg:grid-cols-3`}>
         {groups.map((g) => (
           <section key={g.title}>
-            <p className={`border-b pb-3 text-[11px] font-bold ${caps}`} style={{ borderColor: INK }}>{g.title}</p>
+            <p className={`border-b pb-3 text-[11.5px] font-bold ${caps}`} style={{ borderColor: INK }}>{g.title}</p>
             <ul>
               {g.items.map((it) => {
                 const cls = 'flex w-full items-center justify-between gap-4 border-b py-3.5 text-start text-[14px] font-medium transition-colors hover:text-[#5A6B4D]';

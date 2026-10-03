@@ -78,13 +78,13 @@ export function MadeToOrder({ no }: { no: string }) {
                   style={{ borderColor: HAIR }}
                 >
                   <dt
-                    className={`shrink-0 text-[10px] text-neutral-400 ${
+                    className={`shrink-0 text-[11px] text-neutral-400 ${
                       isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'uppercase tracking-[0.26em]'
                     }`}
                   >
                     {t(f.k.en, f.k.ar)}
                   </dt>
-                  <dd className="text-end text-[13.5px] font-medium" style={{ color: OLIVE }}>
+                  <dd className="text-end text-[15px] font-medium" style={{ color: OLIVE }}>
                     {t(f.v.en, f.v.ar)}
                   </dd>
                 </div>
@@ -95,7 +95,7 @@ export function MadeToOrder({ no }: { no: string }) {
               <button type="button" onClick={() => openService(t('Custom Furniture', 'تنفيذ الأثاث'))} className={`${primaryBtnCls(isAr)} px-10 py-4`}>
                 {t('Request a Quote', 'اطلب عرض سعر')}
               </button>
-              <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} to={`${lookBase(1)}/search?tab=stores`} />
+              <ViewMore label={t('See the partner workshops', 'تعرّف على الورش الشريكة')} to={`${lookBase(1)}/stores`} />
             </div>
           </Reveal>
         </div>

@@ -9,12 +9,15 @@
  */
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { CATALOG, type CatalogProduct } from '../lookShared';
+import { unitPrice } from './sizes';
 
 export interface CartLine {
   uid: string;
   productId: number;
   /** the colour's English name — CatalogColor has no id of its own */
   colorKey?: string;
+  /** seats, for a sofa bought in a size other than its own */
+  seats?: number;
   qty: number;
 }
 
@@ -25,6 +28,7 @@ export interface CartView extends CartLine {
 
 interface AddOptions {
   colorKey?: string;
+  seats?: number;
   qty?: number;
 }
 
@@ -39,7 +43,7 @@ type CartCtx = {
 };
 
 const Ctx = createContext<CartCtx | null>(null);
-const lineId = (productId: number, colorKey?: string) => `${productId}:${colorKey ?? '-'}`;
+const lineId = (productId: number, colorKey?: string, seats?: number) => `${productId}:${colorKey ?? '-'}${seats ? `:${seats}` : ''}`;
 
 /** The demo opens with a cart in it, so the drawer and checkout have something to show. */
 const SEED: CartLine[] = [
@@ -51,13 +55,13 @@ export function LookCartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>(SEED);
 
   const add = useCallback((productId: number, opts: AddOptions = {}) => {
-    const uid = lineId(productId, opts.colorKey);
+    const uid = lineId(productId, opts.colorKey, opts.seats);
     const qty = Math.max(1, opts.qty ?? 1);
     setLines((prev) => {
       const found = prev.find((l) => l.uid === uid);
       // same product in the same colour is one line, as everywhere else in retail
       if (found) return prev.map((l) => (l.uid === uid ? { ...l, qty: l.qty + qty } : l));
-      return [{ uid, productId, colorKey: opts.colorKey, qty }, ...prev];
+      return [{ uid, productId, colorKey: opts.colorKey, seats: opts.seats, qty }, ...prev];
     });
   }, []);
 
@@ -78,7 +82,7 @@ export function LookCartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartCtx>(() => {
     const items = lines.flatMap<CartView>((l) => {
       const product = CATALOG.find((p) => p.id === l.productId);
-      return product ? [{ ...l, product, lineTotal: product.price * l.qty }] : [];
+      return product ? [{ ...l, product, lineTotal: unitPrice(product, l.seats) * l.qty }] : [];
     });
     return {
       items,

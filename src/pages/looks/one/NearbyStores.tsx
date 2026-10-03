@@ -579,7 +579,7 @@ export default function NearbyStores() {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeading eyebrow={t('Near You', 'بالقرب منك')} title={t('Stores Near You', 'متاجر قريبة منك')} />
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pb-2">
-              <span className="inline-flex items-center gap-2 text-[12px] text-neutral-500">
+              <span className="inline-flex items-center gap-2 text-[14px] text-neutral-500">
                 <MapPin size={14} strokeWidth={1.5} style={{ color: OLIVE }} />
                 {located ? t('Your Location', 'موقعك الحالي') : t(MAP_ORIGIN.label.en, MAP_ORIGIN.label.ar)}
               </span>
@@ -588,7 +588,7 @@ export default function NearbyStores() {
                 data-testid="nearby-locate"
                 onClick={locateMe}
                 disabled={locate === 'busy'}
-                className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] disabled:opacity-50 ${caps}`}
+                className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] disabled:opacity-50 ${caps}`}
                 style={{ borderColor: INK }}
               >
                 <LocateFixed size={13} strokeWidth={1.5} />
@@ -597,7 +597,7 @@ export default function NearbyStores() {
             </div>
           </div>
           {(locate === 'error' || locate === 'far') && (
-            <p role="status" className="mt-4 text-[12px] text-neutral-500">
+            <p role="status" className="mt-4 text-[14px] text-neutral-500">
               {locate === 'far'
                 ? t('Our stores are in Jeddah for now, so the map stays on the city.', 'فروعنا حالياً في جدة، لذلك تبقى الخريطة على المدينة.')
                 : t("We couldn't get your location, so the map stays on Jeddah.", 'تعذّر تحديد موقعك، لذلك تبقى الخريطة على جدة.')}
@@ -622,7 +622,7 @@ export default function NearbyStores() {
             {/* how to zoom — top-start on small screens, centred on the free part of the map on desktop */}
             <p
               data-testid="nearby-hint"
-              className={`pointer-events-none absolute start-4 top-4 z-10 max-w-[calc(100%-5.5rem)] truncate whitespace-nowrap border bg-[#FDFCF9]/90 px-3 py-1.5 text-[10px] text-neutral-500 backdrop-blur-sm lg:start-auto lg:max-w-none lg:-translate-x-1/2 lg:ltr:left-[calc(50%+204px)] lg:rtl:left-[calc(50%-204px)] ${
+              className={`pointer-events-none absolute start-4 top-4 z-10 max-w-[calc(100%-5.5rem)] truncate whitespace-nowrap border bg-[#FDFCF9]/90 px-3 py-1.5 text-[11px] text-neutral-500 backdrop-blur-sm lg:start-auto lg:max-w-none lg:-translate-x-1/2 lg:ltr:left-[calc(50%+204px)] lg:rtl:left-[calc(50%-204px)] ${
                 isAr ? 'tracking-normal' : 'uppercase tracking-[0.12em]'
               }`}
               style={{ borderColor: HAIR }}
@@ -640,7 +640,7 @@ export default function NearbyStores() {
                 <span
                   dir="ltr"
                   data-testid="nearby-coords"
-                  className="mt-1 block font-['Outfit',sans-serif] text-[11px] font-medium tabular-nums tracking-[0.08em] text-[#171512]"
+                  className="mt-1 block font-['Outfit',sans-serif] text-[11.5px] font-medium tabular-nums tracking-[0.08em] text-[#171512]"
                 >
                   {center.lat.toFixed(4)}° · {center.lng.toFixed(4)}°
                 </span>
@@ -686,7 +686,7 @@ export default function NearbyStores() {
                 data-testid="nearby-open-toggle"
                 aria-pressed={openOnly}
                 onClick={toggleOpen}
-                className={`inline-flex items-center gap-2 border px-3 py-2 text-[11px] font-medium transition-colors ${caps} ${
+                className={`inline-flex items-center gap-2 border px-3 py-2 text-[11.5px] font-medium transition-colors ${caps} ${
                   openOnly ? 'border-[#171512] bg-[#171512] text-white' : 'border-[#E8E4DC] text-[#171512] hover:border-[#171512]'
                 }`}
               >
@@ -697,7 +697,7 @@ export default function NearbyStores() {
 
             <div ref={listRef} className="relative overscroll-contain lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
               {shown.length === 0 ? (
-                <p className="px-5 py-10 text-center text-[13px] font-light text-neutral-500">
+                <p className="px-5 py-10 text-center text-[14.5px] font-light text-neutral-500">
                   {t('No locations are open right now.', 'لا توجد فروع مفتوحة الآن.')}
                 </p>
               ) : (
@@ -733,7 +733,7 @@ export default function NearbyStores() {
                           <span
                             dir="ltr"
                             aria-hidden
-                            className={`relative flex h-[62px] w-[54px] shrink-0 items-center justify-center overflow-hidden font-['Outfit',sans-serif] text-[12px] font-bold tracking-[0.06em] text-white transition-colors ${
+                            className={`relative flex h-[62px] w-[54px] shrink-0 items-center justify-center overflow-hidden font-['Outfit',sans-serif] text-[14px] font-bold tracking-[0.06em] text-white transition-colors ${
                               isActive ? 'bg-[#5A6B4D]' : 'bg-[#171512]'
                             }`}
                           >
@@ -757,10 +757,10 @@ export default function NearbyStores() {
                             <span className={`block truncate font-bold ${isAr ? 'text-[14px]' : 'text-[12px] uppercase tracking-[0.16em]'}`}>
                               {t(store.name.en, store.name.ar)}
                             </span>
-                            <span className="mt-1 block truncate text-[12px] font-light text-neutral-500">
+                            <span className="mt-1 block truncate text-[14px] font-light text-neutral-500">
                               {t(loc.district.en, loc.district.ar)}
                             </span>
-                            <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
+                            <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
                               <span
                                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${open ? '' : 'border border-neutral-400'}`}
                                 style={open ? { backgroundColor: OLIVE } : undefined}
@@ -778,14 +778,14 @@ export default function NearbyStores() {
                             <span className="block font-['Outfit',sans-serif] text-[22px] font-light leading-none tabular-nums">
                               {fmtKm(km)}
                             </span>
-                            <span className={`mt-1.5 block text-[10px] text-neutral-400 ${caps}`}>{t('km', 'كم')}</span>
+                            <span className={`mt-1.5 block text-[11px] text-neutral-400 ${caps}`}>{t('km', 'كم')}</span>
                           </span>
                         </button>
 
                         {isActive && (
                           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pb-4 pe-5 ps-[76px]">
                             {loc.closedOn !== undefined && (
-                              <span className="w-full text-[11px] text-neutral-500">
+                              <span className="w-full text-[13px] text-neutral-500">
                                 {t(`Closed ${DAYS.en[loc.closedOn]}`, `مغلق يوم ${DAYS.ar[loc.closedOn]}`)}
                               </span>
                             )}
@@ -794,7 +794,7 @@ export default function NearbyStores() {
                               target="_blank"
                               rel="noopener noreferrer"
                               data-testid="nearby-directions"
-                              className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+                              className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
                               style={{ borderColor: INK }}
                             >
                               {t('Directions', 'الاتجاهات')}
@@ -810,7 +810,7 @@ export default function NearbyStores() {
               )}
             </div>
 
-            <p className="border-t px-5 py-3 text-[11px] font-light text-neutral-400" style={{ borderColor: HAIR }}>
+            <p className="border-t px-5 py-3 text-[13px] font-light text-neutral-400" style={{ borderColor: HAIR }}>
               {t(`Straight-line distance from ${originName}.`, `المسافة بخط مستقيم من ${originName}.`)}
             </p>
           </div>

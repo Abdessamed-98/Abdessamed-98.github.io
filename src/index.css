@@ -127,3 +127,22 @@
 .article-content ol { list-style: decimal; }
 .article-content li { margin-bottom: 0.5rem; }
 
+/* Partner dashboard type scale. The site shrinks the root to 14px on laptops,
+   which left the dashboard's small text at 10.5–12px; here the sizes are fixed.
+   Alexandria is heavy at 700, so "bold" is 600 and only page titles keep 700. */
+.dash {
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 19px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+  --text-4xl: 34px;
+  --font-weight-bold: 600;
+  font-size: 15px;
+}
+.dash h1,
+.dash h2 {
+  font-weight: 700;
+}

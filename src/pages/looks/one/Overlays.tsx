@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, MessageSquareText, Phone, Sparkles, X, MessageSquare } from 'lucide-react';
+import { ArrowRight, MessageSquareText, Phone, Sparkles, X, MessageSquare, PencilRuler } from 'lucide-react';
 import { FOOTER_LINKS, lookBase, searchPath } from '../lookShared';
 import { primaryBtnCls, useLook } from './ui';
 import { capsCls } from './kit';
@@ -70,7 +70,7 @@ export function AnnouncementBar({ show }: { show: boolean }) {
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="relative z-10 overflow-hidden bg-[#14120F] text-[#F6F3EC]"
         >
-          <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-center gap-4 px-10 text-[11.5px]">
+          <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-center gap-4 px-10 text-[13px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={i}
@@ -81,7 +81,7 @@ export function AnnouncementBar({ show }: { show: boolean }) {
                 className="flex min-w-0 items-center gap-3"
               >
                 <span className="truncate font-light">{it.text}</span>
-                <Link to={it.to} className={`hidden shrink-0 items-center gap-1.5 border-b border-white/40 pb-px font-medium hover:border-white sm:inline-flex ${capsCls(isAr)} text-[10px]`}>
+                <Link to={it.to} className={`hidden shrink-0 items-center gap-1.5 border-b border-white/40 pb-px font-medium hover:border-white sm:inline-flex ${capsCls(isAr)} text-[11px]`}>
                   {it.cta}
                   <ArrowRight size={11} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                 </Link>
@@ -236,11 +236,11 @@ export function PromoPopup({ active }: { active: boolean }) {
           >
             <img src="/looks/promo/lead-summer.webp" alt="" className="aspect-[4/3] h-full w-full object-cover md:aspect-auto" />
             <div className="flex flex-col justify-center p-8 md:p-10">
-              <p className={`text-[10px] font-semibold ${capsCls(isAr)}`} style={{ color: '#B03A2E' }}>{t('Limited time', 'لفترة محدودة')}</p>
+              <p className={`text-[11px] font-semibold ${capsCls(isAr)}`} style={{ color: '#B03A2E' }}>{t('Limited time', 'لفترة محدودة')}</p>
               <p className={`mt-4 text-[28px] font-extrabold leading-tight md:text-[34px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
                 {t('Summer sale — up to 40% off sofas', 'عروض الصيف — خصم حتى 40% على الأرائك')}
               </p>
-              <p className="mt-4 text-[14px] font-light leading-relaxed text-[#4A443C]">
+              <p className="mt-4 text-[15px] font-light leading-relaxed text-[#4A443C]">
                 {t('While stock lasts. Delivery and installation included.', 'حتى نفاد الكمية. التوصيل والتركيب مشمولان.')}
               </p>
               <Link to={searchPath(1, { sale: true })} onClick={() => setOpen(false)} data-testid="promo-popup-cta" className={`mt-8 self-start px-9 py-4 ${primaryBtnCls(isAr)}`}>
@@ -261,5 +261,59 @@ export function PromoPopup({ active }: { active: boolean }) {
       )}
     </AnimatePresence>,
     document.body,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Side contact — a designer, or WhatsApp                               */
+/* ------------------------------------------------------------------ */
+
+/** WhatsApp's mark (lucide has none). */
+function WhatsAppIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.12-.27-.2-.57-.35zM12.05 21.8h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.9-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.89 9.88zm8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.9c0 2.1.55 4.14 1.59 5.94L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.9 0-3.18-1.24-6.17-3.48-8.4z" />
+    </svg>
+  );
+}
+
+/**
+ * Two ways to a person, where the look switcher used to hang: Diyar's own
+ * designer (a chat with the design team — not the AI tool), and
+ * WhatsApp. Icons at rest; the label slides out on hover or focus.
+ */
+export function SideContact() {
+  const { lang, t } = useLook();
+  const phone = FOOTER_LINKS.phone.replace(/[^0-9]/g, '');
+  const hello = encodeURIComponent(t('Hello Diyar, I have a question.', 'مرحباً ديار، لدي استفسار.'));
+  const item = 'group/sc flex h-11 items-center overflow-hidden text-white shadow-[0_10px_26px_rgba(23,21,18,0.22)] md:h-12';
+  const icon = 'flex h-11 w-11 shrink-0 items-center justify-center md:h-12 md:w-12';
+  const label = `max-w-0 whitespace-nowrap text-[12px] font-medium opacity-0 transition-all duration-300 group-hover/sc:max-w-[180px] group-hover/sc:pl-1.5 group-hover/sc:pr-5 group-hover/sc:opacity-100 group-focus-visible/sc:max-w-[180px] group-focus-visible/sc:pl-1.5 group-focus-visible/sc:pr-5 group-focus-visible/sc:opacity-100 ${
+    lang === 'ar' ? '' : 'uppercase tracking-[0.12em] text-[11px]'
+  }`;
+  return (
+    <div dir="ltr" className="fixed left-0 top-1/2 z-[45] flex -translate-y-1/2 flex-col items-start gap-1.5" data-testid="side-contact">
+      {/* the same conversation the AI designer's "chat with a designer" opens: Diyar's own designer */}
+      <Link
+        to={`${lookBase(1)}/chat?with=diyar-designer`}
+        data-testid="side-designer"
+        aria-label={t('Consult a designer', 'استشر مصمم')}
+        className={`${item} border border-s-0 border-white/15 bg-[#171512] transition-colors hover:bg-[#5A6B4D]`}
+      >
+        <span className={icon}><PencilRuler size={19} strokeWidth={1.5} /></span>
+        <span className={label} dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t('Consult a designer', 'استشر مصمم')}</span>
+      </Link>
+      <a
+        data-testid="side-whatsapp"
+        aria-label={t('WhatsApp', 'واتساب')}
+        href={`https://wa.me/${phone}?text=${hello}`}
+        target="_blank"
+        rel="noreferrer"
+        className={`${item} bg-[#25D366] transition-colors hover:bg-[#1EBE5A]`}
+      >
+        <span className={icon}><WhatsAppIcon size={21} /></span>
+        <span className={label} dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t('WhatsApp', 'واتساب')}</span>
+      </a>
+    </div>
   );
 }

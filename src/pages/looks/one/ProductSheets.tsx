@@ -71,13 +71,13 @@ export function TryAISheet({ open, onClose, p }: { open: boolean; onClose: () =>
             {stage === 'working' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#171512]/30 text-white">
                 <Sparkles size={22} strokeWidth={1.4} className="animate-pulse" />
-                <span className={`text-[11px] font-medium ${caps}`}>{t('Placing the piece…', 'جاري وضع القطعة…')}</span>
+                <span className={`text-[11.5px] font-medium ${caps}`}>{t('Placing the piece…', 'جاري وضع القطعة…')}</span>
                 <span className="h-px w-40 overflow-hidden bg-white/25">
                   <motion.span className="block h-full w-full bg-white" style={{ transformOrigin: isAr ? 'right' : 'left' }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1.6, ease: 'easeOut' }} />
                 </span>
               </div>
             )}
-            <span className={`absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[10px] font-semibold ${caps}`}>
+            <span className={`absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[11px] font-semibold ${caps}`}>
               {photo ? t('Your photo', 'صورتك') : t('Sample room', 'غرفة نموذجية')}
             </span>
           </div>
@@ -85,7 +85,7 @@ export function TryAISheet({ open, onClose, p }: { open: boolean; onClose: () =>
 
         <div className="mt-5 flex items-center gap-4 border p-3" style={{ borderColor: HAIR }}>
           <img src={p.img} alt="" className="h-14 w-14 shrink-0 object-contain p-1" style={{ backgroundColor: TILE }} />
-          <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{t(p.name.en, p.name.ar)}</span>
+          <span className="min-w-0 flex-1 truncate text-[14.5px] font-bold">{t(p.name.en, p.name.ar)}</span>
         </div>
 
         <input
@@ -103,7 +103,7 @@ export function TryAISheet({ open, onClose, p }: { open: boolean; onClose: () =>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {stage === 'done' ? (
-            <button type="button" onClick={() => setStage('pick')} className={`h-12 border text-[11px] font-medium transition-colors hover:border-[#171512] ${caps}`} style={{ borderColor: HAIR }}>
+            <button type="button" onClick={() => setStage('pick')} className={`h-12 border text-[11.5px] font-medium transition-colors hover:border-[#171512] ${caps}`} style={{ borderColor: HAIR }}>
               {t('Try another photo', 'جرّب صورة أخرى')}
             </button>
           ) : (
@@ -111,7 +111,7 @@ export function TryAISheet({ open, onClose, p }: { open: boolean; onClose: () =>
               type="button"
               data-testid="ai-upload"
               onClick={() => file.current?.click()}
-              className={`inline-flex h-12 items-center justify-center gap-2 border text-[11px] font-medium transition-colors hover:border-[#171512] ${caps}`}
+              className={`inline-flex h-12 items-center justify-center gap-2 border text-[11.5px] font-medium transition-colors hover:border-[#171512] ${caps}`}
               style={{ borderColor: HAIR }}
             >
               <Upload size={14} strokeWidth={1.5} />
@@ -130,7 +130,7 @@ export function TryAISheet({ open, onClose, p }: { open: boolean; onClose: () =>
             </button>
           )}
         </div>
-        <p className="mt-4 text-center text-[11px]" style={{ color: MUTED }}>
+        <p className="mt-4 text-center text-[13px]" style={{ color: MUTED }}>
           {t('Demo preview — photos stay on your device.', 'معاينة توضيحية — صورك تبقى على جهازك.')}
         </p>
       </div>
@@ -164,8 +164,8 @@ export function ShareSheet({ open, onClose, title }: { open: boolean; onClose: (
     <Sheet open={open} onClose={onClose} side="center" testId="share-sheet" eyebrow={title} title={t('Share', 'مشاركة')}>
       <div className="px-6 py-6">
         <div className="flex items-stretch border" style={{ borderColor: HAIR }}>
-          <input readOnly value={url} dir="ltr" onFocus={(e) => e.currentTarget.select()} className="min-w-0 flex-1 bg-transparent px-4 text-[12px] outline-none" style={{ color: MUTED }} aria-label={t('Link', 'الرابط')} />
-          <button type="button" data-testid="share-copy" onClick={copy} className={`inline-flex shrink-0 items-center gap-2 bg-[#171512] px-5 py-3.5 text-[11px] font-medium text-white ${caps}`}>
+          <input readOnly value={url} dir="ltr" onFocus={(e) => e.currentTarget.select()} className="min-w-0 flex-1 bg-transparent px-4 text-[14px] outline-none" style={{ color: MUTED }} aria-label={t('Link', 'الرابط')} />
+          <button type="button" data-testid="share-copy" onClick={copy} className={`inline-flex shrink-0 items-center gap-2 bg-[#171512] px-5 py-3.5 text-[11.5px] font-medium text-white ${caps}`}>
             {copied ? <Check size={13} strokeWidth={2} /> : <Link2 size={13} strokeWidth={1.5} />}
             {copied ? t('Copied', 'تم النسخ') : t('Copy', 'نسخ')}
           </button>
@@ -173,13 +173,13 @@ export function ShareSheet({ open, onClose, title }: { open: boolean; onClose: (
         <ul className="mt-5 divide-y divide-[#E8E4DC] border" style={{ borderColor: HAIR }}>
           <li style={{ borderColor: HAIR }}>
             <a className={row} href={`https://wa.me/?text=${text}`} target="_blank" rel="noreferrer">
-              <span className="flex h-8 w-8 items-center justify-center font-['Outfit',sans-serif] text-[11px] font-bold text-white" style={{ backgroundColor: '#25D366' }}>W</span>
+              <span className="flex h-8 w-8 items-center justify-center font-['Outfit',sans-serif] text-[13px] font-bold text-white" style={{ backgroundColor: '#25D366' }}>W</span>
               WhatsApp
             </a>
           </li>
           <li style={{ borderColor: HAIR }}>
             <a className={row} href={`https://x.com/intent/post?text=${text}`} target="_blank" rel="noreferrer">
-              <span className="flex h-8 w-8 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white">X</span>
+              <span className="flex h-8 w-8 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[14px] font-bold text-white">X</span>
               X
             </a>
           </li>

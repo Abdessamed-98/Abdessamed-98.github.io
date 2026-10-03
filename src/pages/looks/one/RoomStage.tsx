@@ -25,6 +25,7 @@
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
+  AnimatePresence,
   motion,
   useMotionValueEvent,
   useReducedMotion,
@@ -64,12 +65,15 @@ export function RoomStage({
   title,
   img,
   alt,
+  selector,
   children,
 }: {
   eyebrow: string;
   title: string;
   img: string;
   alt: string;
+  /** the room picker: over the photo's bottom edge from md, under the photo on phones */
+  selector?: ReactNode;
   /** the hotspots, positioned in % of the photo */
   children: ReactNode;
 }) {
@@ -135,7 +139,19 @@ export function RoomStage({
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
               style={{ ...COVER_BOX, ...(animate ? { scale: imgScale } : {}) }}
             >
-              <img src={img} alt={alt} className="h-full w-full object-cover" />
+              {/* rooms cross-fade: the new photograph comes up over the old one */}
+              <AnimatePresence initial={false}>
+                <motion.img
+                  key={img}
+                  src={img}
+                  alt={alt}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </AnimatePresence>
             </motion.div>
 
             {/* a light floor shade so the white dots read, and a cream fade at the top
@@ -192,8 +208,18 @@ export function RoomStage({
             </motion.div>
           )}
 
+          {selector && (
+            <div
+              className={`absolute bottom-8 end-10 z-20 hidden md:block ${
+                animate ? `transition-opacity duration-700 ease-out ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}` : ''
+              }`}
+            >
+              {selector}
+            </div>
+          )}
+
           <p
-            className={`pointer-events-none absolute bottom-8 start-10 z-20 hidden border border-[#E8E4DC] bg-[#FDFCF9]/90 px-3.5 py-2 text-[11px] text-neutral-600 backdrop-blur-sm md:block ${caps} ${
+            className={`pointer-events-none absolute bottom-8 start-10 z-20 hidden border border-[#E8E4DC] bg-[#FDFCF9]/90 px-3.5 py-2 text-[11.5px] text-neutral-600 backdrop-blur-sm md:block ${caps} ${
               animate ? `transition-opacity duration-700 ease-out ${open ? 'opacity-100' : 'opacity-0'}` : ''
             }`}
           >
@@ -202,7 +228,9 @@ export function RoomStage({
         </div>
       </div>
 
-      <p className="px-6 pt-4 text-[13px] font-light text-neutral-500 md:hidden">
+      {selector && <div className="pt-4 md:hidden">{selector}</div>}
+
+      <p className="px-6 pt-4 text-[14.5px] font-light text-neutral-500 md:hidden">
         {t('Tap any point to explore the products in this space.', 'اضغط على أي نقطة لاستكشاف منتجات هذه المساحة.')}
       </p>
     </div>

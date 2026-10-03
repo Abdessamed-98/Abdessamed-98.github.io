@@ -109,7 +109,7 @@ export function AuthSheet({
                 data-testid={`auth-mode-${m}`}
                 onClick={() => setView(m)}
                 aria-pressed={view === m}
-                className={`flex-1 py-3 text-[11px] font-medium transition-colors ${capsCls(isAr)} ${
+                className={`flex-1 py-3 text-[11.5px] font-medium transition-colors ${capsCls(isAr)} ${
                   view === m ? 'bg-[#171512] text-white' : 'hover:text-[#171512]'
                 }`}
                 style={view === m ? undefined : { color: MUTED }}
@@ -122,7 +122,7 @@ export function AuthSheet({
 
         {view === 'up' && (
           <fieldset className="mb-6">
-            <legend className={`mb-3 text-[11px] font-medium ${capsCls(isAr)}`} style={{ color: MUTED }}>
+            <legend className={`mb-3 text-[11.5px] font-medium ${capsCls(isAr)}`} style={{ color: MUTED }}>
               {t('I am joining as', 'أنضم بصفتي')}
             </legend>
             <div className="grid grid-cols-2 gap-2" role="radiogroup">
@@ -141,8 +141,8 @@ export function AuthSheet({
                   >
                     <r.icon size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" style={{ color: on ? OLIVE : MUTED }} />
                     <span className="min-w-0">
-                      <span className="block text-[12px] font-bold">{r.title}</span>
-                      <span className="mt-0.5 block text-[11px] font-light leading-snug" style={{ color: MUTED }}>
+                      <span className="block text-[14px] font-bold">{r.title}</span>
+                      <span className="mt-0.5 block text-[13px] font-light leading-snug" style={{ color: MUTED }}>
                         {r.line}
                       </span>
                     </span>
@@ -163,14 +163,14 @@ export function AuthSheet({
           )}
           {view === 'otp' && (
             <div>
-              <p className="mb-5 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+              <p className="mb-5 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
                 {t(`We sent a 4-digit code to ${form.phone}.`, `أرسلنا رمزاً من 4 أرقام إلى ${form.phone}.`)}
               </p>
               <CodeInput value={form.code} onChange={set('code')} />
               <button
                 type="button"
                 onClick={() => onNotice?.(t('A new code is on its way.', 'تم إرسال رمز جديد.'))}
-                className="mt-4 text-[11px] underline-offset-4 hover:underline"
+                className="mt-4 text-[13px] underline-offset-4 hover:underline"
                 style={{ color: MUTED }}
               >
                 {t('Resend code in 0:42', 'إعادة الإرسال خلال 0:42')}
@@ -181,7 +181,7 @@ export function AuthSheet({
             <TextField id="au-next" label={t('New password', 'كلمة المرور الجديدة')} value={form.next} onChange={set('next')} type="password" required />
           )}
           {view === 'forgot' && (
-            <p className="text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+            <p className="text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
               {t('Enter the number on your account and we will text you a code.', 'أدخل الرقم المسجل في حسابك وسنرسل لك رمزاً.')}
             </p>
           )}
@@ -197,7 +197,7 @@ export function AuthSheet({
             type="button"
             data-testid="auth-forgot"
             onClick={() => setView('forgot')}
-            className="mt-4 block w-full text-center text-[11px] underline-offset-4 hover:underline"
+            className="mt-4 block w-full text-center text-[13px] underline-offset-4 hover:underline"
             style={{ color: MUTED }}
           >
             {t('Forgot your password?', 'نسيت كلمة المرور؟')}
@@ -207,14 +207,14 @@ export function AuthSheet({
           <button
             type="button"
             onClick={() => setView('in')}
-            className="mt-4 block w-full text-center text-[11px] underline-offset-4 hover:underline"
+            className="mt-4 block w-full text-center text-[13px] underline-offset-4 hover:underline"
             style={{ color: MUTED }}
           >
             {t('Back to sign in', 'العودة لتسجيل الدخول')}
           </button>
         )}
 
-        <p className="mt-6 flex items-center justify-center gap-2 border-t pt-5 text-[11px]" style={{ borderColor: HAIR, color: MUTED }}>
+        <p className="mt-6 flex items-center justify-center gap-2 border-t pt-5 text-[13px]" style={{ borderColor: HAIR, color: MUTED }}>
           <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: OLIVE }} />
           {t('Demo — details are filled in and nothing is sent.', 'عرض توضيحي — البيانات معبأة ولا يُرسل شيء.')}
         </p>

@@ -105,7 +105,7 @@ export default function CheckoutPage() {
 
         {items.length === 0 ? (
           <div className="mt-16 border py-20 text-center" style={{ borderColor: HAIR }}>
-            <p className={`text-[11px] text-[#5F5950] ${caps}`}>{t('Empty cart', 'السلة فارغة')}</p>
+            <p className={`text-[11.5px] text-[#5F5950] ${caps}`}>{t('Empty cart', 'السلة فارغة')}</p>
             <p className="mt-3 text-[15px] font-light text-[#4A443C]">
               {t('There is nothing to check out yet.', 'لا توجد منتجات لإتمام طلبها بعد.')}
             </p>
@@ -170,7 +170,7 @@ export default function CheckoutPage() {
 
                 <div className="mt-5 flex items-start gap-3 border px-4 py-3.5" style={{ borderColor: HAIR, backgroundColor: TILE }}>
                   <Truck size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
-                  <p className="text-[12px] font-light leading-relaxed text-[#4A443C]">
+                  <p className="text-[14px] font-light leading-relaxed text-[#4A443C]">
                     {t(
                       'Kingdom-wide delivery with professional assembly by our own crews. Free over 3,000 SAR.',
                       'توصيل لكل مناطق المملكة مع تركيب احترافي على يد فرقنا. مجاناً لما يتجاوز 3,000 ر.س.',
@@ -200,13 +200,13 @@ export default function CheckoutPage() {
                           className="sr-only"
                         />
                         <m.icon size={17} strokeWidth={1.5} style={{ color: on ? INK : '#8C8578' }} />
-                        <span className="text-[13px] font-medium">{t(m.en, m.ar)}</span>
+                        <span className="text-[14.5px] font-medium">{t(m.en, m.ar)}</span>
                         {on && <Check size={15} strokeWidth={2} className="ms-auto" style={{ color: OLIVE }} />}
                       </label>
                     );
                   })}
                 </div>
-                <p className="mt-4 flex items-center gap-2 text-[11px] text-[#5F5950]">
+                <p className="mt-4 flex items-center gap-2 text-[13px] text-[#5F5950]">
                   <ShieldCheck size={14} strokeWidth={1.5} style={{ color: OLIVE }} />
                   {t('Payments are processed securely.', 'تتم معالجة المدفوعات بشكل آمن.')}
                 </p>
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
                     rows={3}
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="w-full resize-none border bg-white p-4 text-[13px] text-[#171512] outline-none transition-colors focus:border-[#171512]"
+                    className="w-full resize-none border bg-white p-4 text-[14.5px] text-[#171512] outline-none transition-colors focus:border-[#171512]"
                     style={{ borderColor: FIELD }}
                   />
                 </div>
@@ -235,9 +235,9 @@ export default function CheckoutPage() {
             {/* ---- summary ---- */}
             <aside className="lg:col-span-5">
               <div className="border p-6 lg:sticky lg:top-[96px]" style={{ borderColor: HAIR, backgroundColor: TILE }}>
-                <p className={`text-[10px] text-[#5F5950] ${caps}`}>{t('Order summary', 'ملخص الطلب')}</p>
+                <p className={`text-[11px] text-[#5F5950] ${caps}`}>{t('Order summary', 'ملخص الطلب')}</p>
 
-                <dl className="mt-5 space-y-3 text-[13px]">
+                <dl className="mt-5 space-y-3 text-[14.5px]">
                   <Row label={t('Subtotal', 'المجموع الفرعي')} value={`${formatSAR(subtotal)} ${t('SAR', 'ر.س')}`} />
                   <Row
                     label={t('Shipping', 'الشحن')}
@@ -247,16 +247,16 @@ export default function CheckoutPage() {
                 </dl>
 
                 <div className="mt-5 flex items-baseline justify-between border-t pt-5" style={{ borderColor: HAIR }}>
-                  <span className={`text-[11px] ${caps}`}>{t('Total', 'الإجمالي')}</span>
+                  <span className={`text-[11.5px] ${caps}`}>{t('Total', 'الإجمالي')}</span>
                   <span className="font-['Outfit',sans-serif] text-[24px] font-bold tabular-nums" style={{ color: INK }}>
-                    {formatSAR(total)} <span className="text-[12px] font-medium text-[#5F5950]">{t('SAR', 'ر.س')}</span>
+                    {formatSAR(total)} <span className="text-[14px] font-medium text-[#5F5950]">{t('SAR', 'ر.س')}</span>
                   </span>
                 </div>
 
                 <button type="submit" data-testid="place-order" className={`mt-6 w-full py-4 ${primaryBtnCls(isAr)}`}>
                   {t('Place Order', 'تأكيد الطلب')}
                 </button>
-                <p className="mt-3 text-center text-[11px] font-light text-[#5F5950]">
+                <p className="mt-3 text-center text-[13px] font-light text-[#5F5950]">
                   {t('You can pay on delivery if you prefer.', 'يمكنك الدفع عند الاستلام إذا رغبت.')}
                 </p>
               </div>
@@ -304,10 +304,10 @@ function ReviewLine({ line }: { line: CartView; key?: string }) {
     <li className="flex items-center gap-4 p-4">
       <img src={line.product.img} alt="" className="h-16 w-14 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
       <div className="min-w-0 flex-1">
-        <Link to={productPath(1, line.product.id)} className="block truncate text-[13px] font-bold hover:text-[#5A6B4D]">
+        <Link to={productPath(1, line.product.id)} className="block truncate text-[14.5px] font-bold hover:text-[#5A6B4D]">
           {t(line.product.name.en, line.product.name.ar)}
         </Link>
-        <p className="mt-1 text-[11px] font-light text-[#5F5950]">
+        <p className="mt-1 text-[13px] font-light text-[#5F5950]">
           {t(store.name.en, store.name.ar)} · {t('Qty', 'الكمية')} {line.qty}
         </p>
       </div>
@@ -344,7 +344,7 @@ export function OrderPage() {
           <Check size={26} strokeWidth={2} className="text-white" />
         </span>
 
-        <p className={`mt-8 text-[11px] text-[#5F5950] ${caps}`}>{t('Order placed', 'تم استلام الطلب')}</p>
+        <p className={`mt-8 text-[11.5px] text-[#5F5950] ${caps}`}>{t('Order placed', 'تم استلام الطلب')}</p>
         <h1
           className={`mt-4 font-extrabold ${
             isAr
@@ -363,10 +363,10 @@ export function OrderPage() {
 
         {order && (
           <div className="mt-10 border p-6 text-start" style={{ borderColor: HAIR }}>
-            <p className={`text-[10px] text-[#5F5950] ${caps}`}>{t('Summary', 'الملخص')}</p>
+            <p className={`text-[11px] text-[#5F5950] ${caps}`}>{t('Summary', 'الملخص')}</p>
             <ul className="mt-4 divide-y divide-[#E8E4DC]" style={{ borderColor: HAIR }}>
               {order.lines.map((l, i) => (
-                <li key={i} className="flex items-baseline justify-between gap-4 py-3 text-[13px]">
+                <li key={i} className="flex items-baseline justify-between gap-4 py-3 text-[14.5px]">
                   <span className="min-w-0 flex-1 truncate font-light">
                     {l.name} <span className="text-[#5F5950]">× {l.qty}</span>
                   </span>
@@ -375,13 +375,13 @@ export function OrderPage() {
               ))}
             </ul>
             <div className="mt-4 flex items-baseline justify-between border-t pt-4" style={{ borderColor: HAIR }}>
-              <span className={`text-[11px] ${caps}`}>{t('Paid with', 'طريقة الدفع')}</span>
-              <span className="text-[13px] font-medium">{order.payment}</span>
+              <span className={`text-[11.5px] ${caps}`}>{t('Paid with', 'طريقة الدفع')}</span>
+              <span className="text-[14.5px] font-medium">{order.payment}</span>
             </div>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className={`text-[11px] ${caps}`}>{t('Total', 'الإجمالي')}</span>
+              <span className={`text-[11.5px] ${caps}`}>{t('Total', 'الإجمالي')}</span>
               <span className="font-['Outfit',sans-serif] text-[18px] font-bold tabular-nums">
-                {formatSAR(order.total)} <span className="text-[11px] font-medium text-[#5F5950]">{t('SAR', 'ر.س')}</span>
+                {formatSAR(order.total)} <span className="text-[13px] font-medium text-[#5F5950]">{t('SAR', 'ر.س')}</span>
               </span>
             </div>
           </div>
@@ -393,7 +393,7 @@ export function OrderPage() {
           </Link>
           <Link
             to={searchPath(1)}
-            className={`border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+            className={`border-b pb-1.5 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
             style={{ borderColor: INK }}
           >
             {t('Continue Shopping', 'مواصلة التسوق')}

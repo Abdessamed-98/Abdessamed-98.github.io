@@ -9,16 +9,17 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import {
-  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES,
-  parseSearch, serializeSearch, filterCatalog, lookBase, searchPath,
-  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService,
+  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES, SERVICES_MENU,
+  parseSearch, serializeSearch, filterCatalog, lookBase, searchPath, storeOf,
+  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService, type StoreKey,
 } from '../lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE,
   useLook, SectionHeading, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
+  StoreMark,
 } from './ui';
 import { EmptyState, Tabs, capsCls } from './kit';
-import { serviceSlug } from './ServicePage';
+import { categoryPath } from './ServicePage';
 import { PROVIDERS } from './data';
 
 type SearchTab = 'all' | 'products' | 'stores' | 'services';
@@ -65,7 +66,7 @@ function Facets({
         return (
           <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid={`facet-${f.key}`}>
             <legend className="sr-only">{f.label}</legend>
-            <p className={eyebrowCls(isAr, 'text-[10px] text-[#171512] font-semibold')}>{f.label}</p>
+            <p className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-semibold')}>{f.label}</p>
             <ul className="mt-4 space-y-2.5">
               {f.options.map((o) => {
                 const active = value === o.key;
@@ -79,7 +80,7 @@ function Facets({
                       aria-pressed={active}
                       disabled={empty}
                       data-testid={`facet-${f.key}-${o.key}`}
-                      className={`group flex w-full items-center justify-between gap-3 text-start text-[13px] transition-colors ${
+                      className={`group flex w-full items-center justify-between gap-3 text-start text-[14.5px] transition-colors ${
                         empty ? 'cursor-default text-[#A9A196]' : active ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
                       }`}
                     >
@@ -94,9 +95,12 @@ function Facets({
                                 : 'border-[#171512]/40 group-hover:border-[#171512]'
                           }`}
                         />
+                        {f.key === 'store' && storeOf(o.key as StoreKey).mark && (
+                          <img src={storeOf(o.key as StoreKey).mark} alt="" loading="lazy" className="h-4 w-4 shrink-0 object-contain" />
+                        )}
                         <span className="truncate">{o.label}</span>
                       </span>
-                      <span className={`shrink-0 text-[11px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
+                      <span className={`shrink-0 text-[13px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
                     </button>
                   </li>
                 );
@@ -117,8 +121,8 @@ function Facets({
           className="flex w-full items-center justify-between gap-3 text-start"
         >
           <span className="flex items-center gap-3">
-            <span className={eyebrowCls(isAr, 'text-[10px] text-[#171512] font-semibold')}>{t('On sale', 'عروض التخفيض')}</span>
-            <span className="text-[11px] text-[#5F5950]">{saleCount}</span>
+            <span className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-semibold')}>{t('On sale', 'عروض التخفيض')}</span>
+            <span className="text-[13px] text-[#5F5950]">{saleCount}</span>
           </span>
           <span
             aria-hidden
@@ -141,7 +145,12 @@ function Facets({
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
-export function LookOneSearch() {
+/** The catalogue: the same listing, opened on its products, without the search band above them. */
+export function LookOneCatalog() {
+  return <LookOneSearch catalog />;
+}
+
+export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [sp, setSp] = useSearchParams();
@@ -152,13 +161,13 @@ export function LookOneSearch() {
 
   /* the tab rides along in the URL beside the query, outside SearchQuery */
   const rawTab = sp.get('tab') as SearchTab | null;
-  const tab: SearchTab = rawTab && TAB_KEYS.includes(rawTab) ? rawTab : 'all';
+  const tab: SearchTab = catalog ? 'products' : rawTab && TAB_KEYS.includes(rawTab) ? rawTab : 'all';
   const withTab = useCallback(
     (p: URLSearchParams) => {
-      if (tab !== 'all') p.set('tab', tab);
+      if (tab !== 'all' && !catalog) p.set('tab', tab);
       return p;
     },
-    [tab],
+    [tab, catalog],
   );
   const setTab = (k: SearchTab) => {
     const p = new URLSearchParams(sp);
@@ -170,7 +179,8 @@ export function LookOneSearch() {
   const needle = (query.q ?? '').trim().toLowerCase();
   const hit = (...xs: string[]) => !needle || xs.some((x) => x.toLowerCase().includes(needle));
   const stores = ALL_STORES.filter((s) => hit(s.name.en, s.name.ar, s.specialty.en, s.specialty.ar));
-  const services = SERVICES.filter((s) => hit(s.en, s.ar));
+  // a service matches by its own name or by any of its sub-services ("SPC" finds flooring)
+  const services = SERVICES.filter((s, i) => hit(s.en, s.ar, ...(SERVICES_MENU[i]?.items ?? []).flatMap((it) => [it.en, it.ar])));
 
   const update = useCallback(
     (patch: Partial<SearchQuery>) => setSp(withTab(serializeSearch({ ...query, ...patch }))),
@@ -218,7 +228,7 @@ export function LookOneSearch() {
 
   const title = query.q
     ? t(`Results for “${query.q}”`, `نتائج البحث عن «${query.q}»`)
-    : catName ?? roomName ?? styleName ?? storeName ?? t('Shop', 'المتجر');
+    : catName ?? roomName ?? styleName ?? storeName ?? t('Products', 'المنتجات');
 
   const chips: { key: string; label: string; clear: () => void }[] = [];
   if (query.q) chips.push({ key: 'q', label: `“${query.q}”`, clear: () => update({ q: '' }) });
@@ -232,17 +242,46 @@ export function LookOneSearch() {
 
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
-    { label: t('Shop', 'المتجر'), to: searchPath(1) },
+    { label: t('Products', 'المنتجات'), to: searchPath(1) },
     ...(catName ? [{ label: catName }] : []),
   ];
 
-  const labelCls = eyebrowCls(isAr, 'text-[10px] text-[#5F5950]');
+  const labelCls = eyebrowCls(isAr, 'text-[11px] text-[#5F5950]');
 
   return (
     <div data-testid="search-page" className="pt-[72px]">
       {/* ---------------------------------------------------------- */}
       {/* Title band                                                  */}
       {/* ---------------------------------------------------------- */}
+      {catalog ? (
+        <div className="mx-auto max-w-[1400px] px-6 pb-5 pt-6 md:px-10 md:pt-8" data-testid="catalog-head">
+          <Breadcrumb items={crumbs} />
+          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+            <h1 className={`shrink-0 text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>
+              {title}
+            </h1>
+            {/* the categories, one tap apart */}
+            <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-categories">
+              {[{ key: '' as const, label: t('All', 'الكل') }, ...CATEGORIES.map((c) => ({ key: c.key, label: c[lang] }))].map((c) => {
+                const on = (query.category ?? '') === c.key;
+                return (
+                  <button
+                    key={c.key || 'all'}
+                    type="button"
+                    onClick={() => update({ category: c.key })}
+                    aria-pressed={on}
+                    className={`h-10 shrink-0 whitespace-nowrap border px-4 text-[14px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white text-[#171512] hover:border-[#171512]'}`}
+                    style={on ? undefined : { borderColor: HAIR }}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+      <>
       <div className="mx-auto max-w-[1400px] px-6 pt-8 pb-8 md:px-10 md:pt-12 md:pb-12">
         <Breadcrumb items={crumbs} />
         <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
@@ -275,7 +314,7 @@ export function LookOneSearch() {
                 value={qInput}
                 onChange={(e) => setQInput(e.target.value)}
                 placeholder={t('Search sofas, lighting, stores…', 'ابحث عن أرائك، إنارات، متاجر…')}
-                className="w-full min-w-0 bg-transparent text-[13px] text-[#171512] placeholder:text-[#8C857A] focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+                className="w-full min-w-0 bg-transparent text-[14.5px] text-[#171512] placeholder:text-[#8C857A] focus:outline-none [&::-webkit-search-cancel-button]:hidden"
               />
               {qInput && (
                 <button
@@ -317,6 +356,8 @@ export function LookOneSearch() {
           ]}
         />
       </div>
+      </>
+      )}
 
       {tab === 'stores' && (
         <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10 md:py-14">
@@ -331,7 +372,7 @@ export function LookOneSearch() {
       {tab === 'all' && (stores.length > 0 || services.length > 0) && (
         <div className="mx-auto grid max-w-[1400px] gap-12 px-6 py-10 md:px-10 md:py-12" data-testid="search-all-strips">
           {stores.length > 0 && (
-            <Strip title={t('Stores', 'المتاجر')} more={stores.length > 4 ? () => setTab('stores') : undefined} count={stores.length}>
+            <Strip title={t('Stores', 'المتاجر')} moreTo={`${lookBase(1)}/stores`} count={stores.length}>
               <StoreGrid stores={stores.slice(0, 4)} rail />
             </Strip>
           )}
@@ -354,12 +395,12 @@ export function LookOneSearch() {
             <aside className="hidden lg:block" data-testid="filter-sidebar">
               <div className="scrollbar-hide sticky top-[72px] max-h-[calc(100vh-72px)] overflow-y-auto pt-8 pb-16">
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <p className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-bold')}>{t('Filters', 'تصفية')}</p>
+                  <p className={eyebrowCls(isAr, 'text-[11.5px] text-[#171512] font-bold')}>{t('Filters', 'تصفية')}</p>
                   {chips.length > 0 && (
                     <button
                       type="button"
                       onClick={clearAll}
-                      className={`text-[10px] uppercase text-[#5F5950] underline-offset-4 hover:text-[#171512] hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
+                      className={`text-[11px] uppercase text-[#5F5950] underline-offset-4 hover:text-[#171512] hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
                     >
                       {t('Clear all', 'مسح الكل')}
                     </button>
@@ -380,7 +421,7 @@ export function LookOneSearch() {
                     onClick={() => setSheetOpen(true)}
                     aria-haspopup="dialog"
                     aria-expanded={sheetOpen}
-                    className={`inline-flex h-11 items-center gap-2.5 border px-4 text-[11px] uppercase transition-colors hover:border-[#171512] lg:hidden ${
+                    className={`inline-flex h-11 items-center gap-2.5 border px-4 text-[11.5px] uppercase transition-colors hover:border-[#171512] lg:hidden ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                     style={{ borderColor: HAIR }}
@@ -406,7 +447,7 @@ export function LookOneSearch() {
                       data-testid="sort-select"
                       value={query.sort ?? 'relevance'}
                       onChange={(e) => update({ sort: e.target.value as SortKey })}
-                      className={`h-11 appearance-none border bg-white ps-4 pe-10 text-[11px] uppercase text-[#171512] transition-colors hover:border-[#171512] focus:border-[#171512] focus:outline-none ${
+                      className={`h-11 appearance-none border bg-white ps-4 pe-10 text-[11.5px] uppercase text-[#171512] transition-colors hover:border-[#171512] focus:border-[#171512] focus:outline-none ${
                         isAr ? 'tracking-normal' : 'tracking-[0.16em]'
                       }`}
                       style={{ borderColor: HAIR }}
@@ -437,7 +478,7 @@ export function LookOneSearch() {
                       onClick={c.clear}
                       data-testid={`chip-${c.key}`}
                       aria-label={t(`Remove ${c.label}`, `إزالة ${c.label}`)}
-                      className="inline-flex h-8 items-center gap-2 border bg-white px-3 text-[12px] transition-colors hover:border-[#171512]"
+                      className="inline-flex h-8 items-center gap-2 border bg-white px-3 text-[14px] transition-colors hover:border-[#171512]"
                       style={{ borderColor: HAIR }}
                     >
                       {c.label}
@@ -448,7 +489,7 @@ export function LookOneSearch() {
                     type="button"
                     data-testid="clear-filters"
                     onClick={clearAll}
-                    className={`ms-1 text-[10px] uppercase text-[#5F5950] underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
+                    className={`ms-1 text-[11px] uppercase text-[#5F5950] underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   >
@@ -476,7 +517,7 @@ export function LookOneSearch() {
                   className="mt-8 flex flex-col items-center justify-center border px-6 py-24 text-center"
                   style={{ borderColor: HAIR, backgroundColor: TILE }}
                 >
-                  <p className={eyebrowCls(isAr, 'text-[10px]')} style={{ color: OLIVE }}>
+                  <p className={eyebrowCls(isAr, 'text-[11px]')} style={{ color: OLIVE }}>
                     {t('No results', 'لا توجد نتائج')}
                   </p>
                   <h2
@@ -486,7 +527,7 @@ export function LookOneSearch() {
                   >
                     {t('Nothing matches yet', 'لم نجد ما يطابق بحثك')}
                   </h2>
-                  <p className="mt-4 max-w-sm text-[14px] font-light leading-relaxed text-[#3F3A33]">
+                  <p className="mt-4 max-w-sm text-[15px] font-light leading-relaxed text-[#3F3A33]">
                     {t(
                       'Try a different word, or loosen the filters to see more of the catalogue.',
                       'جرّب كلمة أخرى، أو خفف الفلاتر لترى المزيد من الكتالوج.',
@@ -512,7 +553,7 @@ export function LookOneSearch() {
                       <Link
                         key={c.key}
                         to={searchPath(1, { category: c.key })}
-                        className={`border px-4 py-2 text-[11px] uppercase transition-colors hover:border-[#171512] ${
+                        className={`border px-4 py-2 text-[11.5px] uppercase transition-colors hover:border-[#171512] ${
                           query.category === c.key ? 'border-[#171512] bg-[#171512] text-white' : 'bg-white'
                         } ${isAr ? 'tracking-normal' : 'tracking-[0.16em]'}`}
                         style={query.category === c.key ? undefined : { borderColor: HAIR }}
@@ -583,7 +624,7 @@ export function LookOneSearch() {
                 <button
                   type="button"
                   onClick={clearAll}
-                  className={`shrink-0 text-[10px] uppercase text-[#5F5950] underline-offset-4 hover:text-[#171512] hover:underline ${
+                  className={`shrink-0 text-[11px] uppercase text-[#5F5950] underline-offset-4 hover:text-[#171512] hover:underline ${
                     isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                   }`}
                 >
@@ -609,17 +650,22 @@ export function LookOneSearch() {
 /* ------------------------------------------------------------------ */
 /* Store and service results                                           */
 /* ------------------------------------------------------------------ */
-function Strip({ title, count, more, children }: { title: string; count: number; more?: () => void; children: ReactNode }) {
+function Strip({ title, count, more, moreTo, children }: { title: string; count: number; more?: () => void; moreTo?: string; children: ReactNode }) {
   const { lang, t } = useLook();
   const caps = capsCls(lang === 'ar');
   return (
     <section className="min-w-0">
       <div className="mb-5 flex items-baseline justify-between gap-4">
         <h2 className={`text-[13px] font-bold ${caps}`}>
-          {title} <span className="font-['Outfit',sans-serif] text-[11px] font-medium" style={{ color: OLIVE }}>{count}</span>
+          {title} <span className="font-['Outfit',sans-serif] text-[13px] font-medium" style={{ color: OLIVE }}>{count}</span>
         </h2>
+        {moreTo && (
+          <Link to={moreTo} className={`border-b pb-1 text-[12px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            {t('See all', 'عرض الكل')}
+          </Link>
+        )}
         {more && (
-          <button type="button" onClick={more} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+          <button type="button" onClick={more} className={`border-b pb-1 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
             {t('See all', 'عرض الكل')}
           </button>
         )}
@@ -643,16 +689,12 @@ function StoreGrid({ stores, rail = false }: { stores: LookStore[]; rail?: boole
       {stores.map((s) => (
         <li key={s.key} className={rail ? railItemCls : undefined}>
           <Link to={`${lookBase(1)}/store/${s.key}`} className={rowCls} style={{ borderColor: HAIR }}>
-            <span className="relative h-16 w-16 shrink-0 overflow-hidden" style={{ backgroundColor: TILE }}>
-              <img src={s.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
-              <span dir="ltr" className="absolute bottom-0 start-0 bg-[#171512] px-1.5 py-0.5 font-['Outfit',sans-serif] text-[9px] font-bold text-white">
-                {s.initials}
-              </span>
-            </span>
+            {/* the store's own mark, nothing else */}
+            <StoreMark store={s} className={`h-16 w-16 text-[15px] ${s.mark ? 'border border-[#E8E4DC]' : ''}`} />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[14px] font-bold">{s.name[lang]}</span>
-              <span className="mt-0.5 block truncate text-[12px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</span>
-              <span className="mt-1 block text-[11px]" style={{ color: '#5F5950' }}>
+              <span className="block truncate text-[15px] font-bold">{s.name[lang]}</span>
+              <span className="mt-0.5 block truncate text-[14px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</span>
+              <span className="mt-1 block text-[13px]" style={{ color: '#5F5950' }}>
                 ★ {s.rating.toFixed(1)} · {t(`${s.products} products`, `${s.products} منتج`)}
               </span>
             </span>
@@ -672,13 +714,13 @@ function ServiceGrid({ services, rail = false }: { services: LookService[]; rail
         const partners = PROVIDERS.filter((p) => p.service === s.en).length;
         return (
           <li key={s.en} className={rail ? railItemCls : undefined}>
-            <Link to={`${lookBase(1)}/service/${serviceSlug(s)}`} className={rowCls} style={{ borderColor: HAIR }}>
+            <Link to={categoryPath(s)} className={rowCls} style={{ borderColor: HAIR }}>
               <span className="flex h-16 w-16 shrink-0 items-center justify-center transition-colors group-hover:bg-[#5A6B4D]" style={{ backgroundColor: TILE }}>
                 <s.icon size={22} strokeWidth={1.4} className="text-[#5A6B4D] transition-colors group-hover:text-white" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14px] font-bold">{isAr ? s.ar : s.en}</span>
-                <span className="mt-1 block text-[11px]" style={{ color: '#5F5950' }}>
+                <span className="block truncate text-[15px] font-bold">{isAr ? s.ar : s.en}</span>
+                <span className="mt-1 block text-[13px]" style={{ color: '#5F5950' }}>
                   {partners
                     ? t(`${partners} partner${partners > 1 ? 's' : ''} · free visit`, `${partners} ${partners > 1 ? 'شركاء' : 'شريك'} · زيارة مجانية`)
                     : t('Diyar crews · free visit', 'فرق ديار · زيارة مجانية')}

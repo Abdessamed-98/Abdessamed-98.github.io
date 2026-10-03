@@ -169,7 +169,7 @@ export function CategoryPanels() {
                     <span className="max-h-full rotate-180 text-[14px] font-bold leading-none [writing-mode:vertical-rl]">
                       {name}
                     </span>
-                    <span className={`shrink-0 text-[11px] leading-none text-white/70 ${caps}`}>{pad(i + 1)}</span>
+                    <span className={`shrink-0 text-[11.5px] leading-none text-white/70 ${caps}`}>{pad(i + 1)}</span>
                   </span>
 
                   {/* open: the full label, set normally again. A fixed minimum
@@ -181,9 +181,9 @@ export function CategoryPanels() {
                     }`}
                     aria-hidden
                   >
-                    <span className={`block text-[11px] text-white/70 ${caps}`}>{pad(i + 1)}</span>
+                    <span className={`block text-[11.5px] text-white/70 ${caps}`}>{pad(i + 1)}</span>
                     <span className={`mt-3 block font-extrabold leading-[1.05] ${bigName}`}>{name}</span>
-                    <span className={`mt-4 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11px] ${caps}`}>
+                    <span className={`mt-4 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11.5px] ${caps}`}>
                       {t('View More', 'عرض المزيد')}
                       <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                     </span>
@@ -242,7 +242,7 @@ function CategoryCard({ index }: { index: number; key?: string | number }) {
           className="aspect-[4/5] w-full object-cover"
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-        <span className={`absolute start-5 top-5 text-[11px] text-white/75 ${caps}`}>{pad(index + 1)}</span>
+        <span className={`absolute start-5 top-5 text-[11.5px] text-white/75 ${caps}`}>{pad(index + 1)}</span>
         <div className="absolute inset-x-0 bottom-0 p-5 text-start">
           <h3
             className={`font-extrabold text-white ${

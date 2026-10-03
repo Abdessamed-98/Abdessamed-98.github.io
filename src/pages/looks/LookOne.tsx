@@ -18,19 +18,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, ArrowRight,
   Instagram, Facebook, Linkedin, ChevronLeft, ChevronRight,
-  Menu, X, ChevronDown, Phone, Mail,
+  Menu, X, ChevronDown, Phone, Mail, Star,
 } from 'lucide-react';
 import {
-  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS,
-  FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR, LookSwitcher,
-  SHOP_MENU, SERVICES_MENU, MENU_FEATURED, ROOM_HOTSPOTS,
+  IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, ALL_STORES,
+  FOOTER_LINKS, FOOTER_QUICK, FOOTER_SUPPORT, formatSAR,
+  SHOP_MENU, SERVICES_MENU, MENU_FEATURED, SHOP_ROOMS,
   ROOMS, AI_STUDIO, LOYALTY, BLOG_POSTS, PARTNER, APP_PROMO, CAMPAIGNS,
   lookBase, searchPath, productPath,
   type Lang, type MenuGroup, type Bi, type RoomHotspot, type CategoryKey,
 } from './lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
-  LookContext, useLook, useLang,
+  LookContext, useLook, useLang, StoreMark,
   Reveal, SectionHeading, ViewMore, ProductCard,
   RAIL_MD, RAIL_LG, RAIL_ITEM_MD, RAIL_ITEM_LG, RAIL_VIEWPORT,
 } from './one/ui';
@@ -40,11 +40,11 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { serviceSlug } from './one/ServicePage';
+import { categoryPath, servicePath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
-import { AnnouncementBar, FloatingContact, PromoPopup } from './one/Overlays';
+import { AnnouncementBar, PromoPopup, SideContact } from './one/Overlays';
 import { useShell, type AuthRole } from './one/shellContext';
 import { HeaderActions, DrawerAccountRows, ImageSearchButton } from './one/HeaderActions';
 import { HeroScrub } from './one/HeroScrub';
@@ -59,7 +59,7 @@ import { CurtainStage } from './one/CurtainStage';
 import { LoadReveal } from './one/LoadReveal';
 import { DesignStudio } from './one/DesignStudio';
 
-export { LookOneSearch } from './one/SearchPage';
+export { LookOneSearch, LookOneCatalog } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
 export {
   BG, INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM, NIGHT,
@@ -69,14 +69,24 @@ export {
 /** Mega-menu / drawer shop groups map 1:1 onto the catalog categories, in order. */
 const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
 /** The services menu lists the eight services in SERVICES order. */
-const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? `${lookBase(1)}/service/${serviceSlug(SERVICES[i])}` : undefined);
+const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categoryPath(SERVICES[i]) : undefined);
+/** The menu's headings are categories; the items under them are the services. */
+/** The services menu lists categories only; what is in a category is on its page. */
+const STORE_ROWS: MenuGroup[] = ALL_STORES.map((st) => ({ title: st.name, items: [] }));
+const CATEGORY_ROWS: MenuGroup[] = CATEGORIES.map((c) => ({ title: { en: c.en, ar: c.ar }, items: [] }));
+const SERVICE_CATEGORY_ROWS: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: [] }));
+/** «المتجر» became «المتاجر»: the item opens the stores, not one shop. */
+const NAV_LABEL: Record<string, Bi> = { Shop: { en: 'Stores', ar: 'المتاجر' } };
+const navLabel = (item: Bi): Bi => NAV_LABEL[item.en] ?? item;
+/** The header's items: the shared list, with the catalogue given its own place before the stores. */
+const HEADER_NAV: Bi[] = NAV_ITEMS.flatMap((i) => (i.en === 'Shop' ? [{ en: 'Products', ar: 'المنتجات' }, i] : [i]));
 /** Where the plain nav items go. */
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),
-  'Design Consultation': `${lookBase(1)}/ai-designer`,
+  'Self Designer': `${lookBase(1)}/ai-designer`,
   B2B: `${lookBase(1)}/b2b`,
   Services: `${lookBase(1)}/services`,
-  Shop: searchPath(1),
+  Shop: `${lookBase(1)}/stores`,
   'About Us': `${lookBase(1)}/about`,
   'Contact Us': `${lookBase(1)}/contact`,
 };
@@ -146,21 +156,24 @@ function ShopHotspot({
 
   /* open the card away from the nearest image edge — physical, never mirrored */
   const cardPos: CSSProperties = {
-    ...(h.align === 'left' ? { right: '-6px' } : { left: '-6px' }),
-    ...(h.vAlign === 'top' ? { bottom: 'calc(100% + 14px)' } : { top: 'calc(100% + 14px)' }),
+    ...(h.align === 'left' ? { right: '9px' } : { left: '9px' }),
+    // the card starts at the edge of the 44px target, so the pointer never crosses a gap on the way to it
+    ...(h.vAlign === 'top' ? { bottom: '100%' } : { top: '100%' }),
   };
 
   return (
     <div
-      className="absolute z-10"
+      // centred on the point; an open point sits above its neighbours so their dots cannot steal the hover
+      className={`absolute -translate-x-1/2 -translate-y-1/2 ${open ? 'z-30' : 'z-10'}`}
       style={{ top: h.top, left: h.left }}
       onMouseEnter={onOpen}
       onMouseLeave={onScheduleClose}
     >
-      <div className="relative h-3.5 w-3.5">
+      {/* a 44px target around a 14px dot: easy to catch, and it does not move under the pointer */}
+      <div className="relative h-11 w-11">
         {/* slow pulsing halo */}
         <motion.span
-          className="pointer-events-none absolute inset-0 rounded-full bg-white/60"
+          className="pointer-events-none absolute inset-[15px] rounded-full bg-white/60"
           animate={{ scale: [1, 2.6], opacity: [0.7, 0] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut', delay }}
         />
@@ -172,10 +185,14 @@ function ShopHotspot({
           aria-expanded={open}
           onClick={onToggle}
           onFocus={onOpen}
-          className={`absolute inset-0 rounded-full border border-[#5A6B4D] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.25)] transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-            open ? 'scale-[1.35]' : 'hover:scale-[1.35]'
-          }`}
-        />
+          className="group/dot absolute inset-0 flex items-center justify-center rounded-full focus:outline-none"
+        >
+          <span
+            className={`block h-3.5 w-3.5 rounded-full border border-[#5A6B4D] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.25)] transition-transform duration-300 group-focus-visible/dot:ring-2 group-focus-visible/dot:ring-white ${
+              open ? 'scale-[1.5]' : 'group-hover/dot:scale-[1.5]'
+            }`}
+          />
+        </button>
 
         {/* product card */}
         <AnimatePresence>
@@ -184,7 +201,8 @@ function ShopHotspot({
               key="card"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
+              // a closing card must not catch the pointer on its way out
+              exit={{ opacity: 0, y: 6, pointerEvents: 'none' }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
               style={{ ...cardPos, borderColor: HAIR }}
               className={`absolute z-20 w-[212px] cursor-default border bg-white text-start shadow-[0_18px_44px_rgba(23,21,18,0.22)] sm:w-[260px] ${
@@ -205,11 +223,11 @@ function ShopHotspot({
                   >
                     {isAr ? h.category.ar : h.category.en}
                   </p>
-                  <h3 className="mt-1 line-clamp-2 text-[12.5px] font-medium leading-snug" style={{ color: INK }}>
+                  <h3 className="mt-1 line-clamp-2 text-[14px] font-medium leading-snug" style={{ color: INK }}>
                     {name}
                   </h3>
                   <div className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-[14px] font-bold" style={{ color: INK }}>
+                    <span className="text-[15px] font-bold" style={{ color: INK }}>
                       {formatSAR(h.price)}
                     </span>
                     <span
@@ -257,7 +275,7 @@ function ShopHotspot({
 /* ------------------------------------------------------------------ */
 
 /** One mega-menu column: group title + subcategory links. `to` makes them real links. */
-function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; onNavigate?: () => void; key?: string | number }) {
+function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; key?: string | number }) {
   const isAr = useLang() === 'ar';
   const titleCls = `text-[11px] font-bold uppercase text-[#171512] ${
     isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
@@ -278,7 +296,7 @@ function MegaGroup({ group, to, onNavigate }: { group: MenuGroup; to?: string; o
         {group.items.map((it) => (
           <li key={it.en}>
             {to ? (
-              <Link to={to} onClick={onNavigate} className={itemCls}>
+              <Link to={itemTo ? itemTo(it) : to} onClick={onNavigate} className={itemCls}>
                 {isAr ? it.ar : it.en}
               </Link>
             ) : (
@@ -311,7 +329,7 @@ function MegaFeatured({ img, title, cta, to, onNavigate }: { img: string; title:
         {isAr ? title.ar : title.en}
       </p>
       <span
-        className={`mt-2 inline-flex items-center gap-2 border-b border-[#171512]/25 pb-1 text-[10.5px] uppercase text-[#171512] transition-colors group-hover/mf:border-[#171512] ${
+        className={`mt-2 inline-flex items-center gap-2 border-b border-[#171512]/25 pb-1 text-[11px] uppercase text-[#171512] transition-colors group-hover/mf:border-[#171512] ${
           isAr ? 'tracking-normal' : 'tracking-[0.24em]'
         }`}
       >
@@ -335,6 +353,7 @@ function DrawerGroup({
   group,
   open,
   to,
+  itemTo,
   onToggle,
   onNavigate,
 }: {
@@ -342,12 +361,23 @@ function DrawerGroup({
   open: boolean;
   /** Destination for the group's items (the category search). */
   to?: string;
+  /** A destination per item, when items have their own (sub-services). */
+  itemTo?: (it: Bi) => string;
   onToggle: () => void;
   onNavigate: () => void;
   key?: string | number;
 }) {
   const isAr = useLang() === 'ar';
   const itemCls = 'block py-2 ps-4 text-[12.5px] leading-relaxed text-neutral-500 transition-colors hover:text-[#171512]';
+  if (to && group.items.length === 0) {
+    return (
+      <li className="border-t" style={{ borderColor: HAIR }}>
+        <Link to={to} onClick={onNavigate} className={`block py-3 text-start text-[14px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
+          {isAr ? group.title.ar : group.title.en}
+        </Link>
+      </li>
+    );
+  }
   return (
     <li className="border-t" style={{ borderColor: HAIR }}>
       <button
@@ -356,7 +386,7 @@ function DrawerGroup({
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-3 py-3 text-start"
       >
-        <span className={`text-[12.5px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
+        <span className={`text-[14px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
           {isAr ? group.title.ar : group.title.en}
         </span>
         <ChevronDown
@@ -386,7 +416,7 @@ function DrawerGroup({
             {group.items.map((it) => (
               <li key={it.en}>
                 {to ? (
-                  <Link to={to} onClick={onNavigate} className={itemCls}>
+                  <Link to={itemTo ? itemTo(it) : to} onClick={onNavigate} className={itemCls}>
                     {isAr ? it.ar : it.en}
                   </Link>
                 ) : (
@@ -412,6 +442,7 @@ function DrawerSection({
   onToggleGroup,
   onNavigate,
   groupTo,
+  groupItemTo,
   allLink,
 }: {
   label: string;
@@ -423,6 +454,8 @@ function DrawerSection({
   onNavigate: () => void;
   /** Destination per group index (category search); omitted for the services menu. */
   groupTo?: (i: number) => string | undefined;
+  /** Per-item destinations for group i (sub-services). */
+  groupItemTo?: (i: number) => ((it: Bi) => string) | undefined;
   /** Optional "Shop all" row at the top of the section. */
   allLink?: { to: string; label: string };
 }) {
@@ -466,7 +499,7 @@ function DrawerSection({
                     to={allLink.to}
                     onClick={onNavigate}
                     data-testid="drawer-shop-all"
-                    className={`flex items-center gap-2 py-3 text-[12.5px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}
+                    className={`flex items-center gap-2 py-3 text-[14px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}
                     style={{ color: OLIVE }}
                   >
                     {allLink.label}
@@ -479,6 +512,7 @@ function DrawerSection({
                   key={g.title.en}
                   group={g}
                   to={groupTo?.(i)}
+                  itemTo={groupItemTo?.(i)}
                   open={openGroup === g.title.en}
                   onToggle={() => onToggleGroup(g.title.en)}
                   onNavigate={onNavigate}
@@ -519,7 +553,7 @@ function MobileDrawer({
      for the drawer to always slide in from that same start edge. */
   const off = isAr ? '100%' : '-100%';
 
-  const [section, setSection] = useState<'shop' | 'services' | null>(null);
+  const [section, setSection] = useState<'shop' | 'products' | 'services' | null>(null);
   const [group, setGroup] = useState<string | null>(null);
   const [q, setQ] = useState('');
 
@@ -563,7 +597,7 @@ function MobileDrawer({
     setQ('');
   }, [open]);
 
-  const toggleSection = (s: 'shop' | 'services') => {
+  const toggleSection = (s: 'shop' | 'products' | 'services') => {
     setSection((cur) => (cur === s ? null : s));
     setGroup(null);
   };
@@ -643,7 +677,7 @@ function MobileDrawer({
                     onChange={(e) => setQ(e.target.value)}
                     placeholder={t('SEARCH', 'ابحث')}
                     aria-label={t('Search', 'بحث')}
-                    className={`w-full min-w-0 bg-transparent text-[11px] uppercase text-[#171512] placeholder:text-neutral-400 focus:outline-none ${
+                    className={`w-full min-w-0 bg-transparent text-[11.5px] uppercase text-[#171512] placeholder:text-neutral-400 focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
@@ -666,10 +700,21 @@ function MobileDrawer({
               </nav>
 
               <DrawerSection
-                label={t('Shop', 'المتجر')}
-                groups={SHOP_MENU}
+                label={t('Stores', 'المتاجر')}
+                groups={STORE_ROWS}
                 open={section === 'shop'}
                 onToggle={() => toggleSection('shop')}
+                openGroup={group}
+                onToggleGroup={toggleGroup}
+                onNavigate={onClose}
+                groupTo={(i) => (ALL_STORES[i] ? `${lookBase(1)}/store/${ALL_STORES[i].key}` : undefined)}
+                allLink={{ to: `${lookBase(1)}/stores`, label: t('All stores', 'كل المتاجر') }}
+              />
+              <DrawerSection
+                label={t('Products', 'المنتجات')}
+                groups={CATEGORY_ROWS}
+                open={section === 'products'}
+                onToggle={() => toggleSection('products')}
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
@@ -677,11 +722,11 @@ function MobileDrawer({
                   const key = shopGroupKey(i);
                   return key ? searchPath(1, { category: key }) : undefined;
                 }}
-                allLink={{ to: searchPath(1), label: t('Shop All Products', 'تسوق كل المنتجات') }}
+                allLink={{ to: searchPath(1), label: t('All products', 'كل المنتجات') }}
               />
               <DrawerSection
                 label={t('Services', 'الخدمات')}
-                groups={SERVICES_MENU}
+                groups={SERVICE_CATEGORY_ROWS}
                 open={section === 'services'}
                 onToggle={() => toggleSection('services')}
                 openGroup={group}
@@ -702,7 +747,7 @@ function MobileDrawer({
                   data-testid="drawer-lang-toggle"
                   onClick={onToggleLang}
                   aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
-                  className={`flex shrink-0 items-center gap-2.5 text-[11px] ${
+                  className={`flex shrink-0 items-center gap-2.5 text-[11.5px] ${
                     isAr ? 'tracking-normal' : 'tracking-[0.18em]'
                   }`}
                 >
@@ -725,11 +770,11 @@ function MobileDrawer({
             {/* contact — pinned to the bottom of the panel. */}
             <div className="shrink-0 border-t px-5 pt-5 pb-5" style={{ borderColor: HAIR }}>
               <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
-              <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="mt-3.5 flex items-center gap-3 text-[14.5px] font-medium">
                 <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr">{FOOTER_LINKS.phone}</span>
               </a>
-              <a href={`mailto:${FOOTER_LINKS.email}`} className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`mailto:${FOOTER_LINKS.email}`} className="mt-2.5 flex items-center gap-3 text-[14.5px] font-medium">
                 <Mail size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr" className="truncate">
                   {FOOTER_LINKS.email}
@@ -752,7 +797,7 @@ export default function LookOne() {
   const isHome = pathname.replace(/\/$/, '') === lookBase(1);
 
   const [scrolled, setScrolled] = useState(false);
-  const [openMenu, setOpenMenu] = useState<'shop' | 'services' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'shop' | 'products' | 'services' | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const closeMenu = useCallback(() => setOpenMenu(null), []);
@@ -900,7 +945,7 @@ export default function LookOne() {
                 onChange={(e) => setHeaderQ(e.target.value)}
                 placeholder={t('SEARCH', 'ابحث')}
                 aria-label={t('Search', 'بحث')}
-                className={`w-full min-w-0 bg-transparent text-[11px] uppercase transition-colors duration-300 focus:outline-none ${
+                className={`w-full min-w-0 bg-transparent text-[11.5px] uppercase transition-colors duration-300 focus:outline-none ${
                   isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                 } ${
                   solid ? 'text-[#171512] placeholder:text-neutral-400' : 'text-white placeholder:text-white/70'
@@ -917,13 +962,32 @@ export default function LookOne() {
 
             {/* nav — Shop & Services open full-width mega menus (panels are siblings below) */}
             <nav className="hidden items-center gap-6 lg:flex">
-              {NAV_ITEMS.map((item) => {
-                if (item.en === 'Shop') {
-                  /* Shop is a real link to the listing; hovering still opens its mega menu */
+              {HEADER_NAV.map((item) => {
+                if (item.en === 'Products') {
                   return (
                     <Link
                       key={item.en}
                       to={searchPath(1)}
+                      data-testid="mega-products-trigger"
+                      aria-haspopup="true"
+                      aria-expanded={openMenu === 'products'}
+                      onMouseEnter={() => {
+                        cancelClose();
+                        setOpenMenu('products');
+                      }}
+                      onClick={closeMenu}
+                      className={`${navItemCls} ${openMenu === 'products' ? 'after:w-full' : ''}`}
+                    >
+                      {t(item.en, item.ar)}
+                    </Link>
+                  );
+                }
+                if (item.en === 'Shop') {
+                  /* opens the stores page; hovering opens the stores themselves, with the categories under them */
+                  return (
+                    <Link
+                      key={item.en}
+                      to={`${lookBase(1)}/stores`}
                       data-testid="mega-shop-trigger"
                       aria-haspopup="true"
                       aria-expanded={openMenu === 'shop'}
@@ -934,15 +998,15 @@ export default function LookOne() {
                       onClick={closeMenu}
                       className={`${navItemCls} ${openMenu === 'shop' ? 'after:w-full' : ''}`}
                     >
-                      {t(item.en, item.ar)}
+                      {t(navLabel(item).en, navLabel(item).ar)}
                     </Link>
                   );
                 }
                 if (item.en === 'Services') {
                   return (
-                    <button
+                    <Link
                       key={item.en}
-                      type="button"
+                      to={`${lookBase(1)}/services`}
                       data-testid="mega-services-trigger"
                       aria-haspopup="true"
                       aria-expanded={openMenu === 'services'}
@@ -950,14 +1014,11 @@ export default function LookOne() {
                         cancelClose();
                         setOpenMenu('services');
                       }}
-                      onClick={() => {
-                        cancelClose();
-                        setOpenMenu((m) => (m === 'services' ? null : 'services'));
-                      }}
-                      className={`${navItemCls} cursor-pointer ${openMenu === 'services' ? 'after:w-full' : ''}`}
+                      onClick={closeMenu}
+                      className={`${navItemCls} ${openMenu === 'services' ? 'after:w-full' : ''}`}
                     >
                       {t(item.en, item.ar)}
-                    </button>
+                    </Link>
                   );
                 }
                 if (item.en === 'Home') {
@@ -981,7 +1042,7 @@ export default function LookOne() {
               data-testid="lang-toggle"
               onClick={toggleLang}
               aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
-              className={`hidden shrink-0 items-center gap-2 text-[11px] transition-colors duration-300 sm:flex ${
+              className={`hidden shrink-0 items-center gap-2 text-[11.5px] transition-colors duration-300 sm:flex ${
                 isAr ? 'tracking-normal' : 'tracking-[0.18em]'
               } ${solid ? 'text-[#171512]' : 'text-white'}`}
             >
@@ -1043,45 +1104,84 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10">
-                  <div className="grid grid-cols-12 gap-x-10">
-                    {/* 6 category groups, 3 × 2 — each maps onto a catalog category */}
-                    <div className="col-span-8 grid grid-cols-3 gap-x-8 gap-y-6">
-                      {SHOP_MENU.map((group, i) => {
-                        const key = shopGroupKey(i);
-                        return (
-                          <MegaGroup
-                            key={group.title.en}
-                            group={group}
-                            to={key ? searchPath(1, { category: key }) : undefined}
-                            onNavigate={closeMenu}
-                          />
-                        );
-                      })}
-                    </div>
-                    {/* featured side column — the two tiles sit side by side rather than
-                        stacked, so the category groups set the panel's height, not the
-                        pictures: stacked, they made the whole menu a third taller than
-                        the lists needed */}
-                    <div className="col-span-4 grid grid-cols-2 content-start gap-x-5 border-s ps-8" style={{ borderColor: HAIR }}>
-                      <MegaFeatured
-                        img={MENU_FEATURED.shop[0].img}
-                        title={MENU_FEATURED.shop[0].title}
-                        cta={MENU_FEATURED.shop[0].cta}
-                        to={searchPath(1, { sort: 'newest' })}
-                        onNavigate={closeMenu}
-                      />
-                      <MegaFeatured
-                        img={MENU_FEATURED.shop[1].img}
-                        title={MENU_FEATURED.shop[1].title}
-                        cta={MENU_FEATURED.shop[1].cta}
-                        to={searchPath(1, { category: 'lighting' })}
-                        onNavigate={closeMenu}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-6 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu}>
-                    <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} to={searchPath(1)} />
+                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10" onClick={closeMenu}>
+                  {/* the stores themselves: this is a marketplace, and the item leads to them */}
+                  <ul className="grid grid-cols-4 gap-3" data-testid="mega-stores">
+                    {ALL_STORES.map((st) => (
+                      <li key={st.key}>
+                        <Link
+                          to={`${lookBase(1)}/store/${st.key}`}
+                          data-testid="mega-store"
+                          className="flex h-full items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
+                          style={{ borderColor: HAIR }}
+                        >
+                          <StoreMark store={st} className="h-12 w-12 text-[12px]" />
+                          <span className="min-w-0">
+                            <span className={`block truncate text-[14.5px] font-bold text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(st.name.en, st.name.ar)}</span>
+                            <span className="mt-0.5 block truncate text-[13px] text-neutral-500">{t(st.specialty.en, st.specialty.ar)}</span>
+                            <span className="mt-1 flex items-center gap-1.5 text-[12.5px] text-neutral-500">
+                              <Star size={11} strokeWidth={0} fill="#B8893B" />
+                              <span className="font-['Outfit',sans-serif] tabular-nums text-[#171512]">{st.rating.toFixed(1)}</span>
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                    <li>
+                      <Link
+                        to={`${lookBase(1)}/stores`}
+                        className="group/all flex h-full min-h-[84px] items-center justify-between gap-3 bg-[#F6F3EC] p-3.5 text-start text-[14.5px] font-bold transition-colors hover:bg-[#171512] hover:text-white"
+                      >
+                        {t('All stores', 'كل المتاجر')}
+                        <ArrowRight size={15} strokeWidth={1.5} className="rtl:rotate-180" />
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+            {openMenu === 'products' && (
+              <motion.div
+                key="mega-products"
+                data-testid="mega-products-panel"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                onMouseEnter={cancelClose}
+                className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
+                style={{ borderColor: HAIR, color: INK }}
+              >
+                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10" onClick={closeMenu}>
+                  {/* the catalogue's six categories */}
+                  <ul className="grid grid-cols-6 gap-4">
+                    {CATEGORIES.map((c) => (
+                      <li key={c.key}>
+                        <Link to={searchPath(1, { category: c.key })} data-testid="mega-product-category" className="group/pc block text-start">
+                          <span className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
+                            <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/pc:scale-105" />
+                          </span>
+                          <span className={`mt-3 block text-[14px] font-bold text-[#171512] decoration-[#5A6B4D] underline-offset-4 group-hover/pc:underline ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>
+                            {t(c.en, c.ar)}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* and by room, the other way the catalogue is filtered */}
+                  <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }}>
+                    <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by room', 'تسوق حسب الغرفة')}</p>
+                    <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-x-7 gap-y-2">
+                      {ROOMS.map((r) => (
+                        <li key={r.key}>
+                          <Link to={searchPath(1, { room: r.key })} className="text-[14px] text-neutral-600 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
+                            {t(r.en, r.ar)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <ViewMore label={t('All products', 'كل المنتجات')} to={searchPath(1)} />
                   </div>
                 </div>
               </motion.div>
@@ -1100,10 +1200,22 @@ export default function LookOne() {
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
-                    {/* 8 service groups, 4 × 2 */}
-                    <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10">
-                      {SERVICES_MENU.map((group, i) => (
-                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} onNavigate={closeMenu} />
+                    {/* the eight service categories — each opens its own page, where its services are listed */}
+                    <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3">
+                      {SERVICES.map((s) => (
+                        <Link
+                          key={s.en}
+                          to={categoryPath(s)}
+                          onClick={closeMenu}
+                          data-testid="mega-service-category"
+                          className="group/sc flex items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
+                          style={{ borderColor: HAIR }}
+                        >
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#F6F3EC] transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white">
+                            <s.icon size={19} strokeWidth={1.4} />
+                          </span>
+                          <span className={`text-[14px] font-bold leading-snug text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
+                        </Link>
                       ))}
                     </div>
                     {/* single featured tile */}
@@ -1171,16 +1283,16 @@ export default function LookOne() {
 
               {/* quick links */}
               <div className="lg:col-span-2">
-                <h4 className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+                <h4 className={`text-[11.5px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
                   {t('Quick Links', 'روابط سريعة')}
                 </h4>
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_QUICK.map((l) => {
-                    const cls = 'text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]';
+                    const cls = 'text-[14.5px] font-light text-[#EFE9DD]/70 transition-colors hover:text-[#EFE9DD]';
                     return (
                       <li key={l.en}>
                         <Link to={NAV_TO[l.en] ?? lookBase(1)} className={cls}>
-                          {t(l.en, l.ar)}
+                          {t(navLabel(l).en, navLabel(l).ar)}
                         </Link>
                       </li>
                     );
@@ -1190,13 +1302,13 @@ export default function LookOne() {
 
               {/* support */}
               <div className="lg:col-span-3">
-                <h4 className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+                <h4 className={`text-[11.5px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
                   {t('Customer Support', 'خدمة العملاء')}
                 </h4>
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_SUPPORT.map((l) => (
                     <li key={l.en}>
-                      <Link to={SUPPORT_TO[l.en] ?? `${lookBase(1)}/help/faq`} className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
+                      <Link to={SUPPORT_TO[l.en] ?? `${lookBase(1)}/help/faq`} className="text-[14.5px] font-light text-[#EFE9DD]/70 transition-colors hover:text-[#EFE9DD]">
                         {t(l.en, l.ar)}
                       </Link>
                     </li>
@@ -1206,10 +1318,10 @@ export default function LookOne() {
 
               {/* contact + subscribe */}
               <div className="lg:col-span-3">
-                <h4 className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+                <h4 className={`text-[11.5px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
                   {t('Contact', 'تواصل معنا')}
                 </h4>
-                <ul className="mt-6 space-y-3.5 text-sm font-light text-[#EFE9DD]/60">
+                <ul className="mt-6 space-y-3.5 text-[14.5px] font-light text-[#EFE9DD]/70">
                   <li dir="ltr" className={isAr ? 'text-right' : undefined}>
                     {FOOTER_LINKS.phone}
                   </li>
@@ -1217,7 +1329,7 @@ export default function LookOne() {
                 </ul>
 
                 <h4
-                  className={`mt-10 text-[11px] font-semibold uppercase ${
+                  className={`mt-10 text-[11.5px] font-semibold uppercase ${
                     isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                   }`}
                 >
@@ -1229,13 +1341,13 @@ export default function LookOne() {
                     required
                     aria-label={t('Email', 'البريد الإلكتروني')}
                     placeholder={t('YOUR EMAIL', 'بريدك الإلكتروني')}
-                    className={`w-full border-b border-[#EFE9DD]/25 bg-transparent pb-2.5 text-[11px] uppercase text-[#EFE9DD] placeholder:text-[#EFE9DD]/35 transition-colors focus:border-[#EFE9DD] focus:outline-none ${
+                    className={`w-full border-b border-[#EFE9DD]/25 bg-transparent pb-2.5 text-[11.5px] uppercase text-[#EFE9DD] placeholder:text-[#EFE9DD]/35 transition-colors focus:border-[#EFE9DD] focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
                   <button
                     type="submit"
-                    className={`shrink-0 border border-[#EFE9DD]/40 px-6 py-2.5 text-[10px] uppercase transition-colors duration-300 hover:bg-[#EFE9DD] hover:text-[#14120F] ${
+                    className={`shrink-0 border border-[#EFE9DD]/40 px-6 py-2.5 text-[11px] uppercase transition-colors duration-300 hover:bg-[#EFE9DD] hover:text-[#14120F] ${
                       isAr ? 'tracking-normal' : 'tracking-[0.26em]'
                     }`}
                   >
@@ -1245,17 +1357,34 @@ export default function LookOne() {
               </div>
             </div>
 
-            <div className="mt-16 border-t border-[#EFE9DD]/10 pt-8 text-center">
-              <p className={`text-xs font-light text-[#EFE9DD]/40 ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}>
-                {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار. جميع الحقوق محفوظة.')}
-              </p>
+            <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-[#EFE9DD]/10 pt-8 sm:flex-row">
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-6">
+                <p className={`text-xs font-light text-[#EFE9DD]/40 ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}>
+                  {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار. جميع الحقوق محفوظة.')}
+                </p>
+                {/* the partners' dashboard — the existing one, reached the same way as from the original footer */}
+                <Link
+                  to="/dashboard"
+                  data-testid="footer-dashboard"
+                  className={`text-xs font-light text-[#EFE9DD]/55 underline-offset-4 transition-colors hover:text-[#EFE9DD] hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}
+                >
+                  {t('Partner Portal (preview)', 'بوابة الشركاء (معاينة)')}
+                </Link>
+              </div>
+              {/* design review: this look (1) or the original site (2) */}
+              <div className="flex items-center gap-3" data-testid="look-switch">
+                <span className={`text-[11.5px] text-[#EFE9DD]/45 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Design', 'التصميم')}</span>
+                <div dir="ltr" role="group" aria-label={t('Design version', 'نسخة التصميم')} className="flex border border-[#EFE9DD]/30 font-['Outfit',sans-serif] text-[14px] font-semibold">
+                  <span aria-current="page" className="flex h-8 w-10 items-center justify-center bg-[#EFE9DD] text-[#14120F]">1</span>
+                  <Link to="/" data-testid="look-switch-2" className="flex h-8 w-10 items-center justify-center text-[#EFE9DD]/70 transition-colors hover:bg-[#EFE9DD]/10 hover:text-[#EFE9DD]">2</Link>
+                </div>
+              </div>
             </div>
           </div>
         </footer>
 
-        {/* the product page carries a sticky buy bar on phones — lift the pill above it */}
-        <LookSwitcher raiseOnMobile={pathname.includes('/product/')} />
-        <FloatingContact />
+        {/* a designer or WhatsApp, at the side; the look switch moved into the footer */}
+        <SideContact />
         <PromoPopup active={isHome} />
         {/* first load of the session: the page arrives through the logo (one/LoadReveal) */}
         <LoadReveal />
@@ -1310,7 +1439,7 @@ function HeroCopy() {
                 transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
               >
                 <p
-                  className={`mb-5 text-[11px] uppercase text-white/85 ${
+                  className={`mb-5 text-[11.5px] uppercase text-white/85 ${
                     isAr ? 'tracking-normal' : 'tracking-[0.4em]'
                   }`}
                 >
@@ -1327,7 +1456,7 @@ function HeroCopy() {
                 </h1>
                 <Link
                   to={searchPath(1)}
-                  className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                  className={`inline-block bg-[#171512] px-12 py-4 text-[11.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                     isAr ? 'tracking-normal' : 'tracking-[0.32em]'
                   }`}
                 >
@@ -1391,6 +1520,9 @@ export function LookOneHome() {
 
   /* shop-the-look: one open product card at a time, with a small close grace period */
   const [openSpot, setOpenSpot] = useState<string | null>(null);
+  /* the room on show: the client asked for several, picked from image cards */
+  const [roomKey, setRoomKey] = useState<string>(SHOP_ROOMS[0].key);
+  const shopRoom = SHOP_ROOMS.find((r) => r.key === roomKey) ?? SHOP_ROOMS[0];
   const spotTimer = useRef<number | null>(null);
   const cancelSpotClose = () => {
     if (spotTimer.current !== null) {
@@ -1400,7 +1532,7 @@ export function LookOneHome() {
   };
   const scheduleSpotClose = () => {
     cancelSpotClose();
-    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 120);
+    spotTimer.current = window.setTimeout(() => setOpenSpot(null), 260);
   };
   const spotOpenedAt = useRef(0);
   const openSpotNow = (id: string) => {
@@ -1450,6 +1582,9 @@ export function LookOneHome() {
         <HeroCopy />
       </section>
 
+      {/* the stores, with a badge on any that has offers (client note: «إضافة شريط البراندات») */}
+      <BrandsStrip />
+
       {/* ============================================================== */}
       {/* 2. QUICK CATEGORIES — the original's icon strip under the hero */}
       {/* ============================================================== */}
@@ -1474,10 +1609,43 @@ export function LookOneHome() {
         <RoomStage
           eyebrow={t('The Room — 03', 'الغرفة — 03')}
           title={t('Shop the Look', 'تسوق الغرفة')}
-          img={IMG.roomHotspots}
-          alt={t('Styled interior with shoppable products', 'مساحة داخلية منسقة بمنتجات قابلة للتسوق')}
+          img={shopRoom.img}
+          alt={t(`${shopRoom.name.en} with shoppable products`, `${shopRoom.name.ar} بمنتجات قابلة للتسوق`)}
+          selector={
+            <div
+              role="radiogroup"
+              aria-label={t('Choose a room', 'اختر الغرفة')}
+              data-testid="room-selector"
+              className="scrollbar-hide flex gap-2 overflow-x-auto px-6 md:gap-2.5 md:overflow-visible md:px-0"
+            >
+              {SHOP_ROOMS.map((r) => {
+                const on = r.key === shopRoom.key;
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    data-testid={`room-pick-${r.key}`}
+                    onClick={() => {
+                      setOpenSpot(null);
+                      setRoomKey(r.key);
+                    }}
+                    className={`group relative block w-[104px] shrink-0 overflow-hidden border-2 text-start transition-colors md:w-[112px] ${
+                      on ? 'border-[#171512] md:border-white' : 'border-transparent hover:border-[#171512]/40 md:hover:border-white/70'
+                    }`}
+                  >
+                    <img src={r.img} alt="" loading="lazy" className={`aspect-[4/3] w-full object-cover transition-opacity ${on ? '' : 'opacity-80 group-hover:opacity-100'}`} />
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-1.5 pt-5 text-[13px] font-medium leading-tight text-white">
+                      {t(r.name.en, r.name.ar)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          }
         >
-          {ROOM_HOTSPOTS.map((h, i) => (
+          {shopRoom.spots.map((h, i) => (
             <ShopHotspot
               key={h.id}
               h={h}
@@ -1635,8 +1803,7 @@ export function LookOneHome() {
                 'الغرفة نفسها قبل ترتيب ديار وبعده',
               )}
               className="aspect-[4/3] h-full w-full lg:aspect-auto lg:min-h-[680px]"
-            />
-            <div className="pointer-events-none absolute inset-0 hidden lg:block lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#171512]" />
+            />
           </Reveal>
 
           {/* copy */}
@@ -1659,19 +1826,19 @@ export function LookOneHome() {
                     className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
                   >
                     <span
-                      className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
+                      className="shrink-0 font-['Outfit',sans-serif] text-[14.5px] font-bold"
                       style={{ color: OLIVE_LT }}
                     >
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
+                    <span className="text-[15px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
                   </li>
                 ))}
               </ol>
 
               <Link
                 to={`${lookBase(1)}/ai-designer`}
-                className={`inline-block mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+                className={`inline-block mt-10 bg-[#F6F3EC] px-10 py-4 text-[11.5px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
@@ -1712,7 +1879,7 @@ export function LookOneHome() {
               </p>
               <Link
                 to={`${lookBase(1)}/loyalty`}
-                className={`inline-block mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                className={`inline-block mt-9 bg-[#171512] px-10 py-4 text-[11.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
@@ -1740,7 +1907,7 @@ export function LookOneHome() {
                     >
                       {t(p.title.en, p.title.ar)}
                     </h3>
-                    <p className="mt-2 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                    <p className="mt-2 text-[15px] font-light leading-relaxed text-neutral-600">
                       {t(p.body.en, p.body.ar)}
                     </p>
                   </div>
@@ -1785,7 +1952,7 @@ export function LookOneHome() {
             <div className="mt-10">
               <Link
                 to={`${lookBase(1)}/b2b`}
-                className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11px] uppercase text-white transition-colors hover:border-white ${
+                className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11.5px] uppercase text-white transition-colors hover:border-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.3em]'
                 }`}
               >
@@ -1844,7 +2011,7 @@ export function LookOneHome() {
                   >
                     {t(role.title.en, role.title.ar)}
                   </h3>
-                  <p className="mt-3 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                  <p className="mt-3 flex-1 text-[15px] font-light leading-relaxed text-neutral-600">
                     {t(role.body.en, role.body.ar)}
                   </p>
                   <div className="mt-7">
@@ -1871,14 +2038,14 @@ export function LookOneHome() {
                 >
                   {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
                 </h3>
-                <p className="mt-3 text-[14px] font-light leading-relaxed text-[#F6F3EC]/65">
+                <p className="mt-3 text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
                   {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => shell.openAuth({ view: 'up', role: 'store' })}
-                className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
+                className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11.5px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
@@ -1888,11 +2055,6 @@ export function LookOneHome() {
           </Reveal>
         </div>
       </section>
-
-      {/* ============================================================== */}
-      {/* 23. BRANDS STRIP — typographic wordmarks */}
-      {/* ============================================================== */}
-      <BrandsStrip />
 
       {/* ============================================================== */}
       {/* ============================================================== */}
@@ -1937,7 +2099,7 @@ export function LookOneHome() {
                   </div>
                 </Link>
                 <p
-                  className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                  className={`mt-6 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
                   style={{ color: OLIVE }}
                 >
                   {t(post.category.en, post.category.ar)}
@@ -1953,13 +2115,13 @@ export function LookOneHome() {
                     {t(post.title.en, post.title.ar)}
                   </Link>
                 </h3>
-                <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                <p className="mt-4 flex-1 text-[15px] font-light leading-relaxed text-neutral-600">
                   {t(post.excerpt.en, post.excerpt.ar)}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
                   <ViewMore label={t('Read Article', 'اقرأ المقال')} to={`${lookBase(1)}/blog/${postSlug(post)}`} />
                   <span
-                    className={`text-[10px] uppercase text-neutral-400 ${
+                    className={`text-[11px] uppercase text-neutral-400 ${
                       isAr ? 'tracking-normal' : 'tracking-[0.22em]'
                     }`}
                   >
@@ -2021,7 +2183,7 @@ export function LookOneHome() {
                       >
                         {t(f.title.en, f.title.ar)}
                       </h3>
-                      <p className="mt-2 text-[13px] font-light leading-relaxed text-[#F3ECDB]/65">
+                      <p className="mt-2 text-[14.5px] font-light leading-relaxed text-[#F3ECDB]/65">
                         {t(f.body.en, f.body.ar)}
                       </p>
                     </div>

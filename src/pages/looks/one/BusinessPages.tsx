@@ -119,7 +119,7 @@ export function B2BPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
         <div className="relative flex h-full min-h-[520px] items-end">
           <div className={`${CONTAINER} w-full pb-12 md:pb-16`}>
-            <p className={`text-[11px] text-white/80 ${caps}`}>{'B2B'}</p>
+            <p className={`text-[11.5px] text-white/80 ${caps}`}>{'B2B'}</p>
             <h1 className={`mt-5 max-w-3xl text-white ${displayCls(isAr, 'xl')}`}>
               {t('Design, build and deliver — one contract', 'نصمّم وننفّذ ونسلّم — بعقد واحد')}
             </h1>
@@ -133,7 +133,7 @@ export function B2BPage() {
               <button type="button" data-testid="b2b-quote" onClick={() => setQuote(true)} className={`px-9 py-4 ${primaryBtnCls(isAr)} !bg-white !text-[#171512] hover:!bg-[#5A6B4D] hover:!text-white`}>
                 {t('Request a Quote', 'اطلب عرض سعر')}
               </button>
-              <Link to={`${lookBase(1)}/projects`} className={`inline-flex items-center gap-2 border border-white/60 px-8 py-4 text-[11px] font-medium text-white transition-colors hover:bg-white hover:text-[#171512] ${caps}`}>
+              <Link to={`${lookBase(1)}/projects`} className={`inline-flex items-center gap-2 border border-white/60 px-8 py-4 text-[11.5px] font-medium text-white transition-colors hover:bg-white hover:text-[#171512] ${caps}`}>
                 {t('See Our Projects', 'شاهد مشاريعنا')}
               </Link>
             </div>
@@ -152,7 +152,7 @@ export function B2BPage() {
           ].map(([label, value]) => (
             <li key={label} className="py-7 text-center">
               <p className="font-['Outfit',sans-serif] text-[30px] font-bold tabular-nums md:text-[36px]" dir="ltr">{value}</p>
-              <p className={`mt-1 text-[10px] ${caps}`} style={{ color: MUTED }}>{label}</p>
+              <p className={`mt-1 text-[11px] ${caps}`} style={{ color: MUTED }}>{label}</p>
             </li>
           ))}
         </ul>
@@ -160,7 +160,7 @@ export function B2BPage() {
 
       {/* sectors */}
       <section className={`${CONTAINER} py-14 md:py-20`}>
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Who we build for', 'لمن ننفّذ')}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Who we build for', 'لمن ننفّذ')}</p>
         <h2 className={`mt-3 ${displayCls(isAr, 'md')}`}>{t('Four kinds of project', 'أربعة أنواع من المشاريع')}</h2>
         <ul ref={sectors.ref} className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {SECTORS.map((s, i) => (
@@ -177,7 +177,7 @@ export function B2BPage() {
                 <s.icon size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
                 <p className="text-[15px] font-bold">{s.title}</p>
               </div>
-              <p className="mt-2 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{s.body}</p>
+              <p className="mt-2 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{s.body}</p>
             </motion.li>
           ))}
         </ul>
@@ -186,7 +186,7 @@ export function B2BPage() {
       {/* companies */}
       <section className="border-t py-14 md:py-20" style={{ borderColor: HAIR }}>
         <div className={CONTAINER}>
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Fit-out partners', 'شركاء التجهيز')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Fit-out partners', 'شركاء التجهيز')}</p>
           <h2 className={`mt-3 ${displayCls(isAr, 'md')}`}>{t('The companies behind the work', 'الشركات خلف الأعمال')}</h2>
           <ul className="mt-10 grid gap-5 md:grid-cols-3">
             {COMPANIES.map((c) => (
@@ -196,11 +196,11 @@ export function B2BPage() {
                     <img src={c.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
                   </div>
                   <div className="flex items-start gap-4 p-5">
-                    <span dir="ltr" className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white">{c.initials}</span>
+                    <span dir="ltr" className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[14px] font-bold text-white">{c.initials}</span>
                     <span className="min-w-0">
                       <span className="block text-[15px] font-bold">{t(c.name.en, c.name.ar)}</span>
-                      <span className="mt-1 block text-[12px] font-light" style={{ color: MUTED }}>{t(c.sector.en, c.sector.ar)}</span>
-                      <span className="mt-3 block text-[11px]" style={{ color: MUTED }}>
+                      <span className="mt-1 block text-[14px] font-light" style={{ color: MUTED }}>{t(c.sector.en, c.sector.ar)}</span>
+                      <span className="mt-3 block text-[13px]" style={{ color: MUTED }}>
                         {t(`${c.stats.projects} projects · ${c.stats.years} years`, `${c.stats.projects} مشروع · ${c.stats.years} سنة`)}
                       </span>
                     </span>
@@ -216,7 +216,7 @@ export function B2BPage() {
       <section style={{ backgroundColor: NIGHT }}>
         <div className={`${CONTAINER} grid gap-10 py-14 md:py-20 lg:grid-cols-12`}>
           <div className="lg:col-span-4">
-            <p className={`text-[10px] ${caps}`} style={{ color: OLIVE_LT }}>{t('The process', 'آلية العمل')}</p>
+            <p className={`text-[11px] ${caps}`} style={{ color: OLIVE_LT }}>{t('The process', 'آلية العمل')}</p>
             <h2 className={`mt-3 text-white ${displayCls(isAr, 'md')}`}>{t('One team from brief to keys', 'فريق واحد من الفكرة حتى التسليم')}</h2>
             <button type="button" onClick={() => setQuote(true)} className={`mt-8 px-9 py-4 ${primaryBtnCls(isAr)} !bg-white !text-[#171512] hover:!bg-[#5A6B4D] hover:!text-white`}>
               {t('Start a Project', 'ابدأ مشروعك')}
@@ -232,7 +232,7 @@ export function B2BPage() {
               <li key={title} className="p-7" style={{ backgroundColor: NIGHT }}>
                 <span className="font-['Outfit',sans-serif] text-[28px] font-bold" style={{ color: OLIVE_LT }} dir="ltr">{String(i + 1).padStart(2, '0')}</span>
                 <p className="mt-4 text-[15px] font-bold text-white">{title}</p>
-                <p className="mt-2 text-[13px] font-light leading-relaxed text-white/65">{body}</p>
+                <p className="mt-2 text-[14.5px] font-light leading-relaxed text-white/65">{body}</p>
               </li>
             ))}
           </ol>
@@ -284,7 +284,7 @@ export function CompanyPage() {
           ].map(([label, value]) => (
             <li key={String(label)} className="py-7 text-center">
               <p className="font-['Outfit',sans-serif] text-[28px] font-bold tabular-nums md:text-[34px]">{value}</p>
-              <p className={`mt-1 text-[10px] ${caps}`} style={{ color: MUTED }}>{label}</p>
+              <p className={`mt-1 text-[11px] ${caps}`} style={{ color: MUTED }}>{label}</p>
             </li>
           ))}
         </ul>
@@ -292,10 +292,10 @@ export function CompanyPage() {
 
       <section className={`${CONTAINER} grid gap-12 py-14 md:py-16 lg:grid-cols-12`}>
         <div className="lg:col-span-4">
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Capabilities', 'القدرات')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Capabilities', 'القدرات')}</p>
           <ul className="mt-5 grid gap-3">
             {c.capabilities.map((cap) => (
-              <li key={cap.en} className="flex items-center gap-3 text-[14px] font-medium">
+              <li key={cap.en} className="flex items-center gap-3 text-[15px] font-medium">
                 <Check size={15} strokeWidth={2} style={{ color: OLIVE }} />
                 {t(cap.en, cap.ar)}
               </li>
@@ -303,7 +303,7 @@ export function CompanyPage() {
           </ul>
         </div>
         <div className="lg:col-span-8">
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Selected projects', 'مشاريع مختارة')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Selected projects', 'مشاريع مختارة')}</p>
           <ul className="mt-5 grid gap-5 sm:grid-cols-2">
             {c.projects.map((pr, i) => (
               <li key={pr.title.en}>
@@ -311,8 +311,8 @@ export function CompanyPage() {
                   <div className="aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
                     <img src={pr.img} alt="" loading="lazy" className="h-full w-full cursor-zoom-in object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
                   </div>
-                  <p className="mt-3 text-[14px] font-bold">{t(pr.title.en, pr.title.ar)}</p>
-                  <p className="mt-1 text-[12px] font-light" style={{ color: MUTED }}>{t(pr.place.en, pr.place.ar)}</p>
+                  <p className="mt-3 text-[15px] font-bold">{t(pr.title.en, pr.title.ar)}</p>
+                  <p className="mt-1 text-[14px] font-light" style={{ color: MUTED }}>{t(pr.place.en, pr.place.ar)}</p>
                 </button>
               </li>
             ))}
@@ -364,7 +364,7 @@ export function ProjectsPage() {
                 <img src={p.img} alt="" loading="lazy" className={`w-full cursor-zoom-in object-cover transition-transform duration-[1200ms] group-hover:scale-[1.04] ${i === 0 ? 'aspect-[4/3] h-full' : 'aspect-[4/3]'}`} />
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16 text-white">
                   <span className="block text-[15px] font-bold">{t(p.title.en, p.title.ar)}</span>
-                  <span className={`mt-1 block text-[10px] text-white/75 ${caps}`}>{t(p.place.en, p.place.ar)}</span>
+                  <span className={`mt-1 block text-[11px] text-white/75 ${caps}`}>{t(p.place.en, p.place.ar)}</span>
                 </span>
               </button>
             </motion.li>
@@ -419,16 +419,16 @@ export function AboutPage() {
             {VALUES.map(([title, body]) => (
               <li key={title} className="bg-[#FDFCF9] p-6">
                 <p className="text-[15px] font-bold">{title}</p>
-                <p className="mt-2 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{body}</p>
+                <p className="mt-2 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{body}</p>
               </li>
             ))}
           </ul>
           <div className="mt-10 flex flex-wrap gap-6">
-            <Link to={`${lookBase(1)}/projects`} className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            <Link to={`${lookBase(1)}/projects`} className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
               {t('See our projects', 'شاهد مشاريعنا')}
               <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
             </Link>
-            <Link to={`${lookBase(1)}/contact`} className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            <Link to={`${lookBase(1)}/contact`} className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
               {t('Contact us', 'تواصل معنا')}
               <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
             </Link>
@@ -475,8 +475,8 @@ export function ContactPage() {
                   <c.icon size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
                 </span>
                 <span className="min-w-0">
-                  <span className={`block text-[10px] ${caps}`} style={{ color: MUTED }}>{c.label}</span>
-                  <span className="mt-1 block truncate text-[14px] font-bold" dir={c.ltr ? 'ltr' : undefined}>{c.value}</span>
+                  <span className={`block text-[11px] ${caps}`} style={{ color: MUTED }}>{c.label}</span>
+                  <span className="mt-1 block truncate text-[15px] font-bold" dir={c.ltr ? 'ltr' : undefined}>{c.value}</span>
                 </span>
               </>
             );
@@ -501,8 +501,8 @@ export function ContactPage() {
                 <Check size={20} strokeWidth={2} className="text-white" />
               </span>
               <p className="mt-6 text-[18px] font-bold">{t('Message received', 'وصلتنا رسالتك')}</p>
-              <p className="mt-2 text-[14px] font-light" style={{ color: '#4A443C' }}>{t('We will reply within a few hours.', 'سنرد عليك خلال ساعات.')}</p>
-              <button type="button" onClick={() => setSent(false)} className={`mt-8 border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+              <p className="mt-2 text-[15px] font-light" style={{ color: '#4A443C' }}>{t('We will reply within a few hours.', 'سنرد عليك خلال ساعات.')}</p>
+              <button type="button" onClick={() => setSent(false)} className={`mt-8 border-b pb-1 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
                 {t('Send another', 'أرسل رسالة أخرى')}
               </button>
             </div>

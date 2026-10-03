@@ -59,7 +59,7 @@ export function PageHead({
       <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
         <div className="max-w-2xl">
           {eyebrow && (
-            <p className={`mb-3 text-[11px] ${capsCls(isAr)}`} style={{ color: OLIVE }}>
+            <p className={`mb-3 text-[11.5px] ${capsCls(isAr)}`} style={{ color: OLIVE }}>
               {eyebrow}
             </p>
           )}
@@ -123,7 +123,7 @@ export function Tabs<K extends string>({
           <>
             {it.label}
             {it.count !== undefined && (
-              <span className="font-['Outfit',sans-serif] text-[10px] font-medium tabular-nums" style={{ color: on ? OLIVE : idle }}>
+              <span className="font-['Outfit',sans-serif] text-[11px] font-medium tabular-nums" style={{ color: on ? OLIVE : idle }}>
                 {it.count}
               </span>
             )}
@@ -164,7 +164,7 @@ function Label({ htmlFor, children }: { htmlFor: string; children: ReactNode }) 
   return (
     <label
       htmlFor={htmlFor}
-      className={`mb-2 block text-[11px] font-medium ${lang === 'ar' ? 'tracking-normal' : 'uppercase tracking-[0.18em]'}`}
+      className={`mb-2 block text-[11.5px] font-medium ${lang === 'ar' ? 'tracking-normal' : 'uppercase tracking-[0.18em]'}`}
       style={{ color: MUTED }}
     >
       {children}
@@ -352,7 +352,7 @@ export function EmptyState({
     <div className="border px-6 py-16 text-center" style={{ borderColor: HAIR }} data-testid="empty-state">
       <p className="text-[15px] font-bold">{title}</p>
       {body && (
-        <p className="mx-auto mt-3 max-w-sm text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+        <p className="mx-auto mt-3 max-w-sm text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
           {body}
         </p>
       )}
@@ -408,11 +408,11 @@ export function StatusTimeline({
               ) : null}
             </span>
             <span className="sm:mt-3 sm:block">
-              <span className="block text-[13px] font-bold" style={{ color: done || now ? INK : MUTED }}>
+              <span className="block text-[14.5px] font-bold" style={{ color: done || now ? INK : MUTED }}>
                 {s.label}
               </span>
               {s.note && (
-                <span className="mt-1 block text-[11px] font-light" style={{ color: MUTED }}>
+                <span className="mt-1 block text-[13px] font-light" style={{ color: MUTED }}>
                   {s.note}
                 </span>
               )}
@@ -541,7 +541,7 @@ export function Lightbox({
           </div>
 
           {caption && (
-            <p className="px-5 pb-5 text-center text-[13px] font-light text-white/75">{caption(index)}</p>
+            <p className="px-5 pb-5 text-center text-[14.5px] font-light text-white/75">{caption(index)}</p>
           )}
         </motion.div>
       )}
@@ -559,7 +559,7 @@ export function Stat({ label, value, dark = false }: { label: string; value: str
   const { lang } = useLook();
   return (
     <div>
-      <p className={`text-[10px] ${capsCls(lang === 'ar')}`} style={{ color: dark ? 'rgba(246,243,236,0.6)' : MUTED }}>
+      <p className={`text-[11px] ${capsCls(lang === 'ar')}`} style={{ color: dark ? 'rgba(246,243,236,0.6)' : MUTED }}>
         {label}
       </p>
       <p
@@ -582,7 +582,7 @@ export function Badge({ tone, children }: { tone: 'olive' | 'ink' | 'muted' | 'r
     red: { c: '#B03A2E', b: 'rgba(176,58,46,0.35)' },
   }[tone];
   return (
-    <span className="inline-flex items-center border px-2.5 py-1 text-[10px] font-semibold" style={{ color: colors.c, borderColor: colors.b }}>
+    <span className="inline-flex items-center border px-2.5 py-1 text-[13px] font-semibold" style={{ color: colors.c, borderColor: colors.b }}>
       {children}
     </span>
   );
@@ -610,15 +610,15 @@ export function ServiceOffers({ intro, list, testId }: { intro: string; list: St
               <sv.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
             </span>
             <p className="mt-6 text-[17px] font-bold">{t(sv.title.en, sv.title.ar)}</p>
-            <p className="mt-2 flex-1 text-[13.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(sv.body.en, sv.body.ar)}</p>
+            <p className="mt-2 flex-1 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(sv.body.en, sv.body.ar)}</p>
             <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: HAIR }}>
               <div>
-                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Price', 'السعر')}</dt>
-                <dd className="mt-1 text-[13px] font-bold">{t(sv.price.en, sv.price.ar)}</dd>
+                <dt className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Price', 'السعر')}</dt>
+                <dd className="mt-1 text-[14.5px] font-bold">{t(sv.price.en, sv.price.ar)}</dd>
               </div>
               <div>
-                <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Timing', 'المدة')}</dt>
-                <dd className="mt-1 text-[13px] font-bold">{t(sv.lead.en, sv.lead.ar)}</dd>
+                <dt className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Timing', 'المدة')}</dt>
+                <dd className="mt-1 text-[14.5px] font-bold">{t(sv.lead.en, sv.lead.ar)}</dd>
               </div>
             </dl>
             <button

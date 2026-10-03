@@ -16,7 +16,10 @@ import {
   Calendar,
   Link as LinkIcon,
   BarChart,
-  ChevronDown
+  ChevronDown,
+  Palette,
+  MessageSquare,
+  Images
 } from 'lucide-react';
 
 export default function DashboardLayout() {
@@ -28,6 +31,7 @@ export default function DashboardLayout() {
     if (location.pathname.includes('/vendor')) return 'vendor';
     if (location.pathname.includes('/service')) return 'service';
     if (location.pathname.includes('/affiliate')) return 'affiliate';
+    if (location.pathname.includes('/designer')) return 'designer';
     return null;
   };
 
@@ -50,6 +54,14 @@ export default function DashboardLayout() {
       { name: 'المالية', path: '/dashboard/service/finance', icon: Wallet },
       { name: 'الإعدادات', path: '/dashboard/service/settings', icon: Settings },
     ],
+    designer: [
+      { name: 'الرئيسية', path: '/dashboard/designer', icon: LayoutDashboard },
+      { name: 'المحادثات', path: '/dashboard/designer/chat', icon: MessageSquare },
+      { name: 'استوديو التصميم', path: '/dashboard/designer/studio', icon: Palette },
+      { name: 'تصاميمي', path: '/dashboard/designer/designs', icon: Images },
+      { name: 'المالية', path: '/dashboard/designer/finance', icon: Wallet },
+      { name: 'الإعدادات', path: '/dashboard/designer/settings', icon: Settings },
+    ],
     affiliate: [
       { name: 'الرئيسية', path: '/dashboard/affiliate', icon: LayoutDashboard },
       { name: 'المنتجات المتاحة', path: '/dashboard/affiliate/products', icon: Package },
@@ -63,7 +75,7 @@ export default function DashboardLayout() {
   const links = role ? NAV_LINKS[role] : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="dash min-h-screen bg-gray-50 flex" dir="rtl">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -90,7 +102,7 @@ export default function DashboardLayout() {
             <ul className="space-y-1 px-3">
               {links.map((link) => {
                 const Icon = link.icon;
-                const isActive = location.pathname === link.path;
+                const isActive = location.pathname === link.path || (/\/(studio|chat)$/.test(link.path) && location.pathname.startsWith(`${link.path}/`));
                 return (
                   <li key={link.path}>
                     <Link
@@ -131,7 +143,7 @@ export default function DashboardLayout() {
               <Menu size={20} />
             </button>
             <h1 className="text-lg md:text-xl font-bold text-diyar-dark truncate max-w-[150px] md:max-w-none">
-              {role === 'vendor' ? 'بوابة التاجر' : role === 'service' ? 'بوابة مزود الخدمة' : role === 'affiliate' ? 'بوابة المسوق' : 'اختيار البوابة'}
+              {role === 'vendor' ? 'بوابة التاجر' : role === 'service' ? 'بوابة مزود الخدمة' : role === 'affiliate' ? 'بوابة المسوق' : role === 'designer' ? 'بوابة المصمم' :'اختيار البوابة'}
             </h1>
           </div>
           
@@ -149,6 +161,9 @@ export default function DashboardLayout() {
                 </Link>
                 <Link to="/dashboard/service" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm">
                   <Wrench size={16} className="text-blue-500" /> مزود خدمة
+                </Link>
+                <Link to="/dashboard/designer" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm">
+                  <Palette size={16} className="text-purple-500" /> مصمم ديار
                 </Link>
                 <Link to="/dashboard/affiliate" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm">
                   <Megaphone size={16} className="text-green-500" /> مسوق بالعمولة
@@ -187,7 +202,7 @@ export default function DashboardLayout() {
                             <p className="text-xs text-gray-500 line-clamp-2 mb-2">
                               {i === 1 ? 'تم استلام طلب جديد بقيمة 1,250 ر.س. يرجى تجهيز الطلب بأسرع وقت.' : 'تم تحديث سياسات التسعير، يرجى مراجعة الشروط والأحكام الجديدة.'}
                             </p>
-                            <span className="text-[10px] text-gray-400">منذ ساعتين</span>
+                            <span className="text-xs text-gray-400">منذ ساعتين</span>
                           </div>
                         </div>
                       ))}

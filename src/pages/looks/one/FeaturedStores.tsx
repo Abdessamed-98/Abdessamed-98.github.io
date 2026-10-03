@@ -17,7 +17,7 @@
  */
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { STORES, formatSAR, searchPath } from '../lookShared';
+import { STORES, formatSAR, lookBase } from '../lookShared';
 import { HAIR, Reveal, SectionHeading, ViewMore, useLook, RAIL_SM, RAIL_ITEM_SM, RAIL_VIEWPORT } from './ui';
 
 export function FeaturedStores({ no }: { no: string }) {
@@ -34,7 +34,7 @@ export function FeaturedStores({ no }: { no: string }) {
               title={t('Featured Stores', 'متاجر مختارة')}
             />
             <div className="pb-2">
-              <ViewMore label={t('All Stores', 'كل المتاجر')} to={searchPath(1)} />
+              <ViewMore label={t('All Stores', 'كل المتاجر')} to={`${lookBase(1)}/stores`} />
             </div>
           </div>
         </Reveal>
@@ -52,7 +52,7 @@ export function FeaturedStores({ no }: { no: string }) {
                 className={RAIL_ITEM_SM}
               >
                 <Link
-                  to={searchPath(1, { store: s.key })}
+                  to={`${lookBase(1)}/store/${s.key}`}
                   data-testid="store-card"
                   aria-label={name}
                   className="group/st relative block overflow-hidden"
@@ -70,7 +70,7 @@ export function FeaturedStores({ no }: { no: string }) {
 
                   <span
                     dir="ltr"
-                    className="absolute end-4 top-4 bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm"
+                    className="absolute end-4 top-4 bg-black/35 px-2.5 py-1 text-[13px] font-medium text-white backdrop-blur-sm"
                   >
                     ★ {s.rating}
                   </span>
@@ -81,8 +81,8 @@ export function FeaturedStores({ no }: { no: string }) {
                       aria-hidden
                       className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden bg-[#FDFCF9] md:h-[72px] md:w-[72px]"
                     >
-                      {s.logo ? (
-                        <img src={s.logo} alt="" className="h-full w-full object-contain p-3" />
+                      {s.mark ? (
+                        <img src={s.mark} alt="" loading="lazy" className="h-full w-full object-contain p-2.5" />
                       ) : (
                         <span
                           dir="ltr"
@@ -103,11 +103,11 @@ export function FeaturedStores({ no }: { no: string }) {
                       >
                         {name}
                       </span>
-                      <span className="mt-1.5 block truncate text-[12px] font-light text-white/70">
+                      <span className="mt-1.5 block truncate text-[14px] font-light text-white/70">
                         {t(s.specialty.en, s.specialty.ar)}
                       </span>
                       <span
-                        className={`mt-1 block text-[10px] text-white/50 ${
+                        className={`mt-1 block text-[11px] text-white/50 ${
                           isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'
                         }`}
                       >

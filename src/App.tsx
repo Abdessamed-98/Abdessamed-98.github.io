@@ -47,14 +47,14 @@ import ChatPage from './pages/ChatPage.tsx';
 
 import LooksIndex from './pages/looks/LooksIndex.tsx';
 import { LookSwitcher } from './pages/looks/lookShared.tsx';
-import LookOne, { LookOneHome, LookOneSearch, LookOneProduct } from './pages/looks/LookOne.tsx';
+import LookOne, { LookOneHome, LookOneSearch, LookOneCatalog, LookOneProduct } from './pages/looks/LookOne.tsx';
 import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/CheckoutPage.tsx';
 import LookOneStore from './pages/looks/one/StorePage.tsx';
-import LookOneService from './pages/looks/one/ServicePage.tsx';
+import LookOneCategory, { ServiceDetailPage as LookOneServiceDetail, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
 import {
   ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
-  HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound,
+  HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound, StoresPage as LookOneStores,
 } from './pages/looks/one/InfoPages.tsx';
 import {
   B2BPage as LookOneB2B, CompanyPage as LookOneCompany, ProjectsPage as LookOneProjects,
@@ -62,7 +62,7 @@ import {
 } from './pages/looks/one/BusinessPages.tsx';
 import {
   AIDesignerPage as LookOneAIDesigner, ChatPage as LookOneChat, LoyaltyPage as LookOneLoyalty,
-  BlogIndexPage as LookOneBlog, ArticlePage as LookOneArticle, PagesIndex as LookOnePages,
+  BlogIndexPage as LookOneBlog, ArticlePage as LookOneArticle, PagesIndex as LookOnePages, BrandsPage as LookOneBrands,
 } from './pages/looks/one/ToolPages.tsx';
 
 import DashboardLayout from './layouts/DashboardLayout.tsx';
@@ -87,6 +87,12 @@ import AffiliateReports from './pages/dashboard/AffiliateReports.tsx';
 import AffiliatePayouts from './pages/dashboard/AffiliatePayouts.tsx';
 import AffiliateSettings from './pages/dashboard/AffiliateSettings.tsx';
 import Notifications from './pages/dashboard/Notifications.tsx';
+import DesignerDashboard from './pages/dashboard/DesignerDashboard.tsx';
+import DesignerChat from './pages/dashboard/DesignerChat.tsx';
+import DesignerStudio from './pages/dashboard/DesignerStudio.tsx';
+import DesignerDesigns from './pages/dashboard/DesignerDesigns.tsx';
+import DesignerFinance from './pages/dashboard/DesignerFinance.tsx';
+import DesignerSettings from './pages/dashboard/DesignerSettings.tsx';
 
 function MobileBottomNav({ onOpenCart, isLoggedIn }: { onOpenCart: () => void, isLoggedIn: boolean }) {
   const location = useLocation();
@@ -312,15 +318,20 @@ export default function App() {
         <Route path="/look/1" element={<LookOne />}>
           <Route index element={<LookOneHome />} />
           <Route path="search" element={<LookOneSearch />} />
+          <Route path="products" element={<LookOneCatalog />} />
           <Route path="product/:id" element={<LookOneProduct />} />
           <Route path="store/:key" element={<LookOneStore />} />
-          <Route path="service/:slug" element={<LookOneService />} />
+          <Route path="service/:slug" element={<LookOneServiceRedirect />} />
           <Route path="checkout" element={<LookOneCheckout />} />
           <Route path="order/:id" element={<LookOneOrder />} />
           <Route path="account/:section?" element={<LookOneAccount />} />
           <Route path="services" element={<LookOneServices />} />
+          <Route path="services/:category" element={<LookOneCategory />} />
+          <Route path="services/:category/:service" element={<LookOneServiceDetail />} />
           <Route path="provider/:id" element={<LookOneProvider />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
+          <Route path="stores" element={<LookOneStores />} />
+          <Route path="brands" element={<LookOneBrands />} />
           <Route path="help/:topic?" element={<LookOneHelp />} />
           <Route path="b2b" element={<LookOneB2B />} />
           <Route path="b2b/:id" element={<LookOneCompany />} />
@@ -363,6 +374,16 @@ export default function App() {
           <Route path="affiliate/payouts" element={<AffiliatePayouts />} />
           <Route path="affiliate/settings" element={<AffiliateSettings />} />
           <Route path="affiliate/notifications" element={<Notifications />} />
+
+          <Route path="designer" element={<DesignerDashboard />} />
+          <Route path="designer/chat" element={<DesignerChat />} />
+          <Route path="designer/chat/:id" element={<DesignerChat />} />
+          <Route path="designer/studio" element={<DesignerStudio />} />
+          <Route path="designer/studio/:id" element={<DesignerStudio />} />
+          <Route path="designer/designs" element={<DesignerDesigns />} />
+          <Route path="designer/finance" element={<DesignerFinance />} />
+          <Route path="designer/settings" element={<DesignerSettings />} />
+          <Route path="designer/notifications" element={<Notifications />} />
           <Route path="*" element={<div className="p-8 text-center text-gray-500 font-bold bg-white m-4 rounded-xl">هذه الصفحة قيد التطوير (Mockup)</div>} />
         </Route>
       </Routes>

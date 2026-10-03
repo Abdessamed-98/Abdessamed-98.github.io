@@ -38,7 +38,7 @@ function ClockLine() {
   const left = useCountdown();
   const hms = [Math.floor(left / 3.6e6), Math.floor(left / 6e4) % 60, Math.floor(left / 1000) % 60].map(pad2).join(':');
   return (
-    <p className={`mt-3 flex items-center gap-2 text-[11px] font-medium ${lang === 'ar' ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`} style={{ color: '#B03A2E' }}>
+    <p className={`mt-3 flex items-center gap-2 text-[11.5px] font-medium ${lang === 'ar' ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`} style={{ color: '#B03A2E' }}>
       <span className="h-1.5 w-1.5 animate-pulse bg-[#B03A2E]" aria-hidden />
       {t('Ends tonight', 'ينتهي الليلة')}
       <span dir="ltr" className="font-['Outfit',sans-serif] tabular-nums tracking-normal">{hms}</span>
@@ -97,7 +97,7 @@ function QuietPanel({ p, tall = false, lead = false }: { p: PromoPanel; tall?: b
         />
       </div>
       <p
-        className={`mt-5 text-[10px] ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'uppercase tracking-[0.3em]'}`}
+        className={`mt-5 text-[11px] ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'uppercase tracking-[0.3em]'}`}
         style={{ color: OLIVE }}
       >
         {isAr ? p.eyebrow.ar : p.eyebrow.en}
@@ -114,7 +114,7 @@ function QuietPanel({ p, tall = false, lead = false }: { p: PromoPanel; tall?: b
       {lead && <ClockLine />}
       {lead ? (
         <span
-          className={`mt-5 inline-block bg-[#171512] px-7 py-3 text-[11px] font-medium text-white transition-colors duration-300 group-hover/qp:bg-[#5A6B4D] ${
+          className={`mt-5 inline-block bg-[#171512] px-7 py-3 text-[11.5px] font-medium text-white transition-colors duration-300 group-hover/qp:bg-[#5A6B4D] ${
             isAr ? 'tracking-normal' : 'uppercase tracking-[0.26em]'
           }`}
         >
@@ -122,7 +122,7 @@ function QuietPanel({ p, tall = false, lead = false }: { p: PromoPanel; tall?: b
         </span>
       ) : (
       <span
-        className={`mt-4 inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] transition-colors ${
+        className={`mt-4 inline-flex items-center gap-2.5 border-b pb-1.5 text-[11.5px] transition-colors ${
           isAr ? 'tracking-normal' : 'uppercase tracking-[0.26em]'
         } border-[#171512]/25 group-hover/qp:border-[#171512]`}
       >
@@ -161,7 +161,7 @@ export function PromoWall() {
           copy sits there rather than on a wash over the whole picture. Pinned
           right physically — the empty half is on the right in both languages. */}
       <div className="absolute bottom-0 right-0 w-full max-w-[620px] p-7 text-right text-white md:p-12">
-        <p className={`text-[10px] text-white/80 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.3em]'}`}>
+        <p className={`text-[11px] text-white/80 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.3em]'}`}>
           {isAr ? lead.eyebrow.ar : lead.eyebrow.en}
         </p>
         <h3
@@ -182,7 +182,7 @@ export function PromoWall() {
             <Clock />
           </div>
           <span
-            className={`inline-block bg-white px-9 py-3.5 text-[11px] font-medium text-[#171512] transition-colors duration-300 group-hover/lead:bg-[#5A6B4D] group-hover/lead:text-white ${
+            className={`inline-block bg-white px-9 py-3.5 text-[11.5px] font-medium text-[#171512] transition-colors duration-300 group-hover/lead:bg-[#5A6B4D] group-hover/lead:text-white ${
               isAr ? 'tracking-normal' : 'uppercase tracking-[0.28em]'
             }`}
           >

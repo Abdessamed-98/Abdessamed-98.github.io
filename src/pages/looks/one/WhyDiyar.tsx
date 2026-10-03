@@ -163,7 +163,7 @@ export function WhyDiyar({ no }: { no: string }) {
                       {f.flat ?? <Tally to={f.to ?? 0} suffix={f.suffix} run={open} />}
                     </p>
                     <p
-                      className={`mt-2 text-[11px] text-neutral-500 ${
+                      className={`mt-2 text-[11.5px] text-neutral-500 ${
                         isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'uppercase tracking-[0.22em]'
                       }`}
                     >
@@ -179,7 +179,7 @@ export function WhyDiyar({ no }: { no: string }) {
                     >
                       {t(u.title.en, u.title.ar)}
                     </h3>
-                    <p className="mt-3.5 max-w-[34ch] text-[14.5px] font-light leading-[1.8] text-neutral-600">
+                    <p className="mt-3.5 max-w-[34ch] text-[15.5px] font-light leading-[1.8] text-neutral-600">
                       {t(u.body.en, u.body.ar)}
                     </p>
                   </div>

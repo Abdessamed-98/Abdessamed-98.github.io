@@ -8,7 +8,7 @@
  * the page behind it cannot scroll, focus is trapped inside and returns to
  * whatever opened it.
  */
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
@@ -42,6 +42,7 @@ export function Sheet({
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const panel = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -100,11 +101,24 @@ export function Sheet({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[80]" dir={isAr ? 'rtl' : 'ltr'} data-testid={testId}>
+        <div
+          className={`fixed inset-0 z-[80] ${dragging ? 'pointer-events-none' : ''}`}
+          dir={isAr ? 'rtl' : 'ltr'}
+          data-testid={testId}
+          data-dragging={dragging}
+          /* Dragging something out of the sheet (a saved piece into the chat): the
+             backdrop steps aside so the page underneath can take the drop, and the
+             sheet closes once the drop has landed somewhere that accepted it. */
+          onDragStart={() => window.setTimeout(() => setDragging(true), 0)}
+          onDragEnd={(e) => {
+            setDragging(false);
+            if (e.dataTransfer.dropEffect !== 'none') onClose();
+          }}
+        >
           <motion.div
-            className="absolute inset-0 bg-[#171512]/55 backdrop-blur-[2px]"
+            className={`absolute inset-0 bg-[#171512] ${dragging ? '' : 'backdrop-blur-[2px]'}`}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: dragging ? 0.12 : 0.55 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={onClose}
@@ -116,6 +130,8 @@ export function Sheet({
             aria-modal="true"
             aria-label={title}
             tabIndex={-1}
+            // still interactive while a drag is passing through the backdrop
+            style={{ pointerEvents: 'auto', borderColor: HAIR }}
             initial={centred ? { opacity: 0, y: 24 } : { x: slideFrom }}
             animate={centred ? { opacity: 1, y: 0 } : { x: 0 }}
             exit={centred ? { opacity: 0, y: 24 } : { x: slideFrom }}
@@ -129,13 +145,12 @@ export function Sheet({
                     wide ? 'max-w-[560px]' : 'max-w-[440px]'
                   }`
             }
-            style={{ borderColor: HAIR }}
           >
             <header className="flex items-start justify-between gap-4 border-b px-6 py-5" style={{ borderColor: HAIR }}>
               <div className="min-w-0">
                 {eyebrow && (
                   <p
-                    className={`text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                    className={`text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
                     style={{ color: '#8C8578' }}
                   >
                     {eyebrow}

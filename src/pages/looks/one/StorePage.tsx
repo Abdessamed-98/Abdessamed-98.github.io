@@ -27,7 +27,7 @@ import {
   type RoomKey,
   type StoreKey,
 } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, OLIVE, ProductCard, TILE, primaryBtnCls, useLook, Stars, StoreMark } from './ui';
 import { RatingInput, ServiceOffers, Tabs, TextArea } from './kit';
 import { Sheet } from './Sheet';
 import { useShell } from './shellContext';
@@ -61,7 +61,7 @@ export default function StorePage() {
     return (
       <main className="pt-[72px]">
         <div className="mx-auto max-w-[1400px] px-6 py-24 text-center md:px-10">
-          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Not found', 'غير موجود')}</p>
+          <p className={`text-[11.5px] ${caps}`} style={{ color: MUTED }}>{t('Not found', 'غير موجود')}</p>
           <p className="mt-3 text-[15px] font-light" style={{ color: '#4A443C' }}>
             {t('That store is not in the marketplace.', 'هذا المتجر غير موجود في المنصة.')}
           </p>
@@ -95,14 +95,18 @@ export default function StorePage() {
             <div className="flex flex-wrap items-end justify-between gap-8">
               <div className="min-w-0">
                 <div className="flex items-center gap-4">
-                  <span
-                    dir="ltr"
-                    aria-hidden
-                    className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/70 font-['Outfit',sans-serif] text-[16px] font-bold tracking-[0.06em] text-white"
-                  >
-                    {store.initials}
-                  </span>
-                  <p className={`text-[11px] text-white/85 ${caps}`}>{t('Marketplace store', 'متجر في المنصة')}</p>
+                  {store.mark ? (
+                    <StoreMark store={store} className="h-16 w-16 md:h-[72px] md:w-[72px]" />
+                  ) : (
+                    <span
+                      dir="ltr"
+                      aria-hidden
+                      className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/70 font-['Outfit',sans-serif] text-[16px] font-bold tracking-[0.06em] text-white"
+                    >
+                      {store.initials}
+                    </span>
+                  )}
+                  <p className={`text-[11.5px] text-white/85 ${caps}`}>{t('Marketplace store', 'متجر في المنصة')}</p>
                 </div>
 
                 <h1
@@ -134,7 +138,7 @@ export default function StorePage() {
             <li key={s.label} className="flex items-center gap-4 py-6 sm:justify-center">
               <s.icon size={18} strokeWidth={1.4} style={{ color: OLIVE }} />
               <span>
-                <span className={`block text-[10px] ${caps}`} style={{ color: MUTED }}>{s.label}</span>
+                <span className={`block text-[11px] ${caps}`} style={{ color: MUTED }}>{s.label}</span>
                 <span className="mt-1 block font-['Outfit',sans-serif] text-[17px] font-bold tabular-nums" style={{ color: INK }}>
                   {s.value}
                 </span>
@@ -166,13 +170,13 @@ export default function StorePage() {
         {/* branches */}
         {tab === 'about' && branches.length > 0 && (
           <section className="border-t py-12 md:py-14" style={{ borderColor: HAIR }}>
-            <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Where to find them', 'أين تجدهم')}</p>
+            <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Where to find them', 'أين تجدهم')}</p>
             <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {branches.map((b) => (
                 <li key={b.id} className="flex items-start gap-4 border p-5" style={{ borderColor: HAIR }}>
                   <MapPin size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
                   <span>
-                    <span className="block text-[14px] font-bold">{t(b.district.en, b.district.ar)}</span>
+                    <span className="block text-[15px] font-bold">{t(b.district.en, b.district.ar)}</span>
                     <span className="mt-1.5 block text-[12px] font-light tabular-nums" style={{ color: MUTED }} dir="ltr">
                       {String(b.opens).padStart(2, '0')}:00 – {String(b.closes % 24).padStart(2, '0')}:00
                     </span>
@@ -188,7 +192,7 @@ export default function StorePage() {
         <section className="py-12 md:py-16">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('From this store', 'من هذا المتجر')}</p>
+              <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('From this store', 'من هذا المتجر')}</p>
               <h2
                 className={`mt-2.5 font-extrabold ${
                   isAr ? "font-['Alexandria',sans-serif] text-2xl tracking-normal md:text-3xl" : "font-['Outfit',sans-serif] text-2xl uppercase tracking-tight md:text-3xl"
@@ -199,7 +203,7 @@ export default function StorePage() {
             </div>
             <Link
               to={searchPath(1, { store: store.key })}
-              className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+              className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
               style={{ borderColor: INK }}
             >
               {t('See All', 'عرض الكل')}
@@ -219,13 +223,13 @@ export default function StorePage() {
                         aria-pressed={on}
                         data-testid={`store-cat-${c.key}`}
                         onClick={() => setRoom(c.key)}
-                        className={`flex items-center gap-2.5 border px-4 py-2.5 text-[12.5px] transition-colors ${
+                        className={`flex items-center gap-2.5 border px-4 py-2.5 text-[14px] transition-colors ${
                           on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'
                         }`}
                         style={on ? undefined : { borderColor: '#C9C2B4' }}
                       >
                         {t(c.en, c.ar)}
-                        <span className={`font-['Outfit',sans-serif] text-[10.5px] tabular-nums ${on ? 'text-white/70' : ''}`} style={on ? undefined : { color: MUTED }}>
+                        <span className={`font-['Outfit',sans-serif] text-[11px] tabular-nums ${on ? 'text-white/70' : ''}`} style={on ? undefined : { color: MUTED }}>
                           {c.n}
                         </span>
                       </button>
@@ -258,7 +262,7 @@ export default function StorePage() {
 
         {/* other stores */}
         <section className="border-t py-12 md:py-14" style={{ borderColor: HAIR }}>
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Also on Diyar', 'أيضاً على ديار')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Also on Diyar', 'أيضاً على ديار')}</p>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {ALL_STORES.filter((s) => s.key !== store.key).map((s) => (
               <li key={s.key}>
@@ -267,15 +271,10 @@ export default function StorePage() {
                   className="group flex items-center gap-4 border p-4 transition-colors hover:border-[#171512]"
                   style={{ borderColor: HAIR }}
                 >
-                  <span
-                    dir="ltr"
-                    className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white transition-colors group-hover:bg-[#5A6B4D]"
-                  >
-                    {s.initials}
-                  </span>
+                  <StoreMark store={s} className={`h-11 w-11 text-[14px] ${s.mark ? 'border border-[#E8E4DC]' : ''}`} />
                   <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-bold">{t(s.name.en, s.name.ar)}</span>
-                    <span className="mt-1 block truncate text-[11px] font-light" style={{ color: MUTED }}>
+                    <span className="block truncate text-[14.5px] font-bold">{t(s.name.en, s.name.ar)}</span>
+                    <span className="mt-1 block truncate text-[13px] font-light" style={{ color: MUTED }}>
                       {t(s.specialty.en, s.specialty.ar)}
                     </span>
                   </span>
@@ -289,7 +288,7 @@ export default function StorePage() {
           <Breadcrumb
             items={[
               { label: t('Home', 'الرئيسية'), to: lookBase(1) },
-              { label: t('Stores', 'المتاجر'), to: `${searchPath(1)}?tab=stores` },
+              { label: t('Stores', 'المتاجر'), to: `${lookBase(1)}/stores` },
               { label: t(store.name.en, store.name.ar) },
             ]}
           />
@@ -313,14 +312,14 @@ function About({ storeName, specialty }: { storeName: string; specialty: string 
   return (
     <section className="grid gap-12 py-12 md:py-16 lg:grid-cols-12 lg:gap-16" data-testid="store-about">
       <div className="lg:col-span-7">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('The store', 'عن المتجر')}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('The store', 'عن المتجر')}</p>
         <p className="mt-5 text-[19px] font-light leading-relaxed md:text-[22px]" style={{ color: INK }}>
           {t(
             `${storeName} has sold on Diyar since 2019 — ${specialty.toLowerCase()}, made and finished in the Kingdom, delivered and installed by Diyar crews.`,
             `يبيع ${storeName} على ديار منذ 2019 — ${specialty}، تُصنع وتُشطَّب في المملكة، وتوصلها وتركبها فرق ديار.`,
           )}
         </p>
-        <p className="mt-5 text-[14px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
+        <p className="mt-5 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
           {t(
             'Every piece is checked at our warehouse before it leaves, and every order is covered by the Diyar guarantee — whoever the seller is.',
             'تُفحص كل قطعة في مستودعنا قبل خروجها، وكل طلب مشمول بضمان ديار — أياً كان البائع.',
@@ -332,8 +331,8 @@ function About({ storeName, specialty }: { storeName: string; specialty: string 
           <li key={pl.title} className={`flex items-start gap-4 p-5 ${i ? 'border-t' : ''}`} style={{ borderColor: HAIR }}>
             <pl.icon size={18} strokeWidth={1.4} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
             <span>
-              <span className="block text-[14px] font-bold">{pl.title}</span>
-              <span className="mt-1 block text-[13px] font-light" style={{ color: '#4A443C' }}>{pl.body}</span>
+              <span className="block text-[15px] font-bold">{pl.title}</span>
+              <span className="mt-1 block text-[14.5px] font-light" style={{ color: '#4A443C' }}>{pl.body}</span>
             </span>
           </li>
         ))}
@@ -361,10 +360,10 @@ function StoreReviews({ rating }: { rating: number }) {
       <div className="lg:col-span-4">
         <p className="font-['Outfit',sans-serif] text-[64px] font-bold leading-none tabular-nums">{rating.toFixed(1)}</p>
         <div className="mt-3"><Stars rating={Math.round(rating)} /></div>
-        <p className="mt-2 text-[12px]" style={{ color: MUTED }}>{t(`${total} reviews`, `${total} تقييماً`)}</p>
+        <p className="mt-2 text-[14px]" style={{ color: MUTED }}>{t(`${total} reviews`, `${total} تقييماً`)}</p>
         <ul className="mt-8 grid gap-2.5">
           {split.map((pct, i) => (
-            <li key={i} className="flex items-center gap-3 text-[11px]" style={{ color: MUTED }}>
+            <li key={i} className="flex items-center gap-3 text-[13px]" style={{ color: MUTED }}>
               <span className="w-3 font-['Outfit',sans-serif] tabular-nums">{5 - i}</span>
               <span className="h-1.5 flex-1" style={{ backgroundColor: HAIR }}>
                 <span className="block h-full" style={{ width: `${pct}%`, backgroundColor: OLIVE }} />
@@ -387,12 +386,12 @@ function StoreReviews({ rating }: { rating: number }) {
           <li key={r.name.en} className={`py-7 ${i ? 'border-t' : 'pt-0'}`} style={{ borderColor: HAIR }}>
             <div className="flex items-center justify-between gap-4">
               <span>
-                <span className="block text-[14px] font-bold">{t(r.name.en, r.name.ar)}</span>
-                <span className={`mt-1 block text-[10px] ${caps}`} style={{ color: MUTED }}>{t(r.city.en, r.city.ar)}</span>
+                <span className="block text-[15px] font-bold">{t(r.name.en, r.name.ar)}</span>
+                <span className={`mt-1 block text-[11px] ${caps}`} style={{ color: MUTED }}>{t(r.city.en, r.city.ar)}</span>
               </span>
               <Stars rating={r.rating} />
             </div>
-            <p className="mt-4 text-[14px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.text.en, r.text.ar)}</p>
+            <p className="mt-4 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.text.en, r.text.ar)}</p>
           </li>
         ))}
       </ul>

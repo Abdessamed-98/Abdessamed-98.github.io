@@ -191,7 +191,7 @@ export function HowWeWork() {
                     <span
                       aria-hidden
                       ref={(el) => { markers.current[i] = el; }}
-                      className={`relative z-10 hidden h-10 w-10 shrink-0 items-center justify-center border font-['Outfit',sans-serif] text-[12px] font-bold transition-colors duration-500 motion-reduce:transition-none lg:flex`}
+                      className={`relative z-10 hidden h-10 w-10 shrink-0 items-center justify-center border font-['Outfit',sans-serif] text-[14px] font-bold transition-colors duration-500 motion-reduce:transition-none lg:flex`}
                       style={{
                         backgroundColor: on ? OLIVE : BG,
                         borderColor: on ? OLIVE : HAIR,
@@ -202,7 +202,7 @@ export function HowWeWork() {
                     </span>
 
                     <div className="min-w-0">
-                      <p className={`text-[11px] lg:hidden ${capsCls}`} style={{ color: OLIVE }}>
+                      <p className={`text-[11.5px] lg:hidden ${capsCls}`} style={{ color: OLIVE }}>
                         {t(`Step ${pad(i + 1)}`, `الخطوة ${pad(i + 1)}`)}
                       </p>
                       <h3
@@ -241,7 +241,7 @@ export function HowWeWork() {
                             {t(s.body.en, s.body.ar)}
                           </p>
                           <span
-                            className={`mt-6 inline-block border px-3 py-1.5 text-[11px] ${capsCls}`}
+                            className={`mt-6 inline-block border px-3 py-1.5 text-[11.5px] ${capsCls}`}
                             style={{ borderColor: HAIR, color: INK }}
                           >
                             {t(s.fact.en, s.fact.ar)}

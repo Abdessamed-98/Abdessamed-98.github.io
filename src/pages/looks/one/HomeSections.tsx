@@ -13,11 +13,11 @@ import {
   ArrowRight, ChevronLeft, ChevronRight, Eye, Heart, Bookmark, Check,
 } from 'lucide-react';
 import {
-  QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, BRANDS, NEWSLETTER,
+  QUICK_CATEGORIES, PROMO_PANELS, TRENDING, FEATURED_DEALS, SUGGESTED_IDS, NEWSLETTER, BRANDS, CATALOG,
   msUntilMidnight, findProduct, storeOf, searchPath, productPath, formatSAR, lookBase, ROOMS, SERVICES,
   type Campaign, type CatalogProduct, type TrendingItem, type QuickCategory, type RoomKey,
 } from '../lookShared';
-import { serviceSlug } from './ServicePage';
+import { categoryPath } from './ServicePage';
 import {
   INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM,
   useLook, Reveal, SectionHeading, ViewMore, Stars, ProductCard, primaryBtnCls, eyebrowCls,
@@ -196,7 +196,7 @@ function QuickRow({
                 >
                   <p
                     className={`text-start font-bold leading-snug transition-colors duration-300 ${
-                      isAr ? 'text-[15px] tracking-normal' : 'text-[13px]'
+                      isAr ? 'text-[15px] tracking-normal' : 'text-[14.5px]'
                     } ${dark ? 'text-[#F6F3EC]' : 'text-[#171512] group-hover/plate:text-[#5A6B4D]'}`}
                   >
                     {name}
@@ -286,7 +286,7 @@ export function PromoMosaic() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/5" />
                 <div className="absolute inset-x-0 bottom-0 p-6 text-white md:p-8">
-                  <p className={`text-[10px] uppercase text-white/80 ${isAr ? 'tracking-normal' : 'tracking-[0.3em]'}`}>
+                  <p className={`text-[11px] uppercase text-white/80 ${isAr ? 'tracking-normal' : 'tracking-[0.3em]'}`}>
                     {isAr ? p.eyebrow.ar : p.eyebrow.en}
                   </p>
                   <h3
@@ -297,7 +297,7 @@ export function PromoMosaic() {
                     {title}
                   </h3>
                   <span
-                    className={`mt-5 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11px] uppercase transition-colors group-hover/pp:border-white ${
+                    className={`mt-5 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11.5px] uppercase transition-colors group-hover/pp:border-white ${
                       isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                     }`}
                   >
@@ -347,7 +347,7 @@ function TrendingCard({ tr, p }: { tr: TrendingItem; p: CatalogProduct; key?: st
       <ProductCard p={p} testId="home-product-card" />
       {/* live activity row */}
       <div
-        className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t pt-3.5 text-[11px] text-neutral-500"
+        className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t pt-3.5 text-[13px] text-neutral-500"
         style={{ borderColor: HAIR }}
       >
         <span className={stat} title={t('Views', 'مشاهدات')}>
@@ -396,7 +396,7 @@ export function Trending({ no }: { no: string }) {
               <SectionHeading eyebrow={t(`Right Now — ${no}`, `الآن — ${no}`)} title={t('Trending Now', 'الأكثر تفاعلاً')} />
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
                 {/* live indicator */}
-                <span className={`inline-flex items-center gap-2.5 text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
+                <span className={`inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-70" style={{ backgroundColor: OLIVE }} />
                     <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: OLIVE }} />
@@ -451,7 +451,7 @@ function Countdown() {
   const parts = [Math.floor(total / 3600), Math.floor((total % 3600) / 60), total % 60];
   return (
     <div data-testid="countdown" className="flex items-center gap-4">
-      <span className={eyebrowCls(isAr, 'text-[10px] text-neutral-500')}>{t('Ends in', 'تنتهي خلال')}</span>
+      <span className={eyebrowCls(isAr, 'text-[11px] text-neutral-500')}>{t('Ends in', 'تنتهي خلال')}</span>
       <div dir="ltr" className="flex items-center gap-1.5">
         {parts.map((v, i) => (
           <span key={i} className="flex items-center gap-1.5">
@@ -489,7 +489,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
       <div className="relative aspect-square overflow-hidden">
         <span
           dir="ltr"
-          className="absolute start-4 top-4 z-10 px-2 py-1 font-['Outfit',sans-serif] text-[11px] font-bold text-white"
+          className="absolute start-4 top-4 z-10 px-2 py-1 font-['Outfit',sans-serif] text-[13px] font-bold text-white"
           style={{ backgroundColor: RED }}
         >
           −{pct}%
@@ -514,7 +514,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
         </div>
         <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-[17px] font-bold">{formatSAR(deal)}</span>
-          <span className={`text-[10px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
+          <span className={`text-[11px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
             {t('SAR', 'ر.س')}
           </span>
           <span className="text-xs text-neutral-400 line-through">{formatSAR(original)}</span>
@@ -522,7 +522,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
         <button
           type="button"
           onClick={addToCart}
-          className={`mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#171512] py-3.5 text-[10px] font-medium uppercase transition-colors duration-300 ${
+          className={`mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#171512] py-3.5 text-[11px] font-medium uppercase transition-colors duration-300 ${
             added ? 'border-[#5A6B4D] bg-[#5A6B4D] text-white' : 'hover:bg-[#171512] hover:text-white'
           } ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
         >
@@ -587,7 +587,7 @@ export function CampaignBanner({ c, testId }: { c: Campaign; testId: string }) {
       <div className={`${CONTAINER} relative w-full py-20 md:py-28`}>
         <Reveal>
           <p
-            className={`text-[11px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
+            className={`text-[11.5px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
             style={{ color: dark ? '#FFFFFF' : INK }}
           >
             {isAr ? c.eyebrow.ar : c.eyebrow.en}
@@ -605,7 +605,7 @@ export function CampaignBanner({ c, testId }: { c: Campaign; testId: string }) {
           </p>
           <Link
             to={c.query ? searchPath(1, c.query) : searchPath(1)}
-            className={`mt-9 inline-block px-10 py-4 text-[11px] font-medium uppercase transition-colors duration-300 ${
+            className={`mt-9 inline-block px-10 py-4 text-[11.5px] font-medium uppercase transition-colors duration-300 ${
               isAr ? 'tracking-normal' : 'tracking-[0.28em]'
             } ${
               dark
@@ -665,29 +665,103 @@ export function SuggestedForYou({ no }: { no: string }) {
 /* 23. Brands strip — typographic wordmarks, no logos                  */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The marketplace's stores, straight under the hero: each one's mark and name,
+ * linking to its page, with a badge when it has pieces on offer right now. The
+ * badge is worked out from the catalogue (the largest reduction among that
+ * store's pieces), so it appears and disappears with the offers themselves.
+ * The list and the logos are BRANDS in lookShared; a brand whose logo has not
+ * arrived yet is set as a plain wordmark in the same tile.
+ */
 export function BrandsStrip() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  return (
-    <section data-testid="brands-strip" className="border-y py-12 md:py-14" style={{ borderColor: HAIR }}>
-      <div className={CONTAINER}>
-        <Reveal>
-          <p className={`text-center ${eyebrowCls(isAr, 'text-[10px] text-neutral-400')}`}>
-            {t('Brands on Diyar', 'علامات على ديار')}
-          </p>
-          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-5 md:justify-between md:gap-x-6">
-            {BRANDS.map((b) => (
-              <li
-                key={b.en}
-                className={`text-[15px] font-semibold uppercase text-[#171512]/45 transition-colors duration-300 hover:text-[#171512] md:text-[17px] ${
-                  isAr ? "font-['Alexandria',sans-serif] tracking-normal" : "font-['Outfit',sans-serif] tracking-[0.28em]"
-                }`}
+  const offerOf = (key: string) =>
+    Math.max(0, ...CATALOG.filter((p) => p.store === key && p.oldPrice).map((p) => Math.round((1 - p.price / (p.oldPrice as number)) * 100)));
+
+  /* The band is moved by hand rather than by a CSS animation, so that pausing
+     can ease: the speed glides to zero under the pointer and back up when it
+     leaves, instead of freezing and jerking off again. */
+  const track = useRef<HTMLUListElement>(null);
+  const hovered = useRef(false);
+  useEffect(() => {
+    const el = track.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const SPEED = 42; // px per second at full pace
+    let x = 0;
+    let rate = 1;
+    let last = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      // ease the pace towards its target: about half a second to stop or start
+      rate += ((hovered.current ? 0 : 1) - rate) * Math.min(1, dt * 6);
+      const half = el.scrollWidth / 2;
+      if (half > 0) {
+        x = (x + SPEED * rate * dt) % half;
+        el.style.transform = `translate3d(${-x}px,0,0)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const logos = (copy: number) =>
+    BRANDS.map((b) => {
+      const off = b.store ? offerOf(b.store) : 0;
+      const name = b.name[lang];
+      return (
+        <li key={`${copy}-${b.name.en}`} className="shrink-0 px-7 md:px-10" aria-hidden={copy > 0}>
+          <Link
+            to={b.store ? `${lookBase(1)}/store/${b.store}` : searchPath(1, { q: name })}
+            data-testid={copy === 0 ? 'brand-chip' : undefined}
+            aria-label={name}
+            title={name}
+            tabIndex={copy > 0 ? -1 : undefined}
+            className="group/brand relative flex h-14 items-center opacity-80 transition-opacity duration-300 hover:opacity-100"
+          >
+            {b.logo ? (
+              <img src={b.logo} alt={name} className="h-9 w-auto max-w-none md:h-11" />
+            ) : (
+              <span className={`whitespace-nowrap text-[19px] font-extrabold md:text-[22px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-[0.08em]"}`}>
+                {name}
+              </span>
+            )}
+            {off > 0 && (
+              <span
+                data-testid={copy === 0 ? 'brand-offer' : undefined}
+                dir={isAr ? 'rtl' : 'ltr'}
+                className="absolute -right-5 -top-3 origin-center rotate-[10deg] whitespace-nowrap px-2.5 py-1 text-[12.5px] font-bold leading-none text-white shadow-[0_3px_8px_rgba(176,58,46,0.35)] transition-transform duration-300 ease-out group-hover/brand:scale-125 md:-right-6 md:text-[13px]"
+                style={{ backgroundColor: RED }}
               >
-                {isAr ? b.ar : b.en}
-              </li>
-            ))}
-          </ul>
-        </Reveal>
+                {t('Offers', 'عروض')}
+              </span>
+            )}
+          </Link>
+        </li>
+      );
+    });
+
+  return (
+    <section data-testid="brands-strip" className="overflow-hidden border-b bg-white py-3 md:py-4" style={{ borderColor: HAIR }} aria-label={t('Brands on Diyar', 'علامات على ديار')}>
+      {/* an endless band: the list twice, slid by exactly one list's width. It always runs
+          left-to-right in the markup so the loop point is the same in both languages;
+          reduced motion leaves a plain swipe row. */}
+      <div
+        dir="ltr"
+        className="scrollbar-hide motion-reduce:overflow-x-auto"
+        onMouseEnter={() => (hovered.current = true)}
+        onMouseLeave={() => (hovered.current = false)}
+        onFocus={() => (hovered.current = true)}
+        onBlur={() => (hovered.current = false)}
+        style={{ maskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)' }}
+      >
+        <ul ref={track} className="flex w-max items-center pb-5 pt-9 will-change-transform md:pb-6 md:pt-10" data-testid="brands-track">
+          {logos(0)}
+          {logos(1)}
+        </ul>
       </div>
     </section>
   );
@@ -713,7 +787,7 @@ export function Newsletter() {
         <div className="grid items-end gap-10 lg:grid-cols-12 lg:gap-16">
           <Reveal className="lg:col-span-6">
             <p
-              className={`text-[11px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
+              className={`text-[11.5px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
               style={{ color: OLIVE }}
             >
               {t('Newsletter', 'النشرة البريدية')}
@@ -741,7 +815,7 @@ export function Newsletter() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={isAr ? NEWSLETTER.placeholder.ar : NEWSLETTER.placeholder.en}
                   aria-label={t('Email address', 'البريد الإلكتروني')}
-                  className="h-14 w-full min-w-0 border bg-white px-5 text-[13px] text-[#171512] placeholder:text-neutral-400 transition-colors focus:border-[#171512] focus:outline-none"
+                  className="h-14 w-full min-w-0 border bg-white px-5 text-[14.5px] text-[#171512] placeholder:text-neutral-400 transition-colors focus:border-[#171512] focus:outline-none"
                   style={{ borderColor: HAIR }}
                 />
                 <button type="submit" className={`${primaryBtnCls(isAr)} h-14 shrink-0 px-10`}>
@@ -749,7 +823,7 @@ export function Newsletter() {
                 </button>
               </form>
             )}
-            <p className="mt-3 text-[11px] text-neutral-400">
+            <p className="mt-3 text-[13px] text-neutral-400">
               {t('No spam — unsubscribe any time.', 'بلا رسائل مزعجة — يمكنك إلغاء الاشتراك في أي وقت.')}
             </p>
           </Reveal>
@@ -988,7 +1062,7 @@ export function ApartmentRooms() {
               <span className={`block text-[13px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em]'}`}>
                 {t(activeRoom.en, activeRoom.ar)}
               </span>
-              <span className="mt-1 flex items-center gap-2 text-[11px]" style={{ color: '#5F5950' }}>
+              <span className="mt-1 flex items-center gap-2 text-[13px]" style={{ color: '#5F5950' }}>
                 {t(`${formatSAR(activeRoom.count)} pieces`, `${formatSAR(activeRoom.count)} قطعة`)}
                 <ArrowRight size={11} strokeWidth={1.75} className={isAr ? 'rotate-180' : undefined} style={{ color: OLIVE }} />
               </span>
@@ -1003,11 +1077,11 @@ export function ApartmentRooms() {
             <li key={r.key}>
               <Link
                 to={searchPath(1, { room: r.key })}
-                className="flex items-center gap-2 border bg-white/70 px-3.5 py-2.5 text-[12px] font-medium"
+                className="flex items-center gap-2 border bg-white/70 px-3.5 py-2.5 text-[14px] font-medium"
                 style={{ borderColor: HAIR }}
               >
                 {t(r.en, r.ar)}
-                <span className="text-[10px] tabular-nums" style={{ color: '#5F5950' }}>{formatSAR(r.count)}</span>
+                <span className="text-[11px] tabular-nums" style={{ color: '#5F5950' }}>{formatSAR(r.count)}</span>
               </Link>
             </li>
           ))}
@@ -1053,7 +1127,7 @@ export function ServicesIndex({ no }: { no: string }) {
                 return (
                   <li key={sv.en} className="border-b" style={{ borderColor: HAIR }}>
                     <Link
-                                            to={`${lookBase(1)}/service/${serviceSlug(sv)}`}
+                                            to={categoryPath(sv)}
                       data-testid={`service-row-${i}`}
                       onMouseEnter={() => setActive(i)}
                       onFocus={() => setActive(i)}
@@ -1067,7 +1141,7 @@ export function ServicesIndex({ no }: { no: string }) {
                         className="h-14 w-12 shrink-0 object-cover lg:hidden"
                       />
                       <span
-                        className={`shrink-0 text-[11px] ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
+                        className={`shrink-0 text-[11.5px] ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
                         style={{ color: on ? OLIVE : '#B9B2A6' }}
                       >
                         {String(i + 1).padStart(2, '0')}
@@ -1100,7 +1174,7 @@ export function ServicesIndex({ no }: { no: string }) {
             <div className="sticky top-28">
               <ServicePreview index={active} />
               <p
-                className={`mt-4 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
+                className={`mt-4 text-[11.5px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
                 style={{ color: OLIVE }}
               >
                 {t(current.en, current.ar)}
