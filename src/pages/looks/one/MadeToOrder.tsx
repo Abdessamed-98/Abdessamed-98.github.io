@@ -78,13 +78,13 @@ export function MadeToOrder({ no }: { no: string }) {
                   style={{ borderColor: HAIR }}
                 >
                   <dt
-                    className={`shrink-0 text-[10px] text-neutral-400 ${
+                    className={`shrink-0 text-[11px] text-neutral-400 ${
                       isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'uppercase tracking-[0.26em]'
                     }`}
                   >
                     {t(f.k.en, f.k.ar)}
                   </dt>
-                  <dd className="text-end text-[13.5px] font-medium" style={{ color: OLIVE }}>
+                  <dd className="text-end text-[15px] font-medium" style={{ color: OLIVE }}>
                     {t(f.v.en, f.v.ar)}
                   </dd>
                 </div>

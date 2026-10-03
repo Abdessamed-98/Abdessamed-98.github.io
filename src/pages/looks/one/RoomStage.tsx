@@ -219,7 +219,7 @@ export function RoomStage({
           )}
 
           <p
-            className={`pointer-events-none absolute bottom-8 start-10 z-20 hidden border border-[#E8E4DC] bg-[#FDFCF9]/90 px-3.5 py-2 text-[11px] text-neutral-600 backdrop-blur-sm md:block ${caps} ${
+            className={`pointer-events-none absolute bottom-8 start-10 z-20 hidden border border-[#E8E4DC] bg-[#FDFCF9]/90 px-3.5 py-2 text-[11.5px] text-neutral-600 backdrop-blur-sm md:block ${caps} ${
               animate ? `transition-opacity duration-700 ease-out ${open ? 'opacity-100' : 'opacity-0'}` : ''
             }`}
           >
@@ -230,7 +230,7 @@ export function RoomStage({
 
       {selector && <div className="pt-4 md:hidden">{selector}</div>}
 
-      <p className="px-6 pt-4 text-[13px] font-light text-neutral-500 md:hidden">
+      <p className="px-6 pt-4 text-[14.5px] font-light text-neutral-500 md:hidden">
         {t('Tap any point to explore the products in this space.', 'اضغط على أي نقطة لاستكشاف منتجات هذه المساحة.')}
       </p>
     </div>

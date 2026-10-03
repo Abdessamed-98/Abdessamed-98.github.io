@@ -31,12 +31,12 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
         items.length > 0 ? (
           <div>
             <div className="flex items-baseline justify-between">
-              <span className={`text-[11px] text-neutral-500 ${caps}`}>{t('Subtotal', 'المجموع')}</span>
+              <span className={`text-[11.5px] text-neutral-500 ${caps}`}>{t('Subtotal', 'المجموع')}</span>
               <span className="font-['Outfit',sans-serif] text-[20px] font-bold" style={{ color: INK }}>
-                {formatSAR(subtotal)} <span className="text-[11px] font-medium text-neutral-500">{t('SAR', 'ر.س')}</span>
+                {formatSAR(subtotal)} <span className="text-[13px] font-medium text-neutral-500">{t('SAR', 'ر.س')}</span>
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] font-light text-neutral-500">
+            <p className="mt-1.5 text-[13px] font-light text-neutral-500">
               {t('Shipping and VAT calculated at checkout.', 'الشحن والضريبة تُحسب عند إتمام الطلب.')}
             </p>
             <button
@@ -50,7 +50,7 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
             <button
               type="button"
               onClick={onClose}
-              className={`mt-3 w-full text-[11px] text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${caps}`}
+              className={`mt-3 w-full text-[11.5px] text-neutral-500 underline-offset-4 transition-colors hover:text-[#171512] hover:underline ${caps}`}
             >
               {t('Continue Shopping', 'مواصلة التسوق')}
             </button>
@@ -60,7 +60,7 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
     >
       {items.length === 0 ? (
         <div className="px-6 py-16 text-center">
-          <p className={`text-[11px] text-neutral-400 ${caps}`}>{t('Empty', 'فارغة')}</p>
+          <p className={`text-[11.5px] text-neutral-400 ${caps}`}>{t('Empty', 'فارغة')}</p>
           <p className="mt-3 text-[15px] font-light text-neutral-600">
             {t('Nothing in your cart yet.', 'لا توجد منتجات في سلتك بعد.')}
           </p>
@@ -94,18 +94,18 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
                   <Link
                     to={productPath(1, line.product.id)}
                     onClick={onClose}
-                    className="text-[13px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]"
+                    className="text-[14.5px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]"
                   >
                     {name}
                   </Link>
-                  <p className="mt-1 text-[11px] font-light text-neutral-500">{t(store.name.en, store.name.ar)}</p>
+                  <p className="mt-1 text-[13px] font-light text-neutral-500">{t(store.name.en, store.name.ar)}</p>
                   {colour && (
-                    <p className="mt-0.5 text-[11px] font-light text-neutral-500">
+                    <p className="mt-0.5 text-[13px] font-light text-neutral-500">
                       {t('Colour', 'اللون')}: {t(colour.name.en, colour.name.ar)}
                     </p>
                   )}
                   {size && (
-                    <p className="mt-0.5 text-[11px] font-light text-neutral-500">
+                    <p className="mt-0.5 text-[13px] font-light text-neutral-500">
                       {t('Size', 'المقاس')}: {t(size.en, size.ar)}
                     </p>
                   )}
@@ -156,7 +156,7 @@ export function CartSheet({ open, onClose }: { open: boolean; onClose: () => voi
             <Link
               to={searchPath(1)}
               onClick={onClose}
-              className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+              className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
               style={{ borderColor: OLIVE }}
             >
               {t('Add More', 'أضف المزيد')}

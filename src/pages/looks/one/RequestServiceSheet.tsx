@@ -132,7 +132,7 @@ export function RequestServiceSheet({
               placeholder={t('Rooms, size, what you have in mind…', 'الغرف، المساحة، وما يدور في بالك…')}
               value={form.details}
               onChange={(e) => setForm({ ...form, details: e.target.value })}
-              className="w-full resize-none border bg-white p-4 text-[13px] outline-none transition-colors focus:border-[#171512]"
+              className="w-full resize-none border bg-white p-4 text-[14.5px] outline-none transition-colors focus:border-[#171512]"
               style={{ borderColor: HAIR }}
             />
           </div>
@@ -140,7 +140,7 @@ export function RequestServiceSheet({
           <button type="submit" data-testid="service-submit" className={`mt-6 w-full py-4 ${primaryBtnCls(isAr)}`}>
             {t('Send Request', 'إرسال الطلب')}
           </button>
-          <p className="mt-3 text-center text-[11px] font-light text-neutral-500">
+          <p className="mt-3 text-center text-[13px] font-light text-neutral-500">
             {t('Free consultation · No obligation', 'استشارة مجانية · دون التزام')}
           </p>
         </form>

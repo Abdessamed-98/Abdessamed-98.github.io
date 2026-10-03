@@ -150,7 +150,7 @@ export function Sheet({
               <div className="min-w-0">
                 {eyebrow && (
                   <p
-                    className={`text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                    className={`text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
                     style={{ color: '#8C8578' }}
                   >
                     {eyebrow}

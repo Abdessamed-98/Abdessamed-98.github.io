@@ -215,11 +215,11 @@ function ShopHotspot({
                   >
                     {isAr ? h.category.ar : h.category.en}
                   </p>
-                  <h3 className="mt-1 line-clamp-2 text-[12.5px] font-medium leading-snug" style={{ color: INK }}>
+                  <h3 className="mt-1 line-clamp-2 text-[14px] font-medium leading-snug" style={{ color: INK }}>
                     {name}
                   </h3>
                   <div className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-[14px] font-bold" style={{ color: INK }}>
+                    <span className="text-[15px] font-bold" style={{ color: INK }}>
                       {formatSAR(h.price)}
                     </span>
                     <span
@@ -321,7 +321,7 @@ function MegaFeatured({ img, title, cta, to, onNavigate }: { img: string; title:
         {isAr ? title.ar : title.en}
       </p>
       <span
-        className={`mt-2 inline-flex items-center gap-2 border-b border-[#171512]/25 pb-1 text-[10.5px] uppercase text-[#171512] transition-colors group-hover/mf:border-[#171512] ${
+        className={`mt-2 inline-flex items-center gap-2 border-b border-[#171512]/25 pb-1 text-[11px] uppercase text-[#171512] transition-colors group-hover/mf:border-[#171512] ${
           isAr ? 'tracking-normal' : 'tracking-[0.24em]'
         }`}
       >
@@ -369,7 +369,7 @@ function DrawerGroup({
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-3 py-3 text-start"
       >
-        <span className={`text-[12.5px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
+        <span className={`text-[14px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}>
           {isAr ? group.title.ar : group.title.en}
         </span>
         <ChevronDown
@@ -482,7 +482,7 @@ function DrawerSection({
                     to={allLink.to}
                     onClick={onNavigate}
                     data-testid="drawer-shop-all"
-                    className={`flex items-center gap-2 py-3 text-[12.5px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}
+                    className={`flex items-center gap-2 py-3 text-[14px] font-semibold ${isAr ? 'tracking-normal' : 'tracking-[0.04em]'}`}
                     style={{ color: OLIVE }}
                   >
                     {allLink.label}
@@ -660,7 +660,7 @@ function MobileDrawer({
                     onChange={(e) => setQ(e.target.value)}
                     placeholder={t('SEARCH', 'ابحث')}
                     aria-label={t('Search', 'بحث')}
-                    className={`w-full min-w-0 bg-transparent text-[11px] uppercase text-[#171512] placeholder:text-neutral-400 focus:outline-none ${
+                    className={`w-full min-w-0 bg-transparent text-[11.5px] uppercase text-[#171512] placeholder:text-neutral-400 focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
@@ -720,7 +720,7 @@ function MobileDrawer({
                   data-testid="drawer-lang-toggle"
                   onClick={onToggleLang}
                   aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
-                  className={`flex shrink-0 items-center gap-2.5 text-[11px] ${
+                  className={`flex shrink-0 items-center gap-2.5 text-[11.5px] ${
                     isAr ? 'tracking-normal' : 'tracking-[0.18em]'
                   }`}
                 >
@@ -743,11 +743,11 @@ function MobileDrawer({
             {/* contact — pinned to the bottom of the panel. */}
             <div className="shrink-0 border-t px-5 pt-5 pb-5" style={{ borderColor: HAIR }}>
               <p className={eyebrowCls}>{t('Contact', 'تواصل معنا')}</p>
-              <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="mt-3.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="mt-3.5 flex items-center gap-3 text-[14.5px] font-medium">
                 <Phone size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr">{FOOTER_LINKS.phone}</span>
               </a>
-              <a href={`mailto:${FOOTER_LINKS.email}`} className="mt-2.5 flex items-center gap-3 text-[13px] font-medium">
+              <a href={`mailto:${FOOTER_LINKS.email}`} className="mt-2.5 flex items-center gap-3 text-[14.5px] font-medium">
                 <Mail size={15} strokeWidth={1.5} className="shrink-0" style={{ color: OLIVE }} />
                 <span dir="ltr" className="truncate">
                   {FOOTER_LINKS.email}
@@ -918,7 +918,7 @@ export default function LookOne() {
                 onChange={(e) => setHeaderQ(e.target.value)}
                 placeholder={t('SEARCH', 'ابحث')}
                 aria-label={t('Search', 'بحث')}
-                className={`w-full min-w-0 bg-transparent text-[11px] uppercase transition-colors duration-300 focus:outline-none ${
+                className={`w-full min-w-0 bg-transparent text-[11.5px] uppercase transition-colors duration-300 focus:outline-none ${
                   isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                 } ${
                   solid ? 'text-[#171512] placeholder:text-neutral-400' : 'text-white placeholder:text-white/70'
@@ -996,7 +996,7 @@ export default function LookOne() {
               data-testid="lang-toggle"
               onClick={toggleLang}
               aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
-              className={`hidden shrink-0 items-center gap-2 text-[11px] transition-colors duration-300 sm:flex ${
+              className={`hidden shrink-0 items-center gap-2 text-[11.5px] transition-colors duration-300 sm:flex ${
                 isAr ? 'tracking-normal' : 'tracking-[0.18em]'
               } ${solid ? 'text-[#171512]' : 'text-white'}`}
             >
@@ -1097,7 +1097,7 @@ export default function LookOne() {
                   </div>
                   {/* shop by brand: the stores' own logos */}
                   <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu} data-testid="mega-brands">
-                    <p className={`shrink-0 text-[11px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by brand', 'تسوق حسب العلامة')}</p>
+                    <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by brand', 'تسوق حسب العلامة')}</p>
                     <ul className="flex min-w-0 flex-1 items-center gap-7 overflow-hidden">
                       {ALL_STORES.map((st) => (
                         <li key={st.key} className="shrink-0">
@@ -1107,7 +1107,7 @@ export default function LookOne() {
                             ) : (
                               <>
                                 {st.mark && <img src={st.mark} alt="" loading="lazy" className="h-7 w-7 object-contain" />}
-                                <span className="whitespace-nowrap text-[13px] font-bold">{t(st.name.en, st.name.ar)}</span>
+                                <span className="whitespace-nowrap text-[14.5px] font-bold">{t(st.name.en, st.name.ar)}</span>
                               </>
                             )}
                           </Link>
@@ -1207,12 +1207,12 @@ export default function LookOne() {
 
               {/* quick links */}
               <div className="lg:col-span-2">
-                <h4 className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+                <h4 className={`text-[11.5px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
                   {t('Quick Links', 'روابط سريعة')}
                 </h4>
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_QUICK.map((l) => {
-                    const cls = 'text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]';
+                    const cls = 'text-[14.5px] font-light text-[#EFE9DD]/70 transition-colors hover:text-[#EFE9DD]';
                     return (
                       <li key={l.en}>
                         <Link to={NAV_TO[l.en] ?? lookBase(1)} className={cls}>
@@ -1226,13 +1226,13 @@ export default function LookOne() {
 
               {/* support */}
               <div className="lg:col-span-3">
-                <h4 className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+                <h4 className={`text-[11.5px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
                   {t('Customer Support', 'خدمة العملاء')}
                 </h4>
                 <ul className="mt-6 space-y-3.5">
                   {FOOTER_SUPPORT.map((l) => (
                     <li key={l.en}>
-                      <Link to={SUPPORT_TO[l.en] ?? `${lookBase(1)}/help/faq`} className="text-sm font-light text-[#EFE9DD]/60 transition-colors hover:text-[#EFE9DD]">
+                      <Link to={SUPPORT_TO[l.en] ?? `${lookBase(1)}/help/faq`} className="text-[14.5px] font-light text-[#EFE9DD]/70 transition-colors hover:text-[#EFE9DD]">
                         {t(l.en, l.ar)}
                       </Link>
                     </li>
@@ -1242,10 +1242,10 @@ export default function LookOne() {
 
               {/* contact + subscribe */}
               <div className="lg:col-span-3">
-                <h4 className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
+                <h4 className={`text-[11.5px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}>
                   {t('Contact', 'تواصل معنا')}
                 </h4>
-                <ul className="mt-6 space-y-3.5 text-sm font-light text-[#EFE9DD]/60">
+                <ul className="mt-6 space-y-3.5 text-[14.5px] font-light text-[#EFE9DD]/70">
                   <li dir="ltr" className={isAr ? 'text-right' : undefined}>
                     {FOOTER_LINKS.phone}
                   </li>
@@ -1253,7 +1253,7 @@ export default function LookOne() {
                 </ul>
 
                 <h4
-                  className={`mt-10 text-[11px] font-semibold uppercase ${
+                  className={`mt-10 text-[11.5px] font-semibold uppercase ${
                     isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                   }`}
                 >
@@ -1265,13 +1265,13 @@ export default function LookOne() {
                     required
                     aria-label={t('Email', 'البريد الإلكتروني')}
                     placeholder={t('YOUR EMAIL', 'بريدك الإلكتروني')}
-                    className={`w-full border-b border-[#EFE9DD]/25 bg-transparent pb-2.5 text-[11px] uppercase text-[#EFE9DD] placeholder:text-[#EFE9DD]/35 transition-colors focus:border-[#EFE9DD] focus:outline-none ${
+                    className={`w-full border-b border-[#EFE9DD]/25 bg-transparent pb-2.5 text-[11.5px] uppercase text-[#EFE9DD] placeholder:text-[#EFE9DD]/35 transition-colors focus:border-[#EFE9DD] focus:outline-none ${
                       isAr ? 'tracking-normal' : 'tracking-[0.2em]'
                     }`}
                   />
                   <button
                     type="submit"
-                    className={`shrink-0 border border-[#EFE9DD]/40 px-6 py-2.5 text-[10px] uppercase transition-colors duration-300 hover:bg-[#EFE9DD] hover:text-[#14120F] ${
+                    className={`shrink-0 border border-[#EFE9DD]/40 px-6 py-2.5 text-[11px] uppercase transition-colors duration-300 hover:bg-[#EFE9DD] hover:text-[#14120F] ${
                       isAr ? 'tracking-normal' : 'tracking-[0.26em]'
                     }`}
                   >
@@ -1297,8 +1297,8 @@ export default function LookOne() {
               </div>
               {/* design review: this look (1) or the original site (2) */}
               <div className="flex items-center gap-3" data-testid="look-switch">
-                <span className={`text-[11px] text-[#EFE9DD]/45 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Design', 'التصميم')}</span>
-                <div dir="ltr" role="group" aria-label={t('Design version', 'نسخة التصميم')} className="flex border border-[#EFE9DD]/30 font-['Outfit',sans-serif] text-[12px] font-semibold">
+                <span className={`text-[11.5px] text-[#EFE9DD]/45 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Design', 'التصميم')}</span>
+                <div dir="ltr" role="group" aria-label={t('Design version', 'نسخة التصميم')} className="flex border border-[#EFE9DD]/30 font-['Outfit',sans-serif] text-[14px] font-semibold">
                   <span aria-current="page" className="flex h-8 w-10 items-center justify-center bg-[#EFE9DD] text-[#14120F]">1</span>
                   <Link to="/" data-testid="look-switch-2" className="flex h-8 w-10 items-center justify-center text-[#EFE9DD]/70 transition-colors hover:bg-[#EFE9DD]/10 hover:text-[#EFE9DD]">2</Link>
                 </div>
@@ -1363,7 +1363,7 @@ function HeroCopy() {
                 transition={{ delay: 0.35, duration: 0.7, ease: 'easeOut' }}
               >
                 <p
-                  className={`mb-5 text-[11px] uppercase text-white/85 ${
+                  className={`mb-5 text-[11.5px] uppercase text-white/85 ${
                     isAr ? 'tracking-normal' : 'tracking-[0.4em]'
                   }`}
                 >
@@ -1380,7 +1380,7 @@ function HeroCopy() {
                 </h1>
                 <Link
                   to={searchPath(1)}
-                  className={`inline-block bg-[#171512] px-12 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                  className={`inline-block bg-[#171512] px-12 py-4 text-[11.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                     isAr ? 'tracking-normal' : 'tracking-[0.32em]'
                   }`}
                 >
@@ -1560,7 +1560,7 @@ export function LookOneHome() {
                     }`}
                   >
                     <img src={r.img} alt="" loading="lazy" className={`aspect-[4/3] w-full object-cover transition-opacity ${on ? '' : 'opacity-80 group-hover:opacity-100'}`} />
-                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-1.5 pt-5 text-[11px] font-medium leading-tight text-white">
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-1.5 pt-5 text-[13px] font-medium leading-tight text-white">
                       {t(r.name.en, r.name.ar)}
                     </span>
                   </button>
@@ -1750,19 +1750,19 @@ export function LookOneHome() {
                     className="flex items-center gap-5 border-t border-white/12 py-4 last:border-b"
                   >
                     <span
-                      className="shrink-0 font-['Outfit',sans-serif] text-[13px] font-bold"
+                      className="shrink-0 font-['Outfit',sans-serif] text-[14.5px] font-bold"
                       style={{ color: OLIVE_LT }}
                     >
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    <span className="text-[14px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
+                    <span className="text-[15px] font-light text-[#F6F3EC]/85">{t(s.en, s.ar)}</span>
                   </li>
                 ))}
               </ol>
 
               <Link
                 to={`${lookBase(1)}/ai-designer`}
-                className={`inline-block mt-10 bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
+                className={`inline-block mt-10 bg-[#F6F3EC] px-10 py-4 text-[11.5px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
@@ -1803,7 +1803,7 @@ export function LookOneHome() {
               </p>
               <Link
                 to={`${lookBase(1)}/loyalty`}
-                className={`inline-block mt-9 bg-[#171512] px-10 py-4 text-[11px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
+                className={`inline-block mt-9 bg-[#171512] px-10 py-4 text-[11.5px] font-medium uppercase text-white transition-colors duration-300 hover:bg-[#5A6B4D] ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
@@ -1831,7 +1831,7 @@ export function LookOneHome() {
                     >
                       {t(p.title.en, p.title.ar)}
                     </h3>
-                    <p className="mt-2 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                    <p className="mt-2 text-[15px] font-light leading-relaxed text-neutral-600">
                       {t(p.body.en, p.body.ar)}
                     </p>
                   </div>
@@ -1876,7 +1876,7 @@ export function LookOneHome() {
             <div className="mt-10">
               <Link
                 to={`${lookBase(1)}/b2b`}
-                className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11px] uppercase text-white transition-colors hover:border-white ${
+                className={`group/b2b inline-flex items-center gap-2.5 border-b border-white/60 pb-1.5 text-[11.5px] uppercase text-white transition-colors hover:border-white ${
                   isAr ? 'tracking-normal' : 'tracking-[0.3em]'
                 }`}
               >
@@ -1935,7 +1935,7 @@ export function LookOneHome() {
                   >
                     {t(role.title.en, role.title.ar)}
                   </h3>
-                  <p className="mt-3 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                  <p className="mt-3 flex-1 text-[15px] font-light leading-relaxed text-neutral-600">
                     {t(role.body.en, role.body.ar)}
                   </p>
                   <div className="mt-7">
@@ -1962,14 +1962,14 @@ export function LookOneHome() {
                 >
                   {t(PARTNER.dashboard.title.en, PARTNER.dashboard.title.ar)}
                 </h3>
-                <p className="mt-3 text-[14px] font-light leading-relaxed text-[#F6F3EC]/65">
+                <p className="mt-3 text-[15px] font-light leading-relaxed text-[#F6F3EC]/65">
                   {t(PARTNER.dashboard.body.en, PARTNER.dashboard.body.ar)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => shell.openAuth({ view: 'up', role: 'store' })}
-                className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
+                className={`shrink-0 self-start bg-[#F6F3EC] px-10 py-4 text-[11.5px] font-medium uppercase text-[#171512] transition-colors duration-300 hover:bg-[#5A6B4D] hover:text-white md:self-auto ${
                   isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                 }`}
               >
@@ -2023,7 +2023,7 @@ export function LookOneHome() {
                   </div>
                 </Link>
                 <p
-                  className={`mt-6 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+                  className={`mt-6 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
                   style={{ color: OLIVE }}
                 >
                   {t(post.category.en, post.category.ar)}
@@ -2039,13 +2039,13 @@ export function LookOneHome() {
                     {t(post.title.en, post.title.ar)}
                   </Link>
                 </h3>
-                <p className="mt-4 flex-1 text-[13.5px] font-light leading-relaxed text-neutral-600">
+                <p className="mt-4 flex-1 text-[15px] font-light leading-relaxed text-neutral-600">
                   {t(post.excerpt.en, post.excerpt.ar)}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
                   <ViewMore label={t('Read Article', 'اقرأ المقال')} to={`${lookBase(1)}/blog/${postSlug(post)}`} />
                   <span
-                    className={`text-[10px] uppercase text-neutral-400 ${
+                    className={`text-[11px] uppercase text-neutral-400 ${
                       isAr ? 'tracking-normal' : 'tracking-[0.22em]'
                     }`}
                   >
@@ -2107,7 +2107,7 @@ export function LookOneHome() {
                       >
                         {t(f.title.en, f.title.ar)}
                       </h3>
-                      <p className="mt-2 text-[13px] font-light leading-relaxed text-[#F3ECDB]/65">
+                      <p className="mt-2 text-[14.5px] font-light leading-relaxed text-[#F3ECDB]/65">
                         {t(f.body.en, f.body.ar)}
                       </p>
                     </div>

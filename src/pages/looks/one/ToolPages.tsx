@@ -65,7 +65,7 @@ export function AIDesignerPage() {
         <Breadcrumb items={[home(t), { label: t('AI Designer', 'المصمم الذكي') }]} />
         <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h1 className={displayCls(isAr, 'md')}>{t('Design the room before you buy', 'صمّم الغرفة قبل أن تشتري')}</h1>
-          <span className="text-[13px]" style={{ color: MUTED }}>
+          <span className="text-[14.5px]" style={{ color: MUTED }}>
             {t('Restyle a photo of your room, or build one from pieces in the shop.', 'أعد تصميم صورة غرفتك، أو ابنِ غرفة من قطع المتجر.')}
           </span>
         </div>
@@ -85,7 +85,7 @@ export function AIDesignerPage() {
             data-testid="human-designer"
             className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-4 lg:mt-0 lg:shrink-0 lg:pb-3"
           >
-            <span className="flex items-center justify-center gap-1.5 text-[12px] sm:justify-start" style={{ color: MUTED }}>
+            <span className="flex items-center justify-center gap-1.5 text-[14px] sm:justify-start" style={{ color: MUTED }}>
               <Clock size={12} strokeWidth={1.8} className="shrink-0" />
               {t('A Diyar designer replies within minutes', 'مصمم من فريق ديار يرد خلال دقائق')}
             </span>
@@ -162,15 +162,15 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
             {stage === 'working' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#171512]/30 text-white">
                 <Sparkles size={24} strokeWidth={1.4} className="animate-pulse" />
-                <span className={`text-[11px] font-medium ${caps}`}>{t('Designing…', 'جاري التصميم…')}</span>
+                <span className={`text-[11.5px] font-medium ${caps}`}>{t('Designing…', 'جاري التصميم…')}</span>
               </div>
             )}
             {stage === 'done' && photo && (
-              <div className="absolute inset-x-4 bottom-4 bg-white/95 p-4 text-[13px]" data-testid="restyle-result">
+              <div className="absolute inset-x-4 bottom-4 bg-white/95 p-4 text-[14.5px]" data-testid="restyle-result">
                 {t('Your photo is saved to this session. Styled results for your own photos arrive with the app — the sample room shows the full effect.', 'حُفظت صورتك لهذه الجلسة. نتائج صورك الخاصة تأتي مع التطبيق — الغرفة النموذجية تعرض النتيجة كاملة.')}
               </div>
             )}
-            <span className={`absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[10px] font-semibold ${caps}`}>
+            <span className={`absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[11px] font-semibold ${caps}`}>
               {photo ? t('Your photo', 'صورتك') : t('Sample room', 'غرفة نموذجية')}
             </span>
           </div>
@@ -178,7 +178,7 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
       </div>
 
       <div className="lg:col-span-4">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('1 · The room', '1 · الغرفة')}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('1 · The room', '1 · الغرفة')}</p>
         <input
           ref={file}
           type="file"
@@ -198,7 +198,7 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
               setPhoto(null);
               setStage('pick');
             }}
-            className="border px-3 py-3 text-[12px] font-medium transition-colors"
+            className="border px-3 py-3 text-[14px] font-medium transition-colors"
             style={{ borderColor: photo ? HAIR : INK, backgroundColor: photo ? '#FFFFFF' : TILE }}
           >
             {t('Sample room', 'غرفة نموذجية')}
@@ -206,7 +206,7 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
           <button
             type="button"
             onClick={() => file.current?.click()}
-            className="inline-flex items-center justify-center gap-2 border px-3 py-3 text-[12px] font-medium"
+            className="inline-flex items-center justify-center gap-2 border px-3 py-3 text-[14px] font-medium"
             style={{ borderColor: photo ? INK : HAIR, backgroundColor: photo ? TILE : '#FFFFFF' }}
           >
             <Upload size={13} strokeWidth={1.5} />
@@ -214,7 +214,7 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
           </button>
         </div>
 
-        <p className={`mt-8 text-[10px] ${caps}`} style={{ color: MUTED }}>{t('2 · The style', '2 · الأسلوب')}</p>
+        <p className={`mt-8 text-[11px] ${caps}`} style={{ color: MUTED }}>{t('2 · The style', '2 · الأسلوب')}</p>
         <div className="mt-3 grid grid-cols-3 gap-2" role="radiogroup">
           {STYLES.map((s) => {
             const on = s.key === style;
@@ -234,7 +234,7 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
                 <span className="block aspect-square overflow-hidden border-2 transition-colors" style={{ borderColor: on ? INK : 'transparent' }}>
                   <img src={s.img} alt="" className="h-full w-full object-cover" />
                 </span>
-                <span className={`mt-1.5 block text-[11px] ${on ? 'font-bold' : 'font-medium'}`}>{t(s.en, s.ar)}</span>
+                <span className={`mt-1.5 block text-[13px] ${on ? 'font-bold' : 'font-medium'}`}>{t(s.en, s.ar)}</span>
               </button>
             );
           })}
@@ -244,7 +244,7 @@ function Restyle({ onNote }: { onNote: (note: string) => void }) {
           <Sparkles size={14} strokeWidth={1.5} />
           {stage === 'done' ? t('Design again', 'صمّم مجدداً') : t('Design it', 'صمّمها')}
         </button>
-        <Link to={searchPath(1, { style })} className={`mt-4 flex items-center justify-center gap-2 text-[11px] font-medium ${caps}`} style={{ color: MUTED }}>
+        <Link to={searchPath(1, { style })} className={`mt-4 flex items-center justify-center gap-2 text-[11.5px] font-medium ${caps}`} style={{ color: MUTED }}>
           {t('Shop this style', 'تسوّق هذا الأسلوب')}
           <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
         </Link>
@@ -381,14 +381,14 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
               />
             );
           })}
-          <span className={`pointer-events-none absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[10px] font-semibold ${caps}`}>
+          <span className={`pointer-events-none absolute start-4 top-4 bg-white/90 px-2.5 py-1 text-[11px] font-semibold ${caps}`}>
             {t('Drag to arrange', 'اسحب للترتيب')}
           </span>
         </div>
 
         {selected && (
           <div className="mt-3 flex flex-wrap items-center gap-3 border p-3" style={{ borderColor: HAIR }} data-testid="composer-controls">
-            <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{t(CATALOG.find((c) => c.id === selected.id)!.name.en, CATALOG.find((c) => c.id === selected.id)!.name.ar)}</span>
+            <span className="min-w-0 flex-1 truncate text-[14.5px] font-bold">{t(CATALOG.find((c) => c.id === selected.id)!.name.en, CATALOG.find((c) => c.id === selected.id)!.name.ar)}</span>
             <button type="button" aria-label={t('Smaller', 'أصغر')} onClick={() => patch(selected.uid, { w: Math.max(10, selected.w - 4) })} className="flex h-9 w-9 items-center justify-center border" style={{ borderColor: HAIR }}>
               <Minus size={14} strokeWidth={1.5} />
             </button>
@@ -412,7 +412,7 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
       </div>
 
       <div className="lg:col-span-4">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Pieces from', 'القطع من')}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Pieces from', 'القطع من')}</p>
 
         {/* where the shelf's pieces come from */}
         <div
@@ -449,13 +449,13 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
                   />
                 )}
                 <span
-                  className={`relative z-10 flex items-center gap-2 text-[12.5px] font-semibold transition-colors duration-200 ${
+                  className={`relative z-10 flex items-center gap-2 text-[14px] font-semibold transition-colors duration-200 ${
                     on ? 'text-white' : 'text-[#171512]'
                   }`}
                 >
                   <Icon size={15} strokeWidth={1.6} className={on && key === 'wishlist' ? 'fill-current' : ''} />
                   {label}
-                  <span dir="ltr" className={`tabular-nums text-[11px] font-medium ${on ? 'text-white/60' : ''}`} style={on ? undefined : { color: MUTED }}>
+                  <span dir="ltr" className={`tabular-nums text-[11.5px] font-medium ${on ? 'text-white/60' : ''}`} style={on ? undefined : { color: MUTED }}>
                     {idsOf(key).length}
                   </span>
                 </span>
@@ -504,22 +504,22 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
             ) : (
               <ShoppingBag size={22} strokeWidth={1.3} className="mx-auto" style={{ color: MUTED }} />
             )}
-            <p className="mt-3 text-[13px] font-bold">
+            <p className="mt-3 text-[14.5px] font-bold">
               {source === 'wishlist' ? t('Nothing saved yet', 'لا شيء في المفضلة بعد') : t('Your cart is empty', 'سلتك فارغة')}
             </p>
-            <p className="mx-auto mt-1.5 max-w-[26ch] text-[12px] leading-relaxed" style={{ color: MUTED }}>
+            <p className="mx-auto mt-1.5 max-w-[26ch] text-[14px] leading-relaxed" style={{ color: MUTED }}>
               {source === 'wishlist'
                 ? t('Tap the heart on any piece in the shop and it appears here.', 'اضغط القلب على أي قطعة في المتجر لتظهر هنا.')
                 : t('Add pieces to your cart to place them in the room.', 'أضف قطعاً إلى سلتك لتضعها في الغرفة.')}
             </p>
-            <Link to={searchPath(1)} className={`mt-4 inline-block border-b pb-1 text-[11px] ${caps}`} style={{ borderColor: INK }}>
+            <Link to={searchPath(1)} className={`mt-4 inline-block border-b pb-1 text-[11.5px] ${caps}`} style={{ borderColor: INK }}>
               {t('Browse the shop', 'تصفّح المتجر')}
             </Link>
           </div>
         )}
 
         {unplaceable > 0 && (
-          <p data-testid="composer-unplaceable" className="mt-2.5 text-[11.5px] leading-relaxed" style={{ color: MUTED }}>
+          <p data-testid="composer-unplaceable" className="mt-2.5 text-[13px] leading-relaxed" style={{ color: MUTED }}>
             {isAr
               ? unplaceable === 1
                 ? 'قطعة واحدة هنا لا يمكن وضعها في الغرفة بعد.'
@@ -530,9 +530,9 @@ function Composer({ onNote }: { onNote: (note: string) => void }) {
 
         <div className="mt-8 border-t pt-6" style={{ borderColor: HAIR }}>
           <div className="flex items-baseline justify-between gap-4">
-            <span className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t(`In the room · ${products.length}`, `في الغرفة · ${products.length}`)}</span>
+            <span className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t(`In the room · ${products.length}`, `في الغرفة · ${products.length}`)}</span>
             <span className="font-['Outfit',sans-serif] text-[20px] font-bold tabular-nums">
-              {formatSAR(total)} <span className="text-[11px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
+              {formatSAR(total)} <span className="text-[13px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
             </span>
           </div>
           <button
@@ -695,13 +695,13 @@ export function ChatPage() {
         <div className={`${CONTAINER} max-md:!px-0`}>
           <div className={`${open ? 'hidden md:flex' : 'flex'} flex-wrap items-end justify-between gap-4 px-6 pb-6 pt-8 md:px-0 md:pt-0`}>
             <div>
-              <p className={`text-[10px] ${caps}`} style={{ color: OLIVE }}>{t('Messages', 'الرسائل')}</p>
+              <p className={`text-[11px] ${caps}`} style={{ color: OLIVE }}>{t('Messages', 'الرسائل')}</p>
               <h1 className={`mt-2 ${displayCls(isAr, 'md')}`}>{t('Conversations', 'المحادثات')}</h1>
-              <p className="mt-2 text-[13px] font-light" style={{ color: '#4A443C' }}>
+              <p className="mt-2 text-[14.5px] font-light" style={{ color: '#4A443C' }}>
                 {t('Support replies within minutes, 9 am – 11 pm.', 'فريق الدعم يرد خلال دقائق، من 9 صباحاً حتى 11 مساءً.')}
               </p>
             </div>
-            <Link to={`${lookBase(1)}/help`} className={`border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            <Link to={`${lookBase(1)}/help`} className={`border-b pb-1 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
               {t('Help centre', 'مركز المساعدة')}
             </Link>
           </div>
@@ -714,9 +714,9 @@ export function ChatPage() {
           >
             {/* threads */}
             <aside className={`${open ? 'hidden md:flex' : 'flex'} min-h-0 flex-col border-e`} style={{ borderColor: HAIR }}>
-              <p className={`flex h-[73px] shrink-0 items-center justify-between border-b px-5 text-[11px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
+              <p className={`flex h-[73px] shrink-0 items-center justify-between border-b px-5 text-[11.5px] font-bold ${caps}`} style={{ borderColor: HAIR }}>
                 {t('Inbox', 'البريد')}
-                <span className="font-['Outfit',sans-serif] text-[10px] font-medium" style={{ color: MUTED }}>{threads.length}</span>
+                <span className="font-['Outfit',sans-serif] text-[13px] font-medium" style={{ color: MUTED }}>{threads.length}</span>
               </p>
               <ul className="min-h-0 flex-1 overflow-y-auto">
                 {threads.map((th) => {
@@ -732,14 +732,14 @@ export function ChatPage() {
                         style={{ borderColor: HAIR, backgroundColor: on ? TILE : undefined }}
                       >
                         {on && <span aria-hidden className="absolute inset-y-0 start-0 w-[3px] bg-[#171512]" />}
-                        <StoreMark store={{ initials: th.initials, mark: threadMark(th.id) }} className={`h-10 w-10 text-[11px] ${threadMark(th.id) ? 'border border-[#E8E4DC]' : ''}`} />
+                        <StoreMark store={{ initials: th.initials, mark: threadMark(th.id) }} className={`h-10 w-10 text-[13px] ${threadMark(th.id) ? 'border border-[#E8E4DC]' : ''}`} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
-                            <span className="truncate text-[13.5px] font-bold">{t(th.name.en, th.name.ar)}</span>
-                            {last && <span className="shrink-0 text-[10px]" style={{ color: MUTED }} dir="ltr">{last.at}</span>}
+                            <span className="truncate text-[15px] font-bold">{t(th.name.en, th.name.ar)}</span>
+                            {last && <span className="shrink-0 text-[13px]" style={{ color: MUTED }} dir="ltr">{last.at}</span>}
                           </span>
-                          <span className="mt-0.5 block text-[10px] font-medium" style={{ color: OLIVE }}>{t(th.role.en, th.role.ar)}</span>
-                          <span className="mt-1 block truncate text-[12px]" style={{ color: '#4A443C' }}>
+                          <span className="mt-0.5 block text-[13px] font-medium" style={{ color: OLIVE }}>{t(th.role.en, th.role.ar)}</span>
+                          <span className="mt-1 block truncate text-[14px]" style={{ color: '#4A443C' }}>
                             {last ? t(last.text.en, last.text.ar) : t('No messages yet', 'لا توجد رسائل بعد')}
                           </span>
                         </span>
@@ -771,29 +771,29 @@ export function ChatPage() {
                   <div className="pointer-events-none absolute inset-2 z-20 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#5A6B4D] bg-[#FDFCF9]/92 text-center" data-testid="chat-drop-hint">
                     <ImagePlus size={26} strokeWidth={1.4} style={{ color: OLIVE }} />
                     <p className="text-[15px] font-bold">{t('Drop it here', 'أفلت هنا')}</p>
-                    <p className="text-[12.5px]" style={{ color: MUTED }}>{t('Photos, or pieces from your wishlist', 'صور، أو قطع من المفضلة')}</p>
+                    <p className="text-[14px]" style={{ color: MUTED }}>{t('Photos, or pieces from your wishlist', 'صور، أو قطع من المفضلة')}</p>
                   </div>
                 )}
                 <header className="flex h-[73px] shrink-0 items-center gap-3 border-b bg-white px-5" style={{ borderColor: HAIR }}>
                   <button type="button" onClick={() => setSp({}, { replace: true })} aria-label={t('Back', 'رجوع')} className="-ms-1 flex h-8 w-8 items-center justify-center md:hidden">
                     <ChevronLeft size={18} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                   </button>
-                  <StoreMark store={{ initials: active.initials, mark: threadMark(active.id) }} className={`h-10 w-10 text-[11px] ${threadMark(active.id) ? 'border border-[#E8E4DC]' : ''}`} />
+                  <StoreMark store={{ initials: active.initials, mark: threadMark(active.id) }} className={`h-10 w-10 text-[13px] ${threadMark(active.id) ? 'border border-[#E8E4DC]' : ''}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-bold">{t(active.name.en, active.name.ar)}</span>
-                    <span className="flex items-center gap-1.5 text-[11px]" style={{ color: MUTED }}>
+                    <span className="flex items-center gap-1.5 text-[13px]" style={{ color: MUTED }}>
                       <span className="h-1.5 w-1.5" style={{ backgroundColor: OLIVE }} />
                       {isDesigner ? t('Replies within minutes', 'يرد خلال دقائق') : t('Online', 'متصل')} · {t(active.role.en, active.role.ar)}
                     </span>
                   </span>
                   {isProvider && (
-                    <Link to={`${lookBase(1)}/provider/${active.id}`} className={`hidden shrink-0 border px-4 py-2 text-[10.5px] font-medium transition-colors hover:border-[#171512] sm:block ${caps}`} style={{ borderColor: '#C9C2B4' }}>
+                    <Link to={`${lookBase(1)}/provider/${active.id}`} className={`hidden shrink-0 border px-4 py-2 text-[11px] font-medium transition-colors hover:border-[#171512] sm:block ${caps}`} style={{ borderColor: '#C9C2B4' }}>
                       {t('View profile', 'عرض الملف')}
                     </Link>
                   )}
                 </header>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6 md:px-8" style={{ backgroundColor: TILE }} data-testid="chat-log">
-                  <p className="flex items-center gap-3 pb-2 text-[10px]" style={{ color: MUTED }}>
+                  <p className="flex items-center gap-3 pb-2 text-[13px]" style={{ color: MUTED }}>
                     <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
                     <span className={caps}>{t('Today', 'اليوم')}</span>
                     <span className="h-px flex-1" style={{ backgroundColor: '#DDD6CA' }} />
@@ -802,7 +802,7 @@ export function ChatPage() {
                     /* stays at the top of the thread: what to expect, from whom */
                     <div
                       data-testid="designer-notice"
-                      className="mx-auto flex max-w-md items-start gap-3 border bg-white px-4 py-3.5 text-[12.5px] leading-relaxed"
+                      className="mx-auto flex max-w-md items-start gap-3 border bg-white px-4 py-3.5 text-[14px] leading-relaxed"
                       style={{ borderColor: '#E2DCD1' }}
                     >
                       <Clock size={16} strokeWidth={1.6} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
@@ -819,7 +819,7 @@ export function ChatPage() {
                     </div>
                   ) : (
                     active.messages.length === 0 && (
-                      <p className="py-10 text-center text-[13px]" style={{ color: '#4A443C' }}>
+                      <p className="py-10 text-center text-[14.5px]" style={{ color: '#4A443C' }}>
                         {t('Say hello — they usually reply within the hour.', 'ابدأ المحادثة — يردون عادة خلال ساعة.')}
                       </p>
                     )
@@ -827,7 +827,7 @@ export function ChatPage() {
                   {active.messages.map((m, i) => (
                     <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`max-w-[78%] ${m.img || m.productId !== undefined ? 'p-1.5 pb-2' : 'px-4 py-3'} text-[13.5px] leading-relaxed md:max-w-[62%] ${
+                        className={`max-w-[78%] ${m.img || m.productId !== undefined ? 'p-1.5 pb-2' : 'px-4 py-3'} text-[15px] leading-relaxed md:max-w-[62%] ${
                           m.from === 'me' ? 'bg-[#171512] text-white' : 'border bg-white text-[#171512] shadow-[0_1px_2px_rgba(23,21,18,0.06)]'
                         }`}
                         style={m.from === 'me' ? undefined : { borderColor: '#E2DCD1' }}
@@ -841,7 +841,7 @@ export function ChatPage() {
                               <Link to={productPath(1, pr.id)} data-testid="chat-product" className="mb-1 flex w-[220px] max-w-full items-center gap-3 bg-white p-2 text-[#171512]">
                                 <img src={tileImg(pr.id, pr.img)} alt="" className="h-14 w-14 shrink-0 object-contain" style={{ backgroundColor: TILE }} />
                                 <span className="min-w-0">
-                                  <span className="block truncate text-[12.5px] font-bold">{pr.name[lang]}</span>
+                                  <span className="block truncate text-[14px] font-bold">{pr.name[lang]}</span>
                                   <span className="mt-0.5 block font-['Outfit',sans-serif] text-[12px] tabular-nums">
                                     {formatSAR(pr.price)} <span style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
                                   </span>
@@ -850,14 +850,14 @@ export function ChatPage() {
                             );
                           })()}
                         {t(m.text.en, m.text.ar)}
-                        <span className={`mt-1 block text-[10px] ${m.img || m.productId !== undefined ? 'px-1.5' : ''} ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
+                        <span className={`mt-1 block text-[13px] ${m.img || m.productId !== undefined ? 'px-1.5' : ''} ${m.from === 'me' ? 'text-white/60' : ''}`} style={m.from === 'me' ? undefined : { color: MUTED }} dir="ltr">
                           {m.at}
                         </span>
                       </div>
                     </div>
                   ))}
                   {isDesigner && sentToDesigner && (
-                    <p data-testid="designer-receipt" className="flex items-center justify-end gap-1.5 text-[11px]" style={{ color: MUTED }}>
+                    <p data-testid="designer-receipt" className="flex items-center justify-end gap-1.5 text-[13px]" style={{ color: MUTED }}>
                       <CheckCheck size={13} strokeWidth={1.8} style={{ color: OLIVE }} />
                       {t('Sent · a designer will reply within minutes', 'أُرسلت · سيرد عليك مصمم خلال دقائق')}
                     </p>
@@ -928,7 +928,7 @@ export function ChatPage() {
                           setAttachOpen(false);
                           file.current?.click();
                         }}
-                        className="flex w-full items-center gap-3 px-4 py-3.5 text-start text-[13px] font-medium transition-colors hover:bg-[#F6F3EC]"
+                        className="flex w-full items-center gap-3 px-4 py-3.5 text-start text-[14.5px] font-medium transition-colors hover:bg-[#F6F3EC]"
                       >
                         <ImageIcon size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
                         {t('Photo from your device', 'صورة من جهازك')}
@@ -941,12 +941,12 @@ export function ChatPage() {
                           setPicked([]);
                           setPickOpen(true);
                         }}
-                        className="flex w-full items-center gap-3 border-t px-4 py-3.5 text-start text-[13px] font-medium transition-colors hover:bg-[#F6F3EC]"
+                        className="flex w-full items-center gap-3 border-t px-4 py-3.5 text-start text-[14.5px] font-medium transition-colors hover:bg-[#F6F3EC]"
                         style={{ borderColor: HAIR }}
                       >
                         <Heart size={16} strokeWidth={1.5} style={{ color: OLIVE }} />
                         {t('From your wishlist', 'من المفضلة')}
-                        <span className="ms-auto font-['Outfit',sans-serif] text-[11px]" style={{ color: MUTED }}>{wishlist.count}</span>
+                        <span className="ms-auto font-['Outfit',sans-serif] text-[13px]" style={{ color: MUTED }}>{wishlist.count}</span>
                       </button>
                     </div>
                   )}
@@ -969,7 +969,7 @@ export function ChatPage() {
                     data-testid="chat-input"
                     placeholder={t('Write a message', 'اكتب رسالة')}
                     aria-label={t('Message', 'الرسالة')}
-                    className="block max-h-[140px] min-h-12 min-w-0 flex-1 resize-none border bg-white px-4 py-3 text-[13.5px] leading-relaxed outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
+                    className="block max-h-[140px] min-h-12 min-w-0 flex-1 resize-none border bg-white px-4 py-3 text-[15px] leading-relaxed outline-none placeholder:text-[#8C857A] focus:border-[#171512]"
                     style={{ borderColor: '#C9C2B4' }}
                   />
                   <button type="submit" data-testid="chat-send" aria-label={t('Send', 'إرسال')} className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#171512] text-white transition-colors hover:bg-[#5A6B4D]">
@@ -978,7 +978,7 @@ export function ChatPage() {
                 </form>
               </section>
             ) : (
-              <div className="hidden items-center justify-center text-[13px] md:flex" style={{ color: MUTED, backgroundColor: TILE }}>{t('Choose a conversation', 'اختر محادثة')}</div>
+              <div className="hidden items-center justify-center text-[14.5px] md:flex" style={{ color: MUTED, backgroundColor: TILE }}>{t('Choose a conversation', 'اختر محادثة')}</div>
             )}
           </div>
         </div>
@@ -1010,8 +1010,8 @@ export function ChatPage() {
       >
         {wishlist.count === 0 ? (
           <div className="px-6 py-14 text-center">
-            <p className="text-[14px] font-light" style={{ color: '#4A443C' }}>{t('Your wishlist is empty.', 'قائمة المفضلة فارغة.')}</p>
-            <Link to={searchPath(1)} className="mt-5 inline-block border-b pb-1 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+            <p className="text-[15px] font-light" style={{ color: '#4A443C' }}>{t('Your wishlist is empty.', 'قائمة المفضلة فارغة.')}</p>
+            <Link to={searchPath(1)} className="mt-5 inline-block border-b pb-1 text-[14px] font-medium" style={{ borderColor: INK }}>
               {t('Browse the shop', 'تصفّح المتجر')}
             </Link>
           </div>
@@ -1034,7 +1034,7 @@ export function ChatPage() {
                     <span className="block aspect-square" style={{ backgroundColor: TILE }}>
                       <img src={tileImg(pr.id, pr.img)} alt="" className="h-full w-full object-contain p-2" />
                     </span>
-                    <span className="mt-1.5 block truncate px-1 pb-1 text-[11.5px] font-medium">{pr.name[lang]}</span>
+                    <span className="mt-1.5 block truncate px-1 pb-1 text-[13px] font-medium">{pr.name[lang]}</span>
                     {on && (
                       <span className="absolute end-1.5 top-1.5 flex h-5 w-5 items-center justify-center bg-[#171512] text-white">
                         <Check size={12} strokeWidth={2.5} />
@@ -1068,14 +1068,14 @@ export function LoyaltyPage() {
       <div style={{ backgroundColor: NIGHT }}>
         <div className={`${CONTAINER} grid gap-10 py-14 md:py-20 lg:grid-cols-12`}>
           <div className="lg:col-span-7">
-            <p className={`text-[11px] ${caps}`} style={{ color: OLIVE_LT }}>{t(LOYALTY.eyebrow.en, LOYALTY.eyebrow.ar)}</p>
+            <p className={`text-[11.5px] ${caps}`} style={{ color: OLIVE_LT }}>{t(LOYALTY.eyebrow.en, LOYALTY.eyebrow.ar)}</p>
             <h1 className={`mt-4 text-white ${displayCls(isAr, 'xl')}`}>{t(LOYALTY.title.en, LOYALTY.title.ar)}</h1>
             <p className="mt-5 max-w-lg text-[15px] font-light leading-relaxed text-white/70">{t(LOYALTY.body.en, LOYALTY.body.ar)}</p>
           </div>
           <div className="border p-7 lg:col-span-5" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
-            <p className={`text-[10px] ${caps}`} style={{ color: 'rgba(246,243,236,0.6)' }}>{t('Your balance', 'رصيدك')}</p>
+            <p className={`text-[11px] ${caps}`} style={{ color: 'rgba(246,243,236,0.6)' }}>{t('Your balance', 'رصيدك')}</p>
             <p className="mt-2 font-['Outfit',sans-serif] text-[52px] font-bold leading-none tabular-nums text-white" data-testid="loyalty-points">{formatSAR(LOYALTY_POINTS)}</p>
-            <p className="mt-2 text-[13px] text-white/70">
+            <p className="mt-2 text-[14.5px] text-white/70">
               {t(`${tier.name.en} member · worth ${formatSAR(LOYALTY_POINTS / 10)} SAR`, `عضو ${tier.name.ar} · بقيمة ${formatSAR(LOYALTY_POINTS / 10)} ر.س`)}
             </p>
             {next && (
@@ -1083,7 +1083,7 @@ export function LoyaltyPage() {
                 <div className="mt-6 h-1 w-full bg-white/15">
                   <div className="h-full" style={{ width: `${progress * 100}%`, backgroundColor: OLIVE_LT }} />
                 </div>
-                <p className="mt-2 text-[11px] text-white/60">
+                <p className="mt-2 text-[13px] text-white/60">
                   {t(`${formatSAR(next.from - LOYALTY_POINTS)} points to ${next.name.en}`, `${formatSAR(next.from - LOYALTY_POINTS)} نقطة للمستوى ${next.name.ar}`)}
                 </p>
               </>
@@ -1101,7 +1101,7 @@ export function LoyaltyPage() {
             <li key={pk.title.en}>
               <pk.icon size={20} strokeWidth={1.4} style={{ color: OLIVE }} />
               <p className="mt-4 text-[15px] font-bold">{t(pk.title.en, pk.title.ar)}</p>
-              <p className="mt-2 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(pk.body.en, pk.body.ar)}</p>
+              <p className="mt-2 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(pk.body.en, pk.body.ar)}</p>
             </li>
           ))}
         </ul>
@@ -1124,8 +1124,8 @@ export function LoyaltyPage() {
             {rows.map((h) => (
               <li key={h.label.en + h.date.en} className="flex items-center justify-between gap-4 border-b py-4" style={{ borderColor: HAIR }} data-testid="loyalty-row">
                 <span>
-                  <span className="block text-[14px] font-medium">{t(h.label.en, h.label.ar)}</span>
-                  <span className="mt-0.5 block text-[11px]" style={{ color: MUTED }}>{t(h.date.en, h.date.ar)}</span>
+                  <span className="block text-[15px] font-medium">{t(h.label.en, h.label.ar)}</span>
+                  <span className="mt-0.5 block text-[13px]" style={{ color: MUTED }}>{t(h.date.en, h.date.ar)}</span>
                 </span>
                 <span className="font-['Outfit',sans-serif] text-[15px] font-bold tabular-nums" dir="ltr" style={{ color: h.points > 0 ? OLIVE : '#B03A2E' }}>
                   {h.points > 0 ? '+' : ''}
@@ -1158,11 +1158,11 @@ export function BlogIndexPage() {
               <img src={p.img} alt="" loading="lazy" className={`w-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.04] ${i === 0 ? 'aspect-[16/9]' : 'aspect-[4/3]'}`} />
             </Link>
             <div className={i === 0 ? 'lg:col-span-4' : ''}>
-              <p className={`mt-5 text-[10px] ${caps}`} style={{ color: OLIVE }}>{t(p.category.en, p.category.ar)} · {t(`${p.readMins} min`, `${p.readMins} د`)}</p>
+              <p className={`mt-5 text-[11px] ${caps}`} style={{ color: OLIVE }}>{t(p.category.en, p.category.ar)} · {t(`${p.readMins} min`, `${p.readMins} د`)}</p>
               <h2 className={`mt-3 font-bold leading-snug ${i === 0 ? 'text-[26px] md:text-[32px]' : 'text-[20px]'}`}>
                 <Link to={`${lookBase(1)}/blog/${postSlug(p)}`} className="decoration-[#5A6B4D] underline-offset-[6px] hover:underline">{t(p.title.en, p.title.ar)}</Link>
               </h2>
-              <p className="mt-3 text-[14px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(p.excerpt.en, p.excerpt.ar)}</p>
+              <p className="mt-3 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(p.excerpt.en, p.excerpt.ar)}</p>
             </div>
           </article>
         ))}
@@ -1200,12 +1200,12 @@ export function ArticlePage() {
         ))}
         <div className="mt-12 flex flex-wrap items-center gap-6 border-t pt-8" style={{ borderColor: HAIR }}>
           <Link to={searchPath(1, { category: 'lighting' })} className={`px-8 py-4 ${primaryBtnCls(isAr)}`}>{t('Shop the edit', 'تسوّق المختارات')}</Link>
-          <Link to={`${lookBase(1)}/blog`} className={`text-[11px] font-medium ${caps}`} style={{ color: MUTED }}>{t('All articles', 'كل المقالات')}</Link>
+          <Link to={`${lookBase(1)}/blog`} className={`text-[11.5px] font-medium ${caps}`} style={{ color: MUTED }}>{t('All articles', 'كل المقالات')}</Link>
         </div>
       </article>
       <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>
         <div className={CONTAINER}>
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Keep reading', 'تابع القراءة')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Keep reading', 'تابع القراءة')}</p>
           <ul className="mt-6 grid gap-6 md:grid-cols-3">
             {more.map((p) => (
               <li key={p.title.en}>
@@ -1236,7 +1236,7 @@ export function BrandsPage() {
         <Breadcrumb items={[home(t), { label: t('Brands', 'العلامات') }]} />
         <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h1 className={displayCls(isAr, 'md')}>{t('Brands', 'العلامات')}</h1>
-          <span className="text-[13px]" style={{ color: MUTED }}>{t(`${BRANDS.length} brands on Diyar`, `${BRANDS.length} علامة على ديار`)}</span>
+          <span className="text-[14.5px]" style={{ color: MUTED }}>{t(`${BRANDS.length} brands on Diyar`, `${BRANDS.length} علامة على ديار`)}</span>
         </div>
       </div>
       <div className={`${CONTAINER} pb-16 pt-8`}>
@@ -1265,8 +1265,8 @@ export function BrandsPage() {
                   </span>
                   <span className="flex items-center justify-between gap-3 border-t px-4 py-3" style={{ borderColor: HAIR }}>
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-bold">{name}</span>
-                      <span className="block truncate text-[11.5px]" style={{ color: MUTED }}>
+                      <span className="block truncate text-[14.5px] font-bold">{name}</span>
+                      <span className="block truncate text-[13px]" style={{ color: MUTED }}>
                         {store ? `${store.specialty[lang]} · ${t(`${count} pieces`, `${count} قطعة`)}` : t('Sold on Diyar', 'تُباع على ديار')}
                       </span>
                     </span>
@@ -1383,7 +1383,7 @@ export function PagesIndex() {
       <div className={`${CONTAINER} grid gap-10 py-12 md:grid-cols-2 md:py-16 lg:grid-cols-3`}>
         {groups.map((g) => (
           <section key={g.title}>
-            <p className={`border-b pb-3 text-[11px] font-bold ${caps}`} style={{ borderColor: INK }}>{g.title}</p>
+            <p className={`border-b pb-3 text-[11.5px] font-bold ${caps}`} style={{ borderColor: INK }}>{g.title}</p>
             <ul>
               {g.items.map((it) => {
                 const cls = 'flex w-full items-center justify-between gap-4 border-b py-3.5 text-start text-[14px] font-medium transition-colors hover:text-[#5A6B4D]';

@@ -105,7 +105,7 @@ export function SectionHeading({
   return (
     <div>
       <p
-        className={`mb-4 text-[11px] uppercase ${
+        className={`mb-4 text-[11.5px] uppercase ${
           isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'
         }`}
         style={{ color: light ? OLIVE_LT : OLIVE }}
@@ -153,7 +153,7 @@ export const RAIL_VIEWPORT = { once: true, margin: '-80px 4000px' } as const;
 export function ViewMore({ label, light = false, to, onClick }: { label?: string; light?: boolean; to?: string; onClick?: () => void }) {
   const isAr = useLang() === 'ar';
   const text = label ?? (isAr ? 'عرض المزيد' : 'View More');
-  const cls = `group/vm inline-flex items-center gap-2.5 pb-1.5 border-b text-[11px] uppercase transition-colors ${
+  const cls = `group/vm inline-flex items-center gap-2.5 pb-1.5 border-b text-[12px] uppercase transition-colors ${
     isAr ? 'tracking-normal' : 'tracking-[0.28em]'
   } ${
     light
@@ -212,7 +212,7 @@ export function Stars({ rating, light = false }: { rating: number; light?: boole
 
 /** The black rectangle primary button — hover olive. Shared by every page. */
 export const primaryBtnCls = (isAr: boolean) =>
-  `bg-[#171512] text-white transition-colors duration-300 hover:bg-[#5A6B4D] text-[11px] font-medium uppercase ${
+  `bg-[#171512] text-white transition-colors duration-300 hover:bg-[#5A6B4D] text-[12px] font-medium uppercase ${
     isAr ? 'tracking-normal' : 'tracking-[0.28em]'
   }`;
 
@@ -345,7 +345,7 @@ export function ProductCard({
         <div className="absolute start-4 top-4 z-10 flex flex-col gap-1.5">
           {c.sale && (
             <span
-              className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+              className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
               style={{ color: RED }}
             >
               {t('Sale', 'تخفيض')}
@@ -353,7 +353,7 @@ export function ProductCard({
           )}
           {c.isNew && (
             <span
-              className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
+              className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
               style={{ color: OLIVE }}
             >
               {t('New', 'جديد')}
@@ -390,33 +390,33 @@ export function ProductCard({
       </div>
 
       {/* info */}
-      <p className={`mt-5 flex items-center gap-2 ${eyebrowCls(isAr)}`}>
+      <p className={`mt-5 flex items-center gap-2 ${eyebrowCls(isAr, 'text-[11.5px] text-neutral-500')}`}>
         {c.mark && <img src={c.mark} alt="" loading="lazy" className="h-4 w-4 shrink-0 object-contain" />}
         {c.brand}
       </p>
-      <h3 className="mt-1.5 truncate text-sm font-medium" title={c.name}>
+      <h3 className="mt-1.5 truncate text-[15.5px] font-semibold" title={c.name}>
         <Link to={to} className="decoration-[#5A6B4D] underline-offset-4 hover:underline">
           {c.name}
         </Link>
       </h3>
       <div className="mt-2 flex items-center gap-2">
         <Stars rating={c.rating} />
-        {c.reviews !== undefined && <span className="text-[11px] text-neutral-400">({c.reviews})</span>}
+        {c.reviews !== undefined && <span className="text-[13px] text-neutral-500">({c.reviews})</span>}
       </div>
 
       {/* price row */}
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-2 overflow-hidden">
-          <span className="text-[15px] font-bold">{formatSAR(c.price)}</span>
-          <span className={`text-[10px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
+          <span className="text-[17px] font-bold">{formatSAR(c.price)}</span>
+          <span className={`text-[12px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
             {t('SAR', 'ر.س')}
           </span>
-          {c.oldPrice && <span className="text-xs text-neutral-400 line-through">{formatSAR(c.oldPrice)}</span>}
+          {c.oldPrice && <span className="text-[13px] text-neutral-400 line-through">{formatSAR(c.oldPrice)}</span>}
         </div>
         <Link
           to={`${to}?ai=1`}
-          className={`shrink-0 text-[10px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
-            isAr ? 'tracking-normal' : 'tracking-[0.24em]'
+          className={`shrink-0 text-[12px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${
+            isAr ? 'tracking-normal' : 'tracking-[0.2em]'
           }`}
           style={{ color: RED }}
         >
@@ -429,7 +429,7 @@ export function ProductCard({
         <button
           type="button"
           onClick={addToCart}
-          className={`mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#171512] py-3.5 text-[10px] font-medium uppercase transition-colors duration-300 ${
+          className={`mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#171512] py-3.5 text-[12px] font-medium uppercase transition-colors duration-300 ${
             added ? 'bg-[#5A6B4D] border-[#5A6B4D] text-white' : 'hover:bg-[#171512] hover:text-white'
           } ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
         >
@@ -454,7 +454,7 @@ export function Breadcrumb({ items }: { items: Crumb[] }) {
   const isAr = useLang() === 'ar';
   return (
     <nav aria-label={isAr ? 'مسار التنقل' : 'Breadcrumb'}>
-      <ol className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.24em]'}`}>
+      <ol className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.24em]'}`}>
         {items.map((c, i) => {
           const last = i === items.length - 1;
           return (

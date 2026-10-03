@@ -70,7 +70,7 @@ export function AnnouncementBar({ show }: { show: boolean }) {
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="relative z-10 overflow-hidden bg-[#14120F] text-[#F6F3EC]"
         >
-          <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-center gap-4 px-10 text-[11.5px]">
+          <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-center gap-4 px-10 text-[13px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={i}
@@ -81,7 +81,7 @@ export function AnnouncementBar({ show }: { show: boolean }) {
                 className="flex min-w-0 items-center gap-3"
               >
                 <span className="truncate font-light">{it.text}</span>
-                <Link to={it.to} className={`hidden shrink-0 items-center gap-1.5 border-b border-white/40 pb-px font-medium hover:border-white sm:inline-flex ${capsCls(isAr)} text-[10px]`}>
+                <Link to={it.to} className={`hidden shrink-0 items-center gap-1.5 border-b border-white/40 pb-px font-medium hover:border-white sm:inline-flex ${capsCls(isAr)} text-[11px]`}>
                   {it.cta}
                   <ArrowRight size={11} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                 </Link>
@@ -236,11 +236,11 @@ export function PromoPopup({ active }: { active: boolean }) {
           >
             <img src="/looks/promo/lead-summer.webp" alt="" className="aspect-[4/3] h-full w-full object-cover md:aspect-auto" />
             <div className="flex flex-col justify-center p-8 md:p-10">
-              <p className={`text-[10px] font-semibold ${capsCls(isAr)}`} style={{ color: '#B03A2E' }}>{t('Limited time', 'لفترة محدودة')}</p>
+              <p className={`text-[11px] font-semibold ${capsCls(isAr)}`} style={{ color: '#B03A2E' }}>{t('Limited time', 'لفترة محدودة')}</p>
               <p className={`mt-4 text-[28px] font-extrabold leading-tight md:text-[34px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
                 {t('Summer sale — up to 40% off sofas', 'عروض الصيف — خصم حتى 40% على الأرائك')}
               </p>
-              <p className="mt-4 text-[14px] font-light leading-relaxed text-[#4A443C]">
+              <p className="mt-4 text-[15px] font-light leading-relaxed text-[#4A443C]">
                 {t('While stock lasts. Delivery and installation included.', 'حتى نفاد الكمية. التوصيل والتركيب مشمولان.')}
               </p>
               <Link to={searchPath(1, { sale: true })} onClick={() => setOpen(false)} data-testid="promo-popup-cta" className={`mt-8 self-start px-9 py-4 ${primaryBtnCls(isAr)}`}>

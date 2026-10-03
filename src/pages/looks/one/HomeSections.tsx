@@ -196,7 +196,7 @@ function QuickRow({
                 >
                   <p
                     className={`text-start font-bold leading-snug transition-colors duration-300 ${
-                      isAr ? 'text-[15px] tracking-normal' : 'text-[13px]'
+                      isAr ? 'text-[15px] tracking-normal' : 'text-[14.5px]'
                     } ${dark ? 'text-[#F6F3EC]' : 'text-[#171512] group-hover/plate:text-[#5A6B4D]'}`}
                   >
                     {name}
@@ -286,7 +286,7 @@ export function PromoMosaic() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/5" />
                 <div className="absolute inset-x-0 bottom-0 p-6 text-white md:p-8">
-                  <p className={`text-[10px] uppercase text-white/80 ${isAr ? 'tracking-normal' : 'tracking-[0.3em]'}`}>
+                  <p className={`text-[11px] uppercase text-white/80 ${isAr ? 'tracking-normal' : 'tracking-[0.3em]'}`}>
                     {isAr ? p.eyebrow.ar : p.eyebrow.en}
                   </p>
                   <h3
@@ -297,7 +297,7 @@ export function PromoMosaic() {
                     {title}
                   </h3>
                   <span
-                    className={`mt-5 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11px] uppercase transition-colors group-hover/pp:border-white ${
+                    className={`mt-5 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[11.5px] uppercase transition-colors group-hover/pp:border-white ${
                       isAr ? 'tracking-normal' : 'tracking-[0.28em]'
                     }`}
                   >
@@ -347,7 +347,7 @@ function TrendingCard({ tr, p }: { tr: TrendingItem; p: CatalogProduct; key?: st
       <ProductCard p={p} testId="home-product-card" />
       {/* live activity row */}
       <div
-        className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t pt-3.5 text-[11px] text-neutral-500"
+        className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t pt-3.5 text-[13px] text-neutral-500"
         style={{ borderColor: HAIR }}
       >
         <span className={stat} title={t('Views', 'مشاهدات')}>
@@ -396,7 +396,7 @@ export function Trending({ no }: { no: string }) {
               <SectionHeading eyebrow={t(`Right Now — ${no}`, `الآن — ${no}`)} title={t('Trending Now', 'الأكثر تفاعلاً')} />
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
                 {/* live indicator */}
-                <span className={`inline-flex items-center gap-2.5 text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
+                <span className={`inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-70" style={{ backgroundColor: OLIVE }} />
                     <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: OLIVE }} />
@@ -451,7 +451,7 @@ function Countdown() {
   const parts = [Math.floor(total / 3600), Math.floor((total % 3600) / 60), total % 60];
   return (
     <div data-testid="countdown" className="flex items-center gap-4">
-      <span className={eyebrowCls(isAr, 'text-[10px] text-neutral-500')}>{t('Ends in', 'تنتهي خلال')}</span>
+      <span className={eyebrowCls(isAr, 'text-[11px] text-neutral-500')}>{t('Ends in', 'تنتهي خلال')}</span>
       <div dir="ltr" className="flex items-center gap-1.5">
         {parts.map((v, i) => (
           <span key={i} className="flex items-center gap-1.5">
@@ -489,7 +489,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
       <div className="relative aspect-square overflow-hidden">
         <span
           dir="ltr"
-          className="absolute start-4 top-4 z-10 px-2 py-1 font-['Outfit',sans-serif] text-[11px] font-bold text-white"
+          className="absolute start-4 top-4 z-10 px-2 py-1 font-['Outfit',sans-serif] text-[13px] font-bold text-white"
           style={{ backgroundColor: RED }}
         >
           −{pct}%
@@ -514,7 +514,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
         </div>
         <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-[17px] font-bold">{formatSAR(deal)}</span>
-          <span className={`text-[10px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
+          <span className={`text-[11px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
             {t('SAR', 'ر.س')}
           </span>
           <span className="text-xs text-neutral-400 line-through">{formatSAR(original)}</span>
@@ -522,7 +522,7 @@ function DealCard({ p }: { p: CatalogProduct; key?: string | number }) {
         <button
           type="button"
           onClick={addToCart}
-          className={`mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#171512] py-3.5 text-[10px] font-medium uppercase transition-colors duration-300 ${
+          className={`mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#171512] py-3.5 text-[11px] font-medium uppercase transition-colors duration-300 ${
             added ? 'border-[#5A6B4D] bg-[#5A6B4D] text-white' : 'hover:bg-[#171512] hover:text-white'
           } ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
         >
@@ -587,7 +587,7 @@ export function CampaignBanner({ c, testId }: { c: Campaign; testId: string }) {
       <div className={`${CONTAINER} relative w-full py-20 md:py-28`}>
         <Reveal>
           <p
-            className={`text-[11px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
+            className={`text-[11.5px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
             style={{ color: dark ? '#FFFFFF' : INK }}
           >
             {isAr ? c.eyebrow.ar : c.eyebrow.en}
@@ -605,7 +605,7 @@ export function CampaignBanner({ c, testId }: { c: Campaign; testId: string }) {
           </p>
           <Link
             to={c.query ? searchPath(1, c.query) : searchPath(1)}
-            className={`mt-9 inline-block px-10 py-4 text-[11px] font-medium uppercase transition-colors duration-300 ${
+            className={`mt-9 inline-block px-10 py-4 text-[11.5px] font-medium uppercase transition-colors duration-300 ${
               isAr ? 'tracking-normal' : 'tracking-[0.28em]'
             } ${
               dark
@@ -787,7 +787,7 @@ export function Newsletter() {
         <div className="grid items-end gap-10 lg:grid-cols-12 lg:gap-16">
           <Reveal className="lg:col-span-6">
             <p
-              className={`text-[11px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
+              className={`text-[11.5px] uppercase ${isAr ? "font-['Tajawal',sans-serif] tracking-normal" : 'tracking-[0.32em]'}`}
               style={{ color: OLIVE }}
             >
               {t('Newsletter', 'النشرة البريدية')}
@@ -815,7 +815,7 @@ export function Newsletter() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={isAr ? NEWSLETTER.placeholder.ar : NEWSLETTER.placeholder.en}
                   aria-label={t('Email address', 'البريد الإلكتروني')}
-                  className="h-14 w-full min-w-0 border bg-white px-5 text-[13px] text-[#171512] placeholder:text-neutral-400 transition-colors focus:border-[#171512] focus:outline-none"
+                  className="h-14 w-full min-w-0 border bg-white px-5 text-[14.5px] text-[#171512] placeholder:text-neutral-400 transition-colors focus:border-[#171512] focus:outline-none"
                   style={{ borderColor: HAIR }}
                 />
                 <button type="submit" className={`${primaryBtnCls(isAr)} h-14 shrink-0 px-10`}>
@@ -823,7 +823,7 @@ export function Newsletter() {
                 </button>
               </form>
             )}
-            <p className="mt-3 text-[11px] text-neutral-400">
+            <p className="mt-3 text-[13px] text-neutral-400">
               {t('No spam — unsubscribe any time.', 'بلا رسائل مزعجة — يمكنك إلغاء الاشتراك في أي وقت.')}
             </p>
           </Reveal>
@@ -1062,7 +1062,7 @@ export function ApartmentRooms() {
               <span className={`block text-[13px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em]'}`}>
                 {t(activeRoom.en, activeRoom.ar)}
               </span>
-              <span className="mt-1 flex items-center gap-2 text-[11px]" style={{ color: '#5F5950' }}>
+              <span className="mt-1 flex items-center gap-2 text-[13px]" style={{ color: '#5F5950' }}>
                 {t(`${formatSAR(activeRoom.count)} pieces`, `${formatSAR(activeRoom.count)} قطعة`)}
                 <ArrowRight size={11} strokeWidth={1.75} className={isAr ? 'rotate-180' : undefined} style={{ color: OLIVE }} />
               </span>
@@ -1077,11 +1077,11 @@ export function ApartmentRooms() {
             <li key={r.key}>
               <Link
                 to={searchPath(1, { room: r.key })}
-                className="flex items-center gap-2 border bg-white/70 px-3.5 py-2.5 text-[12px] font-medium"
+                className="flex items-center gap-2 border bg-white/70 px-3.5 py-2.5 text-[14px] font-medium"
                 style={{ borderColor: HAIR }}
               >
                 {t(r.en, r.ar)}
-                <span className="text-[10px] tabular-nums" style={{ color: '#5F5950' }}>{formatSAR(r.count)}</span>
+                <span className="text-[11px] tabular-nums" style={{ color: '#5F5950' }}>{formatSAR(r.count)}</span>
               </Link>
             </li>
           ))}
@@ -1141,7 +1141,7 @@ export function ServicesIndex({ no }: { no: string }) {
                         className="h-14 w-12 shrink-0 object-cover lg:hidden"
                       />
                       <span
-                        className={`shrink-0 text-[11px] ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
+                        className={`shrink-0 text-[11.5px] ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
                         style={{ color: on ? OLIVE : '#B9B2A6' }}
                       >
                         {String(i + 1).padStart(2, '0')}
@@ -1174,7 +1174,7 @@ export function ServicesIndex({ no }: { no: string }) {
             <div className="sticky top-28">
               <ServicePreview index={active} />
               <p
-                className={`mt-4 text-[11px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
+                className={`mt-4 text-[11.5px] uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.26em]'}`}
                 style={{ color: OLIVE }}
               >
                 {t(current.en, current.ar)}

@@ -79,7 +79,7 @@ export default function AccountPage() {
     return (
       <main className="pt-[72px]">
         <div className="mx-auto max-w-[560px] px-6 py-24 text-center md:px-10">
-          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Account', 'الحساب')}</p>
+          <p className={`text-[11.5px] ${caps}`} style={{ color: MUTED }}>{t('Account', 'الحساب')}</p>
           <h1 className={`mt-4 ${displayCls(isAr, 'lg')}`}>{t('Sign in to Diyar', 'سجّل دخولك إلى ديار')}</h1>
           <p className="mt-5 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>
             {t('Your orders, addresses and saved pieces live in your account.', 'طلباتك وعناوينك وقطعك المحفوظة موجودة في حسابك.')}
@@ -108,14 +108,14 @@ export default function AccountPage() {
         <div className={`${CONTAINER} py-12 md:py-16`}>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className={`text-[11px] ${caps}`} style={{ color: OLIVE_LT }}>{t('Welcome back', 'أهلاً بعودتك')}</p>
+              <p className={`text-[11.5px] ${caps}`} style={{ color: OLIVE_LT }}>{t('Welcome back', 'أهلاً بعودتك')}</p>
               <h1 className={`mt-4 text-white ${displayCls(isAr, 'xl')}`}>{user}</h1>
             </div>
             <button
               type="button"
               data-testid="account-signout"
               onClick={signOut}
-              className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] font-medium text-white/80 transition-colors hover:text-white ${caps}`}
+              className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11.5px] font-medium text-white/80 transition-colors hover:text-white ${caps}`}
               style={{ borderColor: 'rgba(255,255,255,0.5)' }}
             >
               <LogOut size={13} strokeWidth={1.5} />
@@ -129,7 +129,7 @@ export default function AccountPage() {
                 <Link to={s.to} className="flex items-center gap-4 p-5 transition-colors hover:bg-white/5">
                   <s.icon size={18} strokeWidth={1.4} className="shrink-0" style={{ color: OLIVE_LT }} />
                   <span className="min-w-0">
-                    <span className={`block text-[10px] ${caps}`} style={{ color: 'rgba(246,243,236,0.6)' }}>{s.label}</span>
+                    <span className={`block text-[11px] ${caps}`} style={{ color: 'rgba(246,243,236,0.6)' }}>{s.label}</span>
                     <span className="mt-1 block font-['Outfit',sans-serif] text-[20px] font-bold tabular-nums text-white">{s.value}</span>
                   </span>
                 </Link>
@@ -191,7 +191,7 @@ function Orders() {
           <div className="px-6 py-6"><StatusTimeline steps={steps} current={0} /></div>
           <ul className="divide-y divide-[#E8E4DC] border-t" style={{ borderColor: HAIR }}>
             {o.lines.map((l, i) => (
-              <li key={i} className="flex items-baseline justify-between gap-4 px-6 py-3.5 text-[13px]">
+              <li key={i} className="flex items-baseline justify-between gap-4 px-6 py-3.5 text-[14.5px]">
                 <span className="min-w-0 flex-1 truncate font-medium">{l.name} <span style={{ color: MUTED }}>× {l.qty}</span></span>
                 <span className="font-['Outfit',sans-serif] font-bold tabular-nums">{formatSAR(l.total)}</span>
               </li>
@@ -219,7 +219,7 @@ function Orders() {
                 return (
                   <li key={id} className="flex items-center gap-4 px-6 py-4">
                     <img src={p.img} alt="" className="h-14 w-12 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
-                    <Link to={productPath(1, id)} className="min-w-0 flex-1 truncate text-[13px] font-bold hover:text-[#5A6B4D]">
+                    <Link to={productPath(1, id)} className="min-w-0 flex-1 truncate text-[14.5px] font-bold hover:text-[#5A6B4D]">
                       {t(p.name.en, p.name.ar)}
                     </Link>
                     <span className="font-['Outfit',sans-serif] text-[13px] font-bold tabular-nums">{formatSAR(p.price)}</span>
@@ -233,7 +233,7 @@ function Orders() {
                   type="button"
                   data-testid="order-rate"
                   onClick={() => setRating(o)}
-                  className={`inline-flex items-center gap-2 border-b pb-1 text-[11px] font-medium ${caps}`}
+                  className={`inline-flex items-center gap-2 border-b pb-1 text-[11.5px] font-medium ${caps}`}
                   style={{ borderColor: INK }}
                 >
                   <StarIcon size={12} strokeWidth={1.5} />
@@ -241,12 +241,12 @@ function Orders() {
                 </button>
               )}
               {isRated && (
-                <span className="inline-flex items-center gap-2 text-[11px] font-medium" style={{ color: OLIVE }}>
+                <span className="inline-flex items-center gap-2 text-[13px] font-medium" style={{ color: OLIVE }}>
                   <Check size={13} strokeWidth={2} />
                   {t('Rated — thank you', 'تم التقييم — شكراً لك')}
                 </span>
               )}
-              <Link to={`${lookBase(1)}/chat`} className={`text-[11px] font-medium hover:text-[#171512] ${caps}`} style={{ color: MUTED }}>
+              <Link to={`${lookBase(1)}/chat`} className={`text-[11.5px] font-medium hover:text-[#171512] ${caps}`} style={{ color: MUTED }}>
                 {t('Need help?', 'تحتاج مساعدة؟')}
               </Link>
             </div>
@@ -274,14 +274,14 @@ function OrderHead({ id, date, total, badge }: { id: string; date: string; total
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 border-b px-6 py-5" style={{ borderColor: HAIR, backgroundColor: TILE }}>
       <div>
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{date}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{date}</p>
         <p className="mt-1.5 font-['Outfit',sans-serif] text-[18px] font-bold">#{id}</p>
       </div>
       {badge}
       <div className="text-end">
-        <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Total', 'الإجمالي')}</p>
+        <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Total', 'الإجمالي')}</p>
         <p className="mt-1.5 font-['Outfit',sans-serif] text-[18px] font-bold tabular-nums">
-          {formatSAR(total)} <span className="text-[11px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
+          {formatSAR(total)} <span className="text-[13px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
         </p>
       </div>
     </div>
@@ -334,25 +334,25 @@ function Requests() {
           <article key={r.id} className="border" style={{ borderColor: HAIR }} data-testid="request-card">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b px-6 py-5" style={{ borderColor: HAIR, backgroundColor: TILE }}>
               <div>
-                <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{r.id} · {t(r.date.en, r.date.ar)}</p>
+                <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{r.id} · {t(r.date.en, r.date.ar)}</p>
                 <p className="mt-1.5 text-[16px] font-bold">{t(r.service.en, r.service.ar)}</p>
               </div>
               {r.quote !== undefined && (
                 <div className="text-end">
-                  <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Quote', 'عرض السعر')}</p>
+                  <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Quote', 'عرض السعر')}</p>
                   <p className="mt-1.5 font-['Outfit',sans-serif] text-[18px] font-bold tabular-nums">
-                    {formatSAR(r.quote)} <span className="text-[11px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
+                    {formatSAR(r.quote)} <span className="text-[13px] font-medium" style={{ color: MUTED }}>{t('SAR', 'ر.س')}</span>
                   </p>
                 </div>
               )}
             </div>
             <div className="px-6 py-6">
               <StatusTimeline steps={steps} current={accepted.has(r.id) ? 3 : Math.min(r.step, steps.length)} />
-              <p className="mt-6 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.details.en, r.details.ar)}</p>
+              <p className="mt-6 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.details.en, r.details.ar)}</p>
             </div>
             <div className="flex flex-wrap items-center gap-6 border-t px-6 py-4" style={{ borderColor: HAIR }}>
               {provider && (
-                <Link to={`${lookBase(1)}/provider/${provider.id}`} className="inline-flex items-center gap-2.5 text-[12px] font-bold hover:text-[#5A6B4D]">
+                <Link to={`${lookBase(1)}/provider/${provider.id}`} className="inline-flex items-center gap-2.5 text-[14px] font-bold hover:text-[#5A6B4D]">
                   <span dir="ltr" className="flex h-7 w-7 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[9px] font-bold text-white">{provider.initials}</span>
                   {t(provider.name.en, provider.name.ar)}
                 </Link>
@@ -370,7 +370,7 @@ function Requests() {
                   {t('Accept Quote', 'قبول العرض')}
                 </button>
               )}
-              <Link to={`${lookBase(1)}/chat?with=${r.providerId}`} className={`inline-flex items-center gap-2 text-[11px] font-medium hover:text-[#171512] ${caps}`} style={{ color: MUTED }}>
+              <Link to={`${lookBase(1)}/chat?with=${r.providerId}`} className={`inline-flex items-center gap-2 text-[11.5px] font-medium hover:text-[#171512] ${caps}`} style={{ color: MUTED }}>
                 <MessageSquare size={13} strokeWidth={1.5} />
                 {t('Message', 'مراسلة')}
               </Link>
@@ -379,7 +379,7 @@ function Requests() {
         );
       })}
       <div>
-        <Link to={`${lookBase(1)}/services`} className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+        <Link to={`${lookBase(1)}/services`} className={`inline-flex items-center gap-2 border-b pb-1.5 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
           <Plus size={12} strokeWidth={1.75} />
           {t('Request a new service', 'اطلب خدمة جديدة')}
         </Link>
@@ -426,8 +426,8 @@ function Reviews() {
                   <li key={id} className="flex flex-wrap items-center gap-5 border p-5" style={{ borderColor: HAIR }} data-testid="review-pending">
                     <img src={p.img} alt="" className="h-20 w-16 object-cover" style={{ backgroundColor: TILE }} />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[14px] font-bold">{t(p.name.en, p.name.ar)}</span>
-                      <span className="mt-1 block text-[12px] font-light" style={{ color: MUTED }}>{t('Delivered in August', 'تم التوصيل في أغسطس')}</span>
+                      <span className="block text-[15px] font-bold">{t(p.name.en, p.name.ar)}</span>
+                      <span className="mt-1 block text-[14px] font-light" style={{ color: MUTED }}>{t('Delivered in August', 'تم التوصيل في أغسطس')}</span>
                     </span>
                     <button type="button" data-testid="review-write" onClick={() => setWriting(id)} className={`px-6 py-3 ${primaryBtnCls(isAr)}`}>
                       {t('Write a Review', 'اكتب تقييماً')}
@@ -446,12 +446,12 @@ function Reviews() {
                 <li key={r.productId} className="flex gap-5 border p-5" style={{ borderColor: HAIR }}>
                   <img src={p.img} alt="" className="h-20 w-16 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[14px] font-bold">{t(p.name.en, p.name.ar)}</span>
+                    <span className="block text-[15px] font-bold">{t(p.name.en, p.name.ar)}</span>
                     <span className="mt-2 flex items-center gap-3">
                       <Stars rating={r.rating} />
-                      <span className="text-[11px]" style={{ color: MUTED }}>{t(r.date.en, r.date.ar)}</span>
+                      <span className="text-[13px]" style={{ color: MUTED }}>{t(r.date.en, r.date.ar)}</span>
                     </span>
-                    <span className="mt-3 block text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.text.en, r.text.ar)}</span>
+                    <span className="mt-3 block text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.text.en, r.text.ar)}</span>
                   </span>
                 </li>
               );
@@ -487,7 +487,7 @@ function Inbox() {
   return (
     <div className="lg:max-w-4xl">
       <div className="mb-5 flex items-center justify-between">
-        <p className="text-[13px]" style={{ color: MUTED }}>
+        <p className="text-[14.5px]" style={{ color: MUTED }}>
           {unread ? t(`${unread} unread`, `${unread} غير مقروءة`) : t('All read', 'كلها مقروءة')}
         </p>
         {unread > 0 && (
@@ -495,7 +495,7 @@ function Inbox() {
             type="button"
             data-testid="inbox-read-all"
             onClick={() => setRead(new Set(NOTIFICATIONS.map((n) => n.id)))}
-            className={`border-b pb-1 text-[11px] font-medium ${caps}`}
+            className={`border-b pb-1 text-[11.5px] font-medium ${caps}`}
             style={{ borderColor: INK }}
           >
             {t('Mark all as read', 'تحديد الكل كمقروء')}
@@ -520,10 +520,10 @@ function Inbox() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-3">
-                  <span className={`text-[14px] ${isUnread ? 'font-bold' : 'font-medium'}`}>{t(n.title.en, n.title.ar)}</span>
-                  <span className="shrink-0 text-[11px]" style={{ color: MUTED }}>{t(n.when.en, n.when.ar)}</span>
+                  <span className={`text-[15px] ${isUnread ? 'font-bold' : 'font-medium'}`}>{t(n.title.en, n.title.ar)}</span>
+                  <span className="shrink-0 text-[13px]" style={{ color: MUTED }}>{t(n.when.en, n.when.ar)}</span>
                 </span>
-                <span className="mt-1 block text-[13px] font-light" style={{ color: '#4A443C' }}>{t(n.body.en, n.body.ar)}</span>
+                <span className="mt-1 block text-[14.5px] font-light" style={{ color: '#4A443C' }}>{t(n.body.en, n.body.ar)}</span>
               </span>
               {isUnread && <span className="mt-2 h-2 w-2 shrink-0" style={{ backgroundColor: OLIVE }} aria-label={t('Unread', 'غير مقروء')} />}
             </li>
@@ -588,26 +588,26 @@ function Addresses() {
         {list.map((a) => (
           <li key={a.id} className="border p-6" style={{ borderColor: a.primary ? INK : HAIR }} data-testid="address-card">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[14px] font-bold">{a.label}</span>
+              <span className="text-[15px] font-bold">{a.label}</span>
               {a.primary ? (
-                <span className={`text-[10px] font-semibold ${caps}`} style={{ color: OLIVE }}>{t('Default', 'الافتراضي')}</span>
+                <span className={`text-[11px] font-semibold ${caps}`} style={{ color: OLIVE }}>{t('Default', 'الافتراضي')}</span>
               ) : (
                 <button
                   type="button"
                   onClick={() => setList((l) => l.map((x) => ({ ...x, primary: x.id === a.id })))}
-                  className={`text-[10px] font-medium hover:text-[#171512] ${caps}`}
+                  className={`text-[11px] font-medium hover:text-[#171512] ${caps}`}
                   style={{ color: MUTED }}
                 >
                   {t('Make default', 'اجعله الافتراضي')}
                 </button>
               )}
             </div>
-            <p className="mt-3 text-[13px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{a.line}</p>
+            <p className="mt-3 text-[14.5px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{a.line}</p>
             {!a.primary && (
               <button
                 type="button"
                 onClick={() => setList((l) => l.filter((x) => x.id !== a.id))}
-                className={`mt-5 text-[11px] font-medium transition-colors hover:text-[#B03A2E] ${caps}`}
+                className={`mt-5 text-[11.5px] font-medium transition-colors hover:text-[#B03A2E] ${caps}`}
                 style={{ color: MUTED }}
               >
                 {t('Remove', 'حذف')}
@@ -620,7 +620,7 @@ function Addresses() {
             type="button"
             data-testid="address-add"
             onClick={() => setAdding(true)}
-            className="flex h-full min-h-[140px] w-full flex-col items-center justify-center gap-3 border border-dashed text-[12px] font-medium transition-colors hover:bg-[#F6F3EC]"
+            className="flex h-full min-h-[140px] w-full flex-col items-center justify-center gap-3 border border-dashed text-[14px] font-medium transition-colors hover:bg-[#F6F3EC]"
             style={{ borderColor: '#C9C2B4' }}
           >
             <Plus size={18} strokeWidth={1.5} style={{ color: OLIVE }} />
@@ -682,8 +682,8 @@ function Security() {
 
       <div className="flex items-center justify-between gap-6 border p-5" style={{ borderColor: HAIR }}>
         <span>
-          <span className="block text-[14px] font-bold">{t('Two-step verification', 'التحقق بخطوتين')}</span>
-          <span className="mt-1 block text-[12px] font-light" style={{ color: MUTED }}>{t('A code by text message on every new sign-in.', 'رمز برسالة نصية عند كل تسجيل دخول جديد.')}</span>
+          <span className="block text-[15px] font-bold">{t('Two-step verification', 'التحقق بخطوتين')}</span>
+          <span className="mt-1 block text-[14px] font-light" style={{ color: MUTED }}>{t('A code by text message on every new sign-in.', 'رمز برسالة نصية عند كل تسجيل دخول جديد.')}</span>
         </span>
         <Toggle on={twoStep} onChange={setTwoStep} label={t('Two-step verification', 'التحقق بخطوتين')} />
       </div>
@@ -695,11 +695,11 @@ function Security() {
             <li key={s.name} className={`flex items-center gap-4 px-5 py-4 ${i ? 'border-t' : ''}`} style={{ borderColor: HAIR }}>
               <s.icon size={18} strokeWidth={1.4} style={{ color: OLIVE }} />
               <span className="min-w-0 flex-1">
-                <span className="block text-[13px] font-bold">{s.name}</span>
-                <span className="mt-0.5 block text-[11px]" style={{ color: MUTED }}>{s.when}</span>
+                <span className="block text-[14.5px] font-bold">{s.name}</span>
+                <span className="mt-0.5 block text-[13px]" style={{ color: MUTED }}>{s.when}</span>
               </span>
               {!s.current && (
-                <button type="button" onClick={() => toast(t('Signed out of that device.', 'تم تسجيل الخروج من ذلك الجهاز.'))} className={`text-[11px] font-medium hover:text-[#B03A2E] ${caps}`} style={{ color: MUTED }}>
+                <button type="button" onClick={() => toast(t('Signed out of that device.', 'تم تسجيل الخروج من ذلك الجهاز.'))} className={`text-[11.5px] font-medium hover:text-[#B03A2E] ${caps}`} style={{ color: MUTED }}>
                   {t('Sign out', 'خروج')}
                 </button>
               )}
@@ -735,7 +735,7 @@ function LanguagePick() {
           >
             <span>
               <span className={`block text-[20px] font-bold ${o.key === 'ar' ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>{o.name}</span>
-              <span className="mt-1.5 block text-[12px] font-light" style={{ color: MUTED }}>{o.line}</span>
+              <span className="mt-1.5 block text-[14px] font-light" style={{ color: MUTED }}>{o.line}</span>
             </span>
             {on && <Check size={18} strokeWidth={2} style={{ color: OLIVE }} />}
           </button>
@@ -760,8 +760,8 @@ function Alerts() {
       {rows.map((r, i) => (
         <li key={r.key} className={`flex items-center justify-between gap-6 px-6 py-5 ${i ? 'border-t' : ''}`} style={{ borderColor: HAIR }}>
           <span className="min-w-0">
-            <span className="block text-[14px] font-bold">{r.title}</span>
-            <span className="mt-1 block text-[12px] font-light" style={{ color: MUTED }}>{r.hint}</span>
+            <span className="block text-[15px] font-bold">{r.title}</span>
+            <span className="mt-1 block text-[14px] font-light" style={{ color: MUTED }}>{r.hint}</span>
           </span>
           <Toggle on={state[r.key]} onChange={(v) => setState({ ...state, [r.key]: v })} label={r.title} />
         </li>

@@ -84,7 +84,7 @@ export function ImageSearchSheet({ open, onClose }: { open: boolean; onClose: ()
               <button
                 type="button"
                 onClick={() => input.current?.click()}
-                className={`border-b pb-1 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${
+                className={`border-b pb-1 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${
                   isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'
                 }`}
                 style={{ borderColor: '#171512' }}
@@ -104,8 +104,8 @@ export function ImageSearchSheet({ open, onClose }: { open: boolean; onClose: ()
             <span className="flex h-16 w-16 items-center justify-center border" style={{ borderColor: HAIR, backgroundColor: TILE }}>
               <Camera size={22} strokeWidth={1.25} style={{ color: OLIVE }} />
             </span>
-            <span className="mt-5 text-[14px] font-bold">{t('Upload a photo', 'ارفع صورة')}</span>
-            <span className="mt-2 max-w-xs text-[12px] font-light leading-relaxed text-neutral-500">
+            <span className="mt-5 text-[15px] font-bold">{t('Upload a photo', 'ارفع صورة')}</span>
+            <span className="mt-2 max-w-xs text-[14px] font-light leading-relaxed text-neutral-500">
               {t(
                 'A room, a piece you like, or a screenshot — we will look for the closest pieces in the catalogue.',
                 'غرفة، أو قطعة أعجبتك، أو لقطة شاشة — سنبحث عن أقرب القطع في الكتالوج.',
@@ -120,7 +120,7 @@ export function ImageSearchSheet({ open, onClose }: { open: boolean; onClose: ()
             { en: 'Daylight beats a flash', ar: 'ضوء النهار أفضل من الفلاش' },
             { en: 'One piece per photo', ar: 'قطعة واحدة في كل صورة' },
           ].map((tip) => (
-            <li key={tip.en} className="flex items-center gap-2.5 text-[11px] font-light text-neutral-500">
+            <li key={tip.en} className="flex items-center gap-2.5 text-[13px] font-light text-neutral-500">
               <ImageIcon size={12} strokeWidth={1.5} style={{ color: OLIVE }} />
               {t(tip.en, tip.ar)}
             </li>

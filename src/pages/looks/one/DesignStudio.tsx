@@ -87,7 +87,7 @@ function Piece({
       {/* the designer's note pinned to it — number always, words from md up */}
       <motion.span
         data-testid="ds-note"
-        className={`absolute start-[4%] z-10 flex items-center gap-1.5 bg-white px-1.5 py-1 text-[10px] shadow-sm md:px-2 md:text-[11px] ${
+        className={`absolute start-[4%] z-10 flex items-center gap-1.5 bg-white px-1.5 py-1 text-[13px] shadow-sm md:px-2 md:text-[13px] ${
           tagTop ? 'top-[5%]' : 'bottom-[5%]'
         }`}
         style={animate ? { opacity: noteOpacity, y: noteY } : undefined}
@@ -140,13 +140,13 @@ export function DesignStudio() {
                 { icon: Video, label: t('By video call', 'عن بُعد بالفيديو') },
                 { icon: House, label: t('Or at your home', 'أو في منزلك') },
               ].map(({ icon: Icon, label }) => (
-                <span key={label} className="inline-flex items-center gap-2 text-[13px] font-medium" style={{ color: INK }}>
+                <span key={label} className="inline-flex items-center gap-2 text-[14.5px] font-medium" style={{ color: INK }}>
                   <Icon size={17} strokeWidth={1.4} style={{ color: OLIVE }} />
                   {label}
                 </span>
               ))}
               <span
-                className={`inline-flex items-center px-2.5 py-1 text-[10px] font-medium text-white ${
+                className={`inline-flex items-center px-2.5 py-1 text-[11px] font-medium text-white ${
                   isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'
                 }`}
                 style={{ backgroundColor: OLIVE }}
@@ -176,7 +176,7 @@ export function DesignStudio() {
               {/* 06 — the room, as a live call with the designer */}
               <Piece p={p} order={1} box={{ x: 0, y: 0, w: 380, h: 470 }} from={{ x: -90, y: 40, r: -4 }} animate={animate} tag={5}>
                 <img src={IMG.catHome} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                <span className="absolute start-[5%] top-[4%] z-10 flex items-center gap-1.5 bg-black/45 px-2 py-1 text-[9px] text-white backdrop-blur-sm md:text-[10px]">
+                <span className="absolute start-[5%] top-[4%] z-10 flex items-center gap-1.5 bg-black/45 px-2 py-1 text-[9px] text-white backdrop-blur-sm md:text-[13px]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E5484D] opacity-75 motion-reduce:animate-none" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#E5484D]" />
@@ -233,8 +233,8 @@ export function DesignStudio() {
             {/* a phone shows the notes' numbers on the board; the words live here */}
             <ol className="mt-6 grid grid-cols-2 gap-x-6 gap-y-2.5 md:hidden">
               {DESIGN_ASSIST_ITEMS.map((it, i) => (
-                <li key={it.en} className="flex items-baseline gap-2 text-[12.5px]" style={{ color: INK }}>
-                  <span dir="ltr" className="font-['Outfit',sans-serif] text-[11px] font-bold" style={{ color: OLIVE }}>
+                <li key={it.en} className="flex items-baseline gap-2 text-[14px]" style={{ color: INK }}>
+                  <span dir="ltr" className="font-['Outfit',sans-serif] text-[13px] font-bold" style={{ color: OLIVE }}>
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   {t(it.en, it.ar)}

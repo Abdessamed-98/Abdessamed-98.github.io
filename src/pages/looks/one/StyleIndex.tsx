@@ -56,7 +56,7 @@ export function StyleIndex({ no }: { no: string }) {
 
                   <span
                     dir="ltr"
-                    className={`hidden shrink-0 font-['Outfit',sans-serif] text-[11px] font-medium tracking-[0.2em] transition-colors duration-300 md:block ${
+                    className={`hidden shrink-0 font-['Outfit',sans-serif] text-[11.5px] font-medium tracking-[0.2em] transition-colors duration-300 md:block ${
                       on ? '' : 'text-neutral-300'
                     }`}
                     style={on ? { color: OLIVE } : undefined}
@@ -76,7 +76,7 @@ export function StyleIndex({ no }: { no: string }) {
                   </span>
 
                   <span
-                    className={`shrink-0 text-[10px] transition-colors duration-300 ${
+                    className={`shrink-0 text-[11px] transition-colors duration-300 ${
                       isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'
                     } ${on ? 'text-neutral-500' : 'text-neutral-300'}`}
                   >

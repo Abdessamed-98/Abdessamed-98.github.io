@@ -70,7 +70,7 @@ export function FeaturedStores({ no }: { no: string }) {
 
                   <span
                     dir="ltr"
-                    className="absolute end-4 top-4 bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm"
+                    className="absolute end-4 top-4 bg-black/35 px-2.5 py-1 text-[13px] font-medium text-white backdrop-blur-sm"
                   >
                     ★ {s.rating}
                   </span>
@@ -103,11 +103,11 @@ export function FeaturedStores({ no }: { no: string }) {
                       >
                         {name}
                       </span>
-                      <span className="mt-1.5 block truncate text-[12px] font-light text-white/70">
+                      <span className="mt-1.5 block truncate text-[14px] font-light text-white/70">
                         {t(s.specialty.en, s.specialty.ar)}
                       </span>
                       <span
-                        className={`mt-1 block text-[10px] text-white/50 ${
+                        className={`mt-1 block text-[11px] text-white/50 ${
                           isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'
                         }`}
                       >

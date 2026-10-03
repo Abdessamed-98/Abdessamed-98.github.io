@@ -42,7 +42,7 @@ export function ServicesIndex() {
         <Breadcrumb items={[home(t), { label: t('Services', 'الخدمات') }]} />
         <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h1 className={displayCls(isAr, 'md')}>{t('Services', 'الخدمات')}</h1>
-          <span className="text-[13px]" style={{ color: MUTED }}>
+          <span className="text-[14.5px]" style={{ color: MUTED }}>
             {t(`${SERVICES.length} categories · ${subCount} services`, `${SERVICES.length} أقسام · ${subCount} خدمة`)}
           </span>
         </div>
@@ -58,8 +58,8 @@ export function ServicesIndex() {
                     <sv.icon size={13} strokeWidth={1.6} className="text-[#5A6B4D]" />
                   </span>
                 </span>
-                <span className="mt-2 block text-[12.5px] font-bold leading-snug transition-colors group-hover:text-[#5A6B4D]">{t(sv.en, sv.ar)}</span>
-                <span className="block text-[11px]" style={{ color: MUTED }}>{t(`${SERVICES_MENU[i]?.items.length ?? 0} services`, `${SERVICES_MENU[i]?.items.length ?? 0} خدمات`)}</span>
+                <span className="mt-2 block text-[14px] font-bold leading-snug transition-colors group-hover:text-[#5A6B4D]">{t(sv.en, sv.ar)}</span>
+                <span className="block text-[13px]" style={{ color: MUTED }}>{t(`${SERVICES_MENU[i]?.items.length ?? 0} services`, `${SERVICES_MENU[i]?.items.length ?? 0} خدمات`)}</span>
               </button>
             </li>
           ))}
@@ -78,7 +78,7 @@ export function ServicesIndex() {
                   <sv.icon size={20} strokeWidth={1.5} className="shrink-0 text-[#5A6B4D]" />
                   {t(sv.en, sv.ar)}
                 </h2>
-                <Link to={categoryPath(sv)} data-testid="service-row-open" className="inline-flex items-center gap-2 border-b pb-1 text-[12.5px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
+                <Link to={categoryPath(sv)} data-testid="service-row-open" className="inline-flex items-center gap-2 border-b pb-1 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
                   {t('View category', 'عرض القسم')}
                   <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                 </Link>
@@ -96,7 +96,7 @@ export function ServicesIndex() {
                         />
                       </Link>
                       <div className="flex flex-1 flex-col p-4">
-                        <Link to={servicePath(sv, it)} data-testid="services-sub-link" className="text-[14.5px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]">
+                        <Link to={servicePath(sv, it)} data-testid="services-sub-link" className="text-[15.5px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]">
                           {t(it.en, it.ar)}
                         </Link>
                         <div className="mt-auto flex items-center justify-between gap-2 pt-4">
@@ -134,15 +134,15 @@ function ProviderCard({ p }: { p: Provider }) {
       style={{ borderColor: HAIR }}
       data-testid="provider-card"
     >
-      <span dir="ltr" className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[12px] font-bold text-white transition-colors group-hover:bg-[#5A6B4D]">
+      <span dir="ltr" className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#171512] font-['Outfit',sans-serif] text-[14px] font-bold text-white transition-colors group-hover:bg-[#5A6B4D]">
         {p.initials}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[14px] font-bold">{t(p.name.en, p.name.ar)}</span>
-        <span className="mt-1 block truncate text-[11px] font-light" style={{ color: MUTED }}>
+        <span className="block truncate text-[15px] font-bold">{t(p.name.en, p.name.ar)}</span>
+        <span className="mt-1 block truncate text-[13px] font-light" style={{ color: MUTED }}>
           {t(p.trade.en, p.trade.ar)} · {t(p.city.en, p.city.ar)}
         </span>
-        <span className="mt-1.5 flex items-center gap-1 text-[11px] font-medium">
+        <span className="mt-1.5 flex items-center gap-1 text-[13px] font-medium">
           <Star size={11} strokeWidth={1.5} className="fill-[#171512]" />
           <span className="font-['Outfit',sans-serif] tabular-nums">{p.rating.toFixed(1)}</span>
           <span style={{ color: MUTED }}>· {t(`${p.jobs} jobs`, `${p.jobs} مشروع`)}</span>
@@ -159,7 +159,7 @@ export function ServiceProviders({ serviceEn }: { serviceEn: string }) {
   if (!list.length) return null;
   return (
     <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }} data-testid="service-providers">
-      <p className={`text-[10px] ${capsCls(lang === 'ar')}`} style={{ color: MUTED }}>{t('Partners for this service', 'شركاء هذه الخدمة')}</p>
+      <p className={`text-[11px] ${capsCls(lang === 'ar')}`} style={{ color: MUTED }}>{t('Partners for this service', 'شركاء هذه الخدمة')}</p>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((p) => (
           <li key={p.id}>
@@ -207,7 +207,7 @@ export function ProviderPage() {
                   <span dir="ltr" aria-hidden className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/70 font-['Outfit',sans-serif] text-[16px] font-bold text-white">
                     {p.initials}
                   </span>
-                  <p className={`text-[11px] text-white/85 ${caps}`}>{t('Service partner', 'شريك خدمات')}</p>
+                  <p className={`text-[11.5px] text-white/85 ${caps}`}>{t('Service partner', 'شريك خدمات')}</p>
                 </div>
                 <h1 className={`mt-5 text-white ${displayCls(isAr, 'xl')}`}>{t(p.name.en, p.name.ar)}</h1>
                 <p className="mt-4 text-[15px] font-light text-white/80">
@@ -217,7 +217,7 @@ export function ProviderPage() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   to={`${lookBase(1)}/chat?with=${p.id}`}
-                  className={`inline-flex items-center gap-2 border border-white/60 px-7 py-4 text-[11px] font-medium text-white transition-colors hover:bg-white hover:text-[#171512] ${caps}`}
+                  className={`inline-flex items-center gap-2 border border-white/60 px-7 py-4 text-[11.5px] font-medium text-white transition-colors hover:bg-white hover:text-[#171512] ${caps}`}
                 >
                   <MessageSquare size={14} strokeWidth={1.5} />
                   {t('Message', 'مراسلة')}
@@ -246,7 +246,7 @@ export function ProviderPage() {
             <li key={s.label} className="flex flex-col items-center gap-2 py-6 sm:flex-row sm:justify-center sm:gap-4">
               <s.icon size={18} strokeWidth={1.4} style={{ color: OLIVE }} />
               <span className="text-center sm:text-start">
-                <span className={`block text-[10px] ${caps}`} style={{ color: MUTED }}>{s.label}</span>
+                <span className={`block text-[11px] ${caps}`} style={{ color: MUTED }}>{s.label}</span>
                 <span className="mt-1 block font-['Outfit',sans-serif] text-[17px] font-bold tabular-nums">{s.value}</span>
               </span>
             </li>
@@ -291,8 +291,8 @@ export function ProviderPage() {
                 { k: t('Verified by Diyar', 'موثّق من ديار'), v: t('License, insurance, references', 'الترخيص والتأمين والمراجع') },
               ].map((row, i) => (
                 <div key={row.k} className={`flex items-baseline justify-between gap-6 px-5 py-4 ${i ? 'border-t' : ''}`} style={{ borderColor: HAIR }}>
-                  <dt className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{row.k}</dt>
-                  <dd className="text-end text-[13px] font-bold">
+                  <dt className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{row.k}</dt>
+                  <dd className="text-end text-[14.5px] font-bold">
                     {row.to ? <Link to={row.to} className="underline-offset-4 hover:text-[#5A6B4D] hover:underline">{row.v}</Link> : row.v}
                   </dd>
                 </div>
@@ -322,7 +322,7 @@ export function ProviderPage() {
               {p.reviews.map((r, i) => (
                 <li key={r.name.en} className={`py-7 ${i ? 'border-t' : 'pt-0'}`} style={{ borderColor: HAIR }}>
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-[14px] font-bold">{t(r.name.en, r.name.ar)}</span>
+                    <span className="text-[15px] font-bold">{t(r.name.en, r.name.ar)}</span>
                     <Stars rating={r.rating} />
                   </div>
                   <p className="mt-4 text-[15px] font-light leading-relaxed" style={{ color: '#4A443C' }}>{t(r.text.en, r.text.ar)}</p>
@@ -333,7 +333,7 @@ export function ProviderPage() {
         )}
 
         <section className="border-t py-12 md:py-14" style={{ borderColor: HAIR }}>
-          <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Other partners', 'شركاء آخرون')}</p>
+          <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Other partners', 'شركاء آخرون')}</p>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PROVIDERS.filter((x) => x.id !== p.id).map((x) => (
               <li key={x.id}>
@@ -370,7 +370,7 @@ export function StoresPage() {
         <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-baseline gap-4">
             <h1 className={displayCls(isAr, 'md')}>{t('Stores', 'المتاجر')}</h1>
-            <span className="text-[14px]" style={{ color: MUTED }}>{t(`${ALL_STORES.length} stores on Diyar`, `${ALL_STORES.length} متاجر على ديار`)}</span>
+            <span className="text-[15px]" style={{ color: MUTED }}>{t(`${ALL_STORES.length} stores on Diyar`, `${ALL_STORES.length} متاجر على ديار`)}</span>
           </div>
           <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:px-0" role="radiogroup" aria-label={t('Filter by what they sell', 'تصفية حسب ما تبيعه')}>
             {[{ key: 'all' as const, label: t('All', 'الكل') }, ...cats.map((c) => ({ key: c.key, label: c[lang] }))].map((c) => {
@@ -383,7 +383,7 @@ export function StoresPage() {
                   aria-checked={on}
                   data-testid={`stores-filter-${c.key}`}
                   onClick={() => setCat(c.key)}
-                  className={`shrink-0 border px-4 py-2.5 text-[13px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'}`}
+                  className={`shrink-0 border px-4 py-2.5 text-[14.5px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'}`}
                   style={on ? undefined : { borderColor: '#C9C2B4' }}
                 >
                   {c.label}
@@ -414,11 +414,11 @@ export function StoresPage() {
                     <StoreMark store={s} className="h-16 w-16 text-[16px]" />
                     <span className="pb-1 text-white">
                       <span className={`block text-[22px] font-extrabold leading-tight ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>{s.name[lang]}</span>
-                      <span className="mt-1 block text-[14px] font-light text-white/85">{s.specialty[lang]}</span>
+                      <span className="mt-1 block text-[15px] font-light text-white/85">{s.specialty[lang]}</span>
                     </span>
                   </span>
                 </Link>
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-4 text-[13.5px]" style={{ color: '#4A443C' }}>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-4 text-[15px]" style={{ color: '#4A443C' }}>
                   <span className="flex items-center gap-1.5 font-bold text-[#171512]">
                     <Star size={14} strokeWidth={1.5} className="fill-[#D9A441] text-[#D9A441]" />
                     {s.rating}
@@ -434,7 +434,7 @@ export function StoresPage() {
                           <span className="block aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
                             <img src={tileImg(p.id, p.img)} alt="" loading="lazy" className={`h-full w-full ${p.id <= 9 ? 'object-contain p-2' : 'object-cover'} transition-transform duration-500 group-hover:scale-105`} />
                           </span>
-                          <span className="mt-1.5 block truncate text-[12px]" style={{ color: MUTED }}>{formatSAR(p.price)} {t('SAR', 'ر.س')}</span>
+                          <span className="mt-1.5 block truncate text-[14px]" style={{ color: MUTED }}>{formatSAR(p.price)} {t('SAR', 'ر.س')}</span>
                         </Link>
                       </li>
                     ))}
@@ -475,7 +475,7 @@ export function WishlistPage() {
         aside={
           items.length > 0 ? (
             <div className="flex flex-wrap items-center gap-6">
-              <button type="button" onClick={wishlist.clear} className={`text-[11px] font-medium hover:text-[#B03A2E] ${caps}`} style={{ color: MUTED }}>
+              <button type="button" onClick={wishlist.clear} className={`text-[11.5px] font-medium hover:text-[#B03A2E] ${caps}`} style={{ color: MUTED }}>
                 {t('Clear list', 'مسح القائمة')}
               </button>
               <button
@@ -565,29 +565,29 @@ export function HelpPage() {
         </ul>
         <aside className="lg:col-span-4">
           <div className="p-7" style={{ backgroundColor: TILE }}>
-            <p className={`text-[10px] ${caps}`} style={{ color: MUTED }}>{t('Still need help?', 'ما زلت تحتاج مساعدة؟')}</p>
+            <p className={`text-[11px] ${caps}`} style={{ color: MUTED }}>{t('Still need help?', 'ما زلت تحتاج مساعدة؟')}</p>
             <p className="mt-3 text-[18px] font-bold leading-snug">{t('Talk to a person, not a form.', 'تحدّث مع شخص، لا مع نموذج.')}</p>
             <ul className="mt-6 grid gap-3">
               <li>
-                <Link to={`${lookBase(1)}/chat`} className="flex items-center gap-3 border bg-white px-4 py-3.5 text-[13px] font-medium transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
+                <Link to={`${lookBase(1)}/chat`} className="flex items-center gap-3 border bg-white px-4 py-3.5 text-[14.5px] font-medium transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
                   <MessageSquare size={15} strokeWidth={1.5} style={{ color: OLIVE }} />
                   {t('Chat with support', 'محادثة الدعم')}
                 </Link>
               </li>
               <li>
-                <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="flex items-center gap-3 border bg-white px-4 py-3.5 text-[13px] font-medium transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
+                <a href={`tel:${FOOTER_LINKS.phone.replace(/\s/g, '')}`} className="flex items-center gap-3 border bg-white px-4 py-3.5 text-[14.5px] font-medium transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
                   <Phone size={15} strokeWidth={1.5} style={{ color: OLIVE }} />
                   <span dir="ltr">{FOOTER_LINKS.phone}</span>
                 </a>
               </li>
               <li>
-                <a href={`mailto:${FOOTER_LINKS.email}`} className="flex items-center gap-3 border bg-white px-4 py-3.5 text-[13px] font-medium transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
+                <a href={`mailto:${FOOTER_LINKS.email}`} className="flex items-center gap-3 border bg-white px-4 py-3.5 text-[14.5px] font-medium transition-colors hover:border-[#171512]" style={{ borderColor: HAIR }}>
                   <Mail size={15} strokeWidth={1.5} style={{ color: OLIVE }} />
                   <span dir="ltr">{FOOTER_LINKS.email}</span>
                 </a>
               </li>
             </ul>
-            <Link to={`${lookBase(1)}/account/orders`} className={`mt-6 inline-flex items-center gap-2 border-b pb-1 text-[11px] font-medium ${caps}`} style={{ borderColor: INK }}>
+            <Link to={`${lookBase(1)}/account/orders`} className={`mt-6 inline-flex items-center gap-2 border-b pb-1 text-[11.5px] font-medium ${caps}`} style={{ borderColor: INK }}>
               {t('Track an order', 'تتبع طلباً')}
               <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
             </Link>
@@ -624,10 +624,10 @@ export function NotFoundPage() {
         </p>
         <form onSubmit={submit} role="search" className="mt-9 flex h-12 w-full max-w-md items-center gap-3 border bg-white ps-4" style={{ borderColor: '#C9C2B4' }}>
           <Search size={16} strokeWidth={1.5} style={{ color: MUTED }} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Search the shop', 'ابحث في المتجر')} aria-label={t('Search', 'بحث')} className="min-w-0 flex-1 bg-transparent text-[13px] outline-none" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Search the shop', 'ابحث في المتجر')} aria-label={t('Search', 'بحث')} className="min-w-0 flex-1 bg-transparent text-[14.5px] outline-none" />
           <button type="submit" className={`h-12 px-6 ${primaryBtnCls(isAr)}`}>{t('Search', 'بحث')}</button>
         </form>
-        <div className={`mt-10 flex flex-wrap justify-center gap-x-8 gap-y-3 text-[11px] font-medium ${caps}`}>
+        <div className={`mt-10 flex flex-wrap justify-center gap-x-8 gap-y-3 text-[11.5px] font-medium ${caps}`}>
           {[
             { to: lookBase(1), label: t('Home', 'الرئيسية') },
             { to: searchPath(1), label: t('Shop', 'المتجر') },

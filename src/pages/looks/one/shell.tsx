@@ -105,12 +105,12 @@ function Toast({ note, onOpenCart }: { note: { id: number; message: string; cart
           style={{ borderColor: HAIR }}
         >
           <Check size={16} strokeWidth={1.5} className="shrink-0" style={{ color: '#5A6B4D' }} />
-          <p className={`min-w-0 flex-1 text-[12px] font-medium ${note.cart ? 'truncate' : 'line-clamp-2'}`}>{note.message}</p>
+          <p className={`min-w-0 flex-1 text-[14px] font-medium ${note.cart ? 'truncate' : 'line-clamp-2'}`}>{note.message}</p>
           {note.cart && (
           <button
             type="button"
             onClick={onOpenCart}
-            className="shrink-0 border-b border-[#171512] pb-0.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D]"
+            className="shrink-0 border-b border-[#171512] pb-0.5 text-[13px] font-medium transition-colors hover:text-[#5A6B4D]"
           >
             {t('View Cart', 'عرض السلة')}
           </button>

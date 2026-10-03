@@ -69,7 +69,7 @@ function CategoryHero({ cat, count, crumbs }: { cat: LookService; count: number;
     <div style={{ backgroundColor: categoryGround(cat) }} data-testid="category-hero">
       <div className="mx-auto grid max-w-[1400px] items-center gap-6 px-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-10">
         <div className="pb-4 pt-10 md:py-14">
-          <p className={`text-[11px] text-[#A7B894] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Service category', 'قسم خدمات')}</p>
+          <p className={`text-[11.5px] text-[#A7B894] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Service category', 'قسم خدمات')}</p>
           <h1
             className={`mt-3 font-extrabold text-white ${
               isAr ? "font-['Alexandria',sans-serif] text-3xl leading-[1.2] md:text-5xl" : "font-['Outfit',sans-serif] text-3xl uppercase leading-[1.05] tracking-tight md:text-5xl"
@@ -77,8 +77,8 @@ function CategoryHero({ cat, count, crumbs }: { cat: LookService; count: number;
           >
             {t(cat.en, cat.ar)}
           </h1>
-          <p className="mt-3 text-[14px] text-white/70">{t(`${count} services`, `${count} خدمات`)}</p>
-          <nav className="mt-6 flex flex-wrap items-center gap-2 text-[11px] text-white/55" aria-label={t('Breadcrumb', 'مسار التنقل')}>
+          <p className="mt-3 text-[15px] text-white/70">{t(`${count} services`, `${count} خدمات`)}</p>
+          <nav className="mt-6 flex flex-wrap items-center gap-2 text-[13px] text-white/55" aria-label={t('Breadcrumb', 'مسار التنقل')}>
             {crumbs.map((c, i) => (
               <span key={c.label} className="flex items-center gap-2">
                 {i > 0 && <span aria-hidden>/</span>}
@@ -144,7 +144,7 @@ function Hero({ img, eyebrow, title, crumbs }: { img: string; eyebrow: string; t
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10" />
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto max-w-[1400px] px-6 pb-9 md:px-10 md:pb-12">
-            <p className={`text-[11px] text-white/80 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{eyebrow}</p>
+            <p className={`text-[11.5px] text-white/80 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{eyebrow}</p>
             <h1
               className={`mt-3 max-w-3xl font-extrabold text-white ${
                 isAr
@@ -173,7 +173,7 @@ function OtherCategories({ current }: { current: LookService }) {
   const isAr = lang === 'ar';
   return (
     <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }}>
-      <p className={`text-[10px] text-neutral-400 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Other categories', 'أقسام أخرى')}</p>
+      <p className={`text-[11px] text-neutral-400 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Other categories', 'أقسام أخرى')}</p>
       <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {SERVICES.filter((s) => s !== current).slice(0, 4).map((s) => (
           <li key={s.en}>
@@ -182,8 +182,8 @@ function OtherCategories({ current }: { current: LookService }) {
                 <img src={categoryArt(s)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105" />
               </div>
               <span className="flex items-center justify-between gap-3 p-4">
-                <span className="text-[13px] font-bold">{t(s.en, s.ar)}</span>
-                <span className="text-[11px]" style={{ color: MUTED }}>{t(`${subServicesOf(s).length} services`, `${subServicesOf(s).length} خدمات`)}</span>
+                <span className="text-[14.5px] font-bold">{t(s.en, s.ar)}</span>
+                <span className="text-[13px]" style={{ color: MUTED }}>{t(`${subServicesOf(s).length} services`, `${subServicesOf(s).length} خدمات`)}</span>
               </span>
             </Link>
           </li>
@@ -220,7 +220,7 @@ export default function CategoryPage() {
         <section className="py-10 md:py-14" data-testid="category-services">
           <div className="flex flex-wrap items-baseline justify-between gap-4">
             <h2 className={h2Cls(isAr)}>{t(`Services in ${cat.en}`, `خدمات ${cat.ar}`)} <span className="font-normal" style={{ color: MUTED }}>· {items.length}</span></h2>
-            <button type="button" onClick={() => openService(name)} className="border-b pb-0.5 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+            <button type="button" onClick={() => openService(name)} className="border-b pb-0.5 text-[14px] font-medium" style={{ borderColor: INK }}>
               {t('Not sure which? Ask us', 'لست متأكداً أيها تحتاج؟ اسألنا')}
             </button>
           </div>
@@ -246,7 +246,7 @@ export default function CategoryPage() {
                   >
                     {t('Request', 'اطلب الخدمة')}
                   </button>
-                  <Link to={servicePath(cat, it)} className="inline-flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ color: MUTED }}>
+                  <Link to={servicePath(cat, it)} className="inline-flex items-center gap-1.5 px-3 py-2.5 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ color: MUTED }}>
                     {t('Details', 'التفاصيل')}
                     <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                   </Link>
@@ -302,7 +302,7 @@ export function ServiceDetailPage() {
               {INCLUDED.map((x) => (
                 <li key={x.en} className="flex items-start gap-3.5">
                   <Check size={16} strokeWidth={1.75} className="mt-0.5 shrink-0" style={{ color: OLIVE }} />
-                  <span className="text-[14px] leading-relaxed">{t(x.en, x.ar)}</span>
+                  <span className="text-[15px] leading-relaxed">{t(x.en, x.ar)}</span>
                 </li>
               ))}
             </ul>
@@ -325,7 +325,7 @@ export function ServiceDetailPage() {
                     <li key={x.en}>
                       <Link
                         to={servicePath(cat, x)}
-                        className="inline-block border bg-white px-3.5 py-2 text-[13px] font-medium transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white"
+                        className="inline-block border bg-white px-3.5 py-2 text-[14.5px] font-medium transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white"
                         style={{ borderColor: HAIR }}
                       >
                         {t(x.en, x.ar)}
@@ -340,12 +340,12 @@ export function ServiceDetailPage() {
           {/* request */}
           <aside className="lg:col-span-5">
             <div className="border p-7 lg:sticky lg:top-[96px]" style={{ borderColor: HAIR, backgroundColor: TILE }}>
-              <p className={`text-[10px] text-[#5F5950] ${caps}`}>{t('Start here', 'ابدأ من هنا')}</p>
+              <p className={`text-[11px] text-[#5F5950] ${caps}`}>{t('Start here', 'ابدأ من هنا')}</p>
               <p className={`mt-3 font-extrabold ${isAr ? "font-['Alexandria',sans-serif] text-[22px] leading-snug" : "font-['Outfit',sans-serif] text-[22px] uppercase leading-tight tracking-tight"}`}>
                 {name}
               </p>
-              <p className="mt-1.5 text-[12px] font-medium" style={{ color: OLIVE }}>{catName}</p>
-              <p className="mt-4 text-[13px] font-light leading-relaxed text-[#4A443C]">
+              <p className="mt-1.5 text-[14px] font-medium" style={{ color: OLIVE }}>{catName}</p>
+              <p className="mt-4 text-[14.5px] font-light leading-relaxed text-[#4A443C]">
                 {t('Tell us about the space and we will come back within one business day with a visit time.', 'أخبرنا عن المساحة وسنعود إليك خلال يوم عمل واحد بموعد للزيارة.')}
               </p>
               <button
@@ -356,7 +356,7 @@ export function ServiceDetailPage() {
               >
                 {t('Request a Visit', 'اطلب زيارة')}
               </button>
-              <p className="mt-4 text-center text-[11px] font-light text-[#5F5950]">{t('Free consultation · No obligation', 'استشارة مجانية · دون التزام')}</p>
+              <p className="mt-4 text-center text-[13px] font-light text-[#5F5950]">{t('Free consultation · No obligation', 'استشارة مجانية · دون التزام')}</p>
             </div>
           </aside>
         </div>
@@ -396,7 +396,7 @@ function ServiceGallery({ shots }: { shots: WorkShot[] }) {
     <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }} data-testid="service-gallery">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className={`text-[10px] text-[#5F5950] ${caps}`}>{t('Recent work', 'من أعمالنا')}</p>
+          <p className={`text-[11px] text-[#5F5950] ${caps}`}>{t('Recent work', 'من أعمالنا')}</p>
           <h2
             className={`mt-2.5 font-extrabold ${
               isAr ? "font-['Alexandria',sans-serif] text-2xl tracking-normal md:text-3xl" : "font-['Outfit',sans-serif] text-2xl uppercase tracking-tight md:text-3xl"
@@ -409,7 +409,7 @@ function ServiceGallery({ shots }: { shots: WorkShot[] }) {
           type="button"
           data-testid="service-gallery-all"
           onClick={() => setShown(0)}
-          className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
+          className={`inline-flex items-center gap-2.5 border-b pb-1.5 text-[11.5px] font-medium transition-colors hover:text-[#5A6B4D] ${caps}`}
           style={{ borderColor: INK }}
         >
           {t(`View all · ${shots.length}`, `عرض الكل · ${shots.length}`)}
@@ -428,7 +428,7 @@ function ServiceGallery({ shots }: { shots: WorkShot[] }) {
               style={{ backgroundColor: TILE }}
             >
               <img src={sh.img} alt={t(sh.title.en, sh.title.ar)} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]" />
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-4 pb-3.5 pt-12 text-[12.5px] font-medium text-white md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100">
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-4 pb-3.5 pt-12 text-[14px] font-medium text-white md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100">
                 {t(sh.title.en, sh.title.ar)}
               </span>
             </button>

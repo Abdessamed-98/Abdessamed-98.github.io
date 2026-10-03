@@ -51,7 +51,7 @@ function NotFound() {
   return (
     <div data-testid="product-not-found" className="pt-[72px]">
       <div className="mx-auto flex min-h-[60vh] max-w-[1400px] flex-col items-center justify-center px-6 py-24 text-center md:px-10">
-        <p className={eyebrowCls(isAr, 'text-[11px]')} style={{ color: OLIVE }}>
+        <p className={eyebrowCls(isAr, 'text-[11.5px]')} style={{ color: OLIVE }}>
           {t('Error 404', 'خطأ 404')}
         </p>
         <h1
@@ -180,7 +180,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
     { label: name },
   ];
 
-  const labelCls = eyebrowCls(isAr, 'text-[10px] text-neutral-400');
+  const labelCls = eyebrowCls(isAr, 'text-[11px] text-neutral-400');
   const fieldLabel = `text-[12.5px] font-bold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em] text-[11px]'}`;
   const card = 'border bg-white';
 
@@ -273,12 +273,12 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 {/* badges */}
                 <div className="absolute start-5 top-5 z-10 flex flex-col gap-1.5">
                   {oldPrice && (
-                    <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: RED }}>
+                    <span className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: RED }}>
                       {t('Sale', 'تخفيض')}
                     </span>
                   )}
                   {p.isNew && (
-                    <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
+                    <span className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`} style={{ color: OLIVE }}>
                       {t('New', 'جديد')}
                     </span>
                   )}
@@ -290,7 +290,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   data-testid="try-with-ai"
                   onClick={() => setAiOpen(true)}
                   className={`absolute bottom-4 start-4 z-10 inline-flex items-center gap-2.5 bg-[#171512]/85 px-4 py-3 text-[12px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-[#171512] ${
-                    isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em] text-[11px]'
+                    isAr ? 'tracking-normal' : 'uppercase tracking-[0.14em] text-[11.5px]'
                   }`}
                 >
                   <ScanLine size={15} strokeWidth={1.5} />
@@ -325,7 +325,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             <Link
               to={`${lookBase(1)}/store/${store.key}`}
               data-testid="product-store-link"
-              className={`${eyebrowCls(isAr, 'text-[10px]')} underline-offset-4 hover:underline`}
+              className={`${eyebrowCls(isAr, 'text-[11px]')} underline-offset-4 hover:underline`}
               style={{ color: OLIVE }}
             >
               {store.name[lang]}
@@ -338,12 +338,12 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             >
               {name}
             </h1>
-            <p className="mt-3 line-clamp-3 text-[14px] font-light leading-relaxed text-neutral-600">{p.description[lang]}</p>
+            <p className="mt-3 line-clamp-3 text-[15px] font-light leading-relaxed text-neutral-600">{p.description[lang]}</p>
 
             <button type="button" onClick={() => setTab('reviews')} className="mt-4 flex flex-wrap items-center gap-2.5" data-testid="product-rating">
               <Stars rating={p.rating} />
-              <span className="text-[12.5px] font-bold">{p.rating}</span>
-              <span className="text-[12px] text-neutral-500 underline-offset-4 hover:underline">
+              <span className="text-[14px] font-bold">{p.rating}</span>
+              <span className="text-[14px] text-neutral-500 underline-offset-4 hover:underline">
                 ({isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`})
               </span>
             </button>
@@ -356,14 +356,14 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               </span>
               {oldPrice && (
                 <>
-                  <span className="text-[14px] text-neutral-400 line-through">{formatSAR(oldPrice)}</span>
-                  <span className={`text-[10px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.22em]'}`} style={{ color: RED }}>
+                  <span className="text-[15px] text-neutral-400 line-through">{formatSAR(oldPrice)}</span>
+                  <span className={`text-[11px] font-semibold uppercase ${isAr ? 'tracking-normal' : 'tracking-[0.22em]'}`} style={{ color: RED }}>
                     {t(`Save ${savePct}%`, `وفّر ${savePct}%`)}
                   </span>
                 </>
               )}
             </div>
-            <p className="mt-2 text-[12px] text-neutral-500" data-testid="vat-note">
+            <p className="mt-2 text-[14px] text-neutral-500" data-testid="vat-note">
               {t('Price includes VAT', 'السعر شامل ضريبة القيمة المضافة')}
             </p>
 
@@ -371,11 +371,11 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="product-availability">
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2" style={{ backgroundColor: AVAILABILITY_COLOR[p.availability] }} aria-hidden />
-                <span className={`text-[11px] font-semibold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>
+                <span className={`text-[11.5px] font-semibold ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>
                   {AVAILABILITY_LABEL[p.availability][lang]}
                 </span>
               </span>
-              <span className="text-[12.5px] text-neutral-500">{p.leadTime[lang]}</span>
+              <span className="text-[14px] text-neutral-500">{p.leadTime[lang]}</span>
             </div>
 
             {/* colour */}
@@ -417,7 +417,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                         aria-checked={on}
                         data-testid={`size-${s.seats}`}
                         onClick={() => setSeats(s.seats)}
-                        className={`border px-4 py-2.5 text-[12.5px] transition-colors ${
+                        className={`border px-4 py-2.5 text-[14px] transition-colors ${
                           on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'
                         }`}
                         style={on ? undefined : { borderColor: '#C9C2B4' }}
@@ -450,7 +450,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 value={qty}
                 onChange={(e) => setQty(clampQty(Number(e.target.value)))}
                 aria-label={t('Quantity', 'الكمية')}
-                className="w-12 bg-transparent text-center text-[14px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="w-12 bg-transparent text-center text-[15px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               <button
                 type="button"
@@ -480,14 +480,14 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               data-testid="buy-now"
               onClick={buyNow}
               className={`mt-3 inline-flex h-12 w-full items-center justify-center border text-[12px] font-medium transition-colors hover:bg-[#171512] hover:text-white ${
-                isAr ? 'tracking-normal' : 'uppercase tracking-[0.24em] text-[11px]'
+                isAr ? 'tracking-normal' : 'uppercase tracking-[0.24em] text-[11.5px]'
               }`}
               style={{ borderColor: INK }}
             >
               {t('Buy Now', 'اشترِ الآن')}
             </button>
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-[12.5px]">
+            <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-[14px]">
               <button
                 type="button"
                 data-testid="wishlist-toggle"
@@ -514,17 +514,17 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
           <aside className="grid gap-5 lg:col-span-12 lg:grid-cols-3 xl:col-span-1 xl:row-span-2 xl:grid-cols-1 xl:content-start" data-testid="product-sidebar">
             {/* sold by */}
             <div className={`${card} p-5`} style={{ borderColor: HAIR }} data-testid="sold-by">
-              <p className="text-[12.5px] font-bold">{t('Sold by', 'يُباع بواسطة')}</p>
+              <p className="text-[14px] font-bold">{t('Sold by', 'يُباع بواسطة')}</p>
               <div className="mt-4 flex items-center gap-4">
-                <StoreMark store={store} className={`h-14 w-14 text-[14px] ${store.mark ? 'border border-[#E8E4DC]' : ''}`} />
+                <StoreMark store={store} className={`h-14 w-14 text-[15px] ${store.mark ? 'border border-[#E8E4DC]' : ''}`} />
                 <div className="min-w-0">
-                  <p className="truncate text-[14.5px] font-bold">{store.name[lang]}</p>
-                  <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-neutral-500">
+                  <p className="truncate text-[15.5px] font-bold">{store.name[lang]}</p>
+                  <p className="mt-1 flex items-center gap-1.5 text-[13px] text-neutral-500">
                     <Star size={12} strokeWidth={1.5} className="fill-[#D9A441] text-[#D9A441]" />
                     <span className="font-bold text-[#171512]">{store.rating}</span>
                     ({isAr ? `${formatSAR(store.products)} منتج` : `${formatSAR(store.products)} products`})
                   </p>
-                  <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-neutral-500">
+                  <p className="mt-1 flex items-center gap-1.5 text-[13px] text-neutral-500">
                     <MapPin size={12} strokeWidth={1.5} />
                     {branch ? `${branch.district[lang]} · ${t('Jeddah', 'جدة')}` : t('Online store', 'متجر إلكتروني')}
                   </p>
@@ -532,7 +532,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               </div>
               <Link
                 to={`${lookBase(1)}/store/${store.key}`}
-                className="mt-5 flex h-11 items-center justify-center gap-2 border text-[12px] font-medium transition-colors hover:bg-[#171512] hover:text-white"
+                className="mt-5 flex h-11 items-center justify-center gap-2 border text-[14px] font-medium transition-colors hover:bg-[#171512] hover:text-white"
                 style={{ borderColor: INK }}
               >
                 {t('Visit store', 'زيارة المتجر')}
@@ -554,8 +554,8 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   style={{ borderColor: HAIR }}
                 >
                   <row.icon size={22} strokeWidth={1.3} style={{ color: INK }} />
-                  <p className="mt-3 text-[12.5px] font-bold">{row.title}</p>
-                  <p className="mt-1 text-[11px] text-neutral-500">{row.sub}</p>
+                  <p className="mt-3 text-[14px] font-bold">{row.title}</p>
+                  <p className="mt-1 text-[13px] text-neutral-500">{row.sub}</p>
                 </li>
               ))}
             </ul>
@@ -563,7 +563,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             {/* services that fit this product */}
             <div className={`${card} p-5`} style={{ borderColor: HAIR }} data-testid="fit-services">
               <p className={`text-[17px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t('Services for this piece', 'خدمات تناسب هذا المنتج')}</p>
-              <p className="mt-1.5 text-[12px] text-neutral-500">{t('Finish the room with our vetted crews', 'أضف لمساتك الأخيرة مع خدماتنا الموثوقة')}</p>
+              <p className="mt-1.5 text-[14px] text-neutral-500">{t('Finish the room with our vetted crews', 'أضف لمساتك الأخيرة مع خدماتنا الموثوقة')}</p>
               <ul className="mt-4 divide-y divide-[#E8E4DC]">
                 {FIT_SERVICES.map((sv) => (
                   <li key={sv.name.en}>
@@ -575,8 +575,8 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                     >
                       <img src={sv.img} alt="" loading="lazy" className="h-14 w-14 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[13px] font-bold">{t(sv.name.en, sv.name.ar)}</span>
-                        <span className="mt-0.5 block truncate text-[11.5px] text-neutral-500">{t(sv.price.en, sv.price.ar)}</span>
+                        <span className="block truncate text-[14.5px] font-bold">{t(sv.name.en, sv.name.ar)}</span>
+                        <span className="mt-0.5 block truncate text-[13px] text-neutral-500">{t(sv.price.en, sv.price.ar)}</span>
                       </span>
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center border transition-colors group-hover:bg-[#171512] group-hover:text-white" style={{ borderColor: '#C9C2B4' }}>
                         <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
@@ -618,7 +618,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   ].map(([k, v]) => (
                     <div key={k} className="border-b p-4 sm:odd:border-e" style={{ borderColor: HAIR }}>
                       <dt className={labelCls}>{k}</dt>
-                      <dd className="mt-1.5 text-[13.5px] leading-relaxed" dir={k === 'SKU' ? 'ltr' : undefined}>{v}</dd>
+                      <dd className="mt-1.5 text-[15px] leading-relaxed" dir={k === 'SKU' ? 'ltr' : undefined}>{v}</dd>
                     </div>
                   ))}
                 </dl>
@@ -628,35 +628,35 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   <div>
                     <p className="font-['Outfit',sans-serif] text-[52px] font-bold leading-none">{p.rating}</p>
                     <div className="mt-2"><Stars rating={Math.round(p.rating)} /></div>
-                    <p className="mt-2 text-[12px] text-neutral-500">{isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`}</p>
+                    <p className="mt-2 text-[14px] text-neutral-500">{isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`}</p>
                   </div>
                   <ul>
                     {REVIEWS.slice(0, 3).map((r, i) => (
                       <li key={r.name.en} className={`py-5 ${i ? 'border-t' : 'pt-0'}`} style={{ borderColor: HAIR }}>
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-[13.5px] font-bold">{r.name[lang]} <span className="font-normal text-neutral-500">· {r.city[lang]}</span></span>
+                          <span className="text-[15px] font-bold">{r.name[lang]} <span className="font-normal text-neutral-500">· {r.city[lang]}</span></span>
                           <Stars rating={r.rating} />
                         </div>
-                        <p className="mt-2.5 text-[14px] font-light leading-relaxed text-neutral-700">{r.text[lang]}</p>
+                        <p className="mt-2.5 text-[15px] font-light leading-relaxed text-neutral-700">{r.text[lang]}</p>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
               {tab === 'returns' && (
-                <div className="max-w-3xl space-y-3 text-[14.5px] font-light leading-relaxed text-neutral-700">
+                <div className="max-w-3xl space-y-3 text-[15.5px] font-light leading-relaxed text-neutral-700">
                   <p>{t('Return within 14 days of delivery, in original condition, for a full refund.', 'يمكنك الإرجاع خلال 14 يوماً من التوصيل، بحالته الأصلية، واسترداد كامل المبلغ.')}</p>
                   <p>{t('Made-to-order sizes and fabrics are returnable only if they arrive faulty.', 'المقاسات والأقمشة المصنوعة حسب الطلب لا تُرجع إلا في حال وصولها بعيب.')}</p>
-                  <Link to={`${lookBase(1)}/help/returns`} className="inline-block border-b pb-0.5 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+                  <Link to={`${lookBase(1)}/help/returns`} className="inline-block border-b pb-0.5 text-[14px] font-medium" style={{ borderColor: INK }}>
                     {t('Read the full policy', 'اقرأ السياسة كاملة')}
                   </Link>
                 </div>
               )}
               {tab === 'shipping' && (
-                <div className="max-w-3xl space-y-3 text-[14.5px] font-light leading-relaxed text-neutral-700">
+                <div className="max-w-3xl space-y-3 text-[15.5px] font-light leading-relaxed text-neutral-700">
                   <p>{p.leadTime[lang]} — {t('delivered anywhere in the Kingdom; free over 3,000 SAR.', 'التوصيل لكل مناطق المملكة، ومجاني فوق 3,000 ر.س.')}</p>
                   <p>{t('Our crews carry it in, assemble it and take the packaging away.', 'فرقنا تُدخل القطعة وتجمّعها وتأخذ مواد التغليف معها.')}</p>
-                  <Link to={`${lookBase(1)}/help/shipping`} className="inline-block border-b pb-0.5 text-[12.5px] font-medium" style={{ borderColor: INK }}>
+                  <Link to={`${lookBase(1)}/help/shipping`} className="inline-block border-b pb-0.5 text-[14px] font-medium" style={{ borderColor: INK }}>
                     {t('Delivery details', 'تفاصيل التوصيل')}
                   </Link>
                 </div>
@@ -677,7 +677,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 <h2 className={`text-2xl font-extrabold md:text-[28px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
                   {t('Similar pieces from other stores', 'منتجات مشابهة من متاجر أخرى')}
                 </h2>
-                <p className="mt-2 text-[13.5px] font-light text-neutral-600">
+                <p className="mt-2 text-[15px] font-light text-neutral-600">
                   {t('Compare the same look across the marketplace', 'اكتشف تصاميم مشابهة تناسب ذوقك من متاجر مختلفة')}
                 </p>
               </div>
@@ -705,7 +705,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 <p className={`text-[26px] font-extrabold leading-tight md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
                   {t('Complete the look', 'أكمل إطلالة مساحتك')}
                 </p>
-                <p className="mt-3 text-[13px] font-light leading-relaxed text-neutral-600">
+                <p className="mt-3 text-[14.5px] font-light leading-relaxed text-neutral-600">
                   {t(`A curated set chosen to sit with ${p.name.en}`, `مجموعة مختارة بعناية لتنسجم مع ${p.name.ar}`)}
                 </p>
                 <button
@@ -729,7 +729,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                       <div className="aspect-square overflow-hidden">
                         <img src={tileImg(x.id, x.img)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                       </div>
-                      <p className="mt-2.5 truncate text-[12.5px] font-bold">{x.name[lang]}</p>
+                      <p className="mt-2.5 truncate text-[14px] font-bold">{x.name[lang]}</p>
                       <p className="mt-0.5 font-['Outfit',sans-serif] text-[12px] font-medium tabular-nums">
                         {formatSAR(x.price)} <span className="text-neutral-500">{t('SAR', 'ر.س')}</span>
                       </p>
@@ -761,7 +761,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             <p className={`truncate ${labelCls}`}>{store.name[lang]}</p>
             <p className="mt-0.5 text-[15px] font-bold leading-none">
               {formatSAR(price)}{' '}
-              <span className={`text-[10px] font-normal uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
+              <span className={`text-[11px] font-normal uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
                 {t('SAR', 'ر.س')}
               </span>
             </p>
