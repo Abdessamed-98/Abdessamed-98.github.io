@@ -1282,9 +1282,19 @@ export default function LookOne() {
             </div>
 
             <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-[#EFE9DD]/10 pt-8 sm:flex-row">
-              <p className={`text-xs font-light text-[#EFE9DD]/40 ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}>
-                {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار. جميع الحقوق محفوظة.')}
-              </p>
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-6">
+                <p className={`text-xs font-light text-[#EFE9DD]/40 ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}>
+                  {t('© 2026 Diyar. All Rights Reserved.', '© 2026 ديار. جميع الحقوق محفوظة.')}
+                </p>
+                {/* the partners' dashboard — the existing one, reached the same way as from the original footer */}
+                <Link
+                  to="/dashboard"
+                  data-testid="footer-dashboard"
+                  className={`text-xs font-light text-[#EFE9DD]/55 underline-offset-4 transition-colors hover:text-[#EFE9DD] hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.18em]'}`}
+                >
+                  {t('Partner Portal (preview)', 'بوابة الشركاء (معاينة)')}
+                </Link>
+              </div>
               {/* design review: this look (1) or the original site (2) */}
               <div className="flex items-center gap-3" data-testid="look-switch">
                 <span className={`text-[11px] text-[#EFE9DD]/45 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.2em]'}`}>{t('Design', 'التصميم')}</span>
