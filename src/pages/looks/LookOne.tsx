@@ -59,7 +59,7 @@ import { CurtainStage } from './one/CurtainStage';
 import { LoadReveal } from './one/LoadReveal';
 import { DesignStudio } from './one/DesignStudio';
 
-export { LookOneSearch } from './one/SearchPage';
+export { LookOneSearch, LookOneCatalog } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
 export {
   BG, INK, OLIVE, HAIR, RED, TILE, OLIVE_LT, CREAM, NIGHT,

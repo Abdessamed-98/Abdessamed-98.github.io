@@ -145,7 +145,12 @@ function Facets({
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
-export function LookOneSearch() {
+/** The catalogue: the same listing, opened on its products, without the search band above them. */
+export function LookOneCatalog() {
+  return <LookOneSearch catalog />;
+}
+
+export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [sp, setSp] = useSearchParams();
@@ -156,13 +161,13 @@ export function LookOneSearch() {
 
   /* the tab rides along in the URL beside the query, outside SearchQuery */
   const rawTab = sp.get('tab') as SearchTab | null;
-  const tab: SearchTab = rawTab && TAB_KEYS.includes(rawTab) ? rawTab : 'all';
+  const tab: SearchTab = catalog ? 'products' : rawTab && TAB_KEYS.includes(rawTab) ? rawTab : 'all';
   const withTab = useCallback(
     (p: URLSearchParams) => {
-      if (tab !== 'all') p.set('tab', tab);
+      if (tab !== 'all' && !catalog) p.set('tab', tab);
       return p;
     },
-    [tab],
+    [tab, catalog],
   );
   const setTab = (k: SearchTab) => {
     const p = new URLSearchParams(sp);
@@ -223,7 +228,7 @@ export function LookOneSearch() {
 
   const title = query.q
     ? t(`Results for “${query.q}”`, `نتائج البحث عن «${query.q}»`)
-    : catName ?? roomName ?? styleName ?? storeName ?? t('Shop', 'المتجر');
+    : catName ?? roomName ?? styleName ?? storeName ?? t('Products', 'المنتجات');
 
   const chips: { key: string; label: string; clear: () => void }[] = [];
   if (query.q) chips.push({ key: 'q', label: `“${query.q}”`, clear: () => update({ q: '' }) });
@@ -237,7 +242,7 @@ export function LookOneSearch() {
 
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
-    { label: t('Shop', 'المتجر'), to: searchPath(1) },
+    { label: t('Products', 'المنتجات'), to: searchPath(1) },
     ...(catName ? [{ label: catName }] : []),
   ];
 
@@ -248,6 +253,35 @@ export function LookOneSearch() {
       {/* ---------------------------------------------------------- */}
       {/* Title band                                                  */}
       {/* ---------------------------------------------------------- */}
+      {catalog ? (
+        <div className="mx-auto max-w-[1400px] px-6 pb-5 pt-6 md:px-10 md:pt-8" data-testid="catalog-head">
+          <Breadcrumb items={crumbs} />
+          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+            <h1 className={`shrink-0 text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>
+              {title}
+            </h1>
+            {/* the categories, one tap apart */}
+            <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-categories">
+              {[{ key: '' as const, label: t('All', 'الكل') }, ...CATEGORIES.map((c) => ({ key: c.key, label: c[lang] }))].map((c) => {
+                const on = (query.category ?? '') === c.key;
+                return (
+                  <button
+                    key={c.key || 'all'}
+                    type="button"
+                    onClick={() => update({ category: c.key })}
+                    aria-pressed={on}
+                    className={`h-10 shrink-0 whitespace-nowrap border px-4 text-[14px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white text-[#171512] hover:border-[#171512]'}`}
+                    style={on ? undefined : { borderColor: HAIR }}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+      <>
       <div className="mx-auto max-w-[1400px] px-6 pt-8 pb-8 md:px-10 md:pt-12 md:pb-12">
         <Breadcrumb items={crumbs} />
         <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
@@ -322,6 +356,8 @@ export function LookOneSearch() {
           ]}
         />
       </div>
+      </>
+      )}
 
       {tab === 'stores' && (
         <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10 md:py-14">

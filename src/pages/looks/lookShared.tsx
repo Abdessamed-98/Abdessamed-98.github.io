@@ -1248,7 +1248,9 @@ export type LookNo = 1 | 2 | 3;
 export const lookBase = (n: LookNo) => `/look/${n}`;
 export const searchPath = (n: LookNo, qy?: SearchQuery) => {
   const sp = qy ? serializeSearch(qy).toString() : '';
-  return `${lookBase(n)}/search${sp ? `?${sp}` : ''}`;
+  // Look 1: browsing (a category, a room, a store…) is the catalogue; only typed words are a search
+  const page = n === 1 && !qy?.q ? 'products' : 'search';
+  return `${lookBase(n)}/${page}${sp ? `?${sp}` : ''}`;
 };
 export const productPath = (n: LookNo, id: number) => `${lookBase(n)}/product/${id}`;
 

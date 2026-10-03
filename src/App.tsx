@@ -47,7 +47,7 @@ import ChatPage from './pages/ChatPage.tsx';
 
 import LooksIndex from './pages/looks/LooksIndex.tsx';
 import { LookSwitcher } from './pages/looks/lookShared.tsx';
-import LookOne, { LookOneHome, LookOneSearch, LookOneProduct } from './pages/looks/LookOne.tsx';
+import LookOne, { LookOneHome, LookOneSearch, LookOneCatalog, LookOneProduct } from './pages/looks/LookOne.tsx';
 import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/CheckoutPage.tsx';
 import LookOneStore from './pages/looks/one/StorePage.tsx';
 import LookOneCategory, { ServiceDetailPage as LookOneServiceDetail, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
@@ -318,6 +318,7 @@ export default function App() {
         <Route path="/look/1" element={<LookOne />}>
           <Route index element={<LookOneHome />} />
           <Route path="search" element={<LookOneSearch />} />
+          <Route path="products" element={<LookOneCatalog />} />
           <Route path="product/:id" element={<LookOneProduct />} />
           <Route path="store/:key" element={<LookOneStore />} />
           <Route path="service/:slug" element={<LookOneServiceRedirect />} />
