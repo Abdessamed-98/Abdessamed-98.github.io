@@ -1130,8 +1130,7 @@ export default function LookOne() {
                     <li>
                       <Link
                         to={`${lookBase(1)}/stores`}
-                        className="group/all flex h-full min-h-[84px] items-center justify-between gap-3 p-3.5 text-start text-[14.5px] font-bold transition-colors hover:bg-[#171512] hover:text-white"
-                        style={{ backgroundColor: '#F6F3EC' }}
+                        className="group/all flex h-full min-h-[84px] items-center justify-between gap-3 bg-[#F6F3EC] p-3.5 text-start text-[14.5px] font-bold transition-colors hover:bg-[#171512] hover:text-white"
                       >
                         {t('All stores', 'كل المتاجر')}
                         <ArrowRight size={15} strokeWidth={1.5} className="rtl:rotate-180" />
@@ -1212,7 +1211,7 @@ export default function LookOne() {
                           className="group/sc flex items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
                           style={{ borderColor: HAIR }}
                         >
-                          <span className="flex h-11 w-11 shrink-0 items-center justify-center transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white" style={{ backgroundColor: '#F6F3EC' }}>
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#F6F3EC] transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white">
                             <s.icon size={19} strokeWidth={1.4} />
                           </span>
                           <span className={`text-[14px] font-bold leading-snug text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
