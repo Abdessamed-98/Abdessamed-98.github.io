@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Camera, User, Heart, ShoppingBag, ArrowRight,
   Instagram, Facebook, Linkedin, ChevronLeft, ChevronRight,
-  Menu, X, ChevronDown, Phone, Mail,
+  Menu, X, ChevronDown, Phone, Mail, Star,
 } from 'lucide-react';
 import {
   IMG, HERO_SLIDES, NAV_ITEMS, CATEGORIES, SERVICES, PRODUCTS, ALL_STORES,
@@ -30,7 +30,7 @@ import {
 } from './lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE, OLIVE_LT, CREAM, NIGHT,
-  LookContext, useLook, useLang,
+  LookContext, useLook, useLang, StoreMark,
   Reveal, SectionHeading, ViewMore, ProductCard,
   RAIL_MD, RAIL_LG, RAIL_ITEM_MD, RAIL_ITEM_LG, RAIL_VIEWPORT,
 } from './one/ui';
@@ -72,7 +72,14 @@ const shopGroupKey = (i: number): CategoryKey | undefined => CATEGORIES[i]?.key;
 const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categoryPath(SERVICES[i]) : undefined);
 /** The menu's headings are categories; the items under them are the services. */
 /** The services menu lists categories only; what is in a category is on its page. */
+const STORE_ROWS: MenuGroup[] = ALL_STORES.map((st) => ({ title: st.name, items: [] }));
+const CATEGORY_ROWS: MenuGroup[] = CATEGORIES.map((c) => ({ title: { en: c.en, ar: c.ar }, items: [] }));
 const SERVICE_CATEGORY_ROWS: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: [] }));
+/** «المتجر» became «المتاجر»: the item opens the stores, not one shop. */
+const NAV_LABEL: Record<string, Bi> = { Shop: { en: 'Stores', ar: 'المتاجر' } };
+const navLabel = (item: Bi): Bi => NAV_LABEL[item.en] ?? item;
+/** The header's items: the shared list, with the catalogue given its own place before the stores. */
+const HEADER_NAV: Bi[] = NAV_ITEMS.flatMap((i) => (i.en === 'Shop' ? [{ en: 'Products', ar: 'المنتجات' }, i] : [i]));
 /** Where the plain nav items go. */
 const NAV_TO: Record<string, string> = {
   Home: lookBase(1),
@@ -546,7 +553,7 @@ function MobileDrawer({
      for the drawer to always slide in from that same start edge. */
   const off = isAr ? '100%' : '-100%';
 
-  const [section, setSection] = useState<'shop' | 'services' | null>(null);
+  const [section, setSection] = useState<'shop' | 'products' | 'services' | null>(null);
   const [group, setGroup] = useState<string | null>(null);
   const [q, setQ] = useState('');
 
@@ -590,7 +597,7 @@ function MobileDrawer({
     setQ('');
   }, [open]);
 
-  const toggleSection = (s: 'shop' | 'services') => {
+  const toggleSection = (s: 'shop' | 'products' | 'services') => {
     setSection((cur) => (cur === s ? null : s));
     setGroup(null);
   };
@@ -693,10 +700,21 @@ function MobileDrawer({
               </nav>
 
               <DrawerSection
-                label={t('Shop', 'المتجر')}
-                groups={SHOP_MENU}
+                label={t('Stores', 'المتاجر')}
+                groups={STORE_ROWS}
                 open={section === 'shop'}
                 onToggle={() => toggleSection('shop')}
+                openGroup={group}
+                onToggleGroup={toggleGroup}
+                onNavigate={onClose}
+                groupTo={(i) => (ALL_STORES[i] ? `${lookBase(1)}/store/${ALL_STORES[i].key}` : undefined)}
+                allLink={{ to: `${lookBase(1)}/stores`, label: t('All stores', 'كل المتاجر') }}
+              />
+              <DrawerSection
+                label={t('Products', 'المنتجات')}
+                groups={CATEGORY_ROWS}
+                open={section === 'products'}
+                onToggle={() => toggleSection('products')}
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
@@ -704,7 +722,7 @@ function MobileDrawer({
                   const key = shopGroupKey(i);
                   return key ? searchPath(1, { category: key }) : undefined;
                 }}
-                allLink={{ to: searchPath(1), label: t('Shop All Products', 'تسوق كل المنتجات') }}
+                allLink={{ to: searchPath(1), label: t('All products', 'كل المنتجات') }}
               />
               <DrawerSection
                 label={t('Services', 'الخدمات')}
@@ -779,7 +797,7 @@ export default function LookOne() {
   const isHome = pathname.replace(/\/$/, '') === lookBase(1);
 
   const [scrolled, setScrolled] = useState(false);
-  const [openMenu, setOpenMenu] = useState<'shop' | 'services' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'shop' | 'products' | 'services' | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const closeMenu = useCallback(() => setOpenMenu(null), []);
@@ -944,9 +962,28 @@ export default function LookOne() {
 
             {/* nav — Shop & Services open full-width mega menus (panels are siblings below) */}
             <nav className="hidden items-center gap-6 lg:flex">
-              {NAV_ITEMS.map((item) => {
+              {HEADER_NAV.map((item) => {
+                if (item.en === 'Products') {
+                  return (
+                    <Link
+                      key={item.en}
+                      to={searchPath(1)}
+                      data-testid="mega-products-trigger"
+                      aria-haspopup="true"
+                      aria-expanded={openMenu === 'products'}
+                      onMouseEnter={() => {
+                        cancelClose();
+                        setOpenMenu('products');
+                      }}
+                      onClick={closeMenu}
+                      className={`${navItemCls} ${openMenu === 'products' ? 'after:w-full' : ''}`}
+                    >
+                      {t(item.en, item.ar)}
+                    </Link>
+                  );
+                }
                 if (item.en === 'Shop') {
-                  /* Shop opens the stores page; hovering still opens its mega menu (categories and brands) */
+                  /* opens the stores page; hovering opens the stores themselves, with the categories under them */
                   return (
                     <Link
                       key={item.en}
@@ -961,7 +998,7 @@ export default function LookOne() {
                       onClick={closeMenu}
                       className={`${navItemCls} ${openMenu === 'shop' ? 'after:w-full' : ''}`}
                     >
-                      {t(item.en, item.ar)}
+                      {t(navLabel(item).en, navLabel(item).ar)}
                     </Link>
                   );
                 }
@@ -1067,66 +1104,85 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10">
-                  <div className="grid grid-cols-12 gap-x-10">
-                    {/* 6 category groups, 3 × 2 — each maps onto a catalog category */}
-                    <div className="col-span-8 grid grid-cols-3 gap-x-8 gap-y-6">
-                      {SHOP_MENU.map((group, i) => {
-                        const key = shopGroupKey(i);
-                        return (
-                          <MegaGroup
-                            key={group.title.en}
-                            group={group}
-                            to={key ? searchPath(1, { category: key }) : undefined}
-                            onNavigate={closeMenu}
-                          />
-                        );
-                      })}
-                    </div>
-                    {/* featured side column — the two tiles sit side by side rather than
-                        stacked, so the category groups set the panel's height, not the
-                        pictures: stacked, they made the whole menu a third taller than
-                        the lists needed */}
-                    <div className="col-span-4 grid grid-cols-2 content-start gap-x-5 border-s ps-8" style={{ borderColor: HAIR }}>
-                      <MegaFeatured
-                        img={MENU_FEATURED.shop[0].img}
-                        title={MENU_FEATURED.shop[0].title}
-                        cta={MENU_FEATURED.shop[0].cta}
-                        to={searchPath(1, { sort: 'newest' })}
-                        onNavigate={closeMenu}
-                      />
-                      <MegaFeatured
-                        img={MENU_FEATURED.shop[1].img}
-                        title={MENU_FEATURED.shop[1].title}
-                        cta={MENU_FEATURED.shop[1].cta}
-                        to={searchPath(1, { category: 'lighting' })}
-                        onNavigate={closeMenu}
-                      />
-                    </div>
-                  </div>
-                  {/* shop by brand: the stores' own logos */}
-                  <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu} data-testid="mega-brands">
-                    <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by brand', 'تسوق حسب العلامة')}</p>
-                    <ul className="flex min-w-0 flex-1 items-center gap-7 overflow-hidden">
-                      {ALL_STORES.map((st) => (
-                        <li key={st.key} className="shrink-0">
-                          <Link to={`${lookBase(1)}/store/${st.key}`} aria-label={t(st.name.en, st.name.ar)} title={t(st.name.en, st.name.ar)} className="flex h-9 items-center gap-2 opacity-75 transition-opacity hover:opacity-100">
-                            {st.logo ? (
-                              <img src={st.logo} alt="" loading="lazy" className="h-7 w-auto" />
-                            ) : (
-                              <>
-                                {st.mark && <img src={st.mark} alt="" loading="lazy" className="h-7 w-7 object-contain" />}
-                                <span className="whitespace-nowrap text-[14.5px] font-bold">{t(st.name.en, st.name.ar)}</span>
-                              </>
-                            )}
+                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10" onClick={closeMenu}>
+                  {/* the stores themselves: this is a marketplace, and the item leads to them */}
+                  <ul className="grid grid-cols-4 gap-3" data-testid="mega-stores">
+                    {ALL_STORES.map((st) => (
+                      <li key={st.key}>
+                        <Link
+                          to={`${lookBase(1)}/store/${st.key}`}
+                          data-testid="mega-store"
+                          className="flex h-full items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
+                          style={{ borderColor: HAIR }}
+                        >
+                          <StoreMark store={st} className="h-12 w-12 text-[12px]" />
+                          <span className="min-w-0">
+                            <span className={`block truncate text-[14.5px] font-bold text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(st.name.en, st.name.ar)}</span>
+                            <span className="mt-0.5 block truncate text-[13px] text-neutral-500">{t(st.specialty.en, st.specialty.ar)}</span>
+                            <span className="mt-1 flex items-center gap-1.5 text-[12.5px] text-neutral-500">
+                              <Star size={11} strokeWidth={0} fill="#B8893B" />
+                              <span className="font-['Outfit',sans-serif] tabular-nums text-[#171512]">{st.rating.toFixed(1)}</span>
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                    <li>
+                      <Link
+                        to={`${lookBase(1)}/stores`}
+                        className="group/all flex h-full min-h-[84px] items-center justify-between gap-3 p-3.5 text-start text-[14.5px] font-bold transition-colors hover:bg-[#171512] hover:text-white"
+                        style={{ backgroundColor: '#F6F3EC' }}
+                      >
+                        {t('All stores', 'كل المتاجر')}
+                        <ArrowRight size={15} strokeWidth={1.5} className="rtl:rotate-180" />
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+            {openMenu === 'products' && (
+              <motion.div
+                key="mega-products"
+                data-testid="mega-products-panel"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                onMouseEnter={cancelClose}
+                className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
+                style={{ borderColor: HAIR, color: INK }}
+              >
+                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10" onClick={closeMenu}>
+                  {/* the catalogue's six categories */}
+                  <ul className="grid grid-cols-6 gap-4">
+                    {CATEGORIES.map((c) => (
+                      <li key={c.key}>
+                        <Link to={searchPath(1, { category: c.key })} data-testid="mega-product-category" className="group/pc block text-start">
+                          <span className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
+                            <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/pc:scale-105" />
+                          </span>
+                          <span className={`mt-3 block text-[14px] font-bold text-[#171512] decoration-[#5A6B4D] underline-offset-4 group-hover/pc:underline ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>
+                            {t(c.en, c.ar)}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* and by room, the other way the catalogue is filtered */}
+                  <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }}>
+                    <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by room', 'تسوق حسب الغرفة')}</p>
+                    <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-x-7 gap-y-2">
+                      {ROOMS.map((r) => (
+                        <li key={r.key}>
+                          <Link to={searchPath(1, { room: r.key })} className="text-[14px] text-neutral-600 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
+                            {t(r.en, r.ar)}
                           </Link>
                         </li>
                       ))}
                     </ul>
-                    <ViewMore label={t('All brands', 'كل العلامات')} to={`${lookBase(1)}/brands`} />
-                  </div>
-                  <div className="mt-5 border-t pt-5" style={{ borderColor: HAIR }} onClick={closeMenu}>
-                    <ViewMore label={t('View All Categories', 'عرض كل التصنيفات')} to={searchPath(1)} />
+                    <ViewMore label={t('All products', 'كل المنتجات')} to={searchPath(1)} />
                   </div>
                 </div>
               </motion.div>
@@ -1237,7 +1293,7 @@ export default function LookOne() {
                     return (
                       <li key={l.en}>
                         <Link to={NAV_TO[l.en] ?? lookBase(1)} className={cls}>
-                          {t(l.en, l.ar)}
+                          {t(navLabel(l).en, navLabel(l).ar)}
                         </Link>
                       </li>
                     );
