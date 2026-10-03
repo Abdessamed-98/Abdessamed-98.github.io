@@ -1,9 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, Upload, Search, Plus, Minus, Trash2, Send, Eye, CheckCircle2, RotateCcw, MapPin, Wallet, X, ImageIcon, MessageSquare,
+  ArrowRight, Sparkles, Upload, Search, Plus, Minus, Trash2, Send, Eye, CheckCircle2, RotateCcw, X, MessageSquare,
 } from 'lucide-react';
-import { CATALOG, CATEGORIES, storeOf } from '../looks/lookShared';
+import { CATALOG, CATEGORIES } from '../looks/lookShared';
 import { REQUESTS, hasCutout, productImg, productOf, sar, saveSent, type DesignPin, type SentDesign } from './designerData';
 
 const STYLES = ['مودرن', 'كلاسيك', 'نيوكلاسيك', 'بوهيمي', 'فاخر'];
@@ -75,6 +75,7 @@ export default function DesignerStudio() {
   const [sel, setSel] = useState<number | null>(null);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
+  const [tab, setTab] = useState<'products' | 'ai'>('products');
   const [note, setNote] = useState(`أهلاً ${req.client.split(' ')[0]}، هذا اقتراحي لـ${req.room}. اضغط على أي رقم في الصورة لرؤية القطعة، ويمكنك إضافتها كلها إلى السلة مرة واحدة.`);
   const [preview, setPreview] = useState(false);
   const [sent, setSent] = useState(false);
@@ -202,144 +203,178 @@ export default function DesignerStudio() {
   }
 
   return (
-    <div className="space-y-6" dir="rtl" data-testid="designer-studio">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link to={`/dashboard/designer/chat/${req.id}`} className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50">
-            <ArrowRight size={20} />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-diyar-dark">استوديو التصميم</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {req.room} — {req.client} · {req.id}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={reset} disabled={!pins.length && !render} className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-gray-50 disabled:opacity-40">
-            <RotateCcw size={16} /> البدء من جديد
+    <div className="flex flex-col gap-4 xl:h-[calc(100vh-7rem)]" dir="rtl" data-testid="designer-studio">
+      <div className="flex shrink-0 items-center gap-3">
+        <Link to={`/dashboard/designer/chat/${req.id}`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50">
+          <ArrowRight size={20} />
+        </Link>
+        <h1 className="hidden shrink-0 text-xl font-bold text-diyar-dark sm:block">استوديو التصميم</h1>
+        <span className="min-w-0 truncate text-sm text-gray-500">{req.client}</span>
+
+        <div className="mr-auto flex shrink-0 items-center gap-2">
+          {pins.length > 0 && (
+            <span className="hidden text-sm font-bold text-diyar-dark md:inline" data-testid="studio-total">
+              {pins.length} منتجات · {sar(total)} ر.س
+            </span>
+          )}
+          <input ref={file} type="file" accept="image/*" className="hidden" onChange={onUpload} data-testid="studio-file" />
+          <button onClick={() => file.current?.click()} title="رفع صورة معدّلة" aria-label="رفع صورة معدّلة" className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50">
+            <Upload size={16} />
+          </button>
+          <button onClick={reset} disabled={!pins.length && !render} title="البدء من جديد" aria-label="البدء من جديد" className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:opacity-40">
+            <RotateCcw size={16} />
           </button>
           <button
             onClick={() => setPreview(true)}
             disabled={!pins.length}
             data-testid="studio-preview"
-            className="flex items-center gap-2 rounded-xl bg-diyar-brown px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#8A6D46] disabled:opacity-40"
+            className="flex h-10 items-center gap-2 rounded-xl bg-diyar-brown px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#8A6D46] disabled:opacity-40"
           >
-            <Eye size={16} /> معاينة وإرسال
+            <Eye size={16} /> <span className="hidden sm:inline">معاينة وإرسال</span>
+            <span className="sm:hidden">إرسال</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        {/* ---------------- the picture ---------------- */}
-        <div className="space-y-4 xl:col-span-2">
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm">
-                <span className={`rounded-lg px-3 py-1.5 font-bold ${render ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
-                  {render ? (render === req.aiResult ? 'تصميم بالذكاء الاصطناعي' : 'تصميم مرفوع') : 'صورة العميل'}
-                </span>
-                {render && (
-                  <button
-                    onPointerDown={() => setShowOriginal(true)}
-                    onPointerUp={() => setShowOriginal(false)}
-                    onPointerLeave={() => setShowOriginal(false)}
-                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-gray-600 transition hover:bg-gray-50"
-                  >
-                    اضغط مطولاً لرؤية الأصل
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-gray-400">اسحب أي رقم لتحريكه إلى مكان القطعة في الصورة</p>
-            </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row">
+        {/* ---------------- the canvas ---------------- */}
+        <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+          <div
+            ref={stage}
+            dir="ltr"
+            data-testid="studio-stage"
+            className="relative touch-none select-none overflow-hidden rounded-xl bg-gray-100"
+            onPointerMove={onMove}
+            onPointerUp={() => (drag.current = null)}
+            onPointerCancel={() => (drag.current = null)}
+            onPointerDown={() => setSel(null)}
+          >
+            <img src={showOriginal ? req.photo : image} alt="" draggable={false} className={`block h-auto w-auto max-w-full transition-[filter] duration-500 xl:max-h-[calc(100vh-12.5rem)] ${aiBusy ? 'blur-[3px] brightness-90' : ''}`} />
 
-            <div
-              ref={stage}
-              dir="ltr"
-              data-testid="studio-stage"
-              className="relative touch-none select-none overflow-hidden rounded-xl bg-gray-100"
-              onPointerMove={onMove}
-              onPointerUp={() => (drag.current = null)}
-              onPointerCancel={() => (drag.current = null)}
-              onPointerDown={() => setSel(null)}
-            >
-              <img src={showOriginal ? req.photo : image} alt="" draggable={false} className={`block w-full transition-[filter] duration-500 ${aiBusy ? 'blur-[3px] brightness-90' : ''}`} />
-
-              {!showOriginal &&
-                !render &&
-                pins.map((p, i) =>
-                  p.w ? (
-                    <img
-                      key={`c${p.productId}`}
-                      src={productImg(p.productId)}
-                      alt=""
-                      draggable={false}
-                      onPointerDown={(e) => onDown(e, i)}
-                      className="absolute cursor-grab drop-shadow-[0_14px_14px_rgba(0,0,0,0.3)] active:cursor-grabbing"
-                      style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, transform: 'translate(-50%, -50%)', outline: sel === i ? '2px dashed rgba(148,121,97,0.9)' : 'none', outlineOffset: 4 }}
-                    />
-                  ) : null,
-                )}
-
-              {!showOriginal &&
-                pins.map((p, i) => (
-                  <button
-                    key={`p${p.productId}`}
-                    type="button"
-                    data-testid="studio-pin"
+            {!showOriginal &&
+              !render &&
+              pins.map((p, i) =>
+                p.w ? (
+                  <img
+                    key={`c${p.productId}`}
+                    src={productImg(p.productId)}
+                    alt=""
+                    draggable={false}
                     onPointerDown={(e) => onDown(e, i)}
-                    className={`absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-full border-2 border-white text-sm font-bold text-white shadow-lg active:cursor-grabbing ${
-                      sel === i ? 'scale-110 bg-diyar-brown' : 'bg-diyar-dark'
-                    }`}
-                    style={{ left: `${p.x}%`, top: `${p.y}%` }}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-
-              {aiBusy && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/30 text-white" dir="rtl">
-                  <Sparkles size={28} className="animate-pulse" />
-                  <span className="text-sm font-bold">يجهّز الذكاء الاصطناعي التصميم بنمط {style}…</span>
-                </div>
+                    className="absolute cursor-grab drop-shadow-[0_14px_14px_rgba(0,0,0,0.3)] active:cursor-grabbing"
+                    style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, transform: 'translate(-50%, -50%)', outline: sel === i ? '2px dashed rgba(148,121,97,0.9)' : 'none', outlineOffset: 4 }}
+                  />
+                ) : null,
               )}
-              {!pins.length && !aiBusy && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 pt-12 text-center text-sm text-white" dir="rtl">
-                  أضف منتجات من القائمة، أو دع الذكاء الاصطناعي يقترح تصميماً كاملاً
-                </div>
-              )}
-            </div>
 
-            {/* the selected piece */}
-            {sel !== null && pins[sel] && (
-              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 p-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-diyar-brown text-xs font-bold text-white">{sel + 1}</span>
-                <span className="min-w-0 flex-1 truncate text-sm font-bold text-diyar-dark">{productOf(pins[sel].productId)?.name.ar}</span>
-                {pins[sel].w && !render && (
-                  <>
-                    <span className="text-xs text-gray-400">الحجم</span>
-                    <button onClick={() => patch(sel, { w: Math.max(8, (pins[sel].w ?? 20) - 3) })} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100">
-                      <Minus size={14} />
-                    </button>
-                    <button onClick={() => patch(sel, { w: Math.min(70, (pins[sel].w ?? 20) + 3) })} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100">
-                      <Plus size={14} />
-                    </button>
-                  </>
-                )}
-                <button onClick={() => remove(sel)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-red-500 hover:bg-red-50">
-                  <Trash2 size={14} />
+            {!showOriginal &&
+              pins.map((p, i) => (
+                <button
+                  key={`p${p.productId}`}
+                  type="button"
+                  data-testid="studio-pin"
+                  onPointerDown={(e) => onDown(e, i)}
+                  className={`absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-full border-2 border-white text-sm font-bold text-white shadow-lg active:cursor-grabbing ${
+                    sel === i ? 'scale-110 bg-diyar-brown' : 'bg-diyar-dark'
+                  }`}
+                  style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                >
+                  {i + 1}
                 </button>
+              ))}
+
+            {aiBusy && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
+                <Sparkles size={30} className="animate-pulse" />
               </div>
             )}
           </div>
 
-          {/* how the picture is made */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex items-center gap-2 font-bold text-diyar-dark">
-                <Sparkles size={18} className="text-purple-600" /> تصميم بالذكاء الاصطناعي
+          {render && (
+            <button
+              onPointerDown={() => setShowOriginal(true)}
+              onPointerUp={() => setShowOriginal(false)}
+              onPointerLeave={() => setShowOriginal(false)}
+              className="absolute left-5 top-5 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-bold text-diyar-dark shadow-sm"
+            >
+              الأصل
+            </button>
+          )}
+
+          {/* the selected piece */}
+          {sel !== null && pins[sel] && (
+            <div className="absolute bottom-5 left-1/2 flex max-w-[calc(100%-2.5rem)] -translate-x-1/2 items-center gap-2 rounded-xl bg-white p-2 shadow-lg" data-testid="studio-selected">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-diyar-brown text-xs font-bold text-white">{sel + 1}</span>
+              <span className="min-w-0 truncate px-1 text-sm font-bold text-diyar-dark">{productOf(pins[sel].productId)?.name.ar}</span>
+              {pins[sel].w && !render && (
+                <>
+                  <button onClick={() => patch(sel, { w: Math.max(8, (pins[sel].w ?? 20) - 3) })} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-100">
+                    <Minus size={14} />
+                  </button>
+                  <button onClick={() => patch(sel, { w: Math.min(70, (pins[sel].w ?? 20) + 3) })} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-100">
+                    <Plus size={14} />
+                  </button>
+                </>
+              )}
+              <button onClick={() => remove(sel)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-red-500 hover:bg-red-50">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ---------------- products | AI ---------------- */}
+        <div className="flex min-h-0 w-full shrink-0 flex-col rounded-2xl border border-gray-100 bg-white p-4 shadow-sm xl:w-[380px]">
+          <div className="mb-4 grid shrink-0 grid-cols-2 rounded-xl bg-gray-100 p-1">
+            <button onClick={() => setTab('products')} data-testid="studio-tab-products" className={`rounded-lg py-2 text-sm font-bold transition ${tab === 'products' ? 'bg-white text-diyar-dark shadow-sm' : 'text-gray-500'}`}>
+              المنتجات
+            </button>
+            <button onClick={() => setTab('ai')} data-testid="studio-tab-ai" className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-bold transition ${tab === 'ai' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500'}`}>
+              <Sparkles size={15} /> الذكاء الاصطناعي
+            </button>
+          </div>
+
+          {tab === 'products' ? (
+            <>
+              <div className="relative mb-3 shrink-0">
+                <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث…" data-testid="studio-search" className="w-full rounded-lg border border-gray-100 bg-gray-50 py-2 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-diyar-brown" />
               </div>
-              <p className="mb-4 text-sm text-gray-500">يقترح القطع المناسبة للغرفة والميزانية ويضعها في صورة العميل.</p>
+              <div className="scrollbar-hide mb-3 flex shrink-0 gap-2 overflow-x-auto">
+                {[{ key: 'all', ar: 'الكل' }, ...CATEGORIES].map((c) => (
+                  <button key={c.key} onClick={() => setCat(c.key)} className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition ${cat === c.key ? 'bg-diyar-brown text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    {c.ar}
+                  </button>
+                ))}
+              </div>
+              <ul className="grid max-h-[460px] min-h-0 flex-1 grid-cols-2 content-start gap-2 overflow-y-auto pl-1 xl:max-h-none" data-testid="studio-catalogue">
+                {list.map((p) => {
+                  const at = pins.findIndex((x) => x.productId === p.id);
+                  const on = at >= 0;
+                  return (
+                    <li key={p.id}>
+                      <button
+                        onClick={() => (on ? remove(at) : add(p.id))}
+                        data-testid="studio-add"
+                        className={`relative block w-full rounded-xl border p-2 text-right transition ${on ? 'border-diyar-brown bg-diyar-cream/30' : 'border-gray-100 hover:border-gray-300'}`}
+                      >
+                        <span className="block aspect-square overflow-hidden rounded-lg bg-gray-50">
+                          <img src={productImg(p.id)} alt="" loading="lazy" className={`h-full w-full ${hasCutout(p.id) ? 'object-contain p-2' : 'object-cover'}`} />
+                        </span>
+                        <span className="mt-2 block truncate text-xs font-bold text-gray-800">{p.name.ar}</span>
+                        <span className="block text-[11px] text-gray-500">{sar(p.price)} ر.س</span>
+                        <span className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white ${on ? 'bg-diyar-brown' : 'bg-diyar-dark/70'}`}>
+                          {on ? at + 1 : <Plus size={14} />}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+                {list.length === 0 && <li className="col-span-2 p-6 text-center text-sm text-gray-400">لا توجد منتجات مطابقة</li>}
+              </ul>
+            </>
+          ) : (
+            <div>
               <div className="mb-4 flex flex-wrap gap-2">
                 {STYLES.map((s) => (
                   <button key={s} onClick={() => setStyle(s)} className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${style === s ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
@@ -351,116 +386,7 @@ export default function DesignerStudio() {
                 <Sparkles size={16} /> {aiBusy ? 'جاري التصميم…' : 'اقترح تصميماً'}
               </button>
             </div>
-
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex items-center gap-2 font-bold text-diyar-dark">
-                <ImageIcon size={18} className="text-diyar-brown" /> تصميم يدوي
-              </div>
-              <p className="mb-4 text-sm text-gray-500">
-                أضف القطع من القائمة فتظهر فوق صورة العميل لتحرّكها وتغيّر حجمها، أو ارفع صورة عدّلتها في برنامجك ثم ضع الأرقام على القطع.
-              </p>
-              <input ref={file} type="file" accept="image/*" className="hidden" onChange={onUpload} data-testid="studio-file" />
-              <button onClick={() => file.current?.click()} className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5 text-sm font-bold text-diyar-dark transition hover:bg-gray-50">
-                <Upload size={16} /> رفع صورة معدّلة
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ---------------- the request, the pieces, the catalogue ---------------- */}
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 font-bold text-diyar-dark">ما كتبه العميل</h3>
-            <p className="mb-4 text-sm leading-relaxed text-gray-600">{req.note}</p>
-            <div className="space-y-2 text-xs text-gray-500">
-              <div className="flex items-center gap-2">
-                <MapPin size={14} className="text-gray-400" /> {req.city}
-              </div>
-              <div className="flex items-center gap-2">
-                <Wallet size={14} className="text-gray-400" /> الميزانية: <span className="font-bold text-gray-700">{req.budget}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles size={14} className="text-gray-400" /> النمط المفضل: <span className="font-bold text-gray-700">{req.style}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm" data-testid="studio-selected">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-bold text-diyar-dark">منتجات التصميم ({pins.length})</h3>
-              <span className="text-sm font-bold text-diyar-dark">{sar(total)} ر.س</span>
-            </div>
-            {pins.length === 0 ? (
-              <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-400">لم تُضف منتجات بعد</p>
-            ) : (
-              <ul className="space-y-2">
-                {pins.map((p, i) => {
-                  const pr = productOf(p.productId);
-                  if (!pr) return null;
-                  return (
-                    <li key={p.productId} onClick={() => setSel(i)} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-2 transition ${sel === i ? 'border-diyar-brown bg-diyar-cream/30' : 'border-gray-100 hover:bg-gray-50'}`}>
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-diyar-dark text-[11px] font-bold text-white">{i + 1}</span>
-                      <img src={productImg(pr.id)} alt="" className="h-11 w-11 shrink-0 rounded-lg bg-gray-50 object-contain" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-bold text-gray-800">{pr.name.ar}</span>
-                        <span className="block text-xs text-gray-500">
-                          {storeOf(pr.store).name.ar} · {sar(pr.price)} ر.س
-                        </span>
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          remove(i);
-                        }}
-                        className="shrink-0 p-1.5 text-gray-400 hover:text-red-500"
-                      >
-                        <X size={15} />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 font-bold text-diyar-dark">إضافة منتجات</h3>
-            <div className="relative mb-3">
-              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في منتجات ديار…" data-testid="studio-search" className="w-full rounded-lg border border-gray-100 bg-gray-50 py-2 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-diyar-brown" />
-            </div>
-            <div className="no-scrollbar mb-3 flex gap-2 overflow-x-auto">
-              {[{ key: 'all', ar: 'الكل' }, ...CATEGORIES].map((c) => (
-                <button key={c.key} onClick={() => setCat(c.key)} className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition ${cat === c.key ? 'bg-diyar-brown text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                  {c.ar}
-                </button>
-              ))}
-            </div>
-            <ul className="grid max-h-[420px] grid-cols-2 gap-2 overflow-y-auto pl-1" data-testid="studio-catalogue">
-              {list.map((p) => {
-                const on = pins.some((x) => x.productId === p.id);
-                return (
-                  <li key={p.id}>
-                    <button
-                      onClick={() => (on ? remove(pins.findIndex((x) => x.productId === p.id)) : add(p.id))}
-                      data-testid="studio-add"
-                      className={`relative block w-full rounded-xl border p-2 text-right transition ${on ? 'border-diyar-brown bg-diyar-cream/30' : 'border-gray-100 hover:border-gray-300'}`}
-                    >
-                      <span className="block aspect-square overflow-hidden rounded-lg bg-gray-50">
-                        <img src={productImg(p.id)} alt="" loading="lazy" className={`h-full w-full ${hasCutout(p.id) ? 'object-contain p-2' : 'object-cover'}`} />
-                      </span>
-                      <span className="mt-2 block truncate text-xs font-bold text-gray-800">{p.name.ar}</span>
-                      <span className="block text-[11px] text-gray-500">{sar(p.price)} ر.س</span>
-                      <span className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-white ${on ? 'bg-diyar-brown' : 'bg-diyar-dark/70'}`}>
-                        {on ? <CheckCircle2 size={14} /> : <Plus size={14} />}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-              {list.length === 0 && <li className="col-span-2 p-6 text-center text-sm text-gray-400">لا توجد منتجات مطابقة</li>}
-            </ul>
-          </div>
+          )}
         </div>
       </div>
 
