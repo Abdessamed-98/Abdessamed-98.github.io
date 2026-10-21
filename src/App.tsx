@@ -52,6 +52,8 @@ import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/Ch
 import LookOneStore from './pages/looks/one/StorePage.tsx';
 import LookOneCategory, { ServiceDetailPage as LookOneServiceDetail, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
+import LookOneProviders from './pages/looks/one/ProvidersPage.tsx';
+import AdsPage from './pages/dashboard/AdsPage.tsx';
 import {
   ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
   HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound, StoresPage as LookOneStores,
@@ -329,6 +331,7 @@ export default function App() {
           <Route path="services/:category" element={<LookOneCategory />} />
           <Route path="services/:category/:service" element={<LookOneServiceDetail />} />
           <Route path="provider/:id" element={<LookOneProvider />} />
+          <Route path="providers" element={<LookOneProviders />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
           <Route path="stores" element={<LookOneStores />} />
           <Route path="brands" element={<LookOneBrands />} />
@@ -355,6 +358,7 @@ export default function App() {
           <Route path="vendor/products" element={<VendorProducts />} />
           <Route path="vendor/team" element={<VendorTeam />} />
           <Route path="vendor/finance" element={<VendorFinance />} />
+          <Route path="vendor/ads" element={<AdsPage />} />
           <Route path="vendor/settings" element={<VendorSettings />} />
           <Route path="vendor/notifications" element={<Notifications />} />
           
@@ -364,6 +368,7 @@ export default function App() {
           <Route path="service/bookings" element={<ServiceBookings />} />
           <Route path="service/services" element={<ServiceServices />} />
           <Route path="service/finance" element={<ServiceFinance />} />
+          <Route path="service/ads" element={<AdsPage />} />
           <Route path="service/settings" element={<ServiceSettings />} />
           <Route path="service/notifications" element={<Notifications />} />
 

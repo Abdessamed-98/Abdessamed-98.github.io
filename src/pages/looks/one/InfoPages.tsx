@@ -11,13 +11,14 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, ChevronDown, MessageSquare, Phone, Mail, Star, Briefcase, CalendarDays, Search, X } from 'lucide-react';
 import { ALL_STORES, CATALOG, CATEGORIES, FOOTER_LINKS, SERVICES, SERVICES_MENU, STORE_LOCATIONS, formatSAR, lookBase, productPath, searchPath, type CategoryKey, type StoreKey } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, RED, TILE, ProductCard, Stars, StoreMark, primaryBtnCls, tileImg, useLook, useSeen } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, RED, TILE, ProductCard, Stars, StoreMark, ViewMore, primaryBtnCls, tileImg, useLook, useSeen } from './ui';
 import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
 import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
-import { categoryArt, categoryPath, servicePath } from './ServicePage';
-import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, SERVICE_GALLERY, type Provider } from './data';
+import { categoryArt, categoryPath, servicePath, serviceSlug, subServicesOf } from './ServicePage';
+import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, SERVICE_GALLERY, providersFor, type Provider } from './data';
+import { AdBanner } from './AdBanner';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -45,6 +46,10 @@ export function ServicesIndex() {
           <span className="text-[14.5px]" style={{ color: MUTED }}>
             {t(`${SERVICES.length} categories · ${subCount} services`, `${SERVICES.length} أقسام · ${subCount} خدمة`)}
           </span>
+          <Link to={`${lookBase(1)}/providers`} data-testid="services-providers-link" className="ms-auto inline-flex items-center gap-2 border-b pb-0.5 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
+            {t(`${PROVIDERS.length} service providers`, `${PROVIDERS.length} مقدمي خدمات`)}
+            <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+          </Link>
         </div>
 
         {/* the categories: a row of tiles, each taking you to its services below */}
@@ -65,6 +70,8 @@ export function ServicesIndex() {
           ))}
         </ul>
       </div>
+
+      <AdBanner slot="services" className="pt-10" />
 
       {/* one row per category: its title, then its services as cards */}
       <div className={`${CONTAINER} pb-16`}>
@@ -125,7 +132,7 @@ export function ServicesIndex() {
   );
 }
 
-function ProviderCard({ p }: { p: Provider }) {
+export function ProviderCard({ p }: { p: Provider }) {
   const { t } = useLook();
   return (
     <Link
@@ -152,14 +159,24 @@ function ProviderCard({ p }: { p: Provider }) {
   );
 }
 
-/** For the service page: the partners who take that service. */
-export function ServiceProviders({ serviceEn }: { serviceEn: string }) {
+/** For a category or a service page: the partners who take it (providers → services → service). */
+export function ServiceProviders({ serviceEn, itemEn }: { serviceEn: string; itemEn?: string }) {
   const { lang, t } = useLook();
-  const list = PROVIDERS.filter((p) => p.service === serviceEn);
+  const isAr = lang === 'ar';
+  const list = providersFor(serviceEn, itemEn);
+  const cat = SERVICES.find((s) => s.en === serviceEn);
   if (!list.length) return null;
   return (
     <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }} data-testid="service-providers">
-      <p className={`text-[11px] ${capsCls(lang === 'ar')}`} style={{ color: MUTED }}>{t('Partners for this service', 'شركاء هذه الخدمة')}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className={`text-[11px] ${capsCls(isAr)}`} style={{ color: MUTED }}>{t('Verified by Diyar', 'موثّقون من ديار')}</p>
+          <h2 className={`mt-2 text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+            {itemEn ? t('Providers of this service', 'مقدمو هذه الخدمة') : t('Providers in this category', 'مقدمو الخدمات في هذا القسم')} <span className="font-normal" style={{ color: MUTED }}>· {list.length}</span>
+          </h2>
+        </div>
+        <ViewMore label={t('All providers', 'كل مقدمي الخدمات')} to={`${lookBase(1)}/providers${cat ? `?category=${serviceSlug(cat)}` : ''}`} />
+      </div>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((p) => (
           <li key={p.id}>
@@ -269,6 +286,23 @@ export function ProviderPage() {
           />
         </div>
 
+        {tab === 'services' && service && (
+          <section className="pt-10" data-testid="provider-offers">
+            <h2 className={`text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+              {t(`Services in ${service.en}`, `خدمات ${service.ar}`)} <span className="font-normal" style={{ color: MUTED }}>· {p.offers.length}</span>
+            </h2>
+            <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {subServicesOf(service).filter((it) => p.offers.includes(it.en)).map((it) => (
+                <li key={it.en} className="flex items-center justify-between gap-3 border bg-white p-4" style={{ borderColor: HAIR }}>
+                  <Link to={servicePath(service, it)} className="min-w-0 truncate text-[15.5px] font-bold transition-colors hover:text-[#5A6B4D]">{t(it.en, it.ar)}</Link>
+                  <button type="button" onClick={() => openService(`${t(p.name.en, p.name.ar)} · ${t(it.en, it.ar)}`)} className={`shrink-0 px-3.5 py-2 ${primaryBtnCls(isAr)}`}>
+                    {t('Request', 'اطلب')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {tab === 'services' && (
           <ServiceOffers
             testId="provider-services"

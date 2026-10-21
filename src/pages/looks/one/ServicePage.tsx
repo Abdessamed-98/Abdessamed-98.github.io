@@ -256,6 +256,7 @@ export default function CategoryPage() {
           </ul>
         </section>
 
+        <ServiceProviders serviceEn={cat.en} />
         <OtherCategories current={cat} />
       </div>
     </main>
@@ -362,7 +363,7 @@ export function ServiceDetailPage() {
         </div>
 
         <ServiceGallery shots={SERVICE_GALLERY[cat.en] ?? []} />
-        <ServiceProviders serviceEn={cat.en} />
+        <ServiceProviders serviceEn={cat.en} itemEn={it.en} />
         <OtherCategories current={cat} />
       </div>
     </main>

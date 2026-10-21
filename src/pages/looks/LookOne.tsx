@@ -58,6 +58,7 @@ import { FeaturedStores } from './one/FeaturedStores';
 import { CurtainStage } from './one/CurtainStage';
 import { LoadReveal } from './one/LoadReveal';
 import { DesignStudio } from './one/DesignStudio';
+import { AdBanner } from './one/AdBanner';
 
 export { LookOneSearch, LookOneCatalog } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -1229,8 +1230,9 @@ export default function LookOne() {
                       />
                     </div>
                   </div>
-                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
+                  <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-3 border-t pt-6" style={{ borderColor: HAIR }}>
                     <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
+                    <ViewMore label={t('Service providers', 'مقدمو الخدمات')} to={`${lookBase(1)}/providers`} />
                   </div>
                 </div>
               </motion.div>
@@ -1599,6 +1601,7 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 4. TRENDING — the first products, straight after the categories — most interactive, live activity */}
       {/* ============================================================== */}
+      <AdBanner slot="home-products" className="pb-2 pt-12" />
       <Trending no="02" />
 
       {/* ============================================================== */}
@@ -1692,6 +1695,7 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 9. CUSTOM FURNITURE — pick a piece and a material, see it change */}
       {/* ============================================================== */}
+      <AdBanner slot="home-services" className="pb-12 pt-2" />
       <MadeToOrder no="06" />
 
       {/* TRIAL — How We Work (sticky media + changing steps). Remove this line to revert. */}

@@ -29,6 +29,8 @@ import {
   useLook, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls, tileImg, StoreMark,
 } from './ui';
 import { Lightbox, Tabs } from './kit';
+import { servicePath } from './ServicePage';
+import { RelatedServicesSection, relatedServicesFor } from './RelatedServices';
 import { ShareSheet, TryAISheet } from './ProductSheets';
 import { sizeOptions } from './sizes';
 
@@ -83,13 +85,6 @@ function NotFound() {
 type Media = { kind: 'img'; src: string } | { kind: 'video'; src: string; poster: string };
 const ROOM_TOUR = { kind: 'video', src: '/looks/video/room-tour.mp4', poster: '/looks/video/room-tour-poster.jpg' } as const;
 
-/** Services offered beside a piece of furniture, in the sidebar. */
-const FIT_SERVICES = [
-  { img: IMG.workshop, name: { en: 'Furniture assembly', ar: 'تركيب الأثاث' }, price: { en: 'From 150 SAR', ar: 'ابتداءً من 150 ر.س' } },
-  { img: IMG.catHome, name: { en: 'Interior design', ar: 'تصميم داخلي' }, price: { en: 'Consultation 299 SAR', ar: 'جلسة استشارة 299 ر.س' } },
-  { img: IMG.roomHotspots, name: { en: 'Wall painting', ar: 'دهان الجدران' }, price: { en: 'From 25 SAR/m²', ar: 'ابتداءً من 25 ر.س/م²' } },
-  { img: IMG.catOffice, name: { en: 'Floor tiling', ar: 'تركيب بلاط' }, price: { en: 'From 90 SAR/m²', ar: 'ابتداءً من 90 ر.س/م²' } },
-];
 
 /** Pieces that finish a room around the one on the page. */
 const LOOK_IDS = [10, 12, 14, 11];
@@ -565,23 +560,18 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               <p className={`text-[17px] font-extrabold ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t('Services for this piece', 'خدمات تناسب هذا المنتج')}</p>
               <p className="mt-1.5 text-[14px] text-neutral-500">{t('Finish the room with our vetted crews', 'أضف لمساتك الأخيرة مع خدماتنا الموثوقة')}</p>
               <ul className="mt-4 divide-y divide-[#E8E4DC]">
-                {FIT_SERVICES.map((sv) => (
-                  <li key={sv.name.en}>
-                    <button
-                      type="button"
-                      data-testid="fit-service"
-                      onClick={() => shell.openService(t(sv.name.en, sv.name.ar))}
-                      className="group flex w-full items-center gap-3.5 py-3 text-start"
-                    >
+                {relatedServicesFor(p.category).slice(0, 3).map((sv) => (
+                  <li key={`${sv.cat.en}/${sv.item.en}`}>
+                    <Link to={servicePath(sv.cat, sv.item)} data-testid="fit-service" className="group flex w-full items-center gap-3.5 py-3 text-start">
                       <img src={sv.img} alt="" loading="lazy" className="h-14 w-14 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[14.5px] font-bold">{t(sv.name.en, sv.name.ar)}</span>
-                        <span className="mt-0.5 block truncate text-[13px] text-neutral-500">{t(sv.price.en, sv.price.ar)}</span>
+                        <span className="block truncate text-[14.5px] font-bold">{t(sv.item.en, sv.item.ar)}</span>
+                        <span className="mt-0.5 block truncate text-[13px] text-neutral-500">{t(sv.cat.en, sv.cat.ar)}</span>
                       </span>
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center border transition-colors group-hover:bg-[#171512] group-hover:text-white" style={{ borderColor: '#C9C2B4' }}>
                         <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                       </span>
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -664,6 +654,13 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             </div>
           </section>
         </div>
+      </div>
+
+      {/* ---------------------------------------------------------- */}
+      {/* Services that go with this product (client note)             */}
+      {/* ---------------------------------------------------------- */}
+      <div className="mx-auto max-w-[1480px] px-5 md:px-6">
+        <RelatedServicesSection category={p.category} />
       </div>
 
       {/* ---------------------------------------------------------- */}

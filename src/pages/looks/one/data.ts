@@ -43,6 +43,8 @@ export interface Provider {
   trade: Bi;
   /** the SERVICES entry they belong to, by its English name */
   service: string;
+  /** the services in that category they take — SERVICES_MENU item names (English) */
+  offers: string[];
   city: Bi;
   rating: number;
   jobs: number;
@@ -60,6 +62,7 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Iwan Design Studio', ar: 'استوديو إيوان للتصميم' },
     trade: { en: 'Interior design', ar: 'التصميم الداخلي' },
     service: 'Interior Design',
+    offers: ['Residential Design', 'Commercial Design', 'Space Planning', '3D Visualization', 'Design Consultation'],
     city: { en: 'Jeddah', ar: 'جدة' },
     rating: 4.9,
     jobs: 186,
@@ -81,6 +84,7 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Bayt Joinery', ar: 'نجارة البيت' },
     trade: { en: 'Custom furniture', ar: 'تنفيذ الأثاث' },
     service: 'Custom Furniture',
+    offers: ['Residential Furniture', 'Custom Joinery', 'Built-In Furniture', 'Wardrobes & Closets'],
     city: { en: 'Jeddah', ar: 'جدة' },
     rating: 4.8,
     jobs: 312,
@@ -101,6 +105,7 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Lumen Lighting Works', ar: 'لومن للإنارة' },
     trade: { en: 'Lighting & electrical', ar: 'الإنارة والكهرباء' },
     service: 'Finishing & Decorative',
+    offers: ['Architectural Details', 'Decorative Finishes'],
     city: { en: 'Riyadh', ar: 'الرياض' },
     rating: 4.7,
     jobs: 144,
@@ -121,6 +126,7 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Sahl Paint & Finish', ar: 'سهل للدهانات والتشطيبات' },
     trade: { en: 'Painting & wall finishes', ar: 'الدهانات والجداريات' },
     service: 'Painting & Wall Finishes',
+    offers: ['Interior Painting', 'Exterior Painting', 'Wallpaper Installation', 'Decorative Finishes'],
     city: { en: 'Dammam', ar: 'الدمام' },
     rating: 4.8,
     jobs: 402,
@@ -136,7 +142,96 @@ export const PROVIDERS: Provider[] = [
       { name: { en: 'Mohammed Al-Shahrani', ar: 'محمد الشهراني' }, rating: 5, text: { en: 'Clean lines, no mess, finished a day early.', ar: 'خطوط نظيفة، بلا فوضى، وانتهوا قبل الموعد بيوم.' } },
     ],
   },
+  {
+    id: 'nukhba-doors',
+    name: { en: 'Nukhba Doors', ar: 'أبواب النخبة' },
+    trade: { en: 'Doors & joinery', ar: 'الأبواب والنجارة' },
+    service: 'Door Solutions',
+    offers: ['Wooden Doors', 'WPC Doors', 'Sliding Doors', 'Custom Door Manufacturing'],
+    city: { en: 'Riyadh', ar: 'الرياض' },
+    rating: 4.8,
+    jobs: 240,
+    years: 9,
+    initials: 'ND',
+    cover: IMG.loungeDark,
+    bio: {
+      en: 'Interior and entrance doors made in our own workshop — solid wood, WPC and sliding systems — measured, delivered and hung by the same team.',
+      ar: 'أبواب داخلية ومداخل من ورشتنا — خشب صلب وWPC وأنظمة منزلقة — يقيسها ويوصلها ويركّبها الفريق نفسه.',
+    },
+    portfolio: [IMG.loungeDark, '/categories/featured/office.webp', '/looks/campaign-majlis.webp', IMG.catOffice],
+    reviews: [
+      { name: { en: 'Fahad Al-Otaibi', ar: 'فهد العتيبي' }, rating: 5, text: { en: 'Eleven doors in two days, not a scratch on the walls.', ar: 'أحد عشر باباً في يومين، ولا خدش في الجدران.' } },
+      { name: { en: 'Reem Khalid', ar: 'ريم خالد' }, rating: 4, text: { en: 'Good work; the handles arrived a week late.', ar: 'عمل جيد؛ تأخرت المقابض أسبوعاً.' } },
+    ],
+  },
+  {
+    id: 'rukn-floors',
+    name: { en: 'Rukn Flooring', ar: 'ركن الأرضيات' },
+    trade: { en: 'Flooring', ar: 'الأرضيات' },
+    service: 'Flooring Solutions',
+    offers: ['Porcelain Flooring', 'Marble Flooring', 'SPC Flooring', 'Wooden Flooring'],
+    city: { en: 'Jeddah', ar: 'جدة' },
+    rating: 4.7,
+    jobs: 312,
+    years: 14,
+    initials: 'RF',
+    cover: '/categories/featured/rugs.webp',
+    bio: {
+      en: 'Porcelain, marble, SPC and engineered wood — supplied and laid, with the levelling and skirting included in the quote.',
+      ar: 'بورسلان ورخام وSPC وخشب هندسي — توريد وتركيب، مع التسوية والنعلات ضمن عرض السعر.',
+    },
+    portfolio: ['/categories/featured/rugs.webp', IMG.catHome, '/categories/featured/bath.webp', IMG.bedroom],
+    reviews: [
+      { name: { en: 'Sara Al-Qahtani', ar: 'سارة القحطاني' }, rating: 5, text: { en: 'Perfectly level, and they protected the kitchen while cutting.', ar: 'مستوية تماماً، وحموا المطبخ أثناء القص.' } },
+    ],
+  },
+  {
+    id: 'zujaj-pro',
+    name: { en: 'Zujaj Pro', ar: 'زجاج برو' },
+    trade: { en: 'Glass & facades', ar: 'الزجاج والواجهات' },
+    service: 'Glass & Skylight Facades',
+    offers: ['Glass Facades', 'Skurit Systems', 'Skylights', 'Glass Partitions', 'Storefront Systems'],
+    city: { en: 'Dammam', ar: 'الدمام' },
+    rating: 4.8,
+    jobs: 128,
+    years: 8,
+    initials: 'ZP',
+    cover: IMG.hero,
+    bio: {
+      en: 'Tempered glass, skylights and partitions for homes and showrooms — engineered drawings first, then a one-visit installation.',
+      ar: 'سكوريت وسكاي لايت وقواطع للمنازل والمعارض — رسومات هندسية أولاً، ثم تركيب في زيارة واحدة.',
+    },
+    portfolio: [IMG.hero, IMG.restaurant, IMG.catOffice, '/categories/featured/office.webp'],
+    reviews: [
+      { name: { en: 'Majed Al-Harbi', ar: 'ماجد الحربي' }, rating: 5, text: { en: 'The skylight changed the whole hallway.', ar: 'السكاي لايت غيّر الممر كله.' } },
+    ],
+  },
+  {
+    id: 'aman-systems',
+    name: { en: 'Aman Systems', ar: 'أمان للأنظمة' },
+    trade: { en: 'Safety & security systems', ar: 'أنظمة السلامة والأمن' },
+    service: 'Safety Equipment & Systems',
+    offers: ['Fire Alarm Systems', 'CCTV Systems', 'Access Control Systems', 'Safety Signage'],
+    city: { en: 'Riyadh', ar: 'الرياض' },
+    rating: 4.9,
+    jobs: 97,
+    years: 6,
+    initials: 'AS',
+    cover: IMG.restaurant,
+    bio: {
+      en: 'Fire alarm, CCTV and access control, installed to Civil Defence requirements with the compliance paperwork handled for you.',
+      ar: 'إنذار حريق وكاميرات مراقبة وتحكم بالدخول، بتركيب مطابق لاشتراطات الدفاع المدني مع إنهاء أوراق الاعتماد عنك.',
+    },
+    portfolio: [IMG.restaurant, IMG.catOffice, IMG.loungeDark],
+    reviews: [
+      { name: { en: 'Abdullah Al-Shehri', ar: 'عبدالله الشهري' }, rating: 5, text: { en: 'Passed the Civil Defence inspection first time.', ar: 'اجتزنا فحص الدفاع المدني من المرة الأولى.' } },
+    ],
+  },
 ];
+
+/** The partners who take a service: a named one, or anyone in its category. */
+export const providersFor = (serviceEn: string, itemEn?: string) =>
+  PROVIDERS.filter((p) => p.service === serviceEn && (!itemEn || p.offers.includes(itemEn)));
 
 /* ------------------------------------------------------------------ */
 /* B2B                                                                 */
