@@ -10,6 +10,7 @@ import { Breadcrumb, HAIR, INK, MUTED, TILE, ViewMore, tileImg, useLook } from '
 import { CONTAINER, displayCls } from './kit';
 import { NotFoundPage } from './InfoPages';
 import { SERVICE_CATALOG } from './servicesData';
+import { SERVICE_GALLERY } from './data';
 import { categoryArt, categoryCatalogPath, servicePath, serviceSlug, subServicesOf } from './ServicePage';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -122,6 +123,7 @@ export function ServiceCategoryPage({ cat }: { cat: LookService }) {
   const subs = subServicesOf(cat);
   const feather = 'radial-gradient(closest-side, #000 72%, transparent 100%)';
   const crumbs = [home(t), { label: t('Services', 'الخدمات'), to: `${lookBase(1)}/services` }, { label: t(cat.en, cat.ar) }];
+  const used = new Set<string>();
 
   return (
     <main className="pt-[72px]" data-testid="service-category-page">
@@ -154,9 +156,14 @@ export function ServiceCategoryPage({ cat }: { cat: LookService }) {
         <ul className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 md:gap-x-6 xl:grid-cols-4" data-testid="subcategory-cards">
           {subs.map((sub) => {
             const inside = inCat.filter((s) => s.sub === sub.key);
+            // the first service's picture; when that repeats an earlier card (or the subcategory is empty), the next unused shot of the category
+            const shots = (SERVICE_GALLERY[cat.en] ?? []).map((x) => x.img);
+            let img = inside[0]?.img;
+            if (!img || used.has(img)) img = shots.find((x) => !used.has(x)) ?? img ?? cat.img;
+            used.add(img);
             return (
               <li key={sub.key}>
-                <SubCard to={servicePath(cat, sub)} img={inside[0]?.img ?? cat.img} name={t(sub.en, sub.ar)} count={servicesLabel(inside.length, isAr)} testId="subcategory-card" />
+                <SubCard to={servicePath(cat, sub)} img={img} name={t(sub.en, sub.ar)} count={servicesLabel(inside.length, isAr)} testId="subcategory-card" />
               </li>
             );
           })}
