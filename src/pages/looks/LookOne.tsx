@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { categoryPath, servicePath, subSlug } from './one/ServicePage';
+import { categoryArt, categoryPath, servicePath, subSlug } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -308,6 +308,32 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
             ) : (
               <span className={itemCls}>{isAr ? it.ar : it.en}</span>
             )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** One mega-menu column with a picture: the category's photo and name, then its subcategories. */
+function MegaTileGroup({ img, group, to, itemTo, onNavigate, testId }: { img: string; group: MenuGroup; to: string; itemTo: (it: Bi) => string; onNavigate?: () => void; testId?: string; key?: string | number }) {
+  const isAr = useLang() === 'ar';
+  return (
+    <div className="min-w-0 text-start" data-testid={testId}>
+      <Link to={to} onClick={onNavigate} className="group/mt block">
+        <span className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
+          <img src={img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/mt:scale-105" />
+        </span>
+        <span className={`mt-3 block text-[14px] font-bold leading-snug text-[#171512] decoration-[#5A6B4D] underline-offset-4 group-hover/mt:underline ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>
+          {isAr ? group.title.ar : group.title.en}
+        </span>
+      </Link>
+      <ul className="mt-2.5 space-y-1">
+        {group.items.map((it) => (
+          <li key={it.en}>
+            <Link to={itemTo(it)} onClick={onNavigate} className="block text-[13px] leading-snug text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
+              {isAr ? it.ar : it.en}
+            </Link>
           </li>
         ))}
       </ul>
@@ -1161,14 +1187,26 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10" onClick={closeMenu}>
-                  {/* the six categories with their subcategories — the same two levels the catalogue filters by */}
-                  <div className="grid grid-cols-6 gap-x-8" data-testid="mega-product-groups">
+                  {/* the six categories as picture tiles, their subcategories under each */}
+                  <div className="grid grid-cols-6 gap-x-6" data-testid="mega-product-groups">
                     {SHOP_MENU.map((group, i) => {
                       const key = shopGroupKey(i);
-                      return <MegaGroup key={group.title.en} group={group} to={key ? searchPath(1, { category: key }) : undefined} itemTo={shopItemTo(i)} onNavigate={closeMenu} />;
+                      const cat = CATEGORIES[i];
+                      if (!key || !cat) return null;
+                      return (
+                        <MegaTileGroup
+                          key={group.title.en}
+                          img={cat.img}
+                          group={group}
+                          to={searchPath(1, { category: key })}
+                          itemTo={(it) => searchPath(1, { category: key, sub: subSlug(it) })}
+                          onNavigate={closeMenu}
+                          testId="mega-product-category"
+                        />
+                      );
                     })}
                   </div>
-                  <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3 border-t pt-5" style={{ borderColor: HAIR }}>
+<div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3 border-t pt-5" style={{ borderColor: HAIR }}>
                     <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by room', 'تسوق حسب الغرفة')}</p>
                     <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-x-7 gap-y-2">
                       {ROOMS.map((r) => (
@@ -1197,22 +1235,23 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10">
-                  <div className="grid grid-cols-12 gap-x-10">
-                    {/* the eight categories with their subcategories, 4 × 2 */}
-                    <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10" data-testid="mega-service-groups">
-                      {SERVICES_MENU.map((group, i) => (
-                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} itemTo={serviceItemTo(i)} onNavigate={closeMenu} />
-                      ))}
-                    </div>
-                    <div className="col-span-3 border-s ps-8" style={{ borderColor: HAIR }}>
-                      <MegaFeatured
-                        img={MENU_FEATURED.services[0].img}
-                        title={MENU_FEATURED.services[0].title}
-                        cta={MENU_FEATURED.services[0].cta}
-                        to={`${lookBase(1)}/ai-designer`}
-                        onNavigate={closeMenu}
-                      />
-                    </div>
+                  {/* the eight categories as picture tiles (the client's own artwork), their subcategories under each */}
+                  <div className="grid grid-cols-8 gap-x-5" data-testid="mega-service-groups">
+                    {SERVICES_MENU.map((group, i) => {
+                      const cat = SERVICES[i];
+                      if (!cat) return null;
+                      return (
+                        <MegaTileGroup
+                          key={group.title.en}
+                          img={categoryArt(cat)}
+                          group={group}
+                          to={categoryPath(cat)}
+                          itemTo={(it) => servicePath(cat, it)}
+                          onNavigate={closeMenu}
+                          testId="mega-service-category"
+                        />
+                      );
+                    })}
                   </div>
                   <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-3 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />

@@ -31,10 +31,8 @@ type FacetKey = 'category' | 'sub' | 'room' | 'style' | 'store' | 'price';
 interface FacetOption { key: string; label: string }
 interface Facet { key: FacetKey; label: string; options: FacetOption[] }
 
-const buildFacets = (lang: Lang, t: (en: string, ar: string) => string, category?: CategoryKey | ''): Facet[] => [
+const buildFacets = (lang: Lang, t: (en: string, ar: string) => string): Facet[] => [
   { key: 'category', label: t('Category', 'التصنيف'), options: CATEGORIES.map((c) => ({ key: c.key, label: c[lang] })) },
-  // the subcategories belong to the chosen category, so the facet appears with it
-  ...(category ? [{ key: 'sub' as const, label: t('Subcategory', 'التصنيف الفرعي'), options: PRODUCT_SUBS[category].map((x) => ({ key: x.key, label: x[lang] })) }] : []),
   { key: 'room', label: t('Room', 'الغرفة'), options: ROOMS.map((r) => ({ key: r.key, label: r[lang] })) },
   { key: 'style', label: t('Style', 'الأسلوب'), options: STYLES.map((s) => ({ key: s.key, label: s[lang] })) },
   { key: 'store', label: t('Store', 'المتجر'), options: ALL_STORES.map((s) => ({ key: s.key, label: s.name[lang] })) },
@@ -61,11 +59,88 @@ function Facets({
   const isAr = lang === 'ar';
   const t = (en: string, ar: string) => (isAr ? ar : en);
   const saleCount = filterCatalog({ ...query, sale: true }, lang).length;
+  // which categories are open; the chosen one always is
+  const [open, setOpen] = useState<string[]>([]);
+  const isOpen = (k: string) => open.includes(k) || query.category === k;
+  const toggle = (k: string) => setOpen((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]));
 
   return (
     <div>
       {facets.map((f) => {
         const value = query[f.key] ?? '';
+        if (f.key === 'category') {
+          return (
+            <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid="facet-category">
+              <legend className="sr-only">{f.label}</legend>
+              <p className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-semibold')}>{f.label}</p>
+              <ul className="mt-4 space-y-1">
+                {CATEGORIES.map((c) => {
+                  const active = query.category === c.key;
+                  const n = filterCatalog({ ...query, category: c.key, sub: '' }, lang).length;
+                  const empty = n === 0 && !active;
+                  const opened = isOpen(c.key);
+                  return (
+                    <li key={c.key} data-testid={`facet-category-${c.key}`}>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => update({ category: active ? '' : c.key, sub: '' })}
+                          aria-pressed={active}
+                          disabled={empty}
+                          className={`group flex min-w-0 flex-1 items-center justify-between gap-3 py-1.5 text-start text-[14.5px] transition-colors ${
+                            empty ? 'cursor-default text-[#A9A196]' : active ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
+                          }`}
+                        >
+                          <span className="flex min-w-0 items-center gap-3">
+                            <span aria-hidden className={`h-3 w-3 shrink-0 border transition-colors ${active ? 'border-[#171512] bg-[#171512]' : empty ? 'border-[#171512]/15' : 'border-[#171512]/40 group-hover:border-[#171512]'}`} />
+                            <span className="truncate">{c[lang]}</span>
+                          </span>
+                          <span className={`shrink-0 text-[13px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggle(c.key)}
+                          aria-expanded={opened}
+                          aria-label={t(`Show ${c.en} subcategories`, `عرض أقسام ${c.ar}`)}
+                          data-testid={`facet-category-toggle-${c.key}`}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center text-[#5F5950] transition-colors hover:text-[#171512]"
+                        >
+                          <ChevronDown size={14} strokeWidth={1.5} className={`transition-transform duration-300 ${opened ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+                      {opened && (
+                        <ul className="mb-2 ms-6 space-y-1.5 border-s ps-4" style={{ borderColor: HAIR }} data-testid={`facet-subs-${c.key}`}>
+                          {PRODUCT_SUBS[c.key].map((x) => {
+                            const on = active && query.sub === x.key;
+                            const m = filterCatalog({ ...query, category: c.key, sub: x.key }, lang).length;
+                            const none = m === 0 && !on;
+                            return (
+                              <li key={x.key}>
+                                <button
+                                  type="button"
+                                  onClick={() => update({ category: c.key, sub: on ? '' : x.key })}
+                                  aria-pressed={on}
+                                  disabled={none}
+                                  data-testid={`facet-sub-${x.key}`}
+                                  className={`flex w-full items-center justify-between gap-3 py-0.5 text-start text-[14px] transition-colors ${
+                                    none ? 'cursor-default text-[#A9A196]' : on ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
+                                  }`}
+                                >
+                                  <span className="truncate">{x[lang]}</span>
+                                  <span className={`shrink-0 text-[13px] ${none ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{m}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </fieldset>
+          );
+        }
         return (
           <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid={`facet-${f.key}`}>
             <legend className="sr-only">{f.label}</legend>
@@ -160,7 +235,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
 
   const query = useMemo(() => parseSearch(sp), [sp]);
   const results = useMemo(() => filterCatalog(query, lang), [query, lang]);
-  const facets = useMemo(() => buildFacets(lang, t, query.category), [lang, t, query.category]);
+  const facets = useMemo(() => buildFacets(lang, t), [lang, t]);
 
   /* the tab rides along in the URL beside the query, outside SearchQuery */
   const rawTab = sp.get('tab') as SearchTab | null;
@@ -262,48 +337,12 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
       {catalog ? (
         <div className="mx-auto max-w-[1400px] px-6 pb-5 pt-6 md:px-10 md:pt-8" data-testid="catalog-head">
           <Breadcrumb items={crumbs} />
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
-            <h1 className={`shrink-0 text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className={`text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>
               {title}
             </h1>
-            {/* the categories, one tap apart */}
-            <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-categories">
-              {[{ key: '' as const, label: t('All', 'الكل') }, ...CATEGORIES.map((c) => ({ key: c.key, label: c[lang] }))].map((c) => {
-                const on = (query.category ?? '') === c.key;
-                return (
-                  <button
-                    key={c.key || 'all'}
-                    type="button"
-                    onClick={() => update({ category: c.key, sub: '' })}
-                    aria-pressed={on}
-                    className={`h-10 shrink-0 whitespace-nowrap border px-4 text-[14px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white text-[#171512] hover:border-[#171512]'}`}
-                    style={on ? undefined : { borderColor: HAIR }}
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
+            <span className={labelCls} data-testid="catalog-count">{productsLabel(results.length, isAr)}</span>
           </div>
-          {subs.length > 0 && (
-            <div className="scrollbar-hide -mx-6 mt-3 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-subcategories">
-              {[{ key: '', label: t(`All ${catName ?? ''}`, `كل ${catName ?? ''}`) }, ...subs.map((x) => ({ key: x.key, label: x[lang] }))].map((x) => {
-                const on = (query.sub ?? '') === x.key;
-                return (
-                  <button
-                    key={x.key || 'all'}
-                    type="button"
-                    onClick={() => update({ sub: x.key })}
-                    aria-pressed={on}
-                    className={`h-9 shrink-0 whitespace-nowrap border px-4 text-[13.5px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white hover:border-[#171512]'}`}
-                    style={on ? undefined : { borderColor: HAIR, color: '#4A443C' }}
-                  >
-                    {x.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       ) : (
       <>

@@ -51,10 +51,89 @@ const count = (qy: ServiceQuery) => filterServices(qy, categorySlugOf).length;
 
 function Facets({ facets, query, lang, update }: { facets: Facet[]; query: ServiceQuery; lang: Lang; update: (patch: Partial<ServiceQuery>) => void }) {
   const isAr = lang === 'ar';
+  const t = (en: string, ar: string) => (isAr ? ar : en);
+  // which categories are open; the chosen one always is
+  const [open, setOpen] = useState<string[]>([]);
+  const isOpen = (k: string) => open.includes(k) || query.category === k;
+  const toggle = (k: string) => setOpen((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]));
   return (
     <div>
       {facets.map((f) => {
         const value = query[f.key] ?? '';
+        if (f.key === 'category') {
+          return (
+            <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid="sfacet-category">
+              <legend className="sr-only">{f.label}</legend>
+              <p className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-semibold')}>{f.label}</p>
+              <ul className="mt-4 space-y-1">
+                {SERVICES.map((c) => {
+                  const key = serviceSlug(c);
+                  const active = query.category === key;
+                  const n = count({ ...query, category: key, sub: '' });
+                  const empty = n === 0 && !active;
+                  const opened = isOpen(key);
+                  return (
+                    <li key={key} data-testid={`sfacet-category-${key}`}>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => update({ category: active ? '' : key, sub: '' })}
+                          aria-pressed={active}
+                          disabled={empty}
+                          className={`group flex min-w-0 flex-1 items-center justify-between gap-3 py-1.5 text-start text-[14.5px] transition-colors ${
+                            empty ? 'cursor-default text-[#A9A196]' : active ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
+                          }`}
+                        >
+                          <span className="flex min-w-0 items-center gap-3">
+                            <span aria-hidden className={`h-3 w-3 shrink-0 border transition-colors ${active ? 'border-[#171512] bg-[#171512]' : empty ? 'border-[#171512]/15' : 'border-[#171512]/40 group-hover:border-[#171512]'}`} />
+                            <span className="truncate">{t(c.en, c.ar)}</span>
+                          </span>
+                          <span className={`shrink-0 text-[13px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggle(key)}
+                          aria-expanded={opened}
+                          aria-label={t(`Show ${c.en} subcategories`, `عرض أقسام ${c.ar}`)}
+                          data-testid={`sfacet-category-toggle-${key}`}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center text-[#5F5950] transition-colors hover:text-[#171512]"
+                        >
+                          <ChevronDown size={14} strokeWidth={1.5} className={`transition-transform duration-300 ${opened ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+                      {opened && (
+                        <ul className="mb-2 ms-6 space-y-1.5 border-s ps-4" style={{ borderColor: HAIR }} data-testid={`sfacet-subs-${key}`}>
+                          {subServicesOf(c).map((x) => {
+                            const on = active && query.sub === x.key;
+                            const m = count({ ...query, category: key, sub: x.key });
+                            const none = m === 0 && !on;
+                            return (
+                              <li key={x.key}>
+                                <button
+                                  type="button"
+                                  onClick={() => update({ category: key, sub: on ? '' : x.key })}
+                                  aria-pressed={on}
+                                  disabled={none}
+                                  data-testid={`sfacet-sub-${x.key}`}
+                                  className={`flex w-full items-center justify-between gap-3 py-0.5 text-start text-[14px] transition-colors ${
+                                    none ? 'cursor-default text-[#A9A196]' : on ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
+                                  }`}
+                                >
+                                  <span className="truncate">{t(x.en, x.ar)}</span>
+                                  <span className={`shrink-0 text-[13px] ${none ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{m}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </fieldset>
+          );
+        }
         return (
           <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid={`sfacet-${f.key}`}>
             <legend className="sr-only">{f.label}</legend>
@@ -108,7 +187,6 @@ export function ServicesCatalog() {
 
   const facets: Facet[] = useMemo(() => {
     const list: Facet[] = [{ key: 'category', label: t('Category', 'التصنيف'), options: SERVICES.map((s) => ({ key: serviceSlug(s), label: t(s.en, s.ar) })) }];
-    if (cat) list.push({ key: 'sub', label: t('Subcategory', 'التصنيف الفرعي'), options: subs.map((x) => ({ key: x.key, label: t(x.en, x.ar) })) });
     list.push({ key: 'provider', label: t('Provider', 'مقدم الخدمة'), options: PROVIDERS.filter((p) => !cat || p.service === cat.en).map((p) => ({ key: p.id, label: t(p.name.en, p.name.ar) })) });
     list.push({ key: 'city', label: t('City', 'المدينة'), options: SERVICE_CITIES.map((c) => ({ key: c.en, label: t(c.en, c.ar) })) });
     return list;
@@ -152,39 +230,16 @@ export function ServicesCatalog() {
     chips.push({ key: f.key, label: o?.label ?? v, clear: () => update(f.key === 'category' ? { category: '', sub: '' } : ({ [f.key]: '' } as Partial<ServiceQuery>)) });
   }
   const labelCls = eyebrowCls(isAr, 'text-[11px] text-[#5F5950]');
-  const pill = (on: boolean) =>
-    `h-10 shrink-0 whitespace-nowrap border px-4 text-[14px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white text-[#171512] hover:border-[#171512]'}`;
 
   return (
     <div data-testid="services-catalog" className="pt-[72px]">
       {/* ---- head: breadcrumb, title, the categories, then the subcategories ---- */}
       <div className="mx-auto max-w-[1400px] px-6 pb-5 pt-6 md:px-10 md:pt-8" data-testid="catalog-head">
         <Breadcrumb items={crumbs} />
-        <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
-          <h1 className={`shrink-0 text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>{title}</h1>
-          <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-categories">
-            {[{ key: '', label: t('All', 'الكل') }, ...SERVICES.map((s) => ({ key: serviceSlug(s), label: t(s.en, s.ar) }))].map((c) => {
-              const on = (query.category ?? '') === c.key;
-              return (
-                <button key={c.key || 'all'} type="button" onClick={() => update({ category: c.key, sub: '' })} aria-pressed={on} className={pill(on)} style={on ? undefined : { borderColor: HAIR }}>
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className={`text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>{title}</h1>
+          <span className={eyebrowCls(isAr, 'text-[11px] text-[#5F5950]')} data-testid="catalog-count">{servicesLabel(results.length, isAr)}</span>
         </div>
-        {cat && subs.length > 0 && (
-          <div className="scrollbar-hide -mx-6 mt-3 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-subcategories">
-            {[{ key: '', label: t(`All ${cat.en}`, `كل ${cat.ar}`) }, ...subs.map((x) => ({ key: x.key, label: t(x.en, x.ar) }))].map((x) => {
-              const on = (query.sub ?? '') === x.key;
-              return (
-                <button key={x.key || 'all'} type="button" onClick={() => update({ sub: x.key })} aria-pressed={on} className={`${pill(on)} !h-9 !text-[13.5px]`} style={on ? undefined : { borderColor: HAIR, color: '#4A443C' }}>
-                  {x.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* ---- sidebar + results ---- */}
