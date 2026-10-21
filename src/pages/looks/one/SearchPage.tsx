@@ -60,9 +60,12 @@ function Facets({
   const t = (en: string, ar: string) => (isAr ? ar : en);
   const saleCount = filterCatalog({ ...query, sale: true }, lang).length;
   // which categories are open; the chosen one always is
+  // the chosen category opens by itself; the chevron can still fold it, or open any other
   const [open, setOpen] = useState<string[]>([]);
-  const isOpen = (k: string) => open.includes(k) || query.category === k;
-  const toggle = (k: string) => setOpen((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]));
+  const [folded, setFolded] = useState<string[]>([]);
+  const flip = (k: string) => (l: string[]) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]);
+  const isOpen = (k: string) => (query.category === k ? !folded.includes(k) : open.includes(k));
+  const toggle = (k: string) => (query.category === k ? setFolded(flip(k)) : setOpen(flip(k)));
 
   return (
     <div>
