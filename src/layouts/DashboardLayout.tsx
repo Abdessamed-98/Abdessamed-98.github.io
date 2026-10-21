@@ -44,6 +44,7 @@ export default function DashboardLayout() {
       { name: 'المنتجات', path: '/dashboard/vendor/products', icon: Package },
       { name: 'فريق العمل', path: '/dashboard/vendor/team', icon: Users },
       { name: 'المالية', path: '/dashboard/vendor/finance', icon: Wallet },
+      { name: 'الإعلانات', path: '/dashboard/vendor/ads', icon: Megaphone },
       { name: 'إعدادات المتجر', path: '/dashboard/vendor/settings', icon: Settings },
     ],
     service: [
@@ -52,6 +53,7 @@ export default function DashboardLayout() {
       { name: 'الحجوزات', path: '/dashboard/service/bookings', icon: Calendar },
       { name: 'خدماتي', path: '/dashboard/service/services', icon: Wrench },
       { name: 'المالية', path: '/dashboard/service/finance', icon: Wallet },
+      { name: 'الإعلانات', path: '/dashboard/service/ads', icon: Megaphone },
       { name: 'الإعدادات', path: '/dashboard/service/settings', icon: Settings },
     ],
     designer: [

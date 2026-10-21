@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { categoryPath, servicePath } from './one/ServicePage';
+import { categoryPath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -58,6 +58,7 @@ import { FeaturedStores } from './one/FeaturedStores';
 import { CurtainStage } from './one/CurtainStage';
 import { LoadReveal } from './one/LoadReveal';
 import { DesignStudio } from './one/DesignStudio';
+import { AdBannerSlider } from './one/AdBanner';
 
 export { LookOneSearch, LookOneCatalog } from './one/SearchPage';
 export { LookOneProduct } from './one/ProductPage';
@@ -73,6 +74,7 @@ const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categor
 /** The menu's headings are categories; the items under them are the services. */
 /** The services menu lists categories only; what is in a category is on its page. */
 const STORE_ROWS: MenuGroup[] = ALL_STORES.map((st) => ({ title: st.name, items: [] }));
+/* the drawer lists categories only; the subcategories are on each category's page */
 const CATEGORY_ROWS: MenuGroup[] = CATEGORIES.map((c) => ({ title: { en: c.en, ar: c.ar }, items: [] }));
 const SERVICE_CATEGORY_ROWS: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: [] }));
 /** «المتجر» became «المتاجر»: the item opens the stores, not one shop. */
@@ -277,11 +279,11 @@ function ShopHotspot({
 /** One mega-menu column: group title + subcategory links. `to` makes them real links. */
 function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; key?: string | number }) {
   const isAr = useLang() === 'ar';
-  const titleCls = `text-[11px] font-bold uppercase text-[#171512] ${
+  const titleCls = `text-[12.5px] font-bold uppercase text-[#171512] ${
     isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
   }`;
   const itemCls =
-    'block text-[12.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
+    'block text-[13.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
   const title = isAr ? group.title.ar : group.title.en;
   return (
     <div className="text-start">
@@ -305,6 +307,35 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** One mega-menu column with a picture: the category's photo and name, then its subcategories. */
+function MegaTileGroup({ img, group, to, itemTo, onNavigate, testId }: { img: string; group: MenuGroup; to: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; testId?: string; key?: string | number }) {
+  const isAr = useLang() === 'ar';
+  return (
+    <div className="min-w-0 text-start" data-testid={testId}>
+      <Link to={to} onClick={onNavigate} className="group/mt block">
+        <span className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
+          <img src={img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/mt:scale-105" />
+        </span>
+        <span className={`mt-3 block text-[14px] font-bold leading-snug text-[#171512] decoration-[#5A6B4D] underline-offset-4 group-hover/mt:underline ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>
+          {isAr ? group.title.ar : group.title.en}
+        </span>
+      </Link>
+      {/* the subcategories are on the category's page, not in the menu */}
+      {itemTo && (
+        <ul className="mt-2.5 space-y-1">
+          {group.items.map((it) => (
+            <li key={it.en}>
+              <Link to={itemTo(it)} onClick={onNavigate} className="block text-[13px] leading-snug text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
+                {isAr ? it.ar : it.en}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -1152,25 +1183,26 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10" onClick={closeMenu}>
-                  {/* the catalogue's six categories */}
-                  <ul className="grid grid-cols-6 gap-4">
-                    {CATEGORIES.map((c) => (
-                      <li key={c.key}>
-                        <Link to={searchPath(1, { category: c.key })} data-testid="mega-product-category" className="group/pc block text-start">
-                          <span className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
-                            <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/pc:scale-105" />
-                          </span>
-                          <span className={`mt-3 block text-[14px] font-bold text-[#171512] decoration-[#5A6B4D] underline-offset-4 group-hover/pc:underline ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>
-                            {t(c.en, c.ar)}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* and by room, the other way the catalogue is filtered */}
-                  <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }}>
+                <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10" onClick={closeMenu}>
+                  {/* the six categories as picture tiles; each opens its page of subcategories */}
+                  <div className="grid grid-cols-6 gap-x-6" data-testid="mega-product-groups">
+                    {SHOP_MENU.map((group, i) => {
+                      const key = shopGroupKey(i);
+                      const cat = CATEGORIES[i];
+                      if (!key || !cat) return null;
+                      return (
+                        <MegaTileGroup
+                          key={group.title.en}
+                          img={cat.img}
+                          group={group}
+                          to={searchPath(1, { category: key })}
+                          onNavigate={closeMenu}
+                          testId="mega-product-category"
+                        />
+                      );
+                    })}
+                  </div>
+<div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3 border-t pt-5" style={{ borderColor: HAIR }}>
                     <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by room', 'تسوق حسب الغرفة')}</p>
                     <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-x-7 gap-y-2">
                       {ROOMS.map((r) => (
@@ -1198,10 +1230,10 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
-                    {/* the eight service categories — each opens its own page, where its services are listed */}
-                    <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3">
+                    {/* the eight categories, each opening its page of subcategories */}
+                    <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3" data-testid="mega-service-groups">
                       {SERVICES.map((s) => (
                         <Link
                           key={s.en}
@@ -1218,7 +1250,6 @@ export default function LookOne() {
                         </Link>
                       ))}
                     </div>
-                    {/* single featured tile */}
                     <div className="col-span-3 border-s ps-8" style={{ borderColor: HAIR }}>
                       <MegaFeatured
                         img={MENU_FEATURED.services[0].img}
@@ -1229,8 +1260,9 @@ export default function LookOne() {
                       />
                     </div>
                   </div>
-                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
+                  <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-3 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
+                    <ViewMore label={t('Service providers', 'مقدمو الخدمات')} to={`${lookBase(1)}/providers`} />
                   </div>
                 </div>
               </motion.div>
@@ -1584,6 +1616,9 @@ export function LookOneHome() {
 
       {/* the stores, with a badge on any that has offers (client note: «إضافة شريط البراندات») */}
       <BrandsStrip />
+
+      {/* the advertisers' banners, as the client placed them: after the logos, before the categories */}
+      <AdBannerSlider />
 
       {/* ============================================================== */}
       {/* 2. QUICK CATEGORIES — the original's icon strip under the hero */}

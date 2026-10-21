@@ -24,6 +24,7 @@ import {
 import { NotFoundPage } from './InfoPages';
 import { Sheet } from './Sheet';
 import { ChatDesign } from './ChatDesign';
+import { DesignHelp } from './DesignHelp';
 import { loadSent } from '../../dashboard/designerData';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -104,6 +105,8 @@ export function AIDesignerPage() {
         </div>
       </div>
       <div className={`${CONTAINER} py-8 md:py-10`}>{mode === 'restyle' ? <Restyle onNote={setNote} /> : <Composer onNote={setNote} />}</div>
+      {/* the paid services and the people behind them (client note: «سكشن خدمات التصميم وسكشن مقدم الخدمة») */}
+      <DesignHelp />
     </main>
   );
 }

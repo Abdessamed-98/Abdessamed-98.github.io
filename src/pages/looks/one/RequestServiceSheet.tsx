@@ -1,35 +1,72 @@
-/** Look 1 — request a service. A short form, then a plain confirmation. */
-import { useEffect, useState, type FormEvent } from 'react';
-import { Check } from 'lucide-react';
-import { SERVICES } from '../lookShared';
-import { HAIR, OLIVE, primaryBtnCls, useLook } from './ui';
+/**
+ * Look 1 — «طلب تنفيذ»: the request form from the original site, in Look 1's
+ * dress. The visitor says what they want done, picks (or arrives with) the
+ * category and subcategory, adds a budget and photos, and Diyar matches a
+ * partner. Opened from service cards, the category pages, the catalogue and
+ * the provider pages, each of which presets what it already knows.
+ */
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Check, ImagePlus, X } from 'lucide-react';
+import { SERVICES, SERVICE_SUBS } from '../lookShared';
+import { HAIR, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { Sheet } from './Sheet';
 
-export function RequestServiceSheet({
-  open,
-  onClose,
-  service,
-}: {
-  open: boolean;
-  onClose: () => void;
-  /** the service the visitor came from, if any */
+/** What the opener already knows: a category (SERVICES[i].en), a subcategory key, a named service/provider. */
+export interface ServicePreset {
+  category?: string;
+  sub?: string;
+  /** e.g. «تصميم داخلي — استوديو إيوان»: shown as the requested service */
   service?: string;
-}) {
+  /** «طلب خدمة»: a direct request to one chosen provider for one of their services —
+   *  no category picking, the provider answers with a quote. Without it the form is
+   *  «طلب تنفيذ»: an open request that the category's providers bid on. */
+  direct?: boolean;
+  provider?: string;
+}
+
+const CITIES = [
+  { en: 'Jeddah', ar: 'جدة' },
+  { en: 'Riyadh', ar: 'الرياض' },
+  { en: 'Dammam', ar: 'الدمام' },
+  { en: 'Makkah', ar: 'مكة' },
+  { en: 'Madinah', ar: 'المدينة' },
+  { en: 'Other', ar: 'أخرى' },
+];
+
+export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; onClose: () => void; preset?: ServicePreset | string }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ name: '', phone: '', city: '', service: '', details: '' });
+  const p: ServicePreset = typeof preset === 'string' ? { service: preset } : preset ?? {};
+  const [category, setCategory] = useState('');
+  const [sub, setSub] = useState('');
+  const [form, setForm] = useState({ details: '', budget: '', city: '', phone: '', date: '' });
+  const direct = !!p.direct;
+  const [photos, setPhotos] = useState<string[]>([]);
+  const file = useRef<HTMLInputElement>(null);
 
-  // reopening for another service starts clean
+  // reopening starts clean, with whatever the opener knew already picked
   useEffect(() => {
-    if (open) {
-      setSent(false);
-      setForm((f) => ({ ...f, service: service ?? '' }));
-    }
-  }, [open, service]);
+    if (!open) return;
+    setSent(false);
+    setCategory(p.category ?? '');
+    setSub(p.sub ?? '');
+    setForm({ details: '', budget: '', city: '', phone: '', date: '' });
+    setPhotos([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, p.category, p.sub, p.service, p.direct, p.provider]);
 
-  const field = 'h-12 w-full border bg-white px-4 text-[13px] outline-none transition-colors focus:border-[#171512]';
-  const label = `mb-2 block text-[10px] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.22em]'} text-neutral-500`;
+  const subs = SERVICE_SUBS[category] ?? [];
+  const field = 'h-12 w-full border bg-white px-4 text-[14px] outline-none transition-colors focus:border-[#171512]';
+  const label = `mb-2 block text-[11px] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.22em]'} text-neutral-500`;
+  const chip = (on: boolean) =>
+    `inline-flex items-center gap-1.5 border px-3 py-1.5 text-[13.5px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white hover:border-[#171512]'}`;
+
+  const addPhotos = (e: ChangeEvent<HTMLInputElement>) => {
+    const files: File[] = e.target.files ? Array.from(e.target.files as ArrayLike<File>).filter((f) => f.type.startsWith('image/')) : [];
+    e.target.value = '';
+    if (files.length) setPhotos((l) => [...l, ...files.map((f) => URL.createObjectURL(f))].slice(0, 6));
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -43,7 +80,7 @@ export function RequestServiceSheet({
       side="center"
       testId="service-sheet"
       eyebrow={t('Diyar Services', 'خدمات ديار')}
-      title={sent ? t('Request received', 'تم استلام الطلب') : t('Request a Visit', 'اطلب زيارة')}
+      title={sent ? t('Request received', 'تم استلام الطلب') : direct ? t('Request service', 'طلب خدمة') : t('Request execution', 'طلب تنفيذ')}
     >
       {sent ? (
         <div className="px-6 py-14 text-center">
@@ -51,85 +88,84 @@ export function RequestServiceSheet({
             <Check size={22} strokeWidth={2} className="text-white" />
           </span>
           <p className="mt-6 text-[15px] font-light leading-relaxed text-neutral-700">
-            {t(
-              'Thank you. Our team will call you within one business day to arrange the visit.',
-              'شكراً لك. سيتواصل فريقنا معك خلال يوم عمل واحد لتحديد موعد الزيارة.',
-            )}
+            {direct
+              ? t(
+                  `Thank you. ${p.provider ?? 'The provider'} will call you within one business day with a quote.`,
+                  `شكراً لك. سيتواصل معك ${p.provider ?? 'مقدم الخدمة'} خلال يوم عمل واحد بعرض السعر.`,
+                )
+              : t(
+                  'Thank you. Your request goes to the providers in this category, and their price offers will reach you here and by phone.',
+                  'شكراً لك. سيصل طلبك إلى مقدمي الخدمات في هذا التصنيف، وستصلك عروض أسعارهم هنا وعلى جوالك.',
+                )}
           </p>
           <button type="button" onClick={onClose} className={`mt-8 px-10 py-4 ${primaryBtnCls(isAr)}`}>
             {t('Done', 'تم')}
           </button>
         </div>
       ) : (
-        <form onSubmit={submit} className="px-6 py-6">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label className={label} htmlFor="rs-name">{t('Full name', 'الاسم الكامل')}</label>
-              <input
-                id="rs-name"
-                required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className={field}
-                style={{ borderColor: HAIR }}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="rs-phone">{t('Phone', 'رقم الجوال')}</label>
-              <input
-                id="rs-phone"
-                required
-                dir="ltr"
-                inputMode="tel"
-                placeholder="05X XXX XXXX"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className={`${field} text-start`}
-                style={{ borderColor: HAIR }}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="rs-city">{t('City', 'المدينة')}</label>
-              <input
-                id="rs-city"
-                required
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                className={field}
-                style={{ borderColor: HAIR }}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="rs-service">{t('Service', 'الخدمة')}</label>
-              <select
-                id="rs-service"
-                required
-                value={form.service}
-                onChange={(e) => setForm({ ...form, service: e.target.value })}
-                className={field}
-                style={{ borderColor: HAIR }}
-              >
-                <option value="" disabled>
-                  {t('Choose a service', 'اختر الخدمة')}
-                </option>
-                {SERVICES.map((s) => {
-                  const name = t(s.en, s.ar);
-                  return (
-                    <option key={s.en} value={name}>
-                      {name}
-                    </option>
-                  );
-                })}
-              </select>
+        <form onSubmit={submit} className="px-6 py-6" data-testid="request-form">
+          {direct ? (
+            <dl className="mb-5 grid gap-2 border px-4 py-3 text-[14px]" style={{ borderColor: HAIR, backgroundColor: TILE }} data-testid="request-service-name">
+              <div className="flex items-baseline gap-2">
+                <dt className="shrink-0 text-neutral-500">{t('Service', 'الخدمة')}:</dt>
+                <dd className="font-bold">{p.service}</dd>
+              </div>
+              {p.provider && (
+                <div className="flex items-baseline gap-2">
+                  <dt className="shrink-0 text-neutral-500">{t('Provider', 'مقدم الخدمة')}:</dt>
+                  <dd className="font-bold">{p.provider}</dd>
+                </div>
+              )}
+            </dl>
+          ) : p.service ? (
+            <p className="mb-5 flex items-center gap-2 border px-4 py-3 text-[14px]" style={{ borderColor: HAIR, backgroundColor: TILE }} data-testid="request-service-name">
+              <span className="text-neutral-500">{t('Service', 'الخدمة')}:</span>
+              <span className="font-bold">{p.service}</span>
+            </p>
+          ) : null}
+
+          {/* the category, then its subcategories — preset when the visitor came from one; not asked on a direct request */}
+          {!direct && (
+          <div>
+            <p className={label}>{t('Category', 'تصنيف الخدمة')}</p>
+            <div className="flex flex-wrap gap-2" data-testid="request-categories">
+              {SERVICES.map((s) => {
+                const on = category === s.en;
+                return (
+                  <button key={s.en} type="button" aria-pressed={on} onClick={() => { setCategory(on ? '' : s.en); setSub(''); }} className={chip(on)} style={on ? undefined : { borderColor: HAIR }}>
+                    {on && <Check size={13} strokeWidth={2} />}
+                    {t(s.en, s.ar)}
+                  </button>
+                );
+              })}
             </div>
           </div>
+          )}
+          {!direct && subs.length > 0 && (
+            <div className="mt-4">
+              <p className={label}>{t('Subcategory', 'التصنيف الفرعي')}</p>
+              <div className="flex flex-wrap gap-2" data-testid="request-subcategories">
+                {subs.map((x) => {
+                  const on = sub === x.key;
+                  return (
+                    <button key={x.key} type="button" aria-pressed={on} onClick={() => setSub(on ? '' : x.key)} className={chip(on)} style={on ? undefined : { borderColor: HAIR }}>
+                      {on && <Check size={13} strokeWidth={2} />}
+                      {t(x.en, x.ar)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-          <div className="mt-5">
-            <label className={label} htmlFor="rs-details">{t('About the space', 'عن المساحة')}</label>
+          <div className={direct ? '' : 'mt-5'}>
+            <label className={label} htmlFor="rs-details">{direct ? t('Tell the provider about the job', 'أخبر مقدم الخدمة عن العمل') : t('What do you need done?', 'ما الذي تريد تنفيذه؟')}</label>
             <textarea
               id="rs-details"
+              required
               rows={4}
-              placeholder={t('Rooms, size, what you have in mind…', 'الغرف، المساحة، وما يدور في بالك…')}
+              data-testid="request-details"
+              placeholder={t('The space, its size, and what you have in mind…', 'المساحة وحجمها وما يدور في بالك… (مثال: صالة 20 م² أريد تصميمها وتأثيثها)')}
               value={form.details}
               onChange={(e) => setForm({ ...form, details: e.target.value })}
               className="w-full resize-none border bg-white p-4 text-[14.5px] outline-none transition-colors focus:border-[#171512]"
@@ -137,11 +173,62 @@ export function RequestServiceSheet({
             />
           </div>
 
+          {/* photos of the space, if they have them */}
+          <div className="mt-4">
+            <p className={label}>{t('Photos of the space (optional)', 'صور المكان (اختياري)')}</p>
+            <div className="flex flex-wrap gap-2">
+              {photos.map((src, i) => (
+                <span key={src} className="relative h-16 w-16 overflow-hidden border" style={{ borderColor: HAIR }}>
+                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <button type="button" aria-label={t('Remove', 'إزالة')} onClick={() => setPhotos((l) => l.filter((_, k) => k !== i))} className="absolute end-0.5 top-0.5 flex h-5 w-5 items-center justify-center bg-white/90">
+                    <X size={11} strokeWidth={2} />
+                  </button>
+                </span>
+              ))}
+              {photos.length < 6 && (
+                <button type="button" onClick={() => file.current?.click()} data-testid="request-photos" className="flex h-16 w-16 flex-col items-center justify-center gap-1 border border-dashed text-neutral-500 transition-colors hover:border-[#171512] hover:text-[#171512]" style={{ borderColor: '#C9C2B4' }}>
+                  <ImagePlus size={16} strokeWidth={1.5} />
+                  <span className="text-[10px]">{t('Add', 'إضافة')}</span>
+                </button>
+              )}
+              <input ref={file} type="file" accept="image/*" multiple className="hidden" onChange={addPhotos} />
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+            {direct ? (
+              <div>
+                <label className={label} htmlFor="rs-date">{t('Preferred visit date', 'موعد الزيارة المفضل')}</label>
+                <input id="rs-date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={field} style={{ borderColor: HAIR }} />
+              </div>
+            ) : (
+              <div>
+                <label className={label} htmlFor="rs-budget">{t('Budget (optional)', 'الميزانية (اختياري)')}</label>
+                <input id="rs-budget" placeholder={t('e.g. 5,000 – 8,000', 'مثال: 5,000 – 8,000')} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className={field} style={{ borderColor: HAIR }} />
+              </div>
+            )}
+            <div>
+              <label className={label} htmlFor="rs-city">{t('City', 'المدينة')}</label>
+              <select id="rs-city" required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={field} style={{ borderColor: HAIR }}>
+                <option value="" disabled>{t('Choose', 'اختر')}</option>
+                {CITIES.map((c) => (
+                  <option key={c.en} value={c.en}>{t(c.en, c.ar)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={label} htmlFor="rs-phone">{t('Phone', 'رقم الجوال')}</label>
+              <input id="rs-phone" required dir="ltr" inputMode="tel" placeholder="05X XXX XXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={`${field} text-start`} style={{ borderColor: HAIR }} />
+            </div>
+          </div>
+
           <button type="submit" data-testid="service-submit" className={`mt-6 w-full py-4 ${primaryBtnCls(isAr)}`}>
-            {t('Send Request', 'إرسال الطلب')}
+            {t('Send request', 'إرسال الطلب')}
           </button>
           <p className="mt-3 text-center text-[13px] font-light text-neutral-500">
-            {t('Free consultation · No obligation', 'استشارة مجانية · دون التزام')}
+            {direct
+              ? t(`A quote from ${p.provider ?? 'the provider'} within one business day · no obligation`, `عرض سعر من ${p.provider ?? 'مقدم الخدمة'} خلال يوم عمل · دون التزام`)
+              : t('Free · price offers from the providers in this category · no obligation', 'مجاناً · عروض أسعار من مقدمي الخدمات في التصنيف · دون التزام')}
           </p>
         </form>
       )}

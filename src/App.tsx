@@ -50,10 +50,14 @@ import { LookSwitcher } from './pages/looks/lookShared.tsx';
 import LookOne, { LookOneHome, LookOneSearch, LookOneCatalog, LookOneProduct } from './pages/looks/LookOne.tsx';
 import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/CheckoutPage.tsx';
 import LookOneStore from './pages/looks/one/StorePage.tsx';
-import LookOneCategory, { ServiceDetailPage as LookOneServiceDetail, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
+import LookOneService, { ServiceDetailPage as LookOneServiceRedirectSub, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
+import { ServicesCatalog as LookOneServices } from './pages/looks/one/ServicesCatalog.tsx';
+import { ProductCategoryPage as LookOneProductCategory } from './pages/looks/one/CategoryLanding.tsx';
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
+import LookOneProviders from './pages/looks/one/ProvidersPage.tsx';
+import AdsPage from './pages/dashboard/AdsPage.tsx';
 import {
-  ServicesIndex as LookOneServices, ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
+  ProviderPage as LookOneProvider, WishlistPage as LookOneWishlist,
   HelpPage as LookOneHelp, NotFoundPage as LookOneNotFound, StoresPage as LookOneStores,
 } from './pages/looks/one/InfoPages.tsx';
 import {
@@ -319,6 +323,7 @@ export default function App() {
           <Route index element={<LookOneHome />} />
           <Route path="search" element={<LookOneSearch />} />
           <Route path="products" element={<LookOneCatalog />} />
+          <Route path="products/:category" element={<LookOneProductCategory />} />
           <Route path="product/:id" element={<LookOneProduct />} />
           <Route path="store/:key" element={<LookOneStore />} />
           <Route path="service/:slug" element={<LookOneServiceRedirect />} />
@@ -326,9 +331,10 @@ export default function App() {
           <Route path="order/:id" element={<LookOneOrder />} />
           <Route path="account/:section?" element={<LookOneAccount />} />
           <Route path="services" element={<LookOneServices />} />
-          <Route path="services/:category" element={<LookOneCategory />} />
-          <Route path="services/:category/:service" element={<LookOneServiceDetail />} />
+          <Route path="services/:id" element={<LookOneService />} />
+          <Route path="services/:category/:service" element={<LookOneServiceRedirectSub />} />
           <Route path="provider/:id" element={<LookOneProvider />} />
+          <Route path="providers" element={<LookOneProviders />} />
           <Route path="wishlist" element={<LookOneWishlist />} />
           <Route path="stores" element={<LookOneStores />} />
           <Route path="brands" element={<LookOneBrands />} />
@@ -355,6 +361,7 @@ export default function App() {
           <Route path="vendor/products" element={<VendorProducts />} />
           <Route path="vendor/team" element={<VendorTeam />} />
           <Route path="vendor/finance" element={<VendorFinance />} />
+          <Route path="vendor/ads" element={<AdsPage />} />
           <Route path="vendor/settings" element={<VendorSettings />} />
           <Route path="vendor/notifications" element={<Notifications />} />
           
@@ -364,6 +371,7 @@ export default function App() {
           <Route path="service/bookings" element={<ServiceBookings />} />
           <Route path="service/services" element={<ServiceServices />} />
           <Route path="service/finance" element={<ServiceFinance />} />
+          <Route path="service/ads" element={<AdsPage />} />
           <Route path="service/settings" element={<ServiceSettings />} />
           <Route path="service/notifications" element={<Notifications />} />
 

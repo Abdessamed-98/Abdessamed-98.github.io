@@ -17,7 +17,7 @@ import { ShellContext, type ShellApi, type AuthIntent } from './shellContext';
 export { useShell } from './shellContext';
 import { CartSheet } from './CartSheet';
 import { WishlistSheet } from './WishlistSheet';
-import { RequestServiceSheet } from './RequestServiceSheet';
+import { RequestServiceSheet, type ServicePreset } from './RequestServiceSheet';
 import { AuthSheet } from './AuthSheet';
 import { ImageSearchSheet } from './ImageSearchSheet';
 
@@ -37,7 +37,7 @@ export function LookShell({ children }: { children: React.ReactNode }) {
 function ShellInner({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState(false);
   const [wishlist, setWishlist] = useState(false);
-  const [service, setService] = useState<{ open: boolean; name?: string }>({ open: false });
+  const [service, setService] = useState<{ open: boolean; preset?: ServicePreset | string }>({ open: false });
   const [auth, setAuth] = useState(false);
   const [authIntent, setAuthIntent] = useState<AuthIntent | undefined>();
   const [imageSearch, setImageSearch] = useState(false);
@@ -55,7 +55,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
     () => ({
       openCart: () => setCart(true),
       openWishlist: () => setWishlist(true),
-      openService: (name?: string) => setService({ open: true, name }),
+      openService: (preset?: ServicePreset | string) => setService({ open: true, preset }),
       openAuth: (intent?: AuthIntent) => {
         setAuthIntent(intent);
         setAuth(true);
@@ -78,7 +78,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
       {children}
       <CartSheet open={cart} onClose={() => setCart(false)} />
       <WishlistSheet open={wishlist} onClose={() => setWishlist(false)} onAdded={(name) => toast(name, true)} />
-      <RequestServiceSheet open={service.open} onClose={() => setService({ open: false })} service={service.name} />
+      <RequestServiceSheet open={service.open} onClose={() => setService({ open: false })} preset={service.preset} />
       <AuthSheet open={auth} onClose={() => setAuth(false)} intent={authIntent} onSignIn={(name) => setUser(name)} onNotice={toast} />
       <ImageSearchSheet open={imageSearch} onClose={() => setImageSearch(false)} />
       <Toast note={note} onOpenCart={() => setCart(true)} />

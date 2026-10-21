@@ -9,9 +9,9 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import {
-  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES, SERVICES_MENU,
+  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, PRODUCT_SUBS,
   parseSearch, serializeSearch, filterCatalog, lookBase, searchPath, storeOf,
-  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService, type StoreKey,
+  type Lang, type SearchQuery, type SortKey, type LookStore, type StoreKey, type CategoryKey,
 } from '../lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE,
@@ -19,13 +19,14 @@ import {
   StoreMark,
 } from './ui';
 import { EmptyState, Tabs, capsCls } from './kit';
-import { categoryPath } from './ServicePage';
-import { PROVIDERS } from './data';
+import { categorySlugOf } from './ServicePage';
+import { filterServices, type ServiceItem } from './servicesData';
+import { ServiceCard } from './ServiceCard';
 
 type SearchTab = 'all' | 'products' | 'stores' | 'services';
 const TAB_KEYS: SearchTab[] = ['all', 'products', 'stores', 'services'];
 
-type FacetKey = 'category' | 'room' | 'style' | 'store' | 'price';
+type FacetKey = 'category' | 'sub' | 'room' | 'style' | 'store' | 'price';
 
 interface FacetOption { key: string; label: string }
 interface Facet { key: FacetKey; label: string; options: FacetOption[] }
@@ -58,11 +59,91 @@ function Facets({
   const isAr = lang === 'ar';
   const t = (en: string, ar: string) => (isAr ? ar : en);
   const saleCount = filterCatalog({ ...query, sale: true }, lang).length;
+  // which categories are open; the chosen one always is
+  // the chosen category opens by itself; the chevron can still fold it, or open any other
+  const [open, setOpen] = useState<string[]>([]);
+  const [folded, setFolded] = useState<string[]>([]);
+  const flip = (k: string) => (l: string[]) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]);
+  const isOpen = (k: string) => (query.category === k ? !folded.includes(k) : open.includes(k));
+  const toggle = (k: string) => (query.category === k ? setFolded(flip(k)) : setOpen(flip(k)));
 
   return (
     <div>
       {facets.map((f) => {
         const value = query[f.key] ?? '';
+        if (f.key === 'category') {
+          return (
+            <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid="facet-category">
+              <legend className="sr-only">{f.label}</legend>
+              <p className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-semibold')}>{f.label}</p>
+              <ul className="mt-4 space-y-1">
+                {CATEGORIES.map((c) => {
+                  const active = query.category === c.key;
+                  const n = filterCatalog({ ...query, category: c.key, sub: '' }, lang).length;
+                  const empty = n === 0 && !active;
+                  const opened = isOpen(c.key);
+                  return (
+                    <li key={c.key} data-testid={`facet-category-${c.key}`}>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => update({ category: active ? '' : c.key, sub: '' })}
+                          aria-pressed={active}
+                          disabled={empty}
+                          className={`group flex min-w-0 flex-1 items-center justify-between gap-3 py-1.5 text-start text-[14.5px] transition-colors ${
+                            empty ? 'cursor-default text-[#A9A196]' : active ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
+                          }`}
+                        >
+                          <span className="flex min-w-0 items-center gap-3">
+                            <span aria-hidden className={`h-3 w-3 shrink-0 border transition-colors ${active ? 'border-[#171512] bg-[#171512]' : empty ? 'border-[#171512]/15' : 'border-[#171512]/40 group-hover:border-[#171512]'}`} />
+                            <span className="truncate">{c[lang]}</span>
+                          </span>
+                          <span className={`shrink-0 text-[13px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggle(c.key)}
+                          aria-expanded={opened}
+                          aria-label={t(`Show ${c.en} subcategories`, `عرض أقسام ${c.ar}`)}
+                          data-testid={`facet-category-toggle-${c.key}`}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center text-[#5F5950] transition-colors hover:text-[#171512]"
+                        >
+                          <ChevronDown size={14} strokeWidth={1.5} className={`transition-transform duration-300 ${opened ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+                      {opened && (
+                        <ul className="mb-2 ms-6 space-y-1.5 border-s ps-4" style={{ borderColor: HAIR }} data-testid={`facet-subs-${c.key}`}>
+                          {PRODUCT_SUBS[c.key].map((x) => {
+                            const on = active && query.sub === x.key;
+                            const m = filterCatalog({ ...query, category: c.key, sub: x.key }, lang).length;
+                            const none = m === 0 && !on;
+                            return (
+                              <li key={x.key}>
+                                <button
+                                  type="button"
+                                  onClick={() => update({ category: c.key, sub: on ? '' : x.key })}
+                                  aria-pressed={on}
+                                  disabled={none}
+                                  data-testid={`facet-sub-${x.key}`}
+                                  className={`flex w-full items-center justify-between gap-3 py-0.5 text-start text-[14px] transition-colors ${
+                                    none ? 'cursor-default text-[#A9A196]' : on ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
+                                  }`}
+                                >
+                                  <span className="truncate">{x[lang]}</span>
+                                  <span className={`shrink-0 text-[13px] ${none ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{m}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </fieldset>
+          );
+        }
         return (
           <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid={`facet-${f.key}`}>
             <legend className="sr-only">{f.label}</legend>
@@ -76,7 +157,7 @@ function Facets({
                   <li key={o.key}>
                     <button
                       type="button"
-                      onClick={() => update({ [f.key]: active ? '' : o.key } as Partial<SearchQuery>)}
+                      onClick={() => update({ [f.key]: active ? '' : o.key, ...(f.key === 'category' ? { sub: '' } : {}) } as Partial<SearchQuery>)}
                       aria-pressed={active}
                       disabled={empty}
                       data-testid={`facet-${f.key}-${o.key}`}
@@ -180,7 +261,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const hit = (...xs: string[]) => !needle || xs.some((x) => x.toLowerCase().includes(needle));
   const stores = ALL_STORES.filter((s) => hit(s.name.en, s.name.ar, s.specialty.en, s.specialty.ar));
   // a service matches by its own name or by any of its sub-services ("SPC" finds flooring)
-  const services = SERVICES.filter((s, i) => hit(s.en, s.ar, ...(SERVICES_MENU[i]?.items ?? []).flatMap((it) => [it.en, it.ar])));
+  const services = filterServices({ q: query.q }, categorySlugOf);
 
   const update = useCallback(
     (patch: Partial<SearchQuery>) => setSp(withTab(serializeSearch({ ...query, ...patch }))),
@@ -222,13 +303,15 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
 
   /* names behind the active facets — for the title, the breadcrumb and the chips */
   const catName = CATEGORIES.find((c) => c.key === query.category)?.[lang];
+  const subs = query.category ? PRODUCT_SUBS[query.category] : [];
+  const subName = subs.find((x) => x.key === query.sub)?.[lang];
   const roomName = ROOMS.find((r) => r.key === query.room)?.[lang];
   const styleName = STYLES.find((s) => s.key === query.style)?.[lang];
   const storeName = ALL_STORES.find((s) => s.key === query.store)?.name[lang];
 
   const title = query.q
     ? t(`Results for “${query.q}”`, `نتائج البحث عن «${query.q}»`)
-    : catName ?? roomName ?? styleName ?? storeName ?? t('Products', 'المنتجات');
+    : subName ?? catName ?? roomName ?? styleName ?? storeName ?? t('Products', 'المنتجات');
 
   const chips: { key: string; label: string; clear: () => void }[] = [];
   if (query.q) chips.push({ key: 'q', label: `“${query.q}”`, clear: () => update({ q: '' }) });
@@ -243,7 +326,8 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
     { label: t('Products', 'المنتجات'), to: searchPath(1) },
-    ...(catName ? [{ label: catName }] : []),
+    ...(catName ? [{ label: catName, to: `${lookBase(1)}/products/${query.category}` }] : []),
+    ...(subName ? [{ label: subName }] : []),
   ];
 
   const labelCls = eyebrowCls(isAr, 'text-[11px] text-[#5F5950]');
@@ -256,28 +340,11 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
       {catalog ? (
         <div className="mx-auto max-w-[1400px] px-6 pb-5 pt-6 md:px-10 md:pt-8" data-testid="catalog-head">
           <Breadcrumb items={crumbs} />
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
-            <h1 className={`shrink-0 text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className={`text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>
               {title}
             </h1>
-            {/* the categories, one tap apart */}
-            <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-categories">
-              {[{ key: '' as const, label: t('All', 'الكل') }, ...CATEGORIES.map((c) => ({ key: c.key, label: c[lang] }))].map((c) => {
-                const on = (query.category ?? '') === c.key;
-                return (
-                  <button
-                    key={c.key || 'all'}
-                    type="button"
-                    onClick={() => update({ category: c.key })}
-                    aria-pressed={on}
-                    className={`h-10 shrink-0 whitespace-nowrap border px-4 text-[14px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white text-[#171512] hover:border-[#171512]'}`}
-                    style={on ? undefined : { borderColor: HAIR }}
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
+            <span className={labelCls} data-testid="catalog-count">{productsLabel(results.length, isAr)}</span>
           </div>
         </div>
       ) : (
@@ -377,7 +444,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
             </Strip>
           )}
           {services.length > 0 && (
-            <Strip title={t('Services', 'الخدمات')} more={services.length > 4 ? () => setTab('services') : undefined} count={services.length}>
+            <Strip title={t('Services', 'الخدمات')} moreTo={`${lookBase(1)}/services`} count={services.length}>
               <ServiceGrid services={services.slice(0, 4)} rail />
             </Strip>
           )}
@@ -705,32 +772,14 @@ function StoreGrid({ stores, rail = false }: { stores: LookStore[]; rail?: boole
   );
 }
 
-function ServiceGrid({ services, rail = false }: { services: LookService[]; rail?: boolean }) {
-  const { lang, t } = useLook();
-  const isAr = lang === 'ar';
+function ServiceGrid({ services, rail = false }: { services: ServiceItem[]; rail?: boolean }) {
   return (
-    <ul className={rail ? railCls : gridCls} data-testid="service-results">
-      {services.map((s) => {
-        const partners = PROVIDERS.filter((p) => p.service === s.en).length;
-        return (
-          <li key={s.en} className={rail ? railItemCls : undefined}>
-            <Link to={categoryPath(s)} className={rowCls} style={{ borderColor: HAIR }}>
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center transition-colors group-hover:bg-[#5A6B4D]" style={{ backgroundColor: TILE }}>
-                <s.icon size={22} strokeWidth={1.4} className="text-[#5A6B4D] transition-colors group-hover:text-white" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-bold">{isAr ? s.ar : s.en}</span>
-                <span className="mt-1 block text-[13px]" style={{ color: '#5F5950' }}>
-                  {partners
-                    ? t(`${partners} partner${partners > 1 ? 's' : ''} · free visit`, `${partners} ${partners > 1 ? 'شركاء' : 'شريك'} · زيارة مجانية`)
-                    : t('Diyar crews · free visit', 'فرق ديار · زيارة مجانية')}
-                </span>
-              </span>
-              <ArrowRight size={14} strokeWidth={1.5} className={`shrink-0 text-[#5F5950] transition-transform duration-300 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
-            </Link>
-          </li>
-        );
-      })}
+    <ul className={rail ? 'grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4 md:gap-x-6' : 'grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-6 xl:grid-cols-4'} data-testid="service-results">
+      {services.map((s) => (
+        <li key={s.id}>
+          <ServiceCard s={s} rail={rail} />
+        </li>
+      ))}
     </ul>
   );
 }

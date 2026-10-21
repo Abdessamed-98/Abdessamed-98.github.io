@@ -11,13 +11,15 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, ChevronDown, MessageSquare, Phone, Mail, Star, Briefcase, CalendarDays, Search, X } from 'lucide-react';
 import { ALL_STORES, CATALOG, CATEGORIES, FOOTER_LINKS, SERVICES, SERVICES_MENU, STORE_LOCATIONS, formatSAR, lookBase, productPath, searchPath, type CategoryKey, type StoreKey } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, RED, TILE, ProductCard, Stars, StoreMark, primaryBtnCls, tileImg, useLook, useSeen } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, NIGHT, OLIVE, OLIVE_LT, RED, TILE, ProductCard, Stars, StoreMark, ViewMore, primaryBtnCls, tileImg, useLook, useSeen } from './ui';
 import { useShell } from './shellContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
-import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
-import { categoryArt, categoryPath, servicePath } from './ServicePage';
-import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, SERVICE_GALLERY, type Provider } from './data';
+import { CONTAINER, EmptyState, Lightbox, PageHead, Tabs, capsCls, displayCls } from './kit';
+import { categoryPath, serviceSlug } from './ServicePage';
+import { HELP_TOPICS, PROVIDERS, providersFor, type Provider } from './data';
+import { servicesOfProvider } from './servicesData';
+import { ServiceCard } from './ServiceCard';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -25,107 +27,7 @@ const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'ا�
 /* Services index                                                      */
 /* ------------------------------------------------------------------ */
 
-export function ServicesIndex() {
-  const { lang, t } = useLook();
-  const isAr = lang === 'ar';
-  const { openService } = useShell();
-  const subCount = SERVICES_MENU.reduce((n, g) => n + g.items.length, 0);
-
-  const jump = (i: number) => {
-    const el = document.getElementById(`service-row-${i}`);
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });
-  };
-
-  return (
-    <main className="pt-[72px]" data-testid="services-index">
-      <div className={`${CONTAINER} pt-8`}>
-        <Breadcrumb items={[home(t), { label: t('Services', 'الخدمات') }]} />
-        <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h1 className={displayCls(isAr, 'md')}>{t('Services', 'الخدمات')}</h1>
-          <span className="text-[14.5px]" style={{ color: MUTED }}>
-            {t(`${SERVICES.length} categories · ${subCount} services`, `${SERVICES.length} أقسام · ${subCount} خدمة`)}
-          </span>
-        </div>
-
-        {/* the categories: a row of tiles, each taking you to its services below */}
-        <ul className="scrollbar-hide -mx-6 mt-6 flex gap-3 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:grid lg:grid-cols-8 lg:overflow-visible lg:px-0" data-testid="service-categories">
-          {SERVICES.map((sv, i) => (
-            <li key={sv.en} className="w-[124px] shrink-0 lg:w-auto">
-              <button type="button" onClick={() => jump(i)} className="group block w-full text-start" data-testid="service-category-tile">
-                <span className="relative block aspect-square overflow-hidden" style={{ backgroundColor: '#1F3D3A' }}>
-                  <img src={categoryArt(sv)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
-                  <span className="absolute bottom-2 start-2 flex h-7 w-7 items-center justify-center bg-white/90">
-                    <sv.icon size={13} strokeWidth={1.6} className="text-[#5A6B4D]" />
-                  </span>
-                </span>
-                <span className="mt-2 block text-[14px] font-bold leading-snug transition-colors group-hover:text-[#5A6B4D]">{t(sv.en, sv.ar)}</span>
-                <span className="block text-[13px]" style={{ color: MUTED }}>{t(`${SERVICES_MENU[i]?.items.length ?? 0} services`, `${SERVICES_MENU[i]?.items.length ?? 0} خدمات`)}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* one row per category: its title, then its services as cards */}
-      <div className={`${CONTAINER} pb-16`}>
-        {SERVICES.map((sv, i) => {
-          const items = SERVICES_MENU[i]?.items ?? [];
-          const shots = SERVICE_GALLERY[sv.en] ?? [];
-          return (
-            <section key={sv.en} id={`service-row-${i}`} className="border-t pt-9 mt-10" style={{ borderColor: HAIR }} data-testid="service-row">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <h2 className={`flex items-center gap-3 text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
-                  <sv.icon size={20} strokeWidth={1.5} className="shrink-0 text-[#5A6B4D]" />
-                  {t(sv.en, sv.ar)}
-                </h2>
-                <Link to={categoryPath(sv)} data-testid="service-row-open" className="inline-flex items-center gap-2 border-b pb-1 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
-                  {t('View category', 'عرض القسم')}
-                  <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
-                </Link>
-              </div>
-              <ul className="scrollbar-hide -mx-6 mt-6 flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto px-6 md:-mx-10 md:scroll-px-10 md:px-10 lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0">
-                {items.map((it, k) => (
-                  <li key={it.en} className="w-[62%] shrink-0 snap-start sm:w-[40%] md:w-[30%] lg:w-auto" data-testid="service-card">
-                    <div className="group flex h-full flex-col border bg-white" style={{ borderColor: HAIR }}>
-                      <Link to={servicePath(sv, it)} className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
-                        <img
-                          src={shots[k % Math.max(1, shots.length)]?.img ?? sv.img}
-                          alt=""
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-                        />
-                      </Link>
-                      <div className="flex flex-1 flex-col p-4">
-                        <Link to={servicePath(sv, it)} data-testid="services-sub-link" className="text-[15.5px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]">
-                          {t(it.en, it.ar)}
-                        </Link>
-                        <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-                          <button
-                            type="button"
-                            data-testid="service-card-request"
-                            onClick={() => openService(`${t(sv.en, sv.ar)} · ${t(it.en, it.ar)}`)}
-                            className={`px-4 py-2 ${primaryBtnCls(isAr)}`}
-                          >
-                            {t('Request', 'اطلب الخدمة')}
-                          </button>
-                          <Link to={servicePath(sv, it)} aria-label={t('Details', 'التفاصيل')} className="flex h-8 w-8 items-center justify-center border transition-colors hover:bg-[#171512] hover:text-white" style={{ borderColor: '#C9C2B4' }}>
-                            <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-      </div>
-    </main>
-  );
-}
-
-function ProviderCard({ p }: { p: Provider }) {
+export function ProviderCard({ p }: { p: Provider }) {
   const { t } = useLook();
   return (
     <Link
@@ -152,14 +54,25 @@ function ProviderCard({ p }: { p: Provider }) {
   );
 }
 
-/** For the service page: the partners who take that service. */
-export function ServiceProviders({ serviceEn }: { serviceEn: string }) {
+/** For a category or a service page: the partners who take it (providers → services → service). */
+export function ServiceProviders({ serviceEn, itemEn }: { serviceEn: string; itemEn?: string }) {
+  // kept for callers; the catalogue pages now list providers as a filter
   const { lang, t } = useLook();
-  const list = PROVIDERS.filter((p) => p.service === serviceEn);
+  const isAr = lang === 'ar';
+  const list = providersFor(serviceEn, itemEn);
+  const cat = SERVICES.find((s) => s.en === serviceEn);
   if (!list.length) return null;
   return (
     <section className="border-t py-12 md:py-16" style={{ borderColor: HAIR }} data-testid="service-providers">
-      <p className={`text-[11px] ${capsCls(lang === 'ar')}`} style={{ color: MUTED }}>{t('Partners for this service', 'شركاء هذه الخدمة')}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className={`text-[11px] ${capsCls(isAr)}`} style={{ color: MUTED }}>{t('Verified by Diyar', 'موثّقون من ديار')}</p>
+          <h2 className={`mt-2 text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+            {itemEn ? t('Providers of this service', 'مقدمو هذه الخدمة') : t('Providers in this category', 'مقدمو الخدمات في هذا القسم')} <span className="font-normal" style={{ color: MUTED }}>· {list.length}</span>
+          </h2>
+        </div>
+        <ViewMore label={t('All providers', 'كل مقدمي الخدمات')} to={`${lookBase(1)}/providers${cat ? `?category=${serviceSlug(cat)}` : ''}`} />
+      </div>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((p) => (
           <li key={p.id}>
@@ -190,7 +103,7 @@ export function ProviderPage() {
 
   const rawTab = sp.get('tab');
   const tab: ProviderTab = rawTab === 'services' || rawTab === 'work' || rawTab === 'reviews' ? rawTab : 'about';
-  const offers = PROVIDER_SERVICES[p.id] ?? [];
+  const offers = servicesOfProvider(p.id);
   const service = SERVICES.find((s) => s.en === p.service);
   const serviceName = service ? t(service.en, service.ar) : '';
 
@@ -270,14 +183,28 @@ export function ProviderPage() {
         </div>
 
         {tab === 'services' && (
-          <ServiceOffers
-            testId="provider-services"
-            list={offers}
-            intro={t(
-              `What you can book ${p.name.en} for — every job quoted in writing and covered by the Diyar guarantee.`,
-              `ما يمكنك حجز ${p.name.ar} له — كل عمل بعرض سعر مكتوب ويشمله ضمان ديار.`,
+          <section className="py-10 md:py-14" data-testid="provider-services">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <h2 className={`text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+                {t(`Services by ${p.name.en}`, `خدمات ${p.name.ar}`)} <span className="font-normal" style={{ color: MUTED }}>· {offers.length}</span>
+              </h2>
+              {service && (
+                <Link to={categoryPath(service)} className="inline-flex items-center gap-2 border-b pb-1 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
+                  {t(`All ${service.en}`, `كل ${service.ar}`)}
+                  <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+                </Link>
+              )}
+            </div>
+            {offers.length ? (
+              <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-6 xl:grid-cols-4">
+                {offers.map((x) => (
+                  <ServiceCard key={x.id} s={x} testId="provider-service" />
+                ))}
+              </div>
+            ) : (
+              <p className="mt-6 text-[15px]" style={{ color: MUTED }}>{t('No services listed yet.', 'لا توجد خدمات مدرجة بعد.')}</p>
             )}
-          />
+          </section>
         )}
 
         {tab === 'about' && (
