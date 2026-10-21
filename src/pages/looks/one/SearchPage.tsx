@@ -9,9 +9,9 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import {
-  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, SERVICES, SERVICES_MENU,
+  CATEGORIES, ROOMS, STYLES, ALL_STORES, PRICE_BANDS, SORT_OPTIONS, PRODUCT_SUBS,
   parseSearch, serializeSearch, filterCatalog, lookBase, searchPath, storeOf,
-  type Lang, type SearchQuery, type SortKey, type LookStore, type LookService, type StoreKey,
+  type Lang, type SearchQuery, type SortKey, type LookStore, type StoreKey, type CategoryKey,
 } from '../lookShared';
 import {
   BG, INK, OLIVE, HAIR, TILE,
@@ -19,19 +19,22 @@ import {
   StoreMark,
 } from './ui';
 import { EmptyState, Tabs, capsCls } from './kit';
-import { categoryPath } from './ServicePage';
-import { PROVIDERS } from './data';
+import { categorySlugOf } from './ServicePage';
+import { filterServices, type ServiceItem } from './servicesData';
+import { ServiceCard } from './ServiceCard';
 
 type SearchTab = 'all' | 'products' | 'stores' | 'services';
 const TAB_KEYS: SearchTab[] = ['all', 'products', 'stores', 'services'];
 
-type FacetKey = 'category' | 'room' | 'style' | 'store' | 'price';
+type FacetKey = 'category' | 'sub' | 'room' | 'style' | 'store' | 'price';
 
 interface FacetOption { key: string; label: string }
 interface Facet { key: FacetKey; label: string; options: FacetOption[] }
 
-const buildFacets = (lang: Lang, t: (en: string, ar: string) => string): Facet[] => [
+const buildFacets = (lang: Lang, t: (en: string, ar: string) => string, category?: CategoryKey | ''): Facet[] => [
   { key: 'category', label: t('Category', 'التصنيف'), options: CATEGORIES.map((c) => ({ key: c.key, label: c[lang] })) },
+  // the subcategories belong to the chosen category, so the facet appears with it
+  ...(category ? [{ key: 'sub' as const, label: t('Subcategory', 'التصنيف الفرعي'), options: PRODUCT_SUBS[category].map((x) => ({ key: x.key, label: x[lang] })) }] : []),
   { key: 'room', label: t('Room', 'الغرفة'), options: ROOMS.map((r) => ({ key: r.key, label: r[lang] })) },
   { key: 'style', label: t('Style', 'الأسلوب'), options: STYLES.map((s) => ({ key: s.key, label: s[lang] })) },
   { key: 'store', label: t('Store', 'المتجر'), options: ALL_STORES.map((s) => ({ key: s.key, label: s.name[lang] })) },
@@ -76,7 +79,7 @@ function Facets({
                   <li key={o.key}>
                     <button
                       type="button"
-                      onClick={() => update({ [f.key]: active ? '' : o.key } as Partial<SearchQuery>)}
+                      onClick={() => update({ [f.key]: active ? '' : o.key, ...(f.key === 'category' ? { sub: '' } : {}) } as Partial<SearchQuery>)}
                       aria-pressed={active}
                       disabled={empty}
                       data-testid={`facet-${f.key}-${o.key}`}
@@ -157,7 +160,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
 
   const query = useMemo(() => parseSearch(sp), [sp]);
   const results = useMemo(() => filterCatalog(query, lang), [query, lang]);
-  const facets = useMemo(() => buildFacets(lang, t), [lang, t]);
+  const facets = useMemo(() => buildFacets(lang, t, query.category), [lang, t, query.category]);
 
   /* the tab rides along in the URL beside the query, outside SearchQuery */
   const rawTab = sp.get('tab') as SearchTab | null;
@@ -180,7 +183,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const hit = (...xs: string[]) => !needle || xs.some((x) => x.toLowerCase().includes(needle));
   const stores = ALL_STORES.filter((s) => hit(s.name.en, s.name.ar, s.specialty.en, s.specialty.ar));
   // a service matches by its own name or by any of its sub-services ("SPC" finds flooring)
-  const services = SERVICES.filter((s, i) => hit(s.en, s.ar, ...(SERVICES_MENU[i]?.items ?? []).flatMap((it) => [it.en, it.ar])));
+  const services = filterServices({ q: query.q }, categorySlugOf);
 
   const update = useCallback(
     (patch: Partial<SearchQuery>) => setSp(withTab(serializeSearch({ ...query, ...patch }))),
@@ -222,13 +225,15 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
 
   /* names behind the active facets — for the title, the breadcrumb and the chips */
   const catName = CATEGORIES.find((c) => c.key === query.category)?.[lang];
+  const subs = query.category ? PRODUCT_SUBS[query.category] : [];
+  const subName = subs.find((x) => x.key === query.sub)?.[lang];
   const roomName = ROOMS.find((r) => r.key === query.room)?.[lang];
   const styleName = STYLES.find((s) => s.key === query.style)?.[lang];
   const storeName = ALL_STORES.find((s) => s.key === query.store)?.name[lang];
 
   const title = query.q
     ? t(`Results for “${query.q}”`, `نتائج البحث عن «${query.q}»`)
-    : catName ?? roomName ?? styleName ?? storeName ?? t('Products', 'المنتجات');
+    : subName ?? catName ?? roomName ?? styleName ?? storeName ?? t('Products', 'المنتجات');
 
   const chips: { key: string; label: string; clear: () => void }[] = [];
   if (query.q) chips.push({ key: 'q', label: `“${query.q}”`, clear: () => update({ q: '' }) });
@@ -243,7 +248,8 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
     { label: t('Products', 'المنتجات'), to: searchPath(1) },
-    ...(catName ? [{ label: catName }] : []),
+    ...(catName ? [{ label: catName, ...(subName ? { to: searchPath(1, { category: query.category }) } : {}) }] : []),
+    ...(subName ? [{ label: subName }] : []),
   ];
 
   const labelCls = eyebrowCls(isAr, 'text-[11px] text-[#5F5950]');
@@ -268,7 +274,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
                   <button
                     key={c.key || 'all'}
                     type="button"
-                    onClick={() => update({ category: c.key })}
+                    onClick={() => update({ category: c.key, sub: '' })}
                     aria-pressed={on}
                     className={`h-10 shrink-0 whitespace-nowrap border px-4 text-[14px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white text-[#171512] hover:border-[#171512]'}`}
                     style={on ? undefined : { borderColor: HAIR }}
@@ -279,6 +285,25 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
               })}
             </div>
           </div>
+          {subs.length > 0 && (
+            <div className="scrollbar-hide -mx-6 mt-3 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0 lg:justify-end" data-testid="catalog-subcategories">
+              {[{ key: '', label: t(`All ${catName ?? ''}`, `كل ${catName ?? ''}`) }, ...subs.map((x) => ({ key: x.key, label: x[lang] }))].map((x) => {
+                const on = (query.sub ?? '') === x.key;
+                return (
+                  <button
+                    key={x.key || 'all'}
+                    type="button"
+                    onClick={() => update({ sub: x.key })}
+                    aria-pressed={on}
+                    className={`h-9 shrink-0 whitespace-nowrap border px-4 text-[13.5px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white hover:border-[#171512]'}`}
+                    style={on ? undefined : { borderColor: HAIR, color: '#4A443C' }}
+                  >
+                    {x.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : (
       <>
@@ -377,7 +402,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
             </Strip>
           )}
           {services.length > 0 && (
-            <Strip title={t('Services', 'الخدمات')} more={services.length > 4 ? () => setTab('services') : undefined} count={services.length}>
+            <Strip title={t('Services', 'الخدمات')} moreTo={`${lookBase(1)}/services`} count={services.length}>
               <ServiceGrid services={services.slice(0, 4)} rail />
             </Strip>
           )}
@@ -705,32 +730,14 @@ function StoreGrid({ stores, rail = false }: { stores: LookStore[]; rail?: boole
   );
 }
 
-function ServiceGrid({ services, rail = false }: { services: LookService[]; rail?: boolean }) {
-  const { lang, t } = useLook();
-  const isAr = lang === 'ar';
+function ServiceGrid({ services, rail = false }: { services: ServiceItem[]; rail?: boolean }) {
   return (
-    <ul className={rail ? railCls : gridCls} data-testid="service-results">
-      {services.map((s) => {
-        const partners = PROVIDERS.filter((p) => p.service === s.en).length;
-        return (
-          <li key={s.en} className={rail ? railItemCls : undefined}>
-            <Link to={categoryPath(s)} className={rowCls} style={{ borderColor: HAIR }}>
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center transition-colors group-hover:bg-[#5A6B4D]" style={{ backgroundColor: TILE }}>
-                <s.icon size={22} strokeWidth={1.4} className="text-[#5A6B4D] transition-colors group-hover:text-white" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-bold">{isAr ? s.ar : s.en}</span>
-                <span className="mt-1 block text-[13px]" style={{ color: '#5F5950' }}>
-                  {partners
-                    ? t(`${partners} partner${partners > 1 ? 's' : ''} · free visit`, `${partners} ${partners > 1 ? 'شركاء' : 'شريك'} · زيارة مجانية`)
-                    : t('Diyar crews · free visit', 'فرق ديار · زيارة مجانية')}
-                </span>
-              </span>
-              <ArrowRight size={14} strokeWidth={1.5} className={`shrink-0 text-[#5F5950] transition-transform duration-300 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
-            </Link>
-          </li>
-        );
-      })}
+    <ul className={rail ? 'grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4 md:gap-x-6' : 'grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-6 xl:grid-cols-4'} data-testid="service-results">
+      {services.map((s) => (
+        <li key={s.id}>
+          <ServiceCard s={s} rail={rail} />
+        </li>
+      ))}
     </ul>
   );
 }

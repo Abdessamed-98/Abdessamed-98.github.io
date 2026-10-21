@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { categoryPath, servicePath } from './one/ServicePage';
+import { categoryPath, servicePath, subSlug } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -74,8 +74,13 @@ const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categor
 /** The menu's headings are categories; the items under them are the services. */
 /** The services menu lists categories only; what is in a category is on its page. */
 const STORE_ROWS: MenuGroup[] = ALL_STORES.map((st) => ({ title: st.name, items: [] }));
-const CATEGORY_ROWS: MenuGroup[] = CATEGORIES.map((c) => ({ title: { en: c.en, ar: c.ar }, items: [] }));
-const SERVICE_CATEGORY_ROWS: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: [] }));
+/** A product subcategory in group i opens the catalogue on it. */
+const shopItemTo = (i: number) => {
+  const key = shopGroupKey(i);
+  return key ? (it: Bi) => searchPath(1, { category: key, sub: subSlug(it) }) : undefined;
+};
+/** A service subcategory in group i opens the services catalogue on it. */
+const serviceItemTo = (i: number) => (SERVICES[i] ? (it: Bi) => servicePath(SERVICES[i], it) : undefined);
 /** «المتجر» became «المتاجر»: the item opens the stores, not one shop. */
 const NAV_LABEL: Record<string, Bi> = { Shop: { en: 'Stores', ar: 'المتاجر' } };
 const navLabel = (item: Bi): Bi => NAV_LABEL[item.en] ?? item;
@@ -278,11 +283,11 @@ function ShopHotspot({
 /** One mega-menu column: group title + subcategory links. `to` makes them real links. */
 function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; key?: string | number }) {
   const isAr = useLang() === 'ar';
-  const titleCls = `text-[11px] font-bold uppercase text-[#171512] ${
+  const titleCls = `text-[12.5px] font-bold uppercase text-[#171512] ${
     isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
   }`;
   const itemCls =
-    'block text-[12.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
+    'block text-[13.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
   const title = isAr ? group.title.ar : group.title.en;
   return (
     <div className="text-start">
@@ -713,7 +718,7 @@ function MobileDrawer({
               />
               <DrawerSection
                 label={t('Products', 'المنتجات')}
-                groups={CATEGORY_ROWS}
+                groups={SHOP_MENU}
                 open={section === 'products'}
                 onToggle={() => toggleSection('products')}
                 openGroup={group}
@@ -723,17 +728,19 @@ function MobileDrawer({
                   const key = shopGroupKey(i);
                   return key ? searchPath(1, { category: key }) : undefined;
                 }}
+                groupItemTo={shopItemTo}
                 allLink={{ to: searchPath(1), label: t('All products', 'كل المنتجات') }}
               />
               <DrawerSection
                 label={t('Services', 'الخدمات')}
-                groups={SERVICE_CATEGORY_ROWS}
+                groups={SERVICES_MENU}
                 open={section === 'services'}
                 onToggle={() => toggleSection('services')}
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
                 groupTo={serviceGroupTo}
+                groupItemTo={serviceItemTo}
                 allLink={{ to: `${lookBase(1)}/services`, label: t('All Services', 'كل الخدمات') }}
               />
 
@@ -1153,25 +1160,15 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10" onClick={closeMenu}>
-                  {/* the catalogue's six categories */}
-                  <ul className="grid grid-cols-6 gap-4">
-                    {CATEGORIES.map((c) => (
-                      <li key={c.key}>
-                        <Link to={searchPath(1, { category: c.key })} data-testid="mega-product-category" className="group/pc block text-start">
-                          <span className="block aspect-[4/3] overflow-hidden" style={{ backgroundColor: TILE }}>
-                            <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover/pc:scale-105" />
-                          </span>
-                          <span className={`mt-3 block text-[14px] font-bold text-[#171512] decoration-[#5A6B4D] underline-offset-4 group-hover/pc:underline ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>
-                            {t(c.en, c.ar)}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* and by room, the other way the catalogue is filtered */}
-                  <div className="mt-6 flex items-center gap-7 border-t pt-5" style={{ borderColor: HAIR }}>
+                <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10" onClick={closeMenu}>
+                  {/* the six categories with their subcategories — the same two levels the catalogue filters by */}
+                  <div className="grid grid-cols-6 gap-x-8" data-testid="mega-product-groups">
+                    {SHOP_MENU.map((group, i) => {
+                      const key = shopGroupKey(i);
+                      return <MegaGroup key={group.title.en} group={group} to={key ? searchPath(1, { category: key }) : undefined} itemTo={shopItemTo(i)} onNavigate={closeMenu} />;
+                    })}
+                  </div>
+                  <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3 border-t pt-5" style={{ borderColor: HAIR }}>
                     <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by room', 'تسوق حسب الغرفة')}</p>
                     <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-x-7 gap-y-2">
                       {ROOMS.map((r) => (
@@ -1199,27 +1196,14 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
-                    {/* the eight service categories — each opens its own page, where its services are listed */}
-                    <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3">
-                      {SERVICES.map((s) => (
-                        <Link
-                          key={s.en}
-                          to={categoryPath(s)}
-                          onClick={closeMenu}
-                          data-testid="mega-service-category"
-                          className="group/sc flex items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
-                          style={{ borderColor: HAIR }}
-                        >
-                          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#F6F3EC] transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white">
-                            <s.icon size={19} strokeWidth={1.4} />
-                          </span>
-                          <span className={`text-[14px] font-bold leading-snug text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
-                        </Link>
+                    {/* the eight categories with their subcategories, 4 × 2 */}
+                    <div className="col-span-9 grid grid-cols-4 gap-x-8 gap-y-10" data-testid="mega-service-groups">
+                      {SERVICES_MENU.map((group, i) => (
+                        <MegaGroup key={group.title.en} group={group} to={serviceGroupTo(i)} itemTo={serviceItemTo(i)} onNavigate={closeMenu} />
                       ))}
                     </div>
-                    {/* single featured tile */}
                     <div className="col-span-3 border-s ps-8" style={{ borderColor: HAIR }}>
                       <MegaFeatured
                         img={MENU_FEATURED.services[0].img}
@@ -1230,7 +1214,7 @@ export default function LookOne() {
                       />
                     </div>
                   </div>
-                  <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-3 border-t pt-6" style={{ borderColor: HAIR }}>
+                  <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-3 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />
                     <ViewMore label={t('Service providers', 'مقدمو الخدمات')} to={`${lookBase(1)}/providers`} />
                   </div>

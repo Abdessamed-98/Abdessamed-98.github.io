@@ -108,165 +108,16 @@ export const FOOTER_QUICK: Bi[] = [
   { en: 'Contact Us', ar: 'اتصل بنا' },
 ];
 
+/** A subcategory: one level under a product or service category. */
+export interface SubCat extends Bi {
+  key: string;
+}
+
 /** A mega-menu column: a category group with its subcategories. */
 export interface MenuGroup {
   title: Bi;
-  items: Bi[];
+  items: SubCat[];
 }
-
-/** Shop mega-menu — groups and sub-items from the client's structure PDF. */
-export const SHOP_MENU: MenuGroup[] = [
-  {
-    title: { en: 'Home Furniture', ar: 'الأثاث المنزلي' },
-    items: [
-      { en: 'Bedrooms', ar: 'غرف النوم' },
-      { en: 'Living Rooms', ar: 'غرف المعيشة' },
-      { en: 'Dining Rooms', ar: 'غرف الطعام' },
-      { en: 'Entryway Furniture', ar: 'مداخل المنزل' },
-      { en: 'Walk-In Closets', ar: 'غرف الملابس' },
-      { en: 'Outdoor Seating', ar: 'الجلسات الخارجية' },
-      { en: 'Laundry Rooms', ar: 'غرف الغسيل' },
-    ],
-  },
-  {
-    title: { en: 'Office Furniture', ar: 'الأثاث المكتبي' },
-    items: [
-      { en: 'Office Desks', ar: 'المكاتب' },
-      { en: 'Office Chairs', ar: 'الكراسي المكتبية' },
-      { en: 'Meeting Room Furniture', ar: 'أثاث غرف الاجتماعات' },
-      { en: 'Storage Cabinets', ar: 'الخزائن' },
-      { en: 'Reception Furniture', ar: 'أثاث الاستقبال' },
-      { en: 'Workstations', ar: 'محطات العمل' },
-    ],
-  },
-  {
-    title: { en: 'Lighting', ar: 'الإنارات' },
-    items: [
-      { en: 'Chandeliers', ar: 'الثريات' },
-      { en: 'Pendant Lights', ar: 'الإنارات المعلقة' },
-      { en: 'Wall Lights', ar: 'الإنارات الجدارية' },
-      { en: 'Floor Lamps', ar: 'الإنارات الأرضية' },
-      { en: 'Table Lamps', ar: 'الأباجورات' },
-      { en: 'Outdoor Lighting', ar: 'الإنارات الخارجية' },
-      { en: 'Smart Lighting', ar: 'الإنارات الذكية' },
-    ],
-  },
-  {
-    title: { en: 'Rugs & Carpets', ar: 'السجاد' },
-    items: [
-      { en: 'Area Rugs', ar: 'السجاد' },
-      { en: 'Runner Rugs', ar: 'سجاد الممرات' },
-      { en: 'Bedroom Rugs', ar: 'سجاد غرف النوم' },
-      { en: 'Living Room Rugs', ar: 'سجاد الصالونات' },
-      { en: 'Outdoor Rugs', ar: 'السجاد الخارجي' },
-    ],
-  },
-  {
-    title: { en: 'Bathroom Solutions', ar: 'دورات المياه' },
-    items: [
-      { en: 'Wash Basins', ar: 'المغاسل' },
-      { en: 'Faucets', ar: 'الصنابير' },
-      { en: 'Shower Systems', ar: 'أنظمة الاستحمام' },
-      { en: 'Bathroom Cabinets', ar: 'خزائن الحمام' },
-      { en: 'Mirrors', ar: 'المرايا' },
-      { en: 'Smart Bathroom Solutions', ar: 'حلول الحمامات الذكية' },
-    ],
-  },
-  {
-    title: { en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
-    items: [
-      { en: 'Wall Art', ar: 'اللوحات' },
-      { en: 'Mirrors', ar: 'المرايا' },
-      { en: 'Vases & Decorative Pieces', ar: 'التحف والفازات' },
-      { en: 'Cushions', ar: 'الوسائد' },
-      { en: 'Throws & Blankets', ar: 'البطانيات' },
-      { en: 'Home Fragrances', ar: 'العطور المنزلية' },
-    ],
-  },
-];
-
-/** Services mega-menu — groups and sub-items from the client's structure PDF. */
-export const SERVICES_MENU: MenuGroup[] = [
-  {
-    title: { en: 'Interior Design', ar: 'التصميم الداخلي' },
-    items: [
-      { en: 'Residential Design', ar: 'التصميم السكني' },
-      { en: 'Commercial Design', ar: 'التصميم التجاري' },
-      { en: 'Space Planning', ar: 'تخطيط المساحات' },
-      { en: '3D Visualization', ar: 'التصاميم ثلاثية الأبعاد' },
-      { en: 'Design Consultation', ar: 'الاستشارات التصميمية' },
-    ],
-  },
-  {
-    title: { en: 'Door Solutions', ar: 'حلول الأبواب' },
-    items: [
-      { en: 'Wooden Doors', ar: 'الأبواب الخشبية' },
-      { en: 'WPC Doors', ar: 'أبواب WPC' },
-      { en: 'Sliding Doors', ar: 'الأبواب المنزلقة' },
-      { en: 'Glass Doors', ar: 'الأبواب الزجاجية' },
-      { en: 'Custom Door Manufacturing', ar: 'أبواب حسب الطلب' },
-    ],
-  },
-  {
-    title: { en: 'Custom Furniture', ar: 'تنفيذ الأثاث' },
-    items: [
-      { en: 'Residential Furniture', ar: 'الأثاث السكني' },
-      { en: 'Hotel Furniture', ar: 'أثاث الفنادق' },
-      { en: 'Custom Joinery', ar: 'الأعمال الخشبية المخصصة' },
-      { en: 'Built-In Furniture', ar: 'الأثاث الثابت' },
-      { en: 'Wardrobes & Closets', ar: 'الخزائن وغرف الملابس' },
-    ],
-  },
-  {
-    title: { en: 'Painting & Wall Finishes', ar: 'الدهانات والجداريات' },
-    items: [
-      { en: 'Interior Painting', ar: 'الدهانات الداخلية' },
-      { en: 'Exterior Painting', ar: 'الدهانات الخارجية' },
-      { en: 'Wallpaper Installation', ar: 'تركيب ورق الجدران' },
-      { en: 'Wall Panels', ar: 'ألواح الجدران' },
-      { en: 'Decorative Finishes', ar: 'التشطيبات الديكورية' },
-    ],
-  },
-  {
-    title: { en: 'Flooring Solutions', ar: 'الأرضيات' },
-    items: [
-      { en: 'Porcelain Flooring', ar: 'أرضيات البورسلان' },
-      { en: 'Marble Flooring', ar: 'الأرضيات الرخامية' },
-      { en: 'SPC Flooring', ar: 'أرضيات SPC' },
-      { en: 'Wooden Flooring', ar: 'الأرضيات الخشبية' },
-      { en: 'Carpet Flooring', ar: 'الأرضيات الموكيت' },
-    ],
-  },
-  {
-    title: { en: 'Finishing & Decorative Works', ar: 'التشطيبات والديكورات' },
-    items: [
-      { en: 'Wall Cladding', ar: 'تشطيبات الواجهات' },
-      { en: 'Architectural Details', ar: 'التشطيبات المعمارية' },
-      { en: 'Decorative Finishes', ar: 'التشطيبات الديكورية' },
-      { en: 'Turnkey Finishing', ar: 'التشطيبات المتكاملة' },
-    ],
-  },
-  {
-    title: { en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت' },
-    items: [
-      { en: 'Glass Facades', ar: 'الواجهات الزجاجية' },
-      { en: 'Skurit Systems', ar: 'أنظمة السكوريت' },
-      { en: 'Skylights', ar: 'السكاي لايت' },
-      { en: 'Glass Partitions', ar: 'القواطع الزجاجية' },
-      { en: 'Storefront Systems', ar: 'واجهات المعارض والمحلات' },
-    ],
-  },
-  {
-    title: { en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة' },
-    items: [
-      { en: 'Fire Alarm Systems', ar: 'أنظمة إنذار الحريق' },
-      { en: 'CCTV Systems', ar: 'أنظمة المراقبة' },
-      { en: 'Access Control Systems', ar: 'أنظمة التحكم بالدخول' },
-      { en: 'Safety Signage', ar: 'اللوحات الإرشادية' },
-      { en: 'Safety Compliance', ar: 'حلول ومعايير السلامة' },
-    ],
-  },
-];
 
 /**
  * Shoppable "Shop the Look" hotspots.
@@ -377,6 +228,123 @@ export const SERVICES: LookService[] = [
   { icon: PanelTop, en: 'Glass & Skylight Facades', ar: 'واجهات الزجاج والسكوريت', img: IMG.hero },
   { icon: ShieldCheck, en: 'Safety Equipment & Systems', ar: 'أدوات وأنظمة السلامة', img: IMG.restaurant },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Subcategories — one level under every product and service category  */
+/* (the same two-level browse on both sides)                           */
+/* ------------------------------------------------------------------ */
+
+export const PRODUCT_SUBS: Record<CategoryKey, SubCat[]> = {
+  home: [
+    { key: 'sofas', en: 'Sofas', ar: 'الأرائك والكنب' },
+    { key: 'armchairs', en: 'Armchairs & Seating', ar: 'الكراسي والمقاعد' },
+    { key: 'tables', en: 'Coffee & Side Tables', ar: 'الطاولات' },
+    { key: 'beds', en: 'Beds', ar: 'الأسرّة' },
+    { key: 'storage', en: 'Wardrobes & Storage', ar: 'الخزائن والتخزين' },
+    { key: 'dining', en: 'Dining Tables & Chairs', ar: 'طاولات وكراسي الطعام' },
+    { key: 'majlis-sets', en: 'Majlis Sets', ar: 'المجالس' },
+    { key: 'outdoor', en: 'Outdoor Seating', ar: 'الجلسات الخارجية' },
+  ],
+  office: [
+    { key: 'desks', en: 'Desks', ar: 'المكاتب' },
+    { key: 'office-chairs', en: 'Office Chairs', ar: 'الكراسي المكتبية' },
+    { key: 'shelving', en: 'Shelving & Cabinets', ar: 'الخزائن والأرفف' },
+    { key: 'meeting-reception', en: 'Meeting & Reception', ar: 'أثاث الاجتماعات والاستقبال' },
+  ],
+  lighting: [
+    { key: 'chandeliers', en: 'Chandeliers', ar: 'الثريات' },
+    { key: 'pendants', en: 'Pendant Lights', ar: 'الإنارات المعلقة' },
+    { key: 'wall-lights', en: 'Wall Lights', ar: 'الإنارات الجدارية' },
+    { key: 'floor-lamps', en: 'Floor Lamps', ar: 'الإنارات الأرضية' },
+    { key: 'table-lamps', en: 'Table & Desk Lamps', ar: 'الأباجورات ومصابيح المكتب' },
+    { key: 'outdoor-lighting', en: 'Outdoor Lighting', ar: 'الإنارات الخارجية' },
+  ],
+  rugs: [
+    { key: 'area-rugs', en: 'Living Room Rugs', ar: 'سجاد الصالات' },
+    { key: 'bedroom-rugs', en: 'Bedroom Rugs', ar: 'سجاد غرف النوم' },
+    { key: 'runners', en: 'Runners & Office Rugs', ar: 'سجاد الممرات والمكاتب' },
+    { key: 'outdoor-rugs', en: 'Outdoor Rugs', ar: 'السجاد الخارجي' },
+  ],
+  bath: [
+    { key: 'basins', en: 'Wash Basins', ar: 'المغاسل' },
+    { key: 'faucets', en: 'Faucets', ar: 'الصنابير' },
+    { key: 'showers', en: 'Shower Systems', ar: 'أنظمة الاستحمام' },
+    { key: 'bath-cabinets', en: 'Bathroom Cabinets', ar: 'خزائن الحمام' },
+    { key: 'bath-mirrors', en: 'Bathroom Mirrors', ar: 'مرايا الحمام' },
+    { key: 'smart-bath', en: 'Smart Bathroom', ar: 'الحمامات الذكية' },
+  ],
+  decor: [
+    { key: 'wall-art', en: 'Wall Art', ar: 'اللوحات والجداريات' },
+    { key: 'vases', en: 'Vases & Objects', ar: 'المزهريات والتحف' },
+    { key: 'cushions', en: 'Cushions & Throws', ar: 'الوسائد والمفروشات' },
+    { key: 'plants', en: 'Plants & Planters', ar: 'النباتات والأصص' },
+    { key: 'mirrors', en: 'Mirrors', ar: 'المرايا' },
+    { key: 'fragrances', en: 'Home Fragrances', ar: 'العطور المنزلية' },
+  ],
+};
+
+/** keyed by the service category's English name (SERVICES[i].en) */
+export const SERVICE_SUBS: Record<string, SubCat[]> = {
+  'Interior Design': [
+    { key: 'residential-design', en: 'Residential Design', ar: 'التصميم السكني' },
+    { key: 'commercial-design', en: 'Commercial Design', ar: 'التصميم التجاري' },
+    { key: 'space-planning', en: 'Space Planning', ar: 'تخطيط المساحات' },
+    { key: '3d-visualization', en: '3D Visualization', ar: 'التصاميم ثلاثية الأبعاد' },
+    { key: 'design-consultation', en: 'Design Consultation', ar: 'الاستشارات التصميمية' },
+  ],
+  'Door Solutions': [
+    { key: 'wooden-doors', en: 'Wooden Doors', ar: 'الأبواب الخشبية' },
+    { key: 'wpc-doors', en: 'WPC Doors', ar: 'أبواب WPC' },
+    { key: 'sliding-doors', en: 'Sliding Doors', ar: 'الأبواب المنزلقة' },
+    { key: 'glass-doors', en: 'Glass Doors', ar: 'الأبواب الزجاجية' },
+    { key: 'custom-doors', en: 'Custom Doors', ar: 'أبواب حسب الطلب' },
+  ],
+  'Custom Furniture': [
+    { key: 'residential-furniture', en: 'Residential Furniture', ar: 'الأثاث السكني' },
+    { key: 'hospitality-furniture', en: 'Hotel & Project Furniture', ar: 'أثاث الفنادق والمشاريع' },
+    { key: 'custom-joinery', en: 'Custom Joinery', ar: 'الأعمال الخشبية المخصصة' },
+    { key: 'built-in-furniture', en: 'Built-In Furniture', ar: 'الأثاث الثابت والمدمج' },
+    { key: 'wardrobes-closets', en: 'Wardrobes & Closets', ar: 'الخزائن وغرف الملابس' },
+  ],
+  'Painting & Wall Finishes': [
+    { key: 'interior-painting', en: 'Interior Painting', ar: 'الدهانات الداخلية' },
+    { key: 'exterior-painting', en: 'Exterior Painting', ar: 'الدهانات الخارجية' },
+    { key: 'wallpaper', en: 'Wallpaper', ar: 'ورق الجدران' },
+    { key: 'wall-panels', en: 'Wall Panels & Cladding', ar: 'ألواح وتكسيات الجدران' },
+    { key: 'decorative-finishes', en: 'Decorative Finishes', ar: 'التشطيبات الديكورية' },
+  ],
+  'Flooring Solutions': [
+    { key: 'porcelain-ceramic', en: 'Porcelain & Ceramic', ar: 'البورسلان والسيراميك' },
+    { key: 'marble', en: 'Marble', ar: 'الرخام' },
+    { key: 'spc-flooring', en: 'SPC Flooring', ar: 'أرضيات SPC' },
+    { key: 'wooden-flooring', en: 'Wooden Flooring', ar: 'الأرضيات الخشبية' },
+    { key: 'carpet', en: 'Carpet', ar: 'الموكيت' },
+  ],
+  'Finishing & Decorative': [
+    { key: 'facade-finishes', en: 'Facade Finishes', ar: 'تشطيبات الواجهات' },
+    { key: 'architectural-details', en: 'Architectural Details', ar: 'التفاصيل المعمارية' },
+    { key: 'ceilings-gypsum', en: 'Ceilings & Gypsum', ar: 'الأسقف والجبس' },
+    { key: 'turnkey-finishing', en: 'Turnkey Finishing', ar: 'التشطيب المتكامل' },
+  ],
+  'Glass & Skylight Facades': [
+    { key: 'glass-facades', en: 'Glass Facades', ar: 'الواجهات الزجاجية' },
+    { key: 'skurit-systems', en: 'Skurit Systems', ar: 'أنظمة السكوريت' },
+    { key: 'skylights', en: 'Skylights', ar: 'السكاي لايت' },
+    { key: 'glass-partitions', en: 'Glass Partitions', ar: 'القواطع الزجاجية' },
+    { key: 'storefronts', en: 'Storefront Systems', ar: 'واجهات المعارض والمحلات' },
+  ],
+  'Safety Equipment & Systems': [
+    { key: 'fire-alarm', en: 'Fire Alarm Systems', ar: 'أنظمة إنذار الحريق' },
+    { key: 'cctv', en: 'CCTV Systems', ar: 'أنظمة المراقبة' },
+    { key: 'access-control', en: 'Access Control', ar: 'أنظمة التحكم بالدخول' },
+    { key: 'safety-signage', en: 'Safety Signage', ar: 'اللوحات الإرشادية' },
+    { key: 'safety-compliance', en: 'Safety Compliance', ar: 'حلول ومعايير السلامة' },
+  ],
+};
+
+/** The two menus, built from the same subcategories the catalogues filter by. */
+export const SHOP_MENU: MenuGroup[] = CATEGORIES.map((c) => ({ title: { en: c.en, ar: c.ar }, items: PRODUCT_SUBS[c.key] }));
+export const SERVICES_MENU: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: SERVICE_SUBS[s.en] ?? [] }));
 
 export const PRODUCTS: LookProduct[] = [
   { id: 1, img: '/looks/product-01.jpg', brand: 'DIYAR HOME', nameEn: 'Olive 3-Seater Sofa with Armrest', nameAr: 'أريكة أوليف ثلاثية المقاعد', price: 14937, rating: 5 },
@@ -719,6 +687,8 @@ export interface CatalogProduct {
   name: Bi;
   store: StoreKey;
   category: CategoryKey;
+  /** PRODUCT_SUBS[category] key — filled in below for every piece */
+  sub?: string;
   room: RoomKey;
   style: StyleKey;
   price: number;
@@ -1042,6 +1012,37 @@ CATALOG.push(
   })),
 );
 
+/** Which subcategory each piece sits in (by id). */
+const PRODUCT_SUB_OF: Record<string, number[]> = {
+  sofas: [1, 2, 3, 4, 6, 7],
+  armchairs: [5, 8, 9, 13, 15],
+  tables: [16, 22, 32],
+  beds: [20],
+  storage: [23, 29],
+  dining: [26, 27],
+  'majlis-sets': [31],
+  desks: [36],
+  'office-chairs': [37],
+  shelving: [39],
+  'floor-lamps': [10, 17],
+  pendants: [28],
+  'table-lamps': [38],
+  'area-rugs': [18, 33],
+  'bedroom-rugs': [24],
+  runners: [40],
+  'wall-art': [11, 19, 25, 30, 35],
+  vases: [12],
+  plants: [14, 41],
+  cushions: [21, 34],
+};
+for (const [sub, ids] of Object.entries(PRODUCT_SUB_OF)) {
+  for (const id of ids) {
+    const p = CATALOG.find((x) => x.id === id);
+    if (p) p.sub = sub;
+  }
+}
+export const subOf = (p: CatalogProduct): SubCat | undefined => PRODUCT_SUBS[p.category].find((x) => x.key === p.sub);
+
 /** a point opens its card away from the nearest edge of the photograph */
 const spotOf = (id: string, productId: number, thumb: string, name: Bi, category: Bi, price: number, left: number, top: number): RoomHotspot => ({
   id, productId, thumb, name, category, price,
@@ -1171,6 +1172,7 @@ export const AVAILABILITY_LABEL: Record<Availability, Bi> = {
 export interface SearchQuery {
   q?: string;
   category?: CategoryKey | '';
+  sub?: string;
   room?: RoomKey | '';
   style?: StyleKey | '';
   store?: StoreKey | '';
@@ -1184,6 +1186,7 @@ export function parseSearch(sp: URLSearchParams): SearchQuery {
   return {
     q: sp.get('q') ?? '',
     category: (sp.get('category') as CategoryKey | null) ?? '',
+    sub: sp.get('sub') ?? '',
     room: (sp.get('room') as RoomKey | null) ?? '',
     style: (sp.get('style') as StyleKey | null) ?? '',
     store: (sp.get('store') as StoreKey | null) ?? '',
@@ -1198,6 +1201,7 @@ export function serializeSearch(qy: SearchQuery): URLSearchParams {
   const sp = new URLSearchParams();
   if (qy.q) sp.set('q', qy.q);
   if (qy.category) sp.set('category', qy.category);
+  if (qy.sub) sp.set('sub', qy.sub);
   if (qy.room) sp.set('room', qy.room);
   if (qy.style) sp.set('style', qy.style);
   if (qy.store) sp.set('store', qy.store);
@@ -1217,6 +1221,7 @@ export function filterCatalog(qy: SearchQuery, lang: Lang): CatalogProduct[] {
   const band = PRICE_BANDS.find((b) => b.key === qy.price);
   let out = CATALOG.filter((p) => {
     if (qy.category && p.category !== qy.category) return false;
+    if (qy.sub && p.sub !== qy.sub) return false;
     if (qy.room && p.room !== qy.room) return false;
     if (qy.style && p.style !== qy.style) return false;
     if (qy.store && p.store !== qy.store) return false;
@@ -1266,6 +1271,8 @@ export interface QuickCategory {
   /** Ground baked into the artwork — decides whether the label prints ink or cream. */
   tone: 'light' | 'dark';
   category?: CategoryKey; room?: RoomKey;
+  /** a service tile's destination in the services catalogue */
+  to?: string;
 }
 
 export const QUICK_CATEGORIES: QuickCategory[] = [
@@ -1279,16 +1286,16 @@ export const QUICK_CATEGORIES: QuickCategory[] = [
   { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', tone: 'light', category: 'decor' },
   { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/tiles/أثاث خارجي.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'outdoor' },
   { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/tiles/الحمامات.jpg', kind: 'shop', tone: 'light', category: 'bath' },
-  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/tiles/استشارات تصميم.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark' },
-  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark' },
+  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=interior-design' },
+  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=finishing-decorative' },
+  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=painting-wall-finishes' },
+  { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=custom-furniture&sub=residential-furniture' },
+  { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=custom-furniture&sub=custom-joinery' },
+  { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/tiles/استشارات تصميم.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=interior-design&sub=design-consultation' },
+  { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service', tone: 'dark', to: '/look/1/services' },
+  { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service', tone: 'dark', to: '/look/1/services' },
+  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=finishing-decorative' },
+  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=finishing-decorative' },
 ];
 
 /** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */

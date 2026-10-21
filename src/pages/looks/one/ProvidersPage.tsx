@@ -5,12 +5,13 @@
  */
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Briefcase, MapPin, Star } from 'lucide-react';
-import { SERVICES, SERVICES_MENU, lookBase } from '../lookShared';
+import { SERVICES, formatSAR, lookBase } from '../lookShared';
 import { Breadcrumb, HAIR, MUTED, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { CONTAINER, displayCls } from './kit';
 import { useShell } from './shellContext';
 import { PROVIDERS } from './data';
-import { serviceSlug, servicePath } from './ServicePage';
+import { serviceSlug, servicePathOf } from './ServicePage';
+import { servicesOfProvider } from './servicesData';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -22,12 +23,6 @@ export default function ProvidersPage() {
   const want = sp.get('category') ?? '';
   const cat = SERVICES.find((s) => serviceSlug(s) === want);
   const list = cat ? PROVIDERS.filter((p) => p.service === cat.en) : PROVIDERS;
-  // a category's menu items, so an offer's name can be shown in the visitor's language
-  const itemOf = (serviceEn: string, itemEn: string) => {
-    const i = SERVICES.findIndex((s) => s.en === serviceEn);
-    return SERVICES_MENU[i]?.items.find((x) => x.en === itemEn);
-  };
-
   return (
     <main className="pt-[72px]" data-testid="providers-page">
       <div className={`${CONTAINER} pt-8`}>
@@ -86,19 +81,16 @@ export default function ProvidersPage() {
                     <span className="flex items-center gap-1.5"><Briefcase size={13} strokeWidth={1.5} style={{ color: OLIVE }} />{t(`${p.jobs} jobs`, `${p.jobs} مشروع`)}</span>
                     <span className="flex items-center gap-1.5"><MapPin size={13} strokeWidth={1.5} style={{ color: OLIVE }} />{t(p.city.en, p.city.ar)}</span>
                   </div>
-                  {/* the services they take, each a link to that service's page */}
+                  {/* their services, each a link to its page */}
                   <ul className="mt-4 flex flex-wrap gap-1.5" data-testid="provider-offers">
-                    {p.offers.map((en) => {
-                      const it = itemOf(p.service, en);
-                      if (!it || !category) return null;
-                      return (
-                        <li key={en}>
-                          <Link to={servicePath(category, it)} className="inline-block border px-2.5 py-1 text-[13px] transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white" style={{ borderColor: HAIR }}>
-                            {t(it.en, it.ar)}
-                          </Link>
-                        </li>
-                      );
-                    })}
+                    {servicesOfProvider(p.id).map((x) => (
+                      <li key={x.id}>
+                        <Link to={servicePathOf(x)} className="inline-flex items-center gap-1.5 border px-2.5 py-1 text-[13px] transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white" style={{ borderColor: HAIR }}>
+                          {t(x.name.en, x.name.ar)}
+                          {x.priceFrom && <span className="opacity-60">· {formatSAR(x.priceFrom)}</span>}
+                        </Link>
+                      </li>
+                    ))}
                   </ul>
                   <div className="mt-auto flex items-center gap-3 pt-5">
                     <button type="button" onClick={() => openService(t(p.name.en, p.name.ar))} className={`px-5 py-2.5 ${primaryBtnCls(isAr)}`}>

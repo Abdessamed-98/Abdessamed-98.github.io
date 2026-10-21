@@ -29,8 +29,9 @@ import {
   useLook, ViewMore, Stars, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls, tileImg, StoreMark,
 } from './ui';
 import { Lightbox, Tabs } from './kit';
-import { servicePath } from './ServicePage';
+import { servicePathOf } from './ServicePage';
 import { RelatedServicesSection, relatedServicesFor } from './RelatedServices';
+import { providerOfService } from './servicesData';
 import { ShareSheet, TryAISheet } from './ProductSheets';
 import { sizeOptions } from './sizes';
 
@@ -561,12 +562,17 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               <p className="mt-1.5 text-[14px] text-neutral-500">{t('Finish the room with our vetted crews', 'أضف لمساتك الأخيرة مع خدماتنا الموثوقة')}</p>
               <ul className="mt-4 divide-y divide-[#E8E4DC]">
                 {relatedServicesFor(p.category).slice(0, 3).map((sv) => (
-                  <li key={`${sv.cat.en}/${sv.item.en}`}>
-                    <Link to={servicePath(sv.cat, sv.item)} data-testid="fit-service" className="group flex w-full items-center gap-3.5 py-3 text-start">
+                  <li key={sv.id}>
+                    <Link to={servicePathOf(sv)} data-testid="fit-service" className="group flex w-full items-center gap-3.5 py-3 text-start">
                       <img src={sv.img} alt="" loading="lazy" className="h-14 w-14 shrink-0 object-cover" style={{ backgroundColor: TILE }} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[14.5px] font-bold">{t(sv.item.en, sv.item.ar)}</span>
-                        <span className="mt-0.5 block truncate text-[13px] text-neutral-500">{t(sv.cat.en, sv.cat.ar)}</span>
+                        <span className="block truncate text-[14.5px] font-bold">{t(sv.name.en, sv.name.ar)}</span>
+                        <span className="mt-0.5 block truncate text-[13px] text-neutral-500">
+                          {(() => {
+                            const pv = providerOfService(sv);
+                            return `${pv ? t(pv.name.en, pv.name.ar) : ''}${sv.priceFrom ? ` · ${t('from', 'من')} ${formatSAR(sv.priceFrom)} ${t('SAR', 'ر.س')}` : ''}`;
+                          })()}
+                        </span>
                       </span>
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center border transition-colors group-hover:bg-[#171512] group-hover:text-white" style={{ borderColor: '#C9C2B4' }}>
                         <ArrowRight size={13} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />

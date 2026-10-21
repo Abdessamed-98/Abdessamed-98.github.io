@@ -78,6 +78,7 @@ export function QuickCategories() {
         <QuickRow
           label={t('Diyar Services', 'خدمات ديار')}
           allLabel={t('All Services', 'جميع الخدمات')}
+          allTo={`${lookBase(1)}/services`}
           items={services}
           isAr={isAr}
         />
@@ -223,7 +224,7 @@ function QuickRow({
             return c.kind === 'shop' ? (
               <Link
                 key={`${c.en}${twin ? '-twin' : ''}`}
-                to={searchPath(1, { category: c.category, room: c.room })}
+                to={c.to ?? searchPath(1, { category: c.category, room: c.room })}
                 className={cls}
                 data-testid="quick-plate"
                 {...twinProps}
