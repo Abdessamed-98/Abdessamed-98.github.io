@@ -52,6 +52,7 @@ import LookOneCheckout, { OrderPage as LookOneOrder } from './pages/looks/one/Ch
 import LookOneStore from './pages/looks/one/StorePage.tsx';
 import LookOneService, { ServiceDetailPage as LookOneServiceRedirectSub, LegacyServiceRedirect as LookOneServiceRedirect } from './pages/looks/one/ServicePage.tsx';
 import { ServicesCatalog as LookOneServices } from './pages/looks/one/ServicesCatalog.tsx';
+import { ProductCategoryPage as LookOneProductCategory } from './pages/looks/one/CategoryLanding.tsx';
 import LookOneAccount from './pages/looks/one/AccountPage.tsx';
 import LookOneProviders from './pages/looks/one/ProvidersPage.tsx';
 import AdsPage from './pages/dashboard/AdsPage.tsx';
@@ -322,6 +323,7 @@ export default function App() {
           <Route index element={<LookOneHome />} />
           <Route path="search" element={<LookOneSearch />} />
           <Route path="products" element={<LookOneCatalog />} />
+          <Route path="products/:category" element={<LookOneProductCategory />} />
           <Route path="product/:id" element={<LookOneProduct />} />
           <Route path="store/:key" element={<LookOneStore />} />
           <Route path="service/:slug" element={<LookOneServiceRedirect />} />

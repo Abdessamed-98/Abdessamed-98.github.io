@@ -1253,7 +1253,9 @@ export type LookNo = 1 | 2 | 3;
 export const lookBase = (n: LookNo) => `/look/${n}`;
 export const searchPath = (n: LookNo, qy?: SearchQuery) => {
   const sp = qy ? serializeSearch(qy).toString() : '';
-  // Look 1: browsing (a category, a room, a store…) is the catalogue; only typed words are a search
+  // Look 1: a category on its own opens the category page (its subcategories); any other
+  // browse (a subcategory, a room, a store…) is the catalogue; only typed words are a search
+  if (n === 1 && qy?.category && [...serializeSearch(qy).keys()].every((k) => k === 'category')) return `${lookBase(n)}/products/${qy.category}`;
   const page = n === 1 && !qy?.q ? 'products' : 'search';
   return `${lookBase(n)}/${page}${sp ? `?${sp}` : ''}`;
 };

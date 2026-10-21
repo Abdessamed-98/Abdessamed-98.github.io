@@ -219,7 +219,7 @@ export function ServicesCatalog() {
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
     { label: t('Services', 'الخدمات'), to: `${lookBase(1)}/services` },
-    ...(cat ? [{ label: t(cat.en, cat.ar), ...(sub ? { to: `${lookBase(1)}/services?category=${query.category}` } : {}) }] : []),
+    ...(cat ? [{ label: t(cat.en, cat.ar), to: `${lookBase(1)}/services/${query.category}` }] : []),
     ...(sub ? [{ label: t(sub.en, sub.ar) }] : []),
   ];
   const chips: { key: string; label: string; clear: () => void }[] = [];
@@ -333,7 +333,7 @@ export function ServicesCatalog() {
                     {SERVICES.map((s) => {
                       const on = query.category === serviceSlug(s);
                       return (
-                        <Link key={s.en} to={`${lookBase(1)}/services?category=${serviceSlug(s)}`} className={`border px-4 py-2 text-[11.5px] uppercase transition-colors hover:border-[#171512] ${on ? 'border-[#171512] bg-[#171512] text-white' : 'bg-white'} ${isAr ? 'tracking-normal' : 'tracking-[0.16em]'}`} style={on ? undefined : { borderColor: HAIR }}>
+                        <Link key={s.en} to={`${lookBase(1)}/services/${serviceSlug(s)}`} className={`border px-4 py-2 text-[11.5px] uppercase transition-colors hover:border-[#171512] ${on ? 'border-[#171512] bg-[#171512] text-white' : 'bg-white'} ${isAr ? 'tracking-normal' : 'tracking-[0.16em]'}`} style={on ? undefined : { borderColor: HAIR }}>
                           {t(s.en, s.ar)}
                         </Link>
                       );

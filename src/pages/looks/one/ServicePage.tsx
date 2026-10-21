@@ -10,6 +10,7 @@ import { Navigate, useParams } from 'react-router-dom';
 import { SERVICES, SERVICE_SUBS, lookBase, type Bi, type LookService } from '../lookShared';
 import { serviceById } from './servicesData';
 import { ServiceDetail } from './ServiceDetail';
+import { ServiceCategoryPage } from './CategoryLanding';
 
 const slugify = (en: string) => en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 /** A category's slug (the eight in SERVICES). */
@@ -24,8 +25,10 @@ export const subSlug = (it: Bi & { key?: string }) => it.key ?? slugify(it.en);
 export const subServicesOf = (s: LookService) => SERVICE_SUBS[s.en] ?? [];
 
 const base = () => `${lookBase(1)}/services`;
+/** The category's page: its subcategories as cards. */
+export const categoryPath = (s: LookService) => `${base()}/${serviceSlug(s)}`;
 /** The catalogue, open on a category. */
-export const categoryPath = (s: LookService) => `${base()}?category=${serviceSlug(s)}`;
+export const categoryCatalogPath = (s: LookService) => `${base()}?category=${serviceSlug(s)}`;
 /** The catalogue, open on a subcategory. */
 export const servicePath = (s: LookService, it: Bi & { key?: string }) => `${base()}?category=${serviceSlug(s)}&sub=${subSlug(it)}`;
 export const subPath = (categoryEn: string, subKey: string) => `${base()}?category=${categorySlugOf(categoryEn)}&sub=${subKey}`;
@@ -48,12 +51,12 @@ const CATEGORY_ART: Record<string, string> = {
 };
 export const categoryArt = (s: LookService) => TILE_ART(CATEGORY_ART[s.en] ?? 'تركيب وصيانة');
 
-/** /services/:id — a service; or, for an old category slug, the catalogue on that category. */
+/** /services/:id — a service, or a category's page when the id is a category slug. */
 export default function ServiceRoute() {
   const { id = '' } = useParams();
   if (serviceById(id)) return <ServiceDetail id={id} />;
   const cat = categoryBySlug(id);
-  if (cat) return <Navigate to={categoryPath(cat)} replace />;
+  if (cat) return <ServiceCategoryPage cat={cat} />;
   return <ServiceDetail id={id} />;
 }
 

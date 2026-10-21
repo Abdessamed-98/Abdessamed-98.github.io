@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { categoryArt, categoryPath, servicePath, subSlug } from './one/ServicePage';
+import { categoryArt, categoryPath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -74,13 +74,9 @@ const serviceGroupTo = (i: number): string | undefined => (SERVICES[i] ? categor
 /** The menu's headings are categories; the items under them are the services. */
 /** The services menu lists categories only; what is in a category is on its page. */
 const STORE_ROWS: MenuGroup[] = ALL_STORES.map((st) => ({ title: st.name, items: [] }));
-/** A product subcategory in group i opens the catalogue on it. */
-const shopItemTo = (i: number) => {
-  const key = shopGroupKey(i);
-  return key ? (it: Bi) => searchPath(1, { category: key, sub: subSlug(it) }) : undefined;
-};
-/** A service subcategory in group i opens the services catalogue on it. */
-const serviceItemTo = (i: number) => (SERVICES[i] ? (it: Bi) => servicePath(SERVICES[i], it) : undefined);
+/* the drawer lists categories only; the subcategories are on each category's page */
+const CATEGORY_ROWS: MenuGroup[] = CATEGORIES.map((c) => ({ title: { en: c.en, ar: c.ar }, items: [] }));
+const SERVICE_CATEGORY_ROWS: MenuGroup[] = SERVICES.map((s) => ({ title: { en: s.en, ar: s.ar }, items: [] }));
 /** «المتجر» became «المتاجر»: the item opens the stores, not one shop. */
 const NAV_LABEL: Record<string, Bi> = { Shop: { en: 'Stores', ar: 'المتاجر' } };
 const navLabel = (item: Bi): Bi => NAV_LABEL[item.en] ?? item;
@@ -316,7 +312,7 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
 }
 
 /** One mega-menu column with a picture: the category's photo and name, then its subcategories. */
-function MegaTileGroup({ img, group, to, itemTo, onNavigate, testId }: { img: string; group: MenuGroup; to: string; itemTo: (it: Bi) => string; onNavigate?: () => void; testId?: string; key?: string | number }) {
+function MegaTileGroup({ img, group, to, itemTo, onNavigate, testId }: { img: string; group: MenuGroup; to: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; testId?: string; key?: string | number }) {
   const isAr = useLang() === 'ar';
   return (
     <div className="min-w-0 text-start" data-testid={testId}>
@@ -328,15 +324,18 @@ function MegaTileGroup({ img, group, to, itemTo, onNavigate, testId }: { img: st
           {isAr ? group.title.ar : group.title.en}
         </span>
       </Link>
-      <ul className="mt-2.5 space-y-1">
-        {group.items.map((it) => (
-          <li key={it.en}>
-            <Link to={itemTo(it)} onClick={onNavigate} className="block text-[13px] leading-snug text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
-              {isAr ? it.ar : it.en}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {/* the subcategories are on the category's page, not in the menu */}
+      {itemTo && (
+        <ul className="mt-2.5 space-y-1">
+          {group.items.map((it) => (
+            <li key={it.en}>
+              <Link to={itemTo(it)} onClick={onNavigate} className="block text-[13px] leading-snug text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
+                {isAr ? it.ar : it.en}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -744,7 +743,7 @@ function MobileDrawer({
               />
               <DrawerSection
                 label={t('Products', 'المنتجات')}
-                groups={SHOP_MENU}
+                groups={CATEGORY_ROWS}
                 open={section === 'products'}
                 onToggle={() => toggleSection('products')}
                 openGroup={group}
@@ -754,19 +753,17 @@ function MobileDrawer({
                   const key = shopGroupKey(i);
                   return key ? searchPath(1, { category: key }) : undefined;
                 }}
-                groupItemTo={shopItemTo}
                 allLink={{ to: searchPath(1), label: t('All products', 'كل المنتجات') }}
               />
               <DrawerSection
                 label={t('Services', 'الخدمات')}
-                groups={SERVICES_MENU}
+                groups={SERVICE_CATEGORY_ROWS}
                 open={section === 'services'}
                 onToggle={() => toggleSection('services')}
                 openGroup={group}
                 onToggleGroup={toggleGroup}
                 onNavigate={onClose}
                 groupTo={serviceGroupTo}
-                groupItemTo={serviceItemTo}
                 allLink={{ to: `${lookBase(1)}/services`, label: t('All Services', 'كل الخدمات') }}
               />
 
@@ -1187,7 +1184,7 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10" onClick={closeMenu}>
-                  {/* the six categories as picture tiles, their subcategories under each */}
+                  {/* the six categories as picture tiles; each opens its page of subcategories */}
                   <div className="grid grid-cols-6 gap-x-6" data-testid="mega-product-groups">
                     {SHOP_MENU.map((group, i) => {
                       const key = shopGroupKey(i);
@@ -1199,7 +1196,6 @@ export default function LookOne() {
                           img={cat.img}
                           group={group}
                           to={searchPath(1, { category: key })}
-                          itemTo={(it) => searchPath(1, { category: key, sub: subSlug(it) })}
                           onNavigate={closeMenu}
                           testId="mega-product-category"
                         />
@@ -1235,7 +1231,7 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10">
-                  {/* the eight categories as picture tiles (the client's own artwork), their subcategories under each */}
+                  {/* the eight categories as picture tiles (the client's own artwork); each opens its page */}
                   <div className="grid grid-cols-8 gap-x-5" data-testid="mega-service-groups">
                     {SERVICES_MENU.map((group, i) => {
                       const cat = SERVICES[i];
@@ -1246,7 +1242,6 @@ export default function LookOne() {
                           img={categoryArt(cat)}
                           group={group}
                           to={categoryPath(cat)}
-                          itemTo={(it) => servicePath(cat, it)}
                           onNavigate={closeMenu}
                           testId="mega-service-category"
                         />

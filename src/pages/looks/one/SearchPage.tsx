@@ -323,7 +323,7 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
     { label: t('Products', 'المنتجات'), to: searchPath(1) },
-    ...(catName ? [{ label: catName, ...(subName ? { to: searchPath(1, { category: query.category }) } : {}) }] : []),
+    ...(catName ? [{ label: catName, to: `${lookBase(1)}/products/${query.category}` }] : []),
     ...(subName ? [{ label: subName }] : []),
   ];
 
