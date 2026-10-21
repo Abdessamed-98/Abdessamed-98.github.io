@@ -18,7 +18,6 @@ import { useLookCart } from './cart';
 import { CONTAINER, EmptyState, Lightbox, PageHead, ServiceOffers, Tabs, capsCls, displayCls } from './kit';
 import { categoryArt, categoryPath, servicePath, serviceSlug, subServicesOf } from './ServicePage';
 import { HELP_TOPICS, PROVIDERS, PROVIDER_SERVICES, SERVICE_GALLERY, providersFor, type Provider } from './data';
-import { AdBanner } from './AdBanner';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -70,8 +69,6 @@ export function ServicesIndex() {
           ))}
         </ul>
       </div>
-
-      <AdBanner slot="services" className="pt-10" />
 
       {/* one row per category: its title, then its services as cards */}
       <div className={`${CONTAINER} pb-16`}>

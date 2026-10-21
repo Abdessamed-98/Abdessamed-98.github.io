@@ -18,7 +18,6 @@ import {
   useLook, SectionHeading, ProductCard, Breadcrumb, primaryBtnCls, eyebrowCls,
   StoreMark,
 } from './ui';
-import { AdBanner } from './AdBanner';
 import { EmptyState, Tabs, capsCls } from './kit';
 import { categoryPath } from './ServicePage';
 import { PROVIDERS } from './data';
@@ -280,7 +279,6 @@ export function LookOneSearch({ catalog = false }: { catalog?: boolean }) {
               })}
             </div>
           </div>
-          <AdBanner slot="catalog" className="!px-0 pt-6" />
         </div>
       ) : (
       <>

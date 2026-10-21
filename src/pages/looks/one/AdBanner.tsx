@@ -1,46 +1,108 @@
 /**
- * One paid banner, placed before a product or service section. The data is in
- * AD_BANNERS (lookShared); the partner books the slot from the dashboard's
- * «الإعلانات» page. Always marked «إعلان», with the sponsor named.
+ * The advertising banners: a slider of image banners on the home page, after
+ * the brands strip and before «تصفّح الأقسام» (client note). Each banner is one
+ * picture made by the advertiser, with its words already in it, and a link.
+ * The data is AD_BANNERS (lookShared); partners book a banner from the
+ * dashboard's «الإعلانات» page.
  */
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { AD_BANNERS, type AdSlot } from '../lookShared';
-import { HAIR, INK, MUTED, TILE, useLook } from './ui';
-import { CONTAINER, capsCls } from './kit';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useReducedMotion } from 'motion/react';
+import { AD_BANNERS } from '../lookShared';
+import { TILE, useLook } from './ui';
+import { CONTAINER } from './kit';
 
-export function AdBanner({ slot, className = '' }: { slot: AdSlot; className?: string }) {
+const EVERY = 5000;
+
+export function AdBannerSlider() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  const ad = AD_BANNERS.find((a) => a.slot === slot);
-  if (!ad) return null;
-  const dark = ad.tone === 'dark';
+  const still = useReducedMotion();
+  const track = useRef<HTMLUListElement>(null);
+  const [i, setI] = useState(0);
+  const [hold, setHold] = useState(false);
+  const n = AD_BANNERS.length;
+
+  const go = (k: number, smooth = true) => {
+    const el = track.current;
+    if (!el || !n) return;
+    const to = ((k % n) + n) % n;
+    const first = el.children[0] as HTMLElement;
+    const child = el.children[to] as HTMLElement;
+    // offsetLeft difference is signed the right way in both directions
+    el.scrollTo({ left: child.offsetLeft - first.offsetLeft, behavior: smooth ? 'smooth' : 'auto' });
+  };
+
+  // which banner is in view, from the scroll position (swiping, arrows and autoplay all end here)
+  const onScroll = () => {
+    const el = track.current;
+    if (!el) return;
+    setI(Math.min(n - 1, Math.round(Math.abs(el.scrollLeft) / Math.max(1, el.clientWidth))));
+  };
+
+  useEffect(() => {
+    if (still || hold || n < 2) return;
+    const id = window.setInterval(() => go(i + 1), EVERY);
+    return () => window.clearInterval(id);
+  });
+
+  if (!n) return null;
+  const arrow = 'absolute top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center bg-white/90 text-[#171512] shadow-sm transition-colors hover:bg-[#171512] hover:text-white md:flex';
+
   return (
-    <div className={`${CONTAINER} ${className}`} data-testid={`ad-${slot}`}>
-      <Link to={ad.to} className="group grid overflow-hidden border md:grid-cols-12" style={{ borderColor: HAIR }}>
-        <span className="relative block aspect-[16/7] md:col-span-5 md:aspect-auto md:min-h-[230px]" style={{ backgroundColor: TILE }}>
-          <img src={ad.img} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
-        </span>
-        <span
-          className="flex flex-col justify-center p-6 md:col-span-7 md:p-10"
-          style={{ backgroundColor: dark ? INK : '#FFFFFF', color: dark ? '#FFFFFF' : INK }}
+    <section data-testid="ad-banners" className={`${CONTAINER} pb-4 pt-10 md:pt-12`} aria-label={t('Advertisements', 'إعلانات')}>
+      <div className="relative" onPointerEnter={() => setHold(true)} onPointerLeave={() => setHold(false)}>
+        <ul
+          ref={track}
+          onScroll={onScroll}
+          className="scrollbar-hide flex snap-x snap-mandatory overflow-x-auto"
+          style={{ backgroundColor: TILE }}
         >
-          <span className={`flex items-center gap-3 text-[11px] ${capsCls(isAr)}`} style={{ color: dark ? 'rgba(255,255,255,0.7)' : MUTED }}>
-            <span className="border px-1.5 py-0.5" style={{ borderColor: dark ? 'rgba(255,255,255,0.4)' : '#C9C2B4' }}>{t('Ad', 'إعلان')}</span>
-            {t(ad.sponsor.en, ad.sponsor.ar)}
-          </span>
-          <span className={`mt-3 text-[22px] font-extrabold leading-tight md:text-[28px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
-            {t(ad.title.en, ad.title.ar)}
-          </span>
-          <span className="mt-3 max-w-xl text-[14.5px] font-light leading-relaxed" style={{ color: dark ? 'rgba(255,255,255,0.8)' : '#4A443C' }}>
-            {t(ad.body.en, ad.body.ar)}
-          </span>
-          <span className={`mt-5 inline-flex items-center gap-2 self-start border-b pb-1 text-[12.5px] font-medium ${capsCls(isAr)}`} style={{ borderColor: dark ? '#FFFFFF' : INK }}>
-            {t(ad.cta.en, ad.cta.ar)}
-            <ArrowRight size={12} strokeWidth={1.5} className={`transition-transform duration-300 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
-          </span>
+          {AD_BANNERS.map((ad, k) => (
+            <li key={ad.id} className="w-full shrink-0 snap-start" data-testid="ad-banner" aria-hidden={k !== i}>
+              <Link to={ad.to} tabIndex={k === i ? 0 : -1} className="block">
+                <picture>
+                  {ad.imgMobile && <source media="(max-width: 767px)" srcSet={ad.imgMobile} />}
+                  <img
+                    src={ad.img}
+                    alt={t(ad.alt.en, ad.alt.ar)}
+                    loading={k === 0 ? 'eager' : 'lazy'}
+                    draggable={false}
+                    className="block aspect-[4/3] w-full object-cover md:aspect-[24/7]"
+                  />
+                </picture>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {n > 1 && (
+          <>
+            <button type="button" aria-label={t('Previous', 'السابق')} onClick={() => go(i - 1)} className={`${arrow} start-4`}>
+              {isAr ? <ChevronRight size={18} strokeWidth={1.5} /> : <ChevronLeft size={18} strokeWidth={1.5} />}
+            </button>
+            <button type="button" aria-label={t('Next', 'التالي')} onClick={() => go(i + 1)} className={`${arrow} end-4`}>
+              {isAr ? <ChevronLeft size={18} strokeWidth={1.5} /> : <ChevronRight size={18} strokeWidth={1.5} />}
+            </button>
+            <div className="absolute bottom-3 start-1/2 flex -translate-x-1/2 gap-1.5 rtl:translate-x-1/2" data-testid="ad-dots">
+              {AD_BANNERS.map((ad, k) => (
+                <button
+                  key={ad.id}
+                  type="button"
+                  aria-label={t(`Banner ${k + 1}`, `البانر ${k + 1}`)}
+                  aria-current={k === i}
+                  onClick={() => go(k)}
+                  className={`h-1.5 transition-all duration-300 ${k === i ? 'w-7 bg-white' : 'w-1.5 bg-white/55 hover:bg-white/80'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        <span className="pointer-events-none absolute end-3 top-3 border border-white/50 bg-black/35 px-1.5 py-0.5 text-[10.5px] uppercase text-white backdrop-blur-sm">
+          {t('Ad', 'إعلان')}
         </span>
-      </Link>
-    </div>
+      </div>
+    </section>
   );
 }

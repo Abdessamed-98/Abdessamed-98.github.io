@@ -1452,56 +1452,23 @@ export function LookSwitcher() {
 /* sections (client note: «بنرات إعلانية قبل أقسام المنتجات والخدمات»)   */
 /* ------------------------------------------------------------------ */
 
-export type AdSlot = 'home-products' | 'home-services' | 'catalog' | 'services';
-
 export interface AdBannerItem {
   id: string;
-  slot: AdSlot;
+  /** desktop picture, 2400×700 (24:7); the advertiser's words are in it */
   img: string;
-  /** who paid for it — a store or a service partner */
+  /** phone picture, 1200×900 (4:3); the desktop one is used when missing */
+  imgMobile?: string;
+  /** what the picture says, for screen readers */
+  alt: Bi;
+  /** who booked it — a store or a service partner */
   sponsor: Bi;
-  title: Bi;
-  body: Bi;
-  cta: Bi;
   to: string;
-  tone: 'light' | 'dark';
 }
 
+/* placeholders until the advertisers' pictures arrive (prompts given to the owner) */
 export const AD_BANNERS: AdBannerItem[] = [
-  {
-    id: 'ad-1', slot: 'home-products', tone: 'light',
-    img: '/looks/promo/bedroom-packages.webp',
-    sponsor: { en: 'Diyar Home', ar: 'ديار هوم' },
-    title: { en: 'Bedroom packages from 7,900 SAR', ar: 'باقات غرف النوم من 7,900 ر.س' },
-    body: { en: 'Bed, two nightstands and a wardrobe, delivered and assembled in one visit.', ar: 'سرير وكومودينتان وخزانة، توصيل وتركيب في زيارة واحدة.' },
-    cta: { en: 'See the packages', ar: 'شاهد الباقات' },
-    to: '/look/1/products?room=bedroom',
-  },
-  {
-    id: 'ad-2', slot: 'home-services', tone: 'dark',
-    img: '/looks/promo/design-session.webp',
-    sponsor: { en: 'Iwan Design Studio', ar: 'استوديو إيوان للتصميم' },
-    title: { en: 'A free design session for your first room', ar: 'جلسة تصميم مجانية لأول غرفة' },
-    body: { en: 'Two hours with a designer, a layout and a shopping list — no obligation.', ar: 'ساعتان مع مصمم، ومخطط وقائمة مشتريات — دون التزام.' },
-    cta: { en: 'Book the session', ar: 'احجز الجلسة' },
-    to: '/look/1/provider/iwan-design',
-  },
-  {
-    id: 'ad-3', slot: 'catalog', tone: 'light',
-    img: '/looks/campaign-majlis.webp',
-    sponsor: { en: 'Diwan', ar: 'ديوان' },
-    title: { en: 'Majlis sets — 25% off until the end of the month', ar: 'أطقم المجالس — خصم 25% حتى نهاية الشهر' },
-    body: { en: 'Floor seating, cushions and side tables in one order.', ar: 'جلسات أرضية ووسائد وطاولات جانبية في طلب واحد.' },
-    cta: { en: 'Shop the offer', ar: 'تسوق العرض' },
-    to: '/look/1/products?store=dw',
-  },
-  {
-    id: 'ad-4', slot: 'services', tone: 'light',
-    img: '/looks/promo/custom-furniture.webp',
-    sponsor: { en: 'Bayt Joinery', ar: 'نجارة البيت' },
-    title: { en: 'Furniture to measure, with a 5-year guarantee', ar: 'أثاث حسب المقاس بضمان 5 سنوات' },
-    body: { en: 'Wardrobes, built-ins and tables made in Jeddah, quoted in writing.', ar: 'خزائن وأثاث مدمج وطاولات تُصنع في جدة، بعرض سعر مكتوب.' },
-    cta: { en: 'Request a quote', ar: 'اطلب عرض سعر' },
-    to: '/look/1/provider/bayt-joinery',
-  },
+  { id: 'ad-1', img: '/looks/campaign-living.webp', alt: { en: 'Up to 40% off living room seating', ar: 'خصم حتى 40% على جلسات المعيشة' }, sponsor: { en: 'Diyar Home', ar: 'ديار هوم' }, to: '/look/1/products?sale=1' },
+  { id: 'ad-2', img: '/looks/promo/bedroom-packages.webp', alt: { en: 'Bedroom packages from 7,900 SAR', ar: 'باقات غرف النوم من 7,900 ر.س' }, sponsor: { en: 'Diyar Home', ar: 'ديار هوم' }, to: '/look/1/products?room=bedroom' },
+  { id: 'ad-3', img: '/looks/campaign-majlis.webp', alt: { en: 'Majlis sets — 25% off', ar: 'أطقم المجالس — خصم 25%' }, sponsor: { en: 'Diwan', ar: 'ديوان' }, to: '/look/1/products?store=dw' },
+  { id: 'ad-4', img: '/looks/promo/design-session.webp', alt: { en: 'A free design session for your first room', ar: 'جلسة تصميم مجانية لأول غرفة' }, sponsor: { en: 'Iwan Design Studio', ar: 'استوديو إيوان للتصميم' }, to: '/look/1/provider/iwan-design' },
 ];

@@ -3,10 +3,7 @@ import { Plus, Megaphone, Eye, MousePointerClick, Calendar, X, Image as ImageIco
 
 /** Where a banner can run; the storefront reads the same slot names (AD_BANNERS). */
 const SLOTS = [
-  { key: 'home-products', label: 'الرئيسية — قبل قسم المنتجات', price: 1200 },
-  { key: 'home-services', label: 'الرئيسية — قبل قسم الخدمات', price: 900 },
-  { key: 'catalog', label: 'صفحة المنتجات — أعلى القائمة', price: 700 },
-  { key: 'services', label: 'صفحة الخدمات — أعلى القائمة', price: 600 },
+  { key: 'home-slider', label: 'الرئيسية — شريط البانرات (بعد العلامات التجارية)', price: 1200 },
 ];
 
 type Ad = { id: number; title: string; slot: string; img: string; link: string; from: string; to: string; status: 'active' | 'scheduled' | 'paused' | 'ended'; views: number; clicks: number };
@@ -22,10 +19,10 @@ const slotLabel = (key: string) => SLOTS.find((s) => s.key === key)?.label ?? ke
 
 export default function AdsPage() {
   const [ads, setAds] = useState<Ad[]>([
-    { id: 1, title: 'باقات غرف النوم من 7,900 ر.س', slot: 'home-products', img: '/looks/promo/bedroom-packages.webp', link: '/look/1/products?room=bedroom', from: '2026-10-01', to: '2026-10-31', status: 'active', views: 18420, clicks: 612 },
-    { id: 2, title: 'أطقم المجالس — خصم 25%', slot: 'catalog', img: '/looks/campaign-majlis.webp', link: '/look/1/products?store=dw', from: '2026-10-10', to: '2026-10-31', status: 'active', views: 7310, clicks: 284 },
-    { id: 3, title: 'تشكيلة الشتاء', slot: 'home-products', img: '/looks/campaign-living.webp', link: '/look/1/products?sort=newest', from: '2026-11-01', to: '2026-11-30', status: 'scheduled', views: 0, clicks: 0 },
-    { id: 4, title: 'عروض الصيف', slot: 'home-products', img: '/looks/campaign-living.webp', link: '/look/1/products?sale=1', from: '2026-07-01', to: '2026-08-31', status: 'ended', views: 41200, clicks: 1530 },
+    { id: 1, title: 'باقات غرف النوم من 7,900 ر.س', slot: 'home-slider', img: '/looks/promo/bedroom-packages.webp', link: '/look/1/products?room=bedroom', from: '2026-10-01', to: '2026-10-31', status: 'active', views: 18420, clicks: 612 },
+    { id: 2, title: 'أطقم المجالس — خصم 25%', slot: 'home-slider', img: '/looks/campaign-majlis.webp', link: '/look/1/products?store=dw', from: '2026-10-10', to: '2026-10-31', status: 'active', views: 7310, clicks: 284 },
+    { id: 3, title: 'تشكيلة الشتاء', slot: 'home-slider', img: '/looks/campaign-living.webp', link: '/look/1/products?sort=newest', from: '2026-11-01', to: '2026-11-30', status: 'scheduled', views: 0, clicks: 0 },
+    { id: 4, title: 'عروض الصيف', slot: 'home-slider', img: '/looks/campaign-living.webp', link: '/look/1/products?sale=1', from: '2026-07-01', to: '2026-08-31', status: 'ended', views: 41200, clicks: 1530 },
   ]);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -63,7 +60,7 @@ export default function AdsPage() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h2 className="text-2xl font-bold text-diyar-dark">الإعلانات</h2>
-          <p className="mt-1 text-sm text-gray-500">بانرات مدفوعة تظهر قبل أقسام المنتجات والخدمات في الموقع.</p>
+          <p className="mt-1 text-sm text-gray-500">بانرات مدفوعة في شريط البانرات بالصفحة الرئيسية، بعد العلامات التجارية وقبل الأقسام.</p>
         </div>
         <button onClick={() => setOpen(true)} data-testid="ads-new" className="flex items-center gap-2 rounded-xl bg-diyar-brown px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#8A6D46]">
           <Plus size={18} /> إعلان جديد
@@ -174,12 +171,12 @@ export default function AdsPage() {
                 <input value={link} onChange={(e) => setLink(e.target.value)} dir="ltr" className="w-full rounded-lg border border-gray-200 p-2.5 focus:border-diyar-brown focus:outline-none" placeholder="/look/1/products?store=..." />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700">صورة البانر</label>
+                <label className="text-sm font-bold text-gray-700">صورة البانر — 2400×700 للكمبيوتر، و1200×900 للجوال (اختياري)</label>
                 <div className="flex items-center gap-3">
                   <div className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-200 bg-gray-50 text-gray-400">
                     {img ? <img src={img} alt="" className="h-full w-full object-cover" /> : <ImageIcon size={20} />}
                   </div>
-                  <input value={img} onChange={(e) => setImg(e.target.value)} dir="ltr" className="w-full rounded-lg border border-gray-200 p-2.5 focus:border-diyar-brown focus:outline-none" placeholder="رابط الصورة (1600×700)" />
+                  <input value={img} onChange={(e) => setImg(e.target.value)} dir="ltr" className="w-full rounded-lg border border-gray-200 p-2.5 focus:border-diyar-brown focus:outline-none" placeholder="رابط الصورة" />
                 </div>
               </div>
               <p className="flex items-center gap-2 text-xs text-gray-400">
