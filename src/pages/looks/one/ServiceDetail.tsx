@@ -44,7 +44,8 @@ export function ServiceDetail({ id }: { id: string }) {
   const similar = SERVICE_CATALOG.filter((x) => x.id !== s.id && x.providerId !== s.providerId && (x.sub === s.sub || x.category === s.category)).slice(0, 4);
   const more = servicesOfProvider(s.providerId).filter((x) => x.id !== s.id).slice(0, 4);
   const card = 'border bg-white';
-  const ask = () => openService({ category: s.category, sub: s.sub, service: p ? `${name} — ${providerName}` : name });
+  // «طلب خدمة»: a direct request to this provider for this service (an open «طلب تنفيذ» lives on the category and catalogue pages)
+  const ask = () => openService({ direct: true, category: s.category, sub: s.sub, service: name, provider: providerName || undefined });
 
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
@@ -146,7 +147,7 @@ export function ServiceDetail({ id }: { id: string }) {
             {/* request — where the buy panel is on a product */}
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button type="button" data-testid="request-service" onClick={ask} className={`flex-1 py-4 ${primaryBtnCls(isAr)}`}>
-                {t('Request execution', 'طلب تنفيذ')}
+                {t('Request service', 'طلب خدمة')}
               </button>
               {p && (
                 <Link to={`${lookBase(1)}/chat?with=${p.id}`} className="flex flex-1 items-center justify-center gap-2 border py-4 text-[12px] font-medium uppercase transition-colors hover:bg-[#171512] hover:text-white" style={{ borderColor: INK }}>
@@ -155,7 +156,7 @@ export function ServiceDetail({ id }: { id: string }) {
                 </Link>
               )}
             </div>
-            <p className="mt-3 text-center text-[13px] font-light" style={{ color: MUTED }}>{t('Free visit · written quote · no obligation', 'زيارة مجانية · عرض سعر مكتوب · دون التزام')}</p>
+            <p className="mt-3 text-center text-[13px] font-light" style={{ color: MUTED }}>{t(`A quote from ${p?.name.en ?? 'the provider'} within one business day · no obligation`, `عرض سعر من ${p?.name.ar ?? 'مقدم الخدمة'} خلال يوم عمل · دون التزام`)}</p>
           </div>
 
           {/* ---- sidebar: the provider, the promises, more from them ---- */}

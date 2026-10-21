@@ -17,6 +17,11 @@ export interface ServicePreset {
   sub?: string;
   /** e.g. «تصميم داخلي — استوديو إيوان»: shown as the requested service */
   service?: string;
+  /** «طلب خدمة»: a direct request to one chosen provider for one of their services —
+   *  no category picking, the provider answers with a quote. Without it the form is
+   *  «طلب تنفيذ»: an open request that the category's providers bid on. */
+  direct?: boolean;
+  provider?: string;
 }
 
 const CITIES = [
@@ -35,7 +40,8 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
   const p: ServicePreset = typeof preset === 'string' ? { service: preset } : preset ?? {};
   const [category, setCategory] = useState('');
   const [sub, setSub] = useState('');
-  const [form, setForm] = useState({ details: '', budget: '', city: '', phone: '' });
+  const [form, setForm] = useState({ details: '', budget: '', city: '', phone: '', date: '' });
+  const direct = !!p.direct;
   const [photos, setPhotos] = useState<string[]>([]);
   const file = useRef<HTMLInputElement>(null);
 
@@ -45,10 +51,10 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
     setSent(false);
     setCategory(p.category ?? '');
     setSub(p.sub ?? '');
-    setForm({ details: '', budget: '', city: '', phone: '' });
+    setForm({ details: '', budget: '', city: '', phone: '', date: '' });
     setPhotos([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, p.category, p.sub, p.service]);
+  }, [open, p.category, p.sub, p.service, p.direct, p.provider]);
 
   const subs = SERVICE_SUBS[category] ?? [];
   const field = 'h-12 w-full border bg-white px-4 text-[14px] outline-none transition-colors focus:border-[#171512]';
@@ -74,7 +80,7 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
       side="center"
       testId="service-sheet"
       eyebrow={t('Diyar Services', 'خدمات ديار')}
-      title={sent ? t('Request received', 'تم استلام الطلب') : t('Request execution', 'طلب تنفيذ')}
+      title={sent ? t('Request received', 'تم استلام الطلب') : direct ? t('Request service', 'طلب خدمة') : t('Request execution', 'طلب تنفيذ')}
     >
       {sent ? (
         <div className="px-6 py-14 text-center">
@@ -82,10 +88,15 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
             <Check size={22} strokeWidth={2} className="text-white" />
           </span>
           <p className="mt-6 text-[15px] font-light leading-relaxed text-neutral-700">
-            {t(
-              'Thank you. Our team will study the request and call you within one business day with a suitable partner.',
-              'شكراً لك. سيدرس فريقنا الطلب ويتواصل معك خلال يوم عمل واحد بمقدم خدمة مناسب.',
-            )}
+            {direct
+              ? t(
+                  `Thank you. ${p.provider ?? 'The provider'} will call you within one business day with a quote.`,
+                  `شكراً لك. سيتواصل معك ${p.provider ?? 'مقدم الخدمة'} خلال يوم عمل واحد بعرض السعر.`,
+                )
+              : t(
+                  'Thank you. Your request goes to the providers in this category, and their price offers will reach you here and by phone.',
+                  'شكراً لك. سيصل طلبك إلى مقدمي الخدمات في هذا التصنيف، وستصلك عروض أسعارهم هنا وعلى جوالك.',
+                )}
           </p>
           <button type="button" onClick={onClose} className={`mt-8 px-10 py-4 ${primaryBtnCls(isAr)}`}>
             {t('Done', 'تم')}
@@ -93,14 +104,28 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
         </div>
       ) : (
         <form onSubmit={submit} className="px-6 py-6" data-testid="request-form">
-          {p.service && (
+          {direct ? (
+            <dl className="mb-5 grid gap-2 border px-4 py-3 text-[14px]" style={{ borderColor: HAIR, backgroundColor: TILE }} data-testid="request-service-name">
+              <div className="flex items-baseline gap-2">
+                <dt className="shrink-0 text-neutral-500">{t('Service', 'الخدمة')}:</dt>
+                <dd className="font-bold">{p.service}</dd>
+              </div>
+              {p.provider && (
+                <div className="flex items-baseline gap-2">
+                  <dt className="shrink-0 text-neutral-500">{t('Provider', 'مقدم الخدمة')}:</dt>
+                  <dd className="font-bold">{p.provider}</dd>
+                </div>
+              )}
+            </dl>
+          ) : p.service ? (
             <p className="mb-5 flex items-center gap-2 border px-4 py-3 text-[14px]" style={{ borderColor: HAIR, backgroundColor: TILE }} data-testid="request-service-name">
               <span className="text-neutral-500">{t('Service', 'الخدمة')}:</span>
               <span className="font-bold">{p.service}</span>
             </p>
-          )}
+          ) : null}
 
-          {/* the category, then its subcategories — preset when the visitor came from one */}
+          {/* the category, then its subcategories — preset when the visitor came from one; not asked on a direct request */}
+          {!direct && (
           <div>
             <p className={label}>{t('Category', 'تصنيف الخدمة')}</p>
             <div className="flex flex-wrap gap-2" data-testid="request-categories">
@@ -115,7 +140,8 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
               })}
             </div>
           </div>
-          {subs.length > 0 && (
+          )}
+          {!direct && subs.length > 0 && (
             <div className="mt-4">
               <p className={label}>{t('Subcategory', 'التصنيف الفرعي')}</p>
               <div className="flex flex-wrap gap-2" data-testid="request-subcategories">
@@ -132,8 +158,8 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
             </div>
           )}
 
-          <div className="mt-5">
-            <label className={label} htmlFor="rs-details">{t('What do you need done?', 'ما الذي تريد تنفيذه؟')}</label>
+          <div className={direct ? '' : 'mt-5'}>
+            <label className={label} htmlFor="rs-details">{direct ? t('Tell the provider about the job', 'أخبر مقدم الخدمة عن العمل') : t('What do you need done?', 'ما الذي تريد تنفيذه؟')}</label>
             <textarea
               id="rs-details"
               required
@@ -170,10 +196,17 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
           </div>
 
           <div className="mt-5 grid gap-5 sm:grid-cols-3">
-            <div>
-              <label className={label} htmlFor="rs-budget">{t('Budget (optional)', 'الميزانية (اختياري)')}</label>
-              <input id="rs-budget" placeholder={t('e.g. 5,000 – 8,000', 'مثال: 5,000 – 8,000')} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className={field} style={{ borderColor: HAIR }} />
-            </div>
+            {direct ? (
+              <div>
+                <label className={label} htmlFor="rs-date">{t('Preferred visit date', 'موعد الزيارة المفضل')}</label>
+                <input id="rs-date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={field} style={{ borderColor: HAIR }} />
+              </div>
+            ) : (
+              <div>
+                <label className={label} htmlFor="rs-budget">{t('Budget (optional)', 'الميزانية (اختياري)')}</label>
+                <input id="rs-budget" placeholder={t('e.g. 5,000 – 8,000', 'مثال: 5,000 – 8,000')} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className={field} style={{ borderColor: HAIR }} />
+              </div>
+            )}
             <div>
               <label className={label} htmlFor="rs-city">{t('City', 'المدينة')}</label>
               <select id="rs-city" required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={field} style={{ borderColor: HAIR }}>
@@ -193,7 +226,9 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
             {t('Send request', 'إرسال الطلب')}
           </button>
           <p className="mt-3 text-center text-[13px] font-light text-neutral-500">
-            {t('Free · a written quote within one business day · no obligation', 'مجاناً · عرض سعر مكتوب خلال يوم عمل · دون التزام')}
+            {direct
+              ? t(`A quote from ${p.provider ?? 'the provider'} within one business day · no obligation`, `عرض سعر من ${p.provider ?? 'مقدم الخدمة'} خلال يوم عمل · دون التزام`)
+              : t('Free · price offers from the providers in this category · no obligation', 'مجاناً · عروض أسعار من مقدمي الخدمات في التصنيف · دون التزام')}
           </p>
         </form>
       )}
