@@ -1472,10 +1472,10 @@ export interface AdBannerItem {
   to: string;
 }
 
-/* placeholders until the advertisers' pictures arrive (prompts given to the owner) */
+/* the advertisers' own pictures (public/looks/ads): desktop 2400×700, phone 1200×900, words included */
 export const AD_BANNERS: AdBannerItem[] = [
-  { id: 'ad-1', img: '/looks/campaign-living.webp', alt: { en: 'Up to 40% off living room seating', ar: 'خصم حتى 40% على جلسات المعيشة' }, sponsor: { en: 'Diyar Home', ar: 'ديار هوم' }, to: '/look/1/products?sale=1' },
-  { id: 'ad-2', img: '/looks/promo/bedroom-packages.webp', alt: { en: 'Bedroom packages from 7,900 SAR', ar: 'باقات غرف النوم من 7,900 ر.س' }, sponsor: { en: 'Diyar Home', ar: 'ديار هوم' }, to: '/look/1/products?room=bedroom' },
-  { id: 'ad-3', img: '/looks/campaign-majlis.webp', alt: { en: 'Majlis sets — 25% off', ar: 'أطقم المجالس — خصم 25%' }, sponsor: { en: 'Diwan', ar: 'ديوان' }, to: '/look/1/products?store=dw' },
-  { id: 'ad-4', img: '/looks/promo/design-session.webp', alt: { en: 'A free design session for your first room', ar: 'جلسة تصميم مجانية لأول غرفة' }, sponsor: { en: 'Iwan Design Studio', ar: 'استوديو إيوان للتصميم' }, to: '/look/1/provider/iwan-design' },
+  { id: 'ad-1', img: '/looks/ads/ad-1.webp', imgMobile: '/looks/ads/ad-1-mobile.webp', alt: { en: 'Up to 40% off living room seating', ar: 'خصم حتى 40% على جلسات المعيشة' }, sponsor: { en: 'Diyar Home', ar: 'ديار هوم' }, to: '/look/1/products?sale=1' },
+  { id: 'ad-2', img: '/looks/ads/ad-2.webp', imgMobile: '/looks/ads/ad-2-mobile.webp', alt: { en: 'Bedroom packages from 7,900 SAR', ar: 'باقات غرف النوم من 7,900 ر.س' }, sponsor: { en: 'Diyar Home', ar: 'ديار هوم' }, to: '/look/1/products?room=bedroom' },
+  { id: 'ad-3', img: '/looks/ads/ad-3.webp', imgMobile: '/looks/ads/ad-3-mobile.webp', alt: { en: 'Majlis sets — 25% off', ar: 'أطقم المجالس — خصم 25%' }, sponsor: { en: 'Diwan', ar: 'ديوان' }, to: '/look/1/products?store=dw' },
+  { id: 'ad-4', img: '/looks/ads/ad-4.webp', imgMobile: '/looks/ads/ad-4-mobile.webp', alt: { en: 'A free design session for your first room', ar: 'جلسة تصميم مجانية لأول غرفة' }, sponsor: { en: 'Iwan Design Studio', ar: 'استوديو إيوان للتصميم' }, to: '/look/1/provider/iwan-design' },
 ];

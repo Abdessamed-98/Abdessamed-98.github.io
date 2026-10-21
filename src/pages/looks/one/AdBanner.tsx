@@ -99,9 +99,6 @@ export function AdBannerSlider() {
             </div>
           </>
         )}
-        <span className="pointer-events-none absolute end-3 top-3 border border-white/50 bg-black/35 px-1.5 py-0.5 text-[10.5px] uppercase text-white backdrop-blur-sm">
-          {t('Ad', 'إعلان')}
-        </span>
       </div>
     </section>
   );
