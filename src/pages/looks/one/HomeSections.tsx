@@ -221,20 +221,12 @@ function QuickRow({
             const cls =
               'group/plate shrink-0 snap-start w-[calc((100%-0.375rem)/2)] sm:w-[calc((100%-0.75rem)/3)] md:w-[calc((100%-1.5rem)/4)] lg:w-[calc((100%-2rem)/5)] xl:w-[calc((100%-2.5rem)/6)]';
             const twinProps = twin ? { 'aria-hidden': true, tabIndex: -1 } : {};
-            return c.kind === 'shop' ? (
-              <Link
-                key={`${c.en}${twin ? '-twin' : ''}`}
-                to={c.to ?? searchPath(1, { category: c.category, room: c.room })}
-                className={cls}
-                data-testid="quick-plate"
-                {...twinProps}
-              >
+            // a service plate goes where its data says (the services catalogue, on its category); a shop plate to the catalogue
+            const to = c.to ?? (c.kind === 'shop' ? searchPath(1, { category: c.category, room: c.room }) : `${lookBase(1)}/services`);
+            return (
+              <Link key={`${c.en}${twin ? '-twin' : ''}`} to={to} className={cls} data-testid="quick-plate" {...twinProps}>
                 {inner}
               </Link>
-            ) : (
-              <button key={`${c.en}${twin ? '-twin' : ''}`} type="button" className={cls} data-testid="quick-plate" {...twinProps}>
-                {inner}
-              </button>
             );
           })}
         </div>

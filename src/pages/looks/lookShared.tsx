@@ -1288,16 +1288,16 @@ export const QUICK_CATEGORIES: QuickCategory[] = [
   { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', tone: 'light', category: 'decor' },
   { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/tiles/أثاث خارجي.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'outdoor' },
   { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/tiles/الحمامات.jpg', kind: 'shop', tone: 'light', category: 'bath' },
-  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=interior-design' },
-  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=finishing-decorative' },
-  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=painting-wall-finishes' },
+  { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark', to: '/look/1/services/interior-design' },
+  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services/finishing-decorative' },
+  { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark', to: '/look/1/services/painting-wall-finishes' },
   { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=custom-furniture&sub=residential-furniture' },
   { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=custom-furniture&sub=custom-joinery' },
   { en: 'Design Consultation', ar: 'استشارات تصميم', icon: '/categories/tiles/استشارات تصميم.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=interior-design&sub=design-consultation' },
   { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service', tone: 'dark', to: '/look/1/services' },
   { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service', tone: 'dark', to: '/look/1/services' },
-  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=finishing-decorative' },
-  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=finishing-decorative' },
+  { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark', to: '/look/1/services/finishing-decorative' },
+  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark', to: '/look/1/services/finishing-decorative' },
 ];
 
 /** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */
