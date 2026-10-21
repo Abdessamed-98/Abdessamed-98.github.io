@@ -44,7 +44,7 @@ export function ServiceDetail({ id }: { id: string }) {
   const similar = SERVICE_CATALOG.filter((x) => x.id !== s.id && x.providerId !== s.providerId && (x.sub === s.sub || x.category === s.category)).slice(0, 4);
   const more = servicesOfProvider(s.providerId).filter((x) => x.id !== s.id).slice(0, 4);
   const card = 'border bg-white';
-  const ask = () => openService(p ? `${name} — ${providerName}` : name);
+  const ask = () => openService({ category: s.category, sub: s.sub, service: p ? `${name} — ${providerName}` : name });
 
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
@@ -146,7 +146,7 @@ export function ServiceDetail({ id }: { id: string }) {
             {/* request — where the buy panel is on a product */}
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button type="button" data-testid="request-service" onClick={ask} className={`flex-1 py-4 ${primaryBtnCls(isAr)}`}>
-                {t('Request this service', 'اطلب الخدمة')}
+                {t('Request execution', 'طلب تنفيذ')}
               </button>
               {p && (
                 <Link to={`${lookBase(1)}/chat?with=${p.id}`} className="flex flex-1 items-center justify-center gap-2 border py-4 text-[12px] font-medium uppercase transition-colors hover:bg-[#171512] hover:text-white" style={{ borderColor: INK }}>

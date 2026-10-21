@@ -1,3 +1,4 @@
+import type { ServicePreset } from './RequestServiceSheet';
 /**
  * The shell's context only — kept apart from shell.tsx (which renders the
  * drawers) so shared primitives like ProductCard can read it without importing
@@ -12,7 +13,7 @@ export type ShellApi = {
   openCart: () => void;
   openWishlist: () => void;
   /** request a service, optionally pre-filled with which one */
-  openService: (service?: string) => void;
+  openService: (preset?: ServicePreset | string) => void;
   /** open sign-in; pass `{ view: 'up', role }` to land on registration */
   openAuth: (intent?: AuthIntent) => void;
   openImageSearch: () => void;

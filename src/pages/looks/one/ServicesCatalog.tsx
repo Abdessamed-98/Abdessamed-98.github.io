@@ -11,6 +11,7 @@ import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import { SERVICES, lookBase, type Lang } from '../lookShared';
 import { BG, HAIR, INK, OLIVE, Breadcrumb, eyebrowCls, primaryBtnCls, useLook } from './ui';
 import { PROVIDERS } from './data';
+import { useShell } from './shellContext';
 import { SERVICE_CITIES, filterServices, type ServiceQuery, type ServiceSortKey } from './servicesData';
 import { ServiceCard } from './ServiceCard';
 import { categoryBySlug, categorySlugOf, serviceSlug, subServicesOf } from './ServicePage';
@@ -179,6 +180,7 @@ export function ServicesCatalog() {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const [sp, setSp] = useSearchParams();
+  const { openService } = useShell();
   const query = useMemo(() => parse(sp), [sp]);
   const results = useMemo(() => filterServices(query, categorySlugOf), [query]);
   const cat = query.category ? categoryBySlug(query.category) : undefined;
@@ -236,9 +238,18 @@ export function ServicesCatalog() {
       {/* ---- head: breadcrumb, title, the categories, then the subcategories ---- */}
       <div className="mx-auto max-w-[1400px] px-6 pb-5 pt-6 md:px-10 md:pt-8" data-testid="catalog-head">
         <Breadcrumb items={crumbs} />
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h1 className={`text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>{title}</h1>
-          <span className={eyebrowCls(isAr, 'text-[11px] text-[#5F5950]')} data-testid="catalog-count">{servicesLabel(results.length, isAr)}</span>
+        <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className={`text-[26px] font-bold leading-tight text-[#171512] md:text-[30px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif]"}`}>{title}</h1>
+            <span className={eyebrowCls(isAr, 'text-[11px] text-[#5F5950]')} data-testid="catalog-count">{servicesLabel(results.length, isAr)}</span>
+          </div>
+          {/* «طلب تنفيذ»: say what you need and Diyar finds the partner — preset to what is being browsed */}
+          <div className="flex items-center gap-4">
+            <span className="hidden text-[13.5px] md:inline" style={{ color: '#4A443C' }}>{t('Describe the job and we match you with a partner', 'صف ما تحتاجه ونوصلك بمقدم خدمة مناسب')}</span>
+            <button type="button" data-testid="catalog-request" onClick={() => openService({ category: cat?.en, sub: query.sub || undefined })} className={`shrink-0 px-6 py-3 ${primaryBtnCls(isAr)}`}>
+              {t('Request execution', 'طلب تنفيذ')}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -6,11 +6,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { CATALOG, CATEGORIES, PRODUCT_SUBS, SERVICES, lookBase, searchPath, type CategoryKey, type LookService, type SubCat } from '../lookShared';
-import { Breadcrumb, HAIR, INK, MUTED, TILE, ViewMore, tileImg, useLook } from './ui';
+import { Breadcrumb, HAIR, INK, MUTED, OLIVE, TILE, ViewMore, primaryBtnCls, tileImg, useLook } from './ui';
+import { useShell } from './shellContext';
 import { CONTAINER, displayCls } from './kit';
 import { NotFoundPage } from './InfoPages';
 import { SERVICE_CATALOG } from './servicesData';
-import { SERVICE_GALLERY } from './data';
 import { categoryArt, categoryCatalogPath, servicePath, serviceSlug, subServicesOf } from './ServicePage';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -119,11 +119,11 @@ const servicesLabel = (n: number, isAr: boolean) =>
 export function ServiceCategoryPage({ cat }: { cat: LookService }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
+  const { openService } = useShell();
   const inCat = SERVICE_CATALOG.filter((s) => s.category === cat.en);
   const subs = subServicesOf(cat);
   const feather = 'radial-gradient(closest-side, #000 72%, transparent 100%)';
   const crumbs = [home(t), { label: t('Services', 'الخدمات'), to: `${lookBase(1)}/services` }, { label: t(cat.en, cat.ar) }];
-  const used = new Set<string>();
 
   return (
     <main className="pt-[72px]" data-testid="service-category-page">
@@ -152,18 +152,47 @@ export function ServiceCategoryPage({ cat }: { cat: LookService }) {
         </div>
       </div>
 
-      <div className={`${CONTAINER} pb-16 pt-10`}>
-        <ul className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 md:gap-x-6 xl:grid-cols-4" data-testid="subcategory-cards">
-          {subs.map((sub) => {
+      <div className={`${CONTAINER} pb-16 pt-10 md:pt-14`}>
+        <div className="flex flex-wrap items-baseline justify-between gap-4">
+          <h2 className={`text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
+            {t(`Services in ${cat.en}`, `خدمات ${cat.ar}`)} <span className="font-normal" style={{ color: MUTED }}>· {subs.length}</span>
+          </h2>
+          <button type="button" onClick={() => openService({ category: cat.en })} className="border-b pb-0.5 text-[14px] font-medium" style={{ borderColor: INK }} data-testid="category-ask">
+            {t('Not sure which? Ask us', 'لست متأكداً أيها تحتاج؟ اسألنا')}
+          </button>
+        </div>
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="subcategory-cards">
+          {subs.map((sub, i) => {
             const inside = inCat.filter((s) => s.sub === sub.key);
-            // the first service's picture; when that repeats an earlier card (or the subcategory is empty), the next unused shot of the category
-            const shots = (SERVICE_GALLERY[cat.en] ?? []).map((x) => x.img);
-            let img = inside[0]?.img;
-            if (!img || used.has(img)) img = shots.find((x) => !used.has(x)) ?? img ?? cat.img;
-            used.add(img);
             return (
-              <li key={sub.key}>
-                <SubCard to={servicePath(cat, sub)} img={img} name={t(sub.en, sub.ar)} count={servicesLabel(inside.length, isAr)} testId="subcategory-card" />
+              <li key={sub.key} className="flex flex-col border bg-white" style={{ borderColor: HAIR }} data-testid="subcategory-card">
+                <div className="px-5 pt-5">
+                  <div className="flex items-start gap-4">
+                    <span className="font-['Outfit',sans-serif] text-[12px] font-bold tabular-nums" style={{ color: OLIVE }} dir="ltr">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <Link to={servicePath(cat, sub)} className="block text-[17px] font-bold leading-snug transition-colors hover:text-[#5A6B4D]">
+                        {t(sub.en, sub.ar)}
+                      </Link>
+                      <span className="mt-1 block text-[13px]" style={{ color: MUTED }}>{servicesLabel(inside.length, isAr)}</span>
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-auto flex items-center gap-3 px-5 pb-5 pt-6">
+                  <button
+                    type="button"
+                    data-testid="subcategory-request"
+                    onClick={() => openService({ category: cat.en, sub: sub.key })}
+                    className={`px-5 py-2.5 ${primaryBtnCls(isAr)}`}
+                  >
+                    {t('Request execution', 'طلب تنفيذ')}
+                  </button>
+                  <Link to={servicePath(cat, sub)} className="inline-flex items-center gap-1.5 px-3 py-2.5 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ color: MUTED }}>
+                    {t('Details', 'التفاصيل')}
+                    <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+                  </Link>
+                </div>
               </li>
             );
           })}

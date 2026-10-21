@@ -40,7 +40,7 @@ import {
 } from './one/HomeSections';
 import { HowWeWork } from './one/HowWeWork';
 import { CategoryPanels } from './one/CategoryPanels';
-import { categoryArt, categoryPath } from './one/ServicePage';
+import { categoryPath } from './one/ServicePage';
 import { postSlug } from './one/data';
 import { RoomStage } from './one/RoomStage';
 import { LookShell } from './one/shell';
@@ -1231,22 +1231,34 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10">
-                  {/* the eight categories as picture tiles (the client's own artwork); each opens its page */}
-                  <div className="grid grid-cols-8 gap-x-5" data-testid="mega-service-groups">
-                    {SERVICES_MENU.map((group, i) => {
-                      const cat = SERVICES[i];
-                      if (!cat) return null;
-                      return (
-                        <MegaTileGroup
-                          key={group.title.en}
-                          img={categoryArt(cat)}
-                          group={group}
-                          to={categoryPath(cat)}
-                          onNavigate={closeMenu}
-                          testId="mega-service-category"
-                        />
-                      );
-                    })}
+                  <div className="grid grid-cols-12 gap-x-10">
+                    {/* the eight categories, each opening its page of subcategories */}
+                    <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3" data-testid="mega-service-groups">
+                      {SERVICES.map((s) => (
+                        <Link
+                          key={s.en}
+                          to={categoryPath(s)}
+                          onClick={closeMenu}
+                          data-testid="mega-service-category"
+                          className="group/sc flex items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
+                          style={{ borderColor: HAIR }}
+                        >
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#F6F3EC] transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white">
+                            <s.icon size={19} strokeWidth={1.4} />
+                          </span>
+                          <span className={`text-[14px] font-bold leading-snug text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="col-span-3 border-s ps-8" style={{ borderColor: HAIR }}>
+                      <MegaFeatured
+                        img={MENU_FEATURED.services[0].img}
+                        title={MENU_FEATURED.services[0].title}
+                        cta={MENU_FEATURED.services[0].cta}
+                        to={`${lookBase(1)}/ai-designer`}
+                        onNavigate={closeMenu}
+                      />
+                    </div>
                   </div>
                   <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-3 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('All Services', 'كل الخدمات')} to={`${lookBase(1)}/services`} />

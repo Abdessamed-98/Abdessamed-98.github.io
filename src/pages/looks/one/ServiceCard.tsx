@@ -23,7 +23,7 @@ export function ServiceCard({ s, rail = false, testId }: { s: ServiceItem; rail?
   const name = t(s.name.en, s.name.ar);
 
   const ask = () => {
-    openService(p ? `${name} — ${t(p.name.en, p.name.ar)}` : name);
+    openService({ category: s.category, sub: s.sub, service: p ? `${name} — ${t(p.name.en, p.name.ar)}` : name });
     setAsked(true);
     window.setTimeout(() => setAsked(false), 1600);
   };
@@ -108,7 +108,7 @@ export function ServiceCard({ s, rail = false, testId }: { s: ServiceItem; rail?
           } ${isAr ? 'tracking-normal' : 'tracking-[0.28em]'}`}
         >
           {asked && <Check size={13} strokeWidth={2} />}
-          {t('Request service', 'اطلب الخدمة')}
+          {t('Request execution', 'طلب تنفيذ')}
         </button>
       )}
     </div>
