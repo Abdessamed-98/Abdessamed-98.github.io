@@ -32,6 +32,7 @@ import {
   useScroll,
   useTransform,
 } from 'motion/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SectionHeading, useLook } from './ui';
 
 /** room-hotspots.jpg is 2400×1200. */
@@ -66,6 +67,8 @@ export function RoomStage({
   img,
   alt,
   selector,
+  onPrev,
+  onNext,
   children,
 }: {
   eyebrow: string;
@@ -74,6 +77,9 @@ export function RoomStage({
   alt: string;
   /** the room picker: over the photo's bottom edge from md, under the photo on phones */
   selector?: ReactNode;
+  /** arrows on the photo's two sides, to step through the rooms (client note) */
+  onPrev?: () => void;
+  onNext?: () => void;
   /** the hotspots, positioned in % of the photo */
   children: ReactNode;
 }) {
@@ -206,6 +212,29 @@ export function RoomStage({
                 <rect {...OVER} fill="#FDFCF9" mask={`url(#${maskId})`} />
               </svg>
             </motion.div>
+          )}
+
+          {/* the room arrows: physical left/right, kept clear of the fixed contact buttons on the left edge */}
+          {onPrev && onNext && (
+            <>
+              {[
+                { side: 'left-14 md:left-24', label: t('Previous room', 'الغرفة السابقة'), run: onPrev, Icon: ChevronLeft, id: 'room-prev' },
+                { side: 'right-3 md:right-24', label: t('Next room', 'الغرفة التالية'), run: onNext, Icon: ChevronRight, id: 'room-next' },
+              ].map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  data-testid={a.id}
+                  aria-label={a.label}
+                  onClick={a.run}
+                  className={`absolute top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[#E8E4DC] bg-[#FDFCF9]/90 text-[#171512] shadow-sm backdrop-blur-sm transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white ${a.side} ${
+                    animate ? `transition-opacity duration-700 ease-out ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}` : ''
+                  }`}
+                >
+                  <a.Icon size={18} strokeWidth={1.5} />
+                </button>
+              ))}
+            </>
           )}
 
           {selector && (
