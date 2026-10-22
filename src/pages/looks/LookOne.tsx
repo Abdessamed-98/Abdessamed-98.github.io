@@ -1555,6 +1555,12 @@ export function LookOneHome() {
   /* the room on show: the client asked for several, picked from image cards */
   const [roomKey, setRoomKey] = useState<string>(SHOP_ROOMS[0].key);
   const shopRoom = SHOP_ROOMS.find((r) => r.key === roomKey) ?? SHOP_ROOMS[0];
+  // the arrows on the photo step through the rooms, wrapping at the ends
+  const stepRoom = (d: 1 | -1) => {
+    const i = SHOP_ROOMS.findIndex((r) => r.key === shopRoom.key);
+    setOpenSpot(null);
+    setRoomKey(SHOP_ROOMS[(i + d + SHOP_ROOMS.length) % SHOP_ROOMS.length].key);
+  };
   const spotTimer = useRef<number | null>(null);
   const cancelSpotClose = () => {
     if (spotTimer.current !== null) {
@@ -1646,6 +1652,8 @@ export function LookOneHome() {
           title={t('Shop the Look', 'تسوق الغرفة')}
           img={shopRoom.img}
           alt={t(`${shopRoom.name.en} with shoppable products`, `${shopRoom.name.ar} بمنتجات قابلة للتسوق`)}
+          onPrev={() => stepRoom(-1)}
+          onNext={() => stepRoom(1)}
           selector={
             <div
               role="radiogroup"
