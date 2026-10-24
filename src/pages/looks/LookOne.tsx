@@ -277,7 +277,7 @@ function ShopHotspot({
 /* ------------------------------------------------------------------ */
 
 /** One mega-menu column: group title + subcategory links. `to` makes them real links. */
-function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; key?: string | number }) {
+function MegaGroup({ group, to, itemTo, onNavigate, limit }: { group: MenuGroup; to?: string; itemTo?: (it: Bi) => string; onNavigate?: () => void; key?: string | number; /** show this many items, then «عرض الكل» to the rest */ limit?: number }) {
   const isAr = useLang() === 'ar';
   const titleCls = `text-[12.5px] font-bold uppercase text-[#171512] ${
     isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
@@ -295,7 +295,7 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
         <p className={titleCls}>{title}</p>
       )}
       <ul className="mt-3 space-y-1.5">
-        {group.items.map((it) => (
+        {(limit ? group.items.slice(0, limit) : group.items).map((it) => (
           <li key={it.en}>
             {to ? (
               <Link to={itemTo ? itemTo(it) : to} onClick={onNavigate} className={itemCls}>
@@ -306,6 +306,15 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
             )}
           </li>
         ))}
+        {/* what does not fit is on the category's page */}
+        {to && limit && group.items.length > limit && (
+          <li className="pt-1">
+            <Link to={to} onClick={onNavigate} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#171512] decoration-[#5A6B4D] underline-offset-4 hover:underline">
+              {isAr ? `عرض الكل (${group.items.length})` : `View all (${group.items.length})`}
+              <ArrowRight size={11} strokeWidth={1.5} className="rtl:rotate-180" />
+            </Link>
+          </li>
+        )}
       </ul>
     </div>
   );
@@ -1184,8 +1193,8 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10">
-                  {/* the earlier text columns: each category with its subcategories, 3 × 2 — no picture tiles */}
-                  <div className="grid max-w-[920px] grid-cols-3 gap-x-16 gap-y-7" data-testid="mega-product-groups">
+                  {/* the earlier text columns, all six on one row: each category with its first subcategories, the rest on its page */}
+                  <div className="grid grid-cols-6 gap-x-8" data-testid="mega-product-groups">
                     {SHOP_MENU.map((group, i) => {
                       const key = shopGroupKey(i);
                       if (!key) return null;
@@ -1196,6 +1205,7 @@ export default function LookOne() {
                           to={searchPath(1, { category: key })}
                           itemTo={(it) => searchPath(1, { category: key, sub: (it as { key?: string }).key })}
                           onNavigate={closeMenu}
+                          limit={5}
                         />
                       );
                     })}
