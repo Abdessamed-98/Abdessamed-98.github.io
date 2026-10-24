@@ -1183,36 +1183,24 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10" onClick={closeMenu}>
-                  {/* the six categories as picture tiles; each opens its page of subcategories */}
-                  <div className="grid grid-cols-6 gap-x-6" data-testid="mega-product-groups">
+                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                  {/* the earlier text columns: each category with its subcategories, 3 × 2 — no picture tiles */}
+                  <div className="grid max-w-[920px] grid-cols-3 gap-x-16 gap-y-10" data-testid="mega-product-groups">
                     {SHOP_MENU.map((group, i) => {
                       const key = shopGroupKey(i);
-                      const cat = CATEGORIES[i];
-                      if (!key || !cat) return null;
+                      if (!key) return null;
                       return (
-                        <MegaTileGroup
+                        <MegaGroup
                           key={group.title.en}
-                          img={cat.img}
                           group={group}
                           to={searchPath(1, { category: key })}
+                          itemTo={(it) => searchPath(1, { category: key, sub: (it as { key?: string }).key })}
                           onNavigate={closeMenu}
-                          testId="mega-product-category"
                         />
                       );
                     })}
                   </div>
-<div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3 border-t pt-5" style={{ borderColor: HAIR }}>
-                    <p className={`shrink-0 text-[11.5px] font-bold ${isAr ? "font-['Alexandria',sans-serif]" : 'uppercase tracking-[0.18em]'}`}>{t('Shop by room', 'تسوق حسب الغرفة')}</p>
-                    <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-x-7 gap-y-2">
-                      {ROOMS.map((r) => (
-                        <li key={r.key}>
-                          <Link to={searchPath(1, { room: r.key })} className="text-[14px] text-neutral-600 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline">
-                            {t(r.en, r.ar)}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('All products', 'كل المنتجات')} to={searchPath(1)} />
                   </div>
                 </div>
