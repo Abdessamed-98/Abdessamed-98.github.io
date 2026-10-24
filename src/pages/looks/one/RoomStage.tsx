@@ -221,7 +221,7 @@ export function RoomStage({
           {onPrev && onNext && (
             <>
               {[
-                { side: 'left-12 md:left-24', label: t('Previous room', 'الغرفة السابقة'), run: onPrev, Icon: ChevronLeft, id: 'room-prev' },
+                { side: 'left-1 md:left-24', label: t('Previous room', 'الغرفة السابقة'), run: onPrev, Icon: ChevronLeft, id: 'room-prev' },
                 { side: 'right-1 md:right-24', label: t('Next room', 'الغرفة التالية'), run: onNext, Icon: ChevronRight, id: 'room-next' },
               ].map((a) => (
                 <button
