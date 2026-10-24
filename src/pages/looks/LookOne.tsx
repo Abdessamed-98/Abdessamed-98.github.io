@@ -283,7 +283,7 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
     isAr ? "font-['Alexandria',sans-serif] tracking-normal" : 'tracking-[0.18em]'
   }`;
   const itemCls =
-    'block text-[13.5px] leading-relaxed text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
+    'block text-[13.5px] leading-snug text-neutral-500 decoration-[#5A6B4D] underline-offset-4 transition-colors hover:text-[#171512] hover:underline';
   const title = isAr ? group.title.ar : group.title.en;
   return (
     <div className="text-start">
@@ -294,7 +294,7 @@ function MegaGroup({ group, to, itemTo, onNavigate }: { group: MenuGroup; to?: s
       ) : (
         <p className={titleCls}>{title}</p>
       )}
-      <ul className="mt-3.5 space-y-1">
+      <ul className="mt-3 space-y-1.5">
         {group.items.map((it) => (
           <li key={it.en}>
             {to ? (
@@ -1183,9 +1183,9 @@ export default function LookOne() {
                 className="absolute inset-x-0 top-full hidden border-y bg-white shadow-[0_24px_60px_rgba(23,21,18,0.08)] lg:block"
                 style={{ borderColor: HAIR, color: INK }}
               >
-                <div className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
+                <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10">
                   {/* the earlier text columns: each category with its subcategories, 3 × 2 — no picture tiles */}
-                  <div className="grid max-w-[920px] grid-cols-3 gap-x-16 gap-y-10" data-testid="mega-product-groups">
+                  <div className="grid max-w-[920px] grid-cols-3 gap-x-16 gap-y-7" data-testid="mega-product-groups">
                     {SHOP_MENU.map((group, i) => {
                       const key = shopGroupKey(i);
                       if (!key) return null;
@@ -1200,7 +1200,7 @@ export default function LookOne() {
                       );
                     })}
                   </div>
-                  <div className="mt-10 border-t pt-6" style={{ borderColor: HAIR }} onClick={closeMenu}>
+                  <div className="mt-6 border-t pt-4" style={{ borderColor: HAIR }} onClick={closeMenu}>
                     <ViewMore label={t('All products', 'كل المنتجات')} to={searchPath(1)} />
                   </div>
                 </div>
