@@ -7,13 +7,14 @@
  */
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Check, ImagePlus, X } from 'lucide-react';
-import { SERVICES, SERVICE_SUBS } from '../lookShared';
+import { SERVICES } from '../lookShared';
 import { HAIR, OLIVE, TILE, primaryBtnCls, useLook } from './ui';
 import { Sheet } from './Sheet';
 
 /** What the opener already knows: a category (SERVICES[i].en), a subcategory key, a named service/provider. */
 export interface ServicePreset {
   category?: string;
+  /** kept for older callers; services have no subcategories */
   sub?: string;
   /** e.g. «تصميم داخلي — استوديو إيوان»: shown as the requested service */
   service?: string;
@@ -39,7 +40,6 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
   const [sent, setSent] = useState(false);
   const p: ServicePreset = typeof preset === 'string' ? { service: preset } : preset ?? {};
   const [category, setCategory] = useState('');
-  const [sub, setSub] = useState('');
   const [form, setForm] = useState({ details: '', budget: '', city: '', phone: '', date: '' });
   const direct = !!p.direct;
   const [photos, setPhotos] = useState<string[]>([]);
@@ -50,13 +50,11 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
     if (!open) return;
     setSent(false);
     setCategory(p.category ?? '');
-    setSub(p.sub ?? '');
     setForm({ details: '', budget: '', city: '', phone: '', date: '' });
     setPhotos([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, p.category, p.sub, p.service, p.direct, p.provider]);
+  }, [open, p.category, p.service, p.direct, p.provider]);
 
-  const subs = SERVICE_SUBS[category] ?? [];
   const field = 'h-12 w-full border bg-white px-4 text-[14px] outline-none transition-colors focus:border-[#171512]';
   const label = `mb-2 block text-[11px] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.22em]'} text-neutral-500`;
   const chip = (on: boolean) =>
@@ -132,7 +130,7 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
               {SERVICES.map((s) => {
                 const on = category === s.en;
                 return (
-                  <button key={s.en} type="button" aria-pressed={on} onClick={() => { setCategory(on ? '' : s.en); setSub(''); }} className={chip(on)} style={on ? undefined : { borderColor: HAIR }}>
+                  <button key={s.en} type="button" aria-pressed={on} onClick={() => setCategory(on ? '' : s.en)} className={chip(on)} style={on ? undefined : { borderColor: HAIR }}>
                     {on && <Check size={13} strokeWidth={2} />}
                     {t(s.en, s.ar)}
                   </button>
@@ -141,23 +139,6 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
             </div>
           </div>
           )}
-          {!direct && subs.length > 0 && (
-            <div className="mt-4">
-              <p className={label}>{t('Subcategory', 'التصنيف الفرعي')}</p>
-              <div className="flex flex-wrap gap-2" data-testid="request-subcategories">
-                {subs.map((x) => {
-                  const on = sub === x.key;
-                  return (
-                    <button key={x.key} type="button" aria-pressed={on} onClick={() => setSub(on ? '' : x.key)} className={chip(on)} style={on ? undefined : { borderColor: HAIR }}>
-                      {on && <Check size={13} strokeWidth={2} />}
-                      {t(x.en, x.ar)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           <div className={direct ? '' : 'mt-5'}>
             <label className={label} htmlFor="rs-details">{direct ? t('Tell the provider about the job', 'أخبر مقدم الخدمة عن العمل') : t('What do you need done?', 'ما الذي تريد تنفيذه؟')}</label>
             <textarea

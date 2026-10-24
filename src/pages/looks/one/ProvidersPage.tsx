@@ -11,7 +11,7 @@ import { CONTAINER, displayCls } from './kit';
 import { useShell } from './shellContext';
 import { PROVIDERS } from './data';
 import { serviceSlug, servicePathOf } from './ServicePage';
-import { servicesOfProvider } from './servicesData';
+import { providersFor, servicesOfProvider } from './servicesData';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
 
@@ -22,7 +22,7 @@ export default function ProvidersPage() {
   const [sp, setSp] = useSearchParams();
   const want = sp.get('category') ?? '';
   const cat = SERVICES.find((s) => serviceSlug(s) === want);
-  const list = cat ? PROVIDERS.filter((p) => p.service === cat.en) : PROVIDERS;
+  const list = cat ? providersFor(cat.en) : PROVIDERS;
   return (
     <main className="pt-[72px]" data-testid="providers-page">
       <div className={`${CONTAINER} pt-8`}>

@@ -13,7 +13,9 @@
  * LookOneHome restores the page exactly.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BG, INK, OLIVE, HAIR, TILE, useLook, Reveal, SectionHeading, RAIL_LG, RAIL_ITEM_LG } from './ui';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { BG, INK, OLIVE, HAIR, TILE, useLook, Reveal, SectionHeading, RAIL_LG, RAIL_ITEM_LG, primaryBtnCls } from './ui';
 
 interface Step {
   img: string;
@@ -272,6 +274,14 @@ export function HowWeWork() {
                 />
               </button>
             ))}
+          </div>
+
+          {/* the end of the line: from the four steps to the people who do them */}
+          <div className="mt-10 flex justify-center lg:mt-4 lg:justify-start lg:ps-16" data-testid="how-request">
+            <Link to="/look/1/services" className={`inline-flex items-center gap-2.5 px-8 py-4 ${primaryBtnCls(isAr)}`}>
+              {t('Request a service', 'طلب خدمة')}
+              <ArrowRight size={14} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
+            </Link>
           </div>
           </div>
 

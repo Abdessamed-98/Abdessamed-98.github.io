@@ -30,7 +30,9 @@ import {
 } from './ui';
 import { Lightbox, Tabs } from './kit';
 import { servicePathOf } from './ServicePage';
-import { RelatedServicesSection, relatedServicesFor } from './RelatedServices';
+import { INSTALL_CATEGORY, RelatedServicesSection, relatedServicesFor } from './RelatedServices';
+import { categoryPathOf } from './ServicePage';
+import { Sheet } from './Sheet';
 import { providerOfService } from './servicesData';
 import { ShareSheet, TryAISheet } from './ProductSheets';
 import { sizeOptions } from './sizes';
@@ -106,6 +108,11 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const [seats, setSeats] = useState<number | undefined>(sizes[0]?.seats);
   const size = sizes.find((s) => s.seats === seats);
   const [qty, setQty] = useState(1);
+  /* sold by area: the buyer gives the surface, and buys whole boxes that cover it */
+  const [m2, setM2] = useState(12);
+  const boxes = p.area ? Math.max(1, Math.ceil((m2 || 0) / p.area.perBox - 1e-9)) : 0;
+  const covered = p.area ? Math.round(boxes * p.area.perBox * 100) / 100 : 0;
+  const [installOpen, setInstallOpen] = useState(false);
   const [added, setAdded] = useState(false);
   const shell = useShell();
   const wishlist = useWishlist();
@@ -120,7 +127,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const oldPrice = size ? size.oldPrice : p.oldPrice;
 
   const addToCart = () => {
-    shell.addToCart(p.id, t(p.name.en, p.name.ar), { colorKey: p.colors[color]?.name.en, seats: size && size.seats !== sizes[0].seats ? size.seats : undefined, qty });
+    shell.addToCart(p.id, t(p.name.en, p.name.ar), { colorKey: p.colors[color]?.name.en, seats: size && size.seats !== sizes[0].seats ? size.seats : undefined, qty: p.area ? boxes : qty });
     setAdded(true);
     if (addedTimer.current !== null) window.clearTimeout(addedTimer.current);
     addedTimer.current = window.setTimeout(() => setAdded(false), 1800);
@@ -150,6 +157,9 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   }, []);
 
   const savePct = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+  // what the order comes to: the boxes' cover × the m² price, or the pieces × the price
+  const orderTotal = p.area ? Math.round(covered * price) : price * qty;
+  const installCategory = p.area ? 'Flooring & Tiling' : INSTALL_CATEGORY[p.category];
   const name = p.name[lang];
   const gallery = p.gallery.length ? p.gallery : [p.img];
   const media: Media[] = [...gallery.map((src) => ({ kind: 'img' as const, src })), ROOM_TOUR];
@@ -349,6 +359,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               <span className="font-['Outfit',sans-serif] text-[30px] font-bold leading-none tabular-nums">{formatSAR(price)}</span>
               <span className={`text-[12px] font-medium text-neutral-500 ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.1em]'}`}>
                 {t('SAR', 'ر.س')}
+                {p.area && <span className="normal-case tracking-normal"> / {t('m²', 'م²')}</span>}
               </span>
               {oldPrice && (
                 <>
@@ -362,6 +373,18 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
             <p className="mt-2 text-[14px] text-neutral-500" data-testid="vat-note">
               {t('Price includes VAT', 'السعر شامل ضريبة القيمة المضافة')}
             </p>
+
+            {/* Tamara: the total in four interest-free payments */}
+            <div className="mt-4 flex items-center gap-3 border px-4 py-3" style={{ borderColor: HAIR }} data-testid="tamara">
+              <span dir="ltr" className="shrink-0 rounded-full px-3 py-1 font-['Outfit',sans-serif] text-[13px] font-bold lowercase text-[#171512]" style={{ background: 'linear-gradient(90deg,#F5C9B4,#F3E0B5 50%,#C9E4D6)' }}>
+                tamara
+              </span>
+              <p className="min-w-0 text-[13.5px] leading-relaxed text-neutral-600">
+                {t('Split it into 4 payments of ', 'قسّمها على 4 دفعات بقيمة ')}
+                <span className="font-['Outfit',sans-serif] font-bold tabular-nums text-[#171512]">{formatSAR(Math.round(orderTotal / 4))}</span> {t('SAR', 'ر.س')}
+                {t('. No interest, no late fees · Sharia-compliant.', '. بدون فوائد أو رسوم تأخير · متوافقة مع الشريعة.')}
+              </p>
+            </div>
 
             {/* availability */}
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="product-availability">
@@ -426,7 +449,52 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               </div>
             )}
 
+            {/* sold by area: the surface, then the boxes that cover it */}
+            {p.area && (
+              <div className="mt-6 border p-4" style={{ borderColor: HAIR }} data-testid="area-calculator">
+                <label className={fieldLabel} htmlFor="area-m2">{t('Area to cover', 'المساحة المطلوبة')}</label>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <div className="inline-flex h-11 items-stretch border bg-white" style={{ borderColor: '#C9C2B4' }}>
+                    <input
+                      id="area-m2"
+                      data-testid="area-input"
+                      type="number"
+                      inputMode="decimal"
+                      min={1}
+                      step={0.5}
+                      value={m2}
+                      onChange={(e) => setM2(Math.max(0, Number(e.target.value)))}
+                      className="w-24 bg-transparent px-3 text-center text-[15px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    <span className="flex items-center border-s px-3 text-[14px] text-neutral-500" style={{ borderColor: '#C9C2B4' }}>{t('m²', 'م²')}</span>
+                  </div>
+                  <span className="text-[13.5px] text-neutral-500">{t('Add 10% for cuts and breakage', 'أضف 10% للقص والهدر')}</span>
+                </div>
+                <dl className="mt-4 grid grid-cols-3 gap-3 border-t pt-4 text-[13px]" style={{ borderColor: HAIR }}>
+                  <div>
+                    <dt className="text-neutral-500">{t('Boxes', 'عدد الكراتين')}</dt>
+                    <dd className="mt-1 text-[16px] font-bold tabular-nums" data-testid="area-boxes">{boxes}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-neutral-500">{t('Covers', 'تغطي')}</dt>
+                    <dd className="mt-1 text-[16px] font-bold tabular-nums">{covered} {t('m²', 'م²')}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-neutral-500">{t('Total', 'الإجمالي')}</dt>
+                    <dd className="mt-1 text-[16px] font-bold tabular-nums" data-testid="area-total">{formatSAR(orderTotal)} {t('SAR', 'ر.س')}</dd>
+                  </div>
+                </dl>
+                <p className="mt-3 text-[13px] text-neutral-500">
+                  {t(
+                    `One box covers ${p.area.perBox} m² (${p.area.pieces} tiles of ${p.area.tile.en}) · ${p.area.thickness.en} · ${p.area.finish.en}`,
+                    `الكرتون يغطي ${p.area.perBox} م² (${p.area.pieces} قطع بمقاس ${p.area.tile.ar}) · سماكة ${p.area.thickness.ar} · ${p.area.finish.ar}`,
+                  )}
+                </p>
+              </div>
+            )}
+
             {/* quantity */}
+            {!p.area && (
             <div className="mt-6 inline-flex h-11 items-stretch border" style={{ borderColor: '#C9C2B4' }} data-testid="qty-stepper">
               <button
                 type="button"
@@ -458,6 +526,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 <Plus size={14} strokeWidth={1.5} />
               </button>
             </div>
+            )}
 
             {/* buy */}
             <button
@@ -481,6 +550,16 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               style={{ borderColor: INK }}
             >
               {t('Buy Now', 'اشترِ الآن')}
+            </button>
+            <button
+              type="button"
+              data-testid="install-open"
+              onClick={() => setInstallOpen(true)}
+              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 border text-[13px] font-medium transition-colors hover:border-[#171512]"
+              style={{ borderColor: '#C9C2B4' }}
+            >
+              <Wrench size={15} strokeWidth={1.5} />
+              {t('Installation', 'تركيب')}
             </button>
 
             <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-[14px]">
@@ -790,6 +869,35 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
         caption={(i) => `${name} — ${i + 1} / ${gallery.length}`}
       />
       <TryAISheet open={aiOpen} onClose={() => setAiOpen(false)} p={p} />
+      <Sheet open={installOpen} onClose={() => setInstallOpen(false)} side="center" testId="install-sheet" eyebrow={t('Diyar Services', 'خدمات ديار')} title={t('Installation', 'التركيب')}>
+        <div className="px-6 py-6">
+          <p className="text-[14.5px] leading-relaxed text-neutral-600">
+            {t('Browse the partners who install it, or post the job and let them send you offers.', 'تصفّح مقدمي خدمات التركيب، أو اطلب التركيب وستصلك عروض الأسعار.')}
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <Link
+              to={categoryPathOf(installCategory)}
+              onClick={() => setInstallOpen(false)}
+              data-testid="install-services"
+              className="inline-flex h-12 items-center justify-center border text-[13.5px] font-medium transition-colors hover:bg-[#171512] hover:text-white"
+              style={{ borderColor: INK }}
+            >
+              {t('Installation services', 'خدمات التركيب')}
+            </Link>
+            <button
+              type="button"
+              data-testid="install-request"
+              onClick={() => {
+                setInstallOpen(false);
+                shell.openService({ category: installCategory, service: t(`Install: ${p.name.en}`, `تركيب: ${p.name.ar}`) });
+              }}
+              className={`h-12 ${primaryBtnCls(isAr)}`}
+            >
+              {t('Request installation', 'طلب تركيب')}
+            </button>
+          </div>
+        </div>
+      </Sheet>
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} title={name} />
     </div>
   );

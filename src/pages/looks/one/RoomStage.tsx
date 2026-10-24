@@ -69,6 +69,7 @@ export function RoomStage({
   selector,
   onPrev,
   onNext,
+  still = false,
   children,
 }: {
   eyebrow: string;
@@ -80,6 +81,8 @@ export function RoomStage({
   /** arrows on the photo's two sides, to step through the rooms (client note) */
   onPrev?: () => void;
   onNext?: () => void;
+  /** no title-mask reveal and no scroll runway: the room is simply there */
+  still?: boolean;
   /** the hotspots, positioned in % of the photo */
   children: ReactNode;
 }) {
@@ -88,7 +91,7 @@ export function RoomStage({
   const track = useRef<HTMLDivElement>(null);
   const wide = useWide();
   const reduce = useReducedMotion();
-  const animate = wide && !reduce;
+  const animate = wide && !reduce && !still;
   const maskId = useId().replace(/:/g, '');
 
   /* 0 = the stage has just pinned, 1 = it is about to unpin. It has to be

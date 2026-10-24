@@ -12,9 +12,9 @@ import { Breadcrumb, HAIR, INK, MUTED, OLIVE, TILE, Stars, primaryBtnCls, useLoo
 import { Tabs, capsCls } from './kit';
 import { useShell } from './shellContext';
 import { NotFoundPage } from './InfoPages';
-import { SERVICE_CATALOG, categoryOfService, providerOfService, serviceById, servicesOfProvider, subOfService } from './servicesData';
+import { SERVICE_CATALOG, categoryOfService, providerOfService, serviceById, servicesOfProvider } from './servicesData';
 import { ServiceCard } from './ServiceCard';
-import { categoryPath, servicePath, servicePathOf } from './ServicePage';
+import { categoryPath, servicePathOf } from './ServicePage';
 
 type InfoTab = 'description' | 'included' | 'how' | 'reviews';
 
@@ -37,21 +37,19 @@ export function ServiceDetail({ id }: { id: string }) {
   if (!s) return <NotFoundPage />;
   const p = providerOfService(s);
   const cat = categoryOfService(s);
-  const sub = subOfService(s);
   const name = t(s.name.en, s.name.ar);
   const providerName = p ? t(p.name.en, p.name.ar) : '';
   const gallery = s.gallery.length ? s.gallery : [s.img];
-  const similar = SERVICE_CATALOG.filter((x) => x.id !== s.id && x.providerId !== s.providerId && (x.sub === s.sub || x.category === s.category)).slice(0, 4);
+  const similar = SERVICE_CATALOG.filter((x) => x.id !== s.id && x.providerId !== s.providerId && x.category === s.category).slice(0, 4);
   const more = servicesOfProvider(s.providerId).filter((x) => x.id !== s.id).slice(0, 4);
   const card = 'border bg-white';
   // «طلب خدمة»: a direct request to this provider for this service (an open «طلب تنفيذ» lives on the category and catalogue pages)
-  const ask = () => openService({ direct: true, category: s.category, sub: s.sub, service: name, provider: providerName || undefined });
+  const ask = () => openService({ direct: true, category: s.category, service: name, provider: providerName || undefined });
 
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
     { label: t('Services', 'الخدمات'), to: `${lookBase(1)}/services` },
     ...(cat ? [{ label: t(cat.en, cat.ar), to: categoryPath(cat) }] : []),
-    ...(cat && sub ? [{ label: t(sub.en, sub.ar), to: servicePath(cat, sub) }] : []),
     { label: name },
   ];
 
@@ -94,12 +92,6 @@ export function ServiceDetail({ id }: { id: string }) {
           <div className="lg:col-span-5 xl:col-span-1" data-testid="service-info">
             <p className={`flex flex-wrap items-center gap-x-2 text-[11.5px] ${caps}`} style={{ color: MUTED }}>
               {cat && <Link to={categoryPath(cat)} className="hover:text-[#171512]">{t(cat.en, cat.ar)}</Link>}
-              {sub && cat && (
-                <>
-                  <span>·</span>
-                  <Link to={servicePath(cat, sub)} className="hover:text-[#171512]">{t(sub.en, sub.ar)}</Link>
-                </>
-              )}
             </p>
             <h1 className={`mt-3 text-[28px] font-extrabold leading-tight md:text-[34px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>{name}</h1>
 
@@ -291,9 +283,9 @@ export function ServiceDetail({ id }: { id: string }) {
               <h2 className={`text-[22px] font-extrabold md:text-[26px] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>
                 {t('Similar services from other providers', 'خدمات مشابهة من مقدمين آخرين')}
               </h2>
-              {cat && sub && (
-                <Link to={servicePath(cat, sub)} className="inline-flex items-center gap-2 border-b pb-1 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
-                  {t(`All ${sub.en}`, `كل ${sub.ar}`)}
+              {cat && (
+                <Link to={categoryPath(cat)} className="inline-flex items-center gap-2 border-b pb-1 text-[14px] font-medium transition-colors hover:text-[#5A6B4D]" style={{ borderColor: INK }}>
+                  {t(`All ${cat.en}`, `كل ${cat.ar}`)}
                   <ArrowRight size={12} strokeWidth={1.5} className={isAr ? 'rotate-180' : ''} />
                 </Link>
               )}

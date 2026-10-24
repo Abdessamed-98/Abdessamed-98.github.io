@@ -43,7 +43,8 @@ export function sizeOptions(p: CatalogProduct): SizeOption[] {
 
 /** The price of one piece in the chosen size (the catalogue price when none is chosen). */
 export const unitPrice = (p: CatalogProduct, seats?: number) =>
-  (seats ? sizeOptions(p).find((o) => o.seats === seats)?.price : undefined) ?? p.price;
+  // a product sold by area goes into the cart by the box: price per m² × the box's cover
+  p.area ? Math.round(p.price * p.area.perBox * 100) / 100 : (seats ? sizeOptions(p).find((o) => o.seats === seats)?.price : undefined) ?? p.price;
 
 export const sizeLabel = (p: CatalogProduct, seats?: number): Bi | undefined =>
   seats ? sizeOptions(p).find((o) => o.seats === seats)?.label : undefined;

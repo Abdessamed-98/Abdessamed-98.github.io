@@ -1232,7 +1232,7 @@ export default function LookOne() {
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-8 md:px-10">
                   <div className="grid grid-cols-12 gap-x-10">
-                    {/* the eight categories, each opening its page of subcategories */}
+                    {/* the service categories, each opening the catalogue on it (services have no subcategories) */}
                     <div className="col-span-9 grid grid-cols-4 content-start gap-x-6 gap-y-3" data-testid="mega-service-groups">
                       {SERVICES.map((s) => (
                         <Link
@@ -1240,13 +1240,11 @@ export default function LookOne() {
                           to={categoryPath(s)}
                           onClick={closeMenu}
                           data-testid="mega-service-category"
-                          className="group/sc flex items-center gap-3.5 border p-3.5 text-start transition-colors hover:border-[#171512]"
+                          className="group/sc flex min-h-[58px] items-center justify-between gap-3 border px-4 py-3 text-start transition-colors hover:border-[#171512] hover:bg-[#171512]"
                           style={{ borderColor: HAIR }}
                         >
-                          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#F6F3EC] transition-colors group-hover/sc:bg-[#171512] group-hover/sc:text-white">
-                            <s.icon size={19} strokeWidth={1.4} />
-                          </span>
-                          <span className={`text-[14px] font-bold leading-snug text-[#171512] ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
+                          <span className={`text-[14px] font-bold leading-snug text-[#171512] transition-colors group-hover/sc:text-white ${isAr ? "font-['Alexandria',sans-serif]" : ''}`}>{t(s.en, s.ar)}</span>
+                          <ArrowRight size={13} strokeWidth={1.5} className={`shrink-0 text-[#171512]/40 transition-colors group-hover/sc:text-white ${isAr ? 'rotate-180' : ''}`} />
                         </Link>
                       ))}
                     </div>
@@ -1654,39 +1652,7 @@ export function LookOneHome() {
           alt={t(`${shopRoom.name.en} with shoppable products`, `${shopRoom.name.ar} بمنتجات قابلة للتسوق`)}
           onPrev={() => stepRoom(-1)}
           onNext={() => stepRoom(1)}
-          selector={
-            <div
-              role="radiogroup"
-              aria-label={t('Choose a room', 'اختر الغرفة')}
-              data-testid="room-selector"
-              className="scrollbar-hide flex gap-2 overflow-x-auto px-6 md:gap-2.5 md:overflow-visible md:px-0"
-            >
-              {SHOP_ROOMS.map((r) => {
-                const on = r.key === shopRoom.key;
-                return (
-                  <button
-                    key={r.key}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    data-testid={`room-pick-${r.key}`}
-                    onClick={() => {
-                      setOpenSpot(null);
-                      setRoomKey(r.key);
-                    }}
-                    className={`group relative block w-[104px] shrink-0 overflow-hidden border-2 text-start transition-colors md:w-[112px] ${
-                      on ? 'border-[#171512] md:border-white' : 'border-transparent hover:border-[#171512]/40 md:hover:border-white/70'
-                    }`}
-                  >
-                    <img src={r.img} alt="" loading="lazy" className={`aspect-[4/3] w-full object-cover transition-opacity ${on ? '' : 'opacity-80 group-hover:opacity-100'}`} />
-                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-1.5 pt-5 text-[13px] font-medium leading-tight text-white">
-                      {t(r.name.en, r.name.ar)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          }
+          still
         >
           {shopRoom.spots.map((h, i) => (
             <ShopHotspot
@@ -1832,10 +1798,10 @@ export function LookOneHome() {
       {/* ============================================================== */}
       {/* 16. AI STUDIO — the page's one modern, dark, image-led moment */}
       {/* ============================================================== */}
-      <CurtainStage testId="ai-studio" bg={INK} image="/looks/curtain.webp" title={t(AI_STUDIO.title.en, AI_STUDIO.title.ar)}>
+      <section data-testid="ai-studio" className="relative overflow-x-clip" style={{ backgroundColor: INK, color: CREAM }}>
         <div className="grid lg:grid-cols-2">
           {/* visual — the two states of the room, split by a handle (one/BeforeAfter) */}
-          <Reveal className="relative">
+          <div className="relative">
             <BeforeAfter
               before="/before.png"
               after="/after.png"
@@ -1847,11 +1813,11 @@ export function LookOneHome() {
               )}
               className="aspect-[4/3] h-full w-full lg:aspect-auto lg:min-h-[680px]"
             />
-          </Reveal>
+          </div>
 
           {/* copy */}
           <div className="flex items-center">
-            <Reveal className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24" delay={0.1}>
+            <div className="w-full px-6 py-16 md:px-14 lg:px-20 lg:py-24">
               <SectionHeading
                 light
                 eyebrow={t(`${AI_STUDIO.eyebrow.en} — 11`, `${AI_STUDIO.eyebrow.ar} — 11`)}
@@ -1887,10 +1853,10 @@ export function LookOneHome() {
               >
                 {t(AI_STUDIO.cta.en, AI_STUDIO.cta.ar)}
               </Link>
-            </Reveal>
+            </div>
           </div>
         </div>
-      </CurtainStage>
+      </section>
 
       {/* ============================================================== */}
       {/* 18. FIND YOUR STYLE — an index of names, one room beside it */}
