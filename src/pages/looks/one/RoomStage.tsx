@@ -221,8 +221,8 @@ export function RoomStage({
           {onPrev && onNext && (
             <>
               {[
-                { side: 'left-14 md:left-24', label: t('Previous room', 'الغرفة السابقة'), run: onPrev, Icon: ChevronLeft, id: 'room-prev' },
-                { side: 'right-3 md:right-24', label: t('Next room', 'الغرفة التالية'), run: onNext, Icon: ChevronRight, id: 'room-next' },
+                { side: 'left-1 md:left-24', label: t('Previous room', 'الغرفة السابقة'), run: onPrev, Icon: ChevronLeft, id: 'room-prev' },
+                { side: 'right-1 md:right-24', label: t('Next room', 'الغرفة التالية'), run: onNext, Icon: ChevronRight, id: 'room-next' },
               ].map((a) => (
                 <button
                   key={a.id}
@@ -230,11 +230,11 @@ export function RoomStage({
                   data-testid={a.id}
                   aria-label={a.label}
                   onClick={a.run}
-                  className={`absolute top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[#E8E4DC] bg-[#FDFCF9]/90 text-[#171512] shadow-sm backdrop-blur-sm transition-colors hover:border-[#171512] hover:bg-[#171512] hover:text-white ${a.side} ${
+                  className={`absolute top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)] transition-colors md:border md:border-[#E8E4DC] md:bg-[#FDFCF9]/90 md:text-[#171512] md:shadow-sm md:drop-shadow-none md:backdrop-blur-sm md:hover:border-[#171512] md:hover:bg-[#171512] md:hover:text-white ${a.side} ${
                     animate ? `transition-opacity duration-700 ease-out ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}` : ''
                   }`}
                 >
-                  <a.Icon size={18} strokeWidth={1.5} />
+                  <a.Icon strokeWidth={1.75} className="h-7 w-7 md:h-[18px] md:w-[18px]" />
                 </button>
               ))}
             </>
@@ -262,7 +262,7 @@ export function RoomStage({
 
       {selector && <div className="pt-4 md:hidden">{selector}</div>}
 
-      <p className="px-6 pt-4 text-[14.5px] font-light text-neutral-500 md:hidden">
+      <p className="px-6 pb-2 pt-4 text-[14.5px] font-light text-neutral-500 md:hidden">
         {t('Tap any point to explore the products in this space.', 'اضغط على أي نقطة لاستكشاف منتجات هذه المساحة.')}
       </p>
     </div>
