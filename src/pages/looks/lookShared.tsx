@@ -952,7 +952,7 @@ CATALOG.push(
     room: p.room,
     style: 'modern',
     price: p.price,
-    rating: 4.6 + ((p.id * 3) % 4) / 10,
+    rating: Math.round((4.6 + ((p.id * 3) % 4) / 10) * 10) / 10,
     reviews: 18 + ((p.id * 37) % 140),
     sku: `SL-${p.room.slice(0, 2).toUpperCase()}-${String(p.id).padStart(4, '0')}`,
     colors: p.colors,

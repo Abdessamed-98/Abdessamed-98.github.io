@@ -348,7 +348,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
 
             <button type="button" onClick={() => setTab('reviews')} className="mt-4 flex flex-wrap items-center gap-2.5" data-testid="product-rating">
               <Stars rating={p.rating} />
-              <span className="text-[14px] font-bold">{p.rating}</span>
+              <span className="text-[14px] font-bold">{p.rating.toFixed(1)}</span>
               <span className="text-[14px] text-neutral-500 underline-offset-4 hover:underline">
                 ({isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`})
               </span>
@@ -579,10 +579,9 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               type="button"
               data-testid="install-open"
               onClick={() => setInstallOpen(true)}
-              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 border text-[13px] font-medium transition-colors hover:border-[#171512]"
-              style={{ borderColor: '#C9C2B4' }}
+              className="group/install mt-3 inline-flex h-12 w-full items-center justify-center gap-2 border border-[#C9C2B4] text-[13px] font-medium transition-colors duration-300 hover:border-[#171512] hover:bg-[#171512] hover:text-white"
             >
-              <Wrench size={15} strokeWidth={1.5} />
+              <Wrench size={15} strokeWidth={1.5} className="transition-transform duration-300 group-hover/install:-rotate-12" />
               {t('Installation', 'تركيب')}
             </button>
 
@@ -620,7 +619,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   <p className="truncate text-[15.5px] font-bold">{store.name[lang]}</p>
                   <p className="mt-1 flex items-center gap-1.5 text-[13px] text-neutral-500">
                     <Star size={12} strokeWidth={1.5} className="fill-[#D9A441] text-[#D9A441]" />
-                    <span className="font-bold text-[#171512]">{store.rating}</span>
+                    <span className="font-bold text-[#171512]">{store.rating.toFixed(1)}</span>
                     ({isAr ? `${formatSAR(store.products)} منتج` : `${formatSAR(store.products)} products`})
                   </p>
                   <p className="mt-1 flex items-center gap-1.5 text-[13px] text-neutral-500">
@@ -725,7 +724,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               {tab === 'reviews' && (
                 <div className="grid gap-8 md:grid-cols-[200px_minmax(0,1fr)]">
                   <div>
-                    <p className="font-['Outfit',sans-serif] text-[52px] font-bold leading-none">{p.rating}</p>
+                    <p className="font-['Outfit',sans-serif] text-[52px] font-bold leading-none">{p.rating.toFixed(1)}</p>
                     <div className="mt-2"><Stars rating={Math.round(p.rating)} /></div>
                     <p className="mt-2 text-[14px] text-neutral-500">{isAr ? `${p.reviews} تقييم` : `${p.reviews} reviews`}</p>
                   </div>
