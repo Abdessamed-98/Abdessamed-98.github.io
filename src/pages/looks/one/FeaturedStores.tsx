@@ -72,7 +72,7 @@ export function FeaturedStores({ no }: { no: string }) {
                     dir="ltr"
                     className="absolute end-4 top-4 bg-black/35 px-2.5 py-1 text-[13px] font-medium text-white backdrop-blur-sm"
                   >
-                    ★ {s.rating}
+                    ★ {s.rating.toFixed(1)}
                   </span>
 
                   <div className="absolute inset-x-0 bottom-0 flex items-end gap-4 p-5 md:p-6">

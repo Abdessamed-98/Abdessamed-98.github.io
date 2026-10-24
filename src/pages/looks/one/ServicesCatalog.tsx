@@ -2,7 +2,7 @@
  * Look 1 — the services catalogue (/look/1/services): the products catalogue's
  * twin. Same compact head with category and subcategory pills, same sidebar of
  * facets, same toolbar, same grid — with service cards in it.
- * State lives in the URL: ?category=&sub=&provider=&city=&sort=
+ * State lives in the URL: ?category=&provider=&city=&sort= (one level of categories, no subcategories)
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -12,11 +12,11 @@ import { SERVICES, lookBase, type Lang } from '../lookShared';
 import { BG, HAIR, INK, OLIVE, Breadcrumb, eyebrowCls, primaryBtnCls, useLook } from './ui';
 import { PROVIDERS } from './data';
 import { useShell } from './shellContext';
-import { SERVICE_CITIES, filterServices, type ServiceQuery, type ServiceSortKey } from './servicesData';
+import { SERVICE_CITIES, filterServices, providersFor, type ServiceQuery, type ServiceSortKey } from './servicesData';
 import { ServiceCard } from './ServiceCard';
-import { categoryBySlug, categorySlugOf, serviceSlug, subServicesOf } from './ServicePage';
+import { categoryBySlug, categorySlugOf, serviceSlug } from './ServicePage';
 
-type FacetKey = 'category' | 'sub' | 'provider' | 'city';
+type FacetKey = 'category' | 'provider' | 'city';
 interface Facet { key: FacetKey; label: string; options: { key: string; label: string }[] }
 
 const SORTS: { key: ServiceSortKey; label: { en: string; ar: string } }[] = [
@@ -33,7 +33,6 @@ const servicesLabel = (n: number, isAr: boolean) =>
 const parse = (sp: URLSearchParams): ServiceQuery => ({
   q: sp.get('q') ?? '',
   category: sp.get('category') ?? '',
-  sub: sp.get('sub') ?? '',
   provider: sp.get('provider') ?? '',
   city: sp.get('city') ?? '',
   sort: (sp.get('sort') as ServiceSortKey | null) ?? 'relevance',
@@ -42,7 +41,6 @@ const serialize = (qy: ServiceQuery) => {
   const sp = new URLSearchParams();
   if (qy.q) sp.set('q', qy.q);
   if (qy.category) sp.set('category', qy.category);
-  if (qy.sub) sp.set('sub', qy.sub);
   if (qy.provider) sp.set('provider', qy.provider);
   if (qy.city) sp.set('city', qy.city);
   if (qy.sort && qy.sort !== 'relevance') sp.set('sort', qy.sort);
@@ -52,92 +50,10 @@ const count = (qy: ServiceQuery) => filterServices(qy, categorySlugOf).length;
 
 function Facets({ facets, query, lang, update }: { facets: Facet[]; query: ServiceQuery; lang: Lang; update: (patch: Partial<ServiceQuery>) => void }) {
   const isAr = lang === 'ar';
-  const t = (en: string, ar: string) => (isAr ? ar : en);
-  // which categories are open; the chosen one always is
-  // the chosen category opens by itself; the chevron can still fold it, or open any other
-  const [open, setOpen] = useState<string[]>([]);
-  const [folded, setFolded] = useState<string[]>([]);
-  const flip = (k: string) => (l: string[]) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]);
-  const isOpen = (k: string) => (query.category === k ? !folded.includes(k) : open.includes(k));
-  const toggle = (k: string) => (query.category === k ? setFolded(flip(k)) : setOpen(flip(k)));
   return (
     <div>
       {facets.map((f) => {
         const value = query[f.key] ?? '';
-        if (f.key === 'category') {
-          return (
-            <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid="sfacet-category">
-              <legend className="sr-only">{f.label}</legend>
-              <p className={eyebrowCls(isAr, 'text-[11px] text-[#171512] font-semibold')}>{f.label}</p>
-              <ul className="mt-4 space-y-1">
-                {SERVICES.map((c) => {
-                  const key = serviceSlug(c);
-                  const active = query.category === key;
-                  const n = count({ ...query, category: key, sub: '' });
-                  const empty = n === 0 && !active;
-                  const opened = isOpen(key);
-                  return (
-                    <li key={key} data-testid={`sfacet-category-${key}`}>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => update({ category: active ? '' : key, sub: '' })}
-                          aria-pressed={active}
-                          disabled={empty}
-                          className={`group flex min-w-0 flex-1 items-center justify-between gap-3 py-1.5 text-start text-[14.5px] transition-colors ${
-                            empty ? 'cursor-default text-[#A9A196]' : active ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
-                          }`}
-                        >
-                          <span className="flex min-w-0 items-center gap-3">
-                            <span aria-hidden className={`h-3 w-3 shrink-0 border transition-colors ${active ? 'border-[#171512] bg-[#171512]' : empty ? 'border-[#171512]/15' : 'border-[#171512]/40 group-hover:border-[#171512]'}`} />
-                            <span className="truncate">{t(c.en, c.ar)}</span>
-                          </span>
-                          <span className={`shrink-0 text-[13px] ${empty ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{n}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toggle(key)}
-                          aria-expanded={opened}
-                          aria-label={t(`Show ${c.en} subcategories`, `عرض أقسام ${c.ar}`)}
-                          data-testid={`sfacet-category-toggle-${key}`}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center text-[#5F5950] transition-colors hover:text-[#171512]"
-                        >
-                          <ChevronDown size={14} strokeWidth={1.5} className={`transition-transform duration-300 ${opened ? 'rotate-180' : ''}`} />
-                        </button>
-                      </div>
-                      {opened && (
-                        <ul className="mb-2 ms-6 space-y-1.5 border-s ps-4" style={{ borderColor: HAIR }} data-testid={`sfacet-subs-${key}`}>
-                          {subServicesOf(c).map((x) => {
-                            const on = active && query.sub === x.key;
-                            const m = count({ ...query, category: key, sub: x.key });
-                            const none = m === 0 && !on;
-                            return (
-                              <li key={x.key}>
-                                <button
-                                  type="button"
-                                  onClick={() => update({ category: key, sub: on ? '' : x.key })}
-                                  aria-pressed={on}
-                                  disabled={none}
-                                  data-testid={`sfacet-sub-${x.key}`}
-                                  className={`flex w-full items-center justify-between gap-3 py-0.5 text-start text-[14px] transition-colors ${
-                                    none ? 'cursor-default text-[#A9A196]' : on ? 'font-semibold text-[#171512]' : 'text-[#3F3A33] hover:text-[#171512]'
-                                  }`}
-                                >
-                                  <span className="truncate">{t(x.en, x.ar)}</span>
-                                  <span className={`shrink-0 text-[13px] ${none ? 'text-[#A9A196]' : 'text-[#5F5950]'}`}>{m}</span>
-                                </button>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </fieldset>
-          );
-        }
         return (
           <fieldset key={f.key} className="border-t py-6" style={{ borderColor: HAIR }} data-testid={`sfacet-${f.key}`}>
             <legend className="sr-only">{f.label}</legend>
@@ -145,9 +61,8 @@ function Facets({ facets, query, lang, update }: { facets: Facet[]; query: Servi
             <ul className="mt-4 space-y-2.5">
               {f.options.map((o) => {
                 const active = value === o.key;
-                // a category change drops the subcategory, which belongs to the old one
-                const patch: Partial<ServiceQuery> = f.key === 'category' ? { category: active ? '' : o.key, sub: '' } : ({ [f.key]: active ? '' : o.key } as Partial<ServiceQuery>);
-                const n = count({ ...query, ...(f.key === 'category' ? { category: o.key, sub: '' } : { [f.key]: o.key }) });
+                const patch = { [f.key]: active ? '' : o.key } as Partial<ServiceQuery>;
+                const n = count({ ...query, [f.key]: o.key });
                 const empty = n === 0 && !active;
                 return (
                   <li key={o.key}>
@@ -187,15 +102,13 @@ export function ServicesCatalog() {
   const query = useMemo(() => parse(sp), [sp]);
   const results = useMemo(() => filterServices(query, categorySlugOf), [query]);
   const cat = query.category ? categoryBySlug(query.category) : undefined;
-  const subs = cat ? subServicesOf(cat) : [];
-  const sub = subs.find((x) => x.key === query.sub);
 
   const facets: Facet[] = useMemo(() => {
     const list: Facet[] = [{ key: 'category', label: t('Category', 'التصنيف'), options: SERVICES.map((s) => ({ key: serviceSlug(s), label: t(s.en, s.ar) })) }];
-    list.push({ key: 'provider', label: t('Provider', 'مقدم الخدمة'), options: PROVIDERS.filter((p) => !cat || p.service === cat.en).map((p) => ({ key: p.id, label: t(p.name.en, p.name.ar) })) });
+    list.push({ key: 'provider', label: t('Provider', 'مقدم الخدمة'), options: (cat ? providersFor(cat.en) : PROVIDERS).map((p) => ({ key: p.id, label: t(p.name.en, p.name.ar) })) });
     list.push({ key: 'city', label: t('City', 'المدينة'), options: SERVICE_CITIES.map((c) => ({ key: c.en, label: t(c.en, c.ar) })) });
     return list;
-  }, [cat, subs, t]);
+  }, [cat, t]);
 
   const update = useCallback((patch: Partial<ServiceQuery>) => setSp(serialize({ ...query, ...patch })), [query, setSp]);
   const clearAll = useCallback(() => setSp(serialize({ sort: query.sort })), [query.sort, setSp]);
@@ -220,19 +133,18 @@ export function ServicesCatalog() {
     };
   }, [sheetOpen, closeSheet]);
 
-  const title = sub ? t(sub.en, sub.ar) : cat ? t(cat.en, cat.ar) : t('Services', 'الخدمات');
+  const title = cat ? t(cat.en, cat.ar) : t('Services', 'الخدمات');
   const crumbs = [
     { label: t('Home', 'الرئيسية'), to: lookBase(1) },
     { label: t('Services', 'الخدمات'), to: `${lookBase(1)}/services` },
-    ...(cat ? [{ label: t(cat.en, cat.ar), to: `${lookBase(1)}/services/${query.category}` }] : []),
-    ...(sub ? [{ label: t(sub.en, sub.ar) }] : []),
+    ...(cat ? [{ label: t(cat.en, cat.ar) }] : []),
   ];
   const chips: { key: string; label: string; clear: () => void }[] = [];
   for (const f of facets) {
     const v = query[f.key];
     if (!v) continue;
     const o = f.options.find((x) => x.key === v);
-    chips.push({ key: f.key, label: o?.label ?? v, clear: () => update(f.key === 'category' ? { category: '', sub: '' } : ({ [f.key]: '' } as Partial<ServiceQuery>)) });
+    chips.push({ key: f.key, label: o?.label ?? v, clear: () => update({ [f.key]: '' } as Partial<ServiceQuery>) });
   }
   const labelCls = eyebrowCls(isAr, 'text-[11px] text-[#5F5950]');
 
@@ -249,7 +161,7 @@ export function ServicesCatalog() {
           {/* «طلب تنفيذ»: say what you need and Diyar finds the partner — preset to what is being browsed */}
           <div className="flex items-center gap-4">
             <span className="hidden text-[13.5px] md:inline" style={{ color: '#4A443C' }}>{t('Describe the job and we match you with a partner', 'صف ما تحتاجه ونوصلك بمقدم خدمة مناسب')}</span>
-            <button type="button" data-testid="catalog-request" onClick={() => openService({ category: cat?.en, sub: query.sub || undefined })} className={`shrink-0 px-6 py-3 ${primaryBtnCls(isAr)}`}>
+            <button type="button" data-testid="catalog-request" onClick={() => openService({ category: cat?.en })} className={`shrink-0 px-6 py-3 ${primaryBtnCls(isAr)}`}>
               {t('Request execution', 'طلب تنفيذ')}
             </button>
           </div>

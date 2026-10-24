@@ -5,8 +5,7 @@
 import { SERVICES, lookBase } from '../lookShared';
 import { HAIR, MUTED, OLIVE, ViewMore, useLook } from './ui';
 import { CONTAINER } from './kit';
-import { providersFor } from './data';
-import { SERVICE_CATALOG } from './servicesData';
+import { SERVICE_CATALOG, providersFor } from './servicesData';
 import { ServiceCard } from './ServiceCard';
 import { ProviderCard } from './InfoPages';
 import { categoryPath, serviceSlug } from './ServicePage';

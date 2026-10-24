@@ -17,8 +17,8 @@ import { useWishlist } from '../../../context/WishlistContext';
 import { useLookCart } from './cart';
 import { CONTAINER, EmptyState, Lightbox, PageHead, Tabs, capsCls, displayCls } from './kit';
 import { categoryPath, serviceSlug } from './ServicePage';
-import { HELP_TOPICS, PROVIDERS, providersFor, type Provider } from './data';
-import { servicesOfProvider } from './servicesData';
+import { HELP_TOPICS, PROVIDERS, type Provider } from './data';
+import { providersFor, servicesOfProvider } from './servicesData';
 import { ServiceCard } from './ServiceCard';
 
 const home = (t: (en: string, ar: string) => string) => ({ label: t('Home', 'الرئيسية'), to: lookBase(1) });
@@ -59,7 +59,8 @@ export function ServiceProviders({ serviceEn, itemEn }: { serviceEn: string; ite
   // kept for callers; the catalogue pages now list providers as a filter
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
-  const list = providersFor(serviceEn, itemEn);
+  void itemEn;
+  const list = providersFor(serviceEn);
   const cat = SERVICES.find((s) => s.en === serviceEn);
   if (!list.length) return null;
   return (
@@ -278,103 +279,8 @@ export function ProviderPage() {
 /* Stores — every seller on the marketplace                            */
 /* ------------------------------------------------------------------ */
 
-export function StoresPage() {
-  const { lang, t } = useLook();
-  const isAr = lang === 'ar';
-  const caps = capsCls(isAr);
-  const [cat, setCat] = useState<CategoryKey | 'all'>('all');
-  // a store sells in a category when it has a piece in it
-  const sells = (key: StoreKey) => new Set(CATALOG.filter((p) => p.store === key).map((p) => p.category));
-  const cats = CATEGORIES.filter((c) => ALL_STORES.some((s) => sells(s.key).has(c.key)));
-  const list = ALL_STORES.filter((s) => cat === 'all' || sells(s.key).has(cat));
-  const offerOf = (key: StoreKey) =>
-    Math.max(0, ...CATALOG.filter((p) => p.store === key && p.oldPrice).map((p) => Math.round((1 - p.price / (p.oldPrice as number)) * 100)));
-
-  return (
-    <main className="pt-[72px]" data-testid="stores-page">
-      <div className={`${CONTAINER} pt-8`}>
-        <Breadcrumb items={[home(t), { label: t('Stores', 'المتاجر') }]} />
-        <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex items-baseline gap-4">
-            <h1 className={displayCls(isAr, 'md')}>{t('Stores', 'المتاجر')}</h1>
-            <span className="text-[15px]" style={{ color: MUTED }}>{t(`${ALL_STORES.length} stores on Diyar`, `${ALL_STORES.length} متاجر على ديار`)}</span>
-          </div>
-          <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 md:-mx-10 md:px-10 lg:mx-0 lg:px-0" role="radiogroup" aria-label={t('Filter by what they sell', 'تصفية حسب ما تبيعه')}>
-            {[{ key: 'all' as const, label: t('All', 'الكل') }, ...cats.map((c) => ({ key: c.key, label: c[lang] }))].map((c) => {
-              const on = cat === c.key;
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  data-testid={`stores-filter-${c.key}`}
-                  onClick={() => setCat(c.key)}
-                  className={`shrink-0 border px-4 py-2.5 text-[14.5px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white font-medium hover:border-[#171512]'}`}
-                  style={on ? undefined : { borderColor: '#C9C2B4' }}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className={`${CONTAINER} pb-16 pt-8`}>
-        <ul className="grid gap-5 md:grid-cols-2">
-          {list.map((s) => {
-            const pieces = CATALOG.filter((p) => p.store === s.key).slice(0, 4);
-            const branches = STORE_LOCATIONS.filter((l) => l.store === s.key).length;
-            const off = offerOf(s.key);
-            return (
-              <li key={s.key} className="flex flex-col border bg-white" style={{ borderColor: HAIR }} data-testid="store-card">
-                <Link to={`${lookBase(1)}/store/${s.key}`} className="group relative flex items-center gap-4 px-5 pt-5">
-                  <StoreMark store={s} className={`h-16 w-16 text-[16px] ${s.mark ? 'border border-[#E8E4DC]' : ''}`} />
-                  <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-[20px] font-extrabold leading-tight transition-colors group-hover:text-[#5A6B4D] ${isAr ? "font-['Alexandria',sans-serif]" : "font-['Outfit',sans-serif] uppercase tracking-tight"}`}>{s.name[lang]}</span>
-                    <span className="mt-1 block truncate text-[14px] font-light" style={{ color: '#4A443C' }}>{s.specialty[lang]}</span>
-                  </span>
-                  {off > 0 && (
-                    <span className="shrink-0 rotate-[6deg] px-2.5 py-1 text-[12px] font-bold leading-none text-white" style={{ backgroundColor: RED }}>
-                      {t('Offers', 'عروض')}
-                    </span>
-                  )}
-                </Link>
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-4 text-[15px]" style={{ color: '#4A443C' }}>
-                  <span className="flex items-center gap-1.5 font-bold text-[#171512]">
-                    <Star size={14} strokeWidth={1.5} className="fill-[#D9A441] text-[#D9A441]" />
-                    {s.rating}
-                  </span>
-                  <span>{t(`${formatSAR(s.products)} products`, `${formatSAR(s.products)} منتج`)}</span>
-                  <span>{branches ? t(`${branches} ${branches === 1 ? 'branch' : 'branches'} · Jeddah`, `${branches} ${branches === 1 ? 'فرع' : 'فروع'} · جدة`) : t('Online', 'أونلاين')}</span>
-                </div>
-                {pieces.length > 0 && (
-                  <ul className="grid grid-cols-4 gap-2 border-t px-5 pt-4" style={{ borderColor: HAIR }}>
-                    {pieces.map((p) => (
-                      <li key={p.id}>
-                        <Link to={productPath(1, p.id)} className="group block" title={p.name[lang]}>
-                          <span className="block aspect-square overflow-hidden" style={{ backgroundColor: TILE }}>
-                            <img src={tileImg(p.id, p.img)} alt="" loading="lazy" className={`h-full w-full ${p.id <= 9 ? 'object-contain p-2' : 'object-cover'} transition-transform duration-500 group-hover:scale-105`} />
-                          </span>
-                          <span className="mt-1.5 block truncate text-[14px]" style={{ color: MUTED }}>{formatSAR(p.price)} {t('SAR', 'ر.س')}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <div className="mt-auto flex items-center gap-3 px-5 py-4">
-                  <Link to={`${lookBase(1)}/store/${s.key}`} className={`px-5 py-2.5 ${primaryBtnCls(isAr)}`}>{t('Visit store', 'زيارة المتجر')}</Link>
-                  <Link to={searchPath(1, { store: s.key })} className={`px-3 py-2.5 text-[12.5px] font-medium ${caps}`} style={{ color: MUTED }}>{t('All pieces', 'كل القطع')}</Link>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </main>
-  );
-}
+/** the stores page lives in its own file now, browsed like the catalogues */
+export { StoresPage } from './StoresPage';
 
 /* ------------------------------------------------------------------ */
 /* Wishlist                                                            */

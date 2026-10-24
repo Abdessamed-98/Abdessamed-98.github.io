@@ -259,6 +259,8 @@ interface CardData {
   oldPrice?: number;
   sale: boolean;
   isNew: boolean;
+  /** sold by area: the price is per m² */
+  perM2?: boolean;
 }
 
 /**
@@ -290,6 +292,7 @@ function toCard(p: LookProduct | CatalogProduct, lang: Lang): CardData {
       oldPrice: p.oldPrice,
       sale: !!p.oldPrice,
       isNew: !!p.isNew,
+      perM2: !!p.area,
     };
   }
   return {
@@ -410,6 +413,7 @@ export function ProductCard({
           <span className="text-[17px] font-bold">{formatSAR(c.price)}</span>
           <span className={`text-[12px] uppercase text-neutral-500 ${isAr ? 'tracking-normal' : 'tracking-[0.1em]'}`}>
             {t('SAR', 'ر.س')}
+            {c.perM2 && <span className="normal-case tracking-normal"> / {t('m²', 'م²')}</span>}
           </span>
           {c.oldPrice && <span className="text-[13px] text-neutral-400 line-through">{formatSAR(c.oldPrice)}</span>}
         </div>

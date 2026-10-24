@@ -41,10 +41,8 @@ export interface Provider {
   id: string;
   name: Bi;
   trade: Bi;
-  /** the SERVICES entry they belong to, by its English name */
+  /** their main SERVICES category, by its English name (their services may reach into others) */
   service: string;
-  /** the services in that category they take — SERVICES_MENU item names (English) */
-  offers: string[];
   city: Bi;
   rating: number;
   jobs: number;
@@ -62,7 +60,6 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Iwan Design Studio', ar: 'استوديو إيوان للتصميم' },
     trade: { en: 'Interior design', ar: 'التصميم الداخلي' },
     service: 'Interior Design',
-    offers: ['Residential Design', 'Commercial Design', 'Space Planning', '3D Visualization', 'Design Consultation'],
     city: { en: 'Jeddah', ar: 'جدة' },
     rating: 4.9,
     jobs: 186,
@@ -84,7 +81,6 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Mada Studio', ar: 'استوديو مدى' },
     trade: { en: 'Interior design', ar: 'التصميم الداخلي' },
     service: 'Interior Design',
-    offers: ['Residential Design', 'Space Planning', '3D Visualization'],
     city: { en: 'Riyadh', ar: 'الرياض' },
     rating: 4.8,
     jobs: 142,
@@ -106,7 +102,6 @@ export const PROVIDERS: Provider[] = [
     name: { en: 'Noor Interiors', ar: 'نور للتصميم الداخلي' },
     trade: { en: 'Commercial interiors', ar: 'التصميم التجاري' },
     service: 'Interior Design',
-    offers: ['Commercial Design', 'Space Planning', 'Design Consultation'],
     city: { en: 'Jeddah', ar: 'جدة' },
     rating: 4.7,
     jobs: 96,
@@ -126,8 +121,7 @@ export const PROVIDERS: Provider[] = [
     id: 'bayt-joinery',
     name: { en: 'Bayt Joinery', ar: 'نجارة البيت' },
     trade: { en: 'Custom furniture', ar: 'تنفيذ الأثاث' },
-    service: 'Custom Furniture',
-    offers: ['Residential Furniture', 'Custom Joinery', 'Built-In Furniture', 'Wardrobes & Closets'],
+    service: 'Custom Carpentry',
     city: { en: 'Jeddah', ar: 'جدة' },
     rating: 4.8,
     jobs: 312,
@@ -147,8 +141,7 @@ export const PROVIDERS: Provider[] = [
     id: 'lumen-lighting',
     name: { en: 'Lumen Lighting Works', ar: 'لومن للإنارة' },
     trade: { en: 'Lighting & electrical', ar: 'الإنارة والكهرباء' },
-    service: 'Finishing & Decorative',
-    offers: ['Architectural Details', 'Decorative Finishes'],
+    service: 'Electrical & Lighting',
     city: { en: 'Riyadh', ar: 'الرياض' },
     rating: 4.7,
     jobs: 144,
@@ -168,8 +161,7 @@ export const PROVIDERS: Provider[] = [
     id: 'sahl-painting',
     name: { en: 'Sahl Paint & Finish', ar: 'سهل للدهانات والتشطيبات' },
     trade: { en: 'Painting & wall finishes', ar: 'الدهانات والجداريات' },
-    service: 'Painting & Wall Finishes',
-    offers: ['Interior Painting', 'Exterior Painting', 'Wallpaper Installation', 'Decorative Finishes'],
+    service: 'Painting & Wallpaper',
     city: { en: 'Dammam', ar: 'الدمام' },
     rating: 4.8,
     jobs: 402,
@@ -189,8 +181,7 @@ export const PROVIDERS: Provider[] = [
     id: 'nukhba-doors',
     name: { en: 'Nukhba Doors', ar: 'أبواب النخبة' },
     trade: { en: 'Doors & joinery', ar: 'الأبواب والنجارة' },
-    service: 'Door Solutions',
-    offers: ['Wooden Doors', 'WPC Doors', 'Sliding Doors', 'Custom Door Manufacturing'],
+    service: 'Doors, Windows & Glass',
     city: { en: 'Riyadh', ar: 'الرياض' },
     rating: 4.8,
     jobs: 240,
@@ -211,8 +202,7 @@ export const PROVIDERS: Provider[] = [
     id: 'rukn-floors',
     name: { en: 'Rukn Flooring', ar: 'ركن الأرضيات' },
     trade: { en: 'Flooring', ar: 'الأرضيات' },
-    service: 'Flooring Solutions',
-    offers: ['Porcelain Flooring', 'Marble Flooring', 'SPC Flooring', 'Wooden Flooring'],
+    service: 'Flooring & Tiling',
     city: { en: 'Jeddah', ar: 'جدة' },
     rating: 4.7,
     jobs: 312,
@@ -232,8 +222,7 @@ export const PROVIDERS: Provider[] = [
     id: 'zujaj-pro',
     name: { en: 'Zujaj Pro', ar: 'زجاج برو' },
     trade: { en: 'Glass & facades', ar: 'الزجاج والواجهات' },
-    service: 'Glass & Skylight Facades',
-    offers: ['Glass Facades', 'Skurit Systems', 'Skylights', 'Glass Partitions', 'Storefront Systems'],
+    service: 'Doors, Windows & Glass',
     city: { en: 'Dammam', ar: 'الدمام' },
     rating: 4.8,
     jobs: 128,
@@ -253,8 +242,7 @@ export const PROVIDERS: Provider[] = [
     id: 'aman-systems',
     name: { en: 'Aman Systems', ar: 'أمان للأنظمة' },
     trade: { en: 'Safety & security systems', ar: 'أنظمة السلامة والأمن' },
-    service: 'Safety Equipment & Systems',
-    offers: ['Fire Alarm Systems', 'CCTV Systems', 'Access Control Systems', 'Safety Signage'],
+    service: 'Security & CCTV',
     city: { en: 'Riyadh', ar: 'الرياض' },
     rating: 4.9,
     jobs: 97,
@@ -270,11 +258,68 @@ export const PROVIDERS: Provider[] = [
       { name: { en: 'Abdullah Al-Shehri', ar: 'عبدالله الشهري' }, rating: 5, text: { en: 'Passed the Civil Defence inspection first time.', ar: 'اجتزنا فحص الدفاع المدني من المرة الأولى.' } },
     ],
   },
+  {
+    id: 'khaleej-plumbing',
+    name: { en: 'Khaleej Plumbing', ar: 'سباكة الخليج' },
+    trade: { en: 'Plumbing', ar: 'السباكة' },
+    service: 'Plumbing',
+    city: { en: 'Jeddah', ar: 'جدة' },
+    rating: 4.7,
+    jobs: 410,
+    years: 12,
+    initials: 'KP',
+    cover: '/categories/featured/bath.webp',
+    bio: {
+      en: 'Bathrooms and kitchens plumbed, fitted and tested — sanitary ware, heaters, filters and hidden leaks found without breaking tiles.',
+      ar: 'سباكة الحمامات والمطابخ وتركيبها واختبارها — أدوات صحية وسخانات وفلاتر وكشف تسربات دون تكسير البلاط.',
+    },
+    portfolio: ['/categories/featured/bath.webp', '/looks/rooms/bedroom.webp', IMG.catHome],
+    reviews: [
+      { name: { en: 'Huda Al-Ghamdi', ar: 'هدى الغامدي' }, rating: 5, text: { en: 'Found the leak in an hour and fixed it the same day.', ar: 'وجدوا التسرب خلال ساعة وأصلحوه في اليوم نفسه.' } },
+    ],
+  },
+  {
+    id: 'lina-curtains',
+    name: { en: 'Lina Curtains & Upholstery', ar: 'لينا للستائر والتنجيد' },
+    trade: { en: 'Curtains & upholstery', ar: 'الستائر والتنجيد' },
+    service: 'Curtains & Blinds',
+    city: { en: 'Riyadh', ar: 'الرياض' },
+    rating: 4.8,
+    jobs: 265,
+    years: 10,
+    initials: 'LC',
+    cover: '/looks/curtain.webp',
+    bio: {
+      en: 'Curtains and blinds tailored to each window, and sofas and chairs reupholstered in our own workshop.',
+      ar: 'ستائر وبلايند تُفصّل على كل نافذة، وكنب وكراسي يُعاد تنجيدها في ورشتنا.',
+    },
+    portfolio: ['/looks/curtain.webp', IMG.bedroom, '/categories/featured/home.webp', IMG.catHome],
+    reviews: [
+      { name: { en: 'Nouf Al-Harbi', ar: 'نوف الحربي' }, rating: 5, text: { en: 'The blackout curtains finally let us sleep past sunrise.', ar: 'ستائر البلاك أوت جعلتنا ننام بعد شروق الشمس أخيراً.' } },
+    ],
+  },
+  {
+    id: 'saree-moving',
+    name: { en: 'Saree Moving & Cleaning', ar: 'سريع للنقل والتنظيف' },
+    trade: { en: 'Moving, assembly & cleaning', ar: 'النقل والتركيب والتنظيف' },
+    service: 'Moving & Packing',
+    city: { en: 'Jeddah', ar: 'جدة' },
+    rating: 4.6,
+    jobs: 980,
+    years: 8,
+    initials: 'SM',
+    cover: '/looks/rooms/living.webp',
+    bio: {
+      en: 'Homes moved, furniture assembled and rooms cleaned by the same insured crews — book one job or all three.',
+      ar: 'نقل المنازل وتركيب الأثاث وتنظيف الغرف على يد الفرق المؤمّن عليها نفسها — احجز عملاً واحداً أو الثلاثة.',
+    },
+    portfolio: ['/looks/rooms/living.webp', '/looks/rooms/bedroom.webp', '/looks/promo/bedroom-packages.webp'],
+    reviews: [
+      { name: { en: 'Yasser Al-Malki', ar: 'ياسر المالكي' }, rating: 5, text: { en: 'Moved a five-room flat in one day without a scratch.', ar: 'نقلوا شقة من خمس غرف في يوم واحد دون خدش.' } },
+    ],
+  },
 ];
 
-/** The partners who take a service: a named one, or anyone in its category. */
-export const providersFor = (serviceEn: string, itemEn?: string) =>
-  PROVIDERS.filter((p) => p.service === serviceEn && (!itemEn || p.offers.includes(itemEn)));
 
 /* ------------------------------------------------------------------ */
 /* B2B                                                                 */
@@ -643,13 +688,21 @@ const shots = (imgs: string[], titles: Bi[], shift = 0): WorkShot[] =>
 const F = '/categories/featured';
 export const SERVICE_GALLERY: Record<string, WorkShot[]> = {
   'Interior Design': shots(['/looks/campaign-living.webp', '/looks/campaign-majlis.webp', `${F}/home.webp`, IMG.roomHotspots, IMG.catHome, IMG.bedroom], HOMES),
-  'Door Solutions': shots([IMG.loungeDark, `${F}/office.webp`, '/looks/campaign-majlis.webp', IMG.catOffice, `${F}/decor.webp`], HOMES, 2),
-  'Custom Furniture': shots([IMG.workshop, '/looks/promo/custom-furniture.webp', `${F}/home.webp`, IMG.catHome, '/looks/promo/bedroom-packages.webp'], HOMES, 1),
-  'Painting & Wall Finishes': shots([IMG.roomHotspots, `${F}/bath.webp`, '/looks/promo/bedroom-packages.webp', IMG.bedroom, `${F}/decor.webp`], HOMES, 3),
-  'Flooring Solutions': shots(['/after.png', `${F}/rugs.webp`, IMG.catOffice, '/looks/campaign-living.webp', IMG.bedroom], HOMES, 4),
-  'Finishing & Decorative': shots([IMG.bedroom, `${F}/decor.webp`, IMG.loungeDark, '/looks/campaign-majlis.webp', `${F}/lighting.webp`], HOMES, 5),
-  'Glass & Skylight Facades': shots([IMG.hero, '/after.png', `${F}/office.webp`, IMG.restaurant, IMG.catLighting], VENUES, 3),
-  'Safety Equipment & Systems': shots([IMG.restaurant, IMG.catOffice, IMG.loungeDark, `${F}/office.webp`, `${F}/bath.webp`], VENUES),
+  Kitchens: shots(['/looks/rooms/dining.webp', IMG.restaurant, `${F}/home.webp`], HOMES, 1),
+  'Custom Carpentry': shots([IMG.workshop, '/looks/promo/custom-furniture.webp', `${F}/home.webp`, IMG.catHome, '/looks/promo/bedroom-packages.webp'], HOMES, 1),
+  'Furniture Assembly': shots(['/looks/rooms/living.webp', '/looks/promo/bedroom-packages.webp', `${F}/decor.webp`], HOMES, 2),
+  Upholstery: shots([`${F}/home.webp`, IMG.catHome, IMG.hero], HOMES, 3),
+  'Painting & Wallpaper': shots([IMG.roomHotspots, `${F}/bath.webp`, '/looks/promo/bedroom-packages.webp', IMG.bedroom, `${F}/decor.webp`], HOMES, 3),
+  'Gypsum & Ceilings': shots([`${F}/lighting.webp`, IMG.bedroom, IMG.loungeDark], HOMES, 4),
+  'Flooring & Tiling': shots(['/after.png', `${F}/rugs.webp`, IMG.catOffice, '/looks/campaign-living.webp', IMG.bedroom], HOMES, 4),
+  'Electrical & Lighting': shots([IMG.catLighting, `${F}/lighting.webp`, IMG.loungeDark], HOMES, 5),
+  Plumbing: shots([`${F}/bath.webp`, '/looks/rooms/bedroom.webp'], HOMES, 2),
+  'Curtains & Blinds': shots(['/looks/curtain.webp', IMG.bedroom], HOMES, 1),
+  'Doors, Windows & Glass': shots([IMG.loungeDark, IMG.hero, `${F}/office.webp`, '/looks/campaign-majlis.webp', IMG.catOffice], HOMES, 2),
+  Insulation: shots(['/looks/rooms/office.webp', IMG.catOffice], VENUES, 1),
+  'Security & CCTV': shots([IMG.restaurant, IMG.catOffice, IMG.loungeDark, `${F}/office.webp`], VENUES),
+  'Moving & Packing': shots(['/looks/rooms/bedroom.webp', '/looks/rooms/living.webp'], HOMES, 3),
+  Cleaning: shots(['/looks/rooms/living.webp', `${F}/rugs.webp`], HOMES, 5),
 };
 
 /* ------------------------------------------------------------------ */

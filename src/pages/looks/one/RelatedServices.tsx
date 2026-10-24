@@ -11,20 +11,30 @@ import { HAIR, INK, MUTED, useLook } from './ui';
 import { SERVICE_CATALOG, type ServiceItem } from './servicesData';
 import { ServiceCard } from './ServiceCard';
 
-/** subcategory keys per product category, in the order they are shown */
+/** service categories per product category, in the order they are shown */
 const BY_CATEGORY: Record<CategoryKey, string[]> = {
-  home: ['residential-furniture', 'residential-design', 'built-in-furniture', 'design-consultation'],
-  office: ['commercial-design', 'space-planning', 'glass-partitions', 'built-in-furniture'],
-  lighting: ['ceilings-gypsum', 'architectural-details', 'design-consultation', 'interior-painting'],
-  rugs: ['carpet', 'wooden-flooring', 'design-consultation', 'residential-design'],
-  bath: ['porcelain-ceramic', 'skurit-systems', 'marble', 'decorative-finishes'],
-  decor: ['wallpaper', 'wall-panels', 'design-consultation', 'interior-painting'],
+  home: ['Furniture Assembly', 'Custom Carpentry', 'Upholstery', 'Interior Design'],
+  office: ['Furniture Assembly', 'Interior Design', 'Doors, Windows & Glass', 'Electrical & Lighting'],
+  lighting: ['Electrical & Lighting', 'Gypsum & Ceilings', 'Interior Design', 'Painting & Wallpaper'],
+  rugs: ['Cleaning', 'Flooring & Tiling', 'Interior Design', 'Upholstery'],
+  bath: ['Plumbing', 'Flooring & Tiling', 'Doors, Windows & Glass', 'Insulation'],
+  decor: ['Painting & Wallpaper', 'Curtains & Blinds', 'Furniture Assembly', 'Interior Design'],
 };
 
-/** The best-rated service in each suggested subcategory. */
+/** The service category that installs a product of this category (the product page's «تركيب»). */
+export const INSTALL_CATEGORY: Record<CategoryKey, string> = {
+  home: 'Furniture Assembly',
+  office: 'Furniture Assembly',
+  lighting: 'Electrical & Lighting',
+  rugs: 'Furniture Assembly',
+  bath: 'Plumbing',
+  decor: 'Furniture Assembly',
+};
+
+/** The best-rated service in each suggested category. */
 export function relatedServicesFor(category: CategoryKey): ServiceItem[] {
-  return (BY_CATEGORY[category] ?? []).flatMap((sub) => {
-    const best = SERVICE_CATALOG.filter((s) => s.sub === sub).sort((a, b) => Number(!!b.popular) - Number(!!a.popular) || b.rating - a.rating)[0];
+  return (BY_CATEGORY[category] ?? []).flatMap((c) => {
+    const best = SERVICE_CATALOG.filter((s) => s.category === c).sort((a, b) => Number(!!b.popular) - Number(!!a.popular) || b.rating - a.rating)[0];
     return best ? [best] : [];
   });
 }

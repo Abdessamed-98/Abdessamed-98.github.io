@@ -1,80 +1,67 @@
 /**
  * Look 1 — service routes and path helpers.
  *
- * Services browse exactly like products: /services is the catalogue, filtered
- * by ?category=&sub=, and /services/:id is one service (one provider's named
- * offer). The old /services/:category and /services/:category/:service pages
- * are kept only as redirects into the catalogue.
+ * Services have one level of categories and no subcategories: /services is the
+ * catalogue, filtered by ?category=, and /services/:id is one service (one
+ * provider's named offer). A category slug at /services/:id, and the older
+ * /services/:category/:service and /service/:slug links, open the catalogue on
+ * that category.
  */
 import { Navigate, useParams } from 'react-router-dom';
-import { SERVICES, SERVICE_SUBS, lookBase, type Bi, type LookService } from '../lookShared';
+import { SERVICES, lookBase, type Bi, type LookService } from '../lookShared';
 import { serviceById } from './servicesData';
 import { ServiceDetail } from './ServiceDetail';
-import { ServiceCategoryPage } from './CategoryLanding';
 
 const slugify = (en: string) => en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-/** A category's slug (the eight in SERVICES). */
+/** A category's slug. */
 export const serviceSlug = (s: LookService) => slugify(s.en);
-/** A category by its slug. */
-export const categoryBySlug = (slug: string) => SERVICES.find((s) => serviceSlug(s) === slug);
+/** Category slugs from before the categories were redrawn, to their closest category now. */
+const OLD_SLUGS: Record<string, string> = {
+  'door-solutions': 'doors-windows-glass',
+  'custom-furniture': 'custom-carpentry',
+  'painting-wall-finishes': 'painting-wallpaper',
+  'flooring-solutions': 'flooring-tiling',
+  'finishing-decorative': 'gypsum-ceilings',
+  'glass-skylight-facades': 'doors-windows-glass',
+  'safety-equipment-systems': 'security-cctv',
+};
+/** A category by its slug (an old slug finds its successor). */
+export const categoryBySlug = (slug: string) => SERVICES.find((s) => serviceSlug(s) === (OLD_SLUGS[slug] ?? slug));
 /** A category's slug from its English name (what ServiceItem.category carries). */
 export const categorySlugOf = (en: string) => slugify(en);
-/** A subcategory's key. */
+/** kept for callers that still pass a subcategory: services have none now */
 export const subSlug = (it: Bi & { key?: string }) => it.key ?? slugify(it.en);
-/** The subcategories of a category. */
-export const subServicesOf = (s: LookService) => SERVICE_SUBS[s.en] ?? [];
 
 const base = () => `${lookBase(1)}/services`;
-/** The category's page: its subcategories as cards. */
-export const categoryPath = (s: LookService) => `${base()}/${serviceSlug(s)}`;
 /** The catalogue, open on a category. */
-export const categoryCatalogPath = (s: LookService) => `${base()}?category=${serviceSlug(s)}`;
-/** The catalogue, open on a subcategory. */
-export const servicePath = (s: LookService, it: Bi & { key?: string }) => `${base()}?category=${serviceSlug(s)}&sub=${subSlug(it)}`;
-export const subPath = (categoryEn: string, subKey: string) => `${base()}?category=${categorySlugOf(categoryEn)}&sub=${subKey}`;
+export const categoryPath = (s: LookService) => `${base()}?category=${serviceSlug(s)}`;
+export const categoryCatalogPath = categoryPath;
+/** The catalogue on a category, from its English name. */
+export const categoryPathOf = (categoryEn: string) => `${base()}?category=${categorySlugOf(categoryEn)}`;
+/** kept for older callers: there are no subcategories, so this is the category */
+export const servicePath = (s: LookService, _it?: unknown) => categoryPath(s);
 /** One service's page. */
 export const servicePathOf = (s: { id: string }) => `${base()}/${s.id}`;
-/** kept for callers written before categories and services were split */
-export const subServicePath = servicePath;
 
-/* The client's own "خدمات ديار" artwork (public/categories/tiles), one tile per category. */
-const TILE_ART = (name: string) => `/categories/tiles/${name}.jpg`;
-const CATEGORY_ART: Record<string, string> = {
-  'Interior Design': 'تصميم داخلي',
-  'Door Solutions': 'نجارة مخصصة',
-  'Custom Furniture': 'تنجيد وتجديد',
-  'Painting & Wall Finishes': 'دهانات',
-  'Flooring Solutions': 'تركيب وصيانة',
-  'Finishing & Decorative': 'ديكورات',
-  'Glass & Skylight Facades': 'تركيب الستائر',
-  'Safety Equipment & Systems': 'إضاءة وكهرباء',
-};
-export const categoryArt = (s: LookService) => TILE_ART(CATEGORY_ART[s.en] ?? 'تركيب وصيانة');
-
-/** /services/:id — a service, or a category's page when the id is a category slug. */
+/** /services/:id — a service; a category slug opens the catalogue on it. */
 export default function ServiceRoute() {
   const { id = '' } = useParams();
   if (serviceById(id)) return <ServiceDetail id={id} />;
   const cat = categoryBySlug(id);
-  if (cat) return <ServiceCategoryPage cat={cat} />;
+  if (cat) return <Navigate to={categoryPath(cat)} replace />;
   return <ServiceDetail id={id} />;
 }
 
-/** /services/:category/:service from before the catalogue: into the catalogue, on that subcategory. */
+/** /services/:category/:service from before: the catalogue on that category. */
 export function ServiceDetailPage() {
-  const { category = '', service = '' } = useParams();
+  const { category = '' } = useParams();
   const cat = categoryBySlug(category);
-  if (!cat) return <Navigate to={base()} replace />;
-  const sub = subServicesOf(cat).find((x) => x.key === service || slugify(x.en) === service);
-  return <Navigate to={sub ? servicePath(cat, sub) : categoryPath(cat)} replace />;
+  return <Navigate to={cat ? categoryPath(cat) : base()} replace />;
 }
 
-/** /service/:slug from before the split: to the category, or to the subcategory if ?sub= named one. */
+/** /service/:slug from before the split: the catalogue on that category. */
 export function LegacyServiceRedirect() {
   const { slug = '' } = useParams();
-  const sub = new URLSearchParams(window.location.search).get('sub') ?? '';
   const cat = categoryBySlug(slug);
-  if (!cat) return <Navigate to={base()} replace />;
-  const it = subServicesOf(cat).find((x) => x.key === sub || slugify(x.en) === sub);
-  return <Navigate to={it ? servicePath(cat, it) : categoryPath(cat)} replace />;
+  return <Navigate to={cat ? categoryPath(cat) : base()} replace />;
 }

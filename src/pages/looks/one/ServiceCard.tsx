@@ -9,21 +9,21 @@ import { Check } from 'lucide-react';
 import { formatSAR, lookBase } from '../lookShared';
 import { OLIVE, RED, Stars, eyebrowCls, useLook } from './ui';
 import { useShell } from './shellContext';
-import { providerOfService, subOfService, type ServiceItem } from './servicesData';
-import { servicePathOf, subPath } from './ServicePage';
+import { categoryOfService, providerOfService, type ServiceItem } from './servicesData';
+import { categoryPathOf, servicePathOf } from './ServicePage';
 
 export function ServiceCard({ s, rail = false, testId }: { s: ServiceItem; rail?: boolean; testId?: string; key?: string | number }) {
   const { lang, t } = useLook();
   const isAr = lang === 'ar';
   const { openService } = useShell();
   const p = providerOfService(s);
-  const sub = subOfService(s);
+  const cat = categoryOfService(s);
   const to = servicePathOf(s);
   const [asked, setAsked] = useState(false);
   const name = t(s.name.en, s.name.ar);
 
   const ask = () => {
-    openService({ category: s.category, sub: s.sub, service: p ? `${name} — ${t(p.name.en, p.name.ar)}` : name });
+    openService({ category: s.category, service: p ? `${name} — ${t(p.name.en, p.name.ar)}` : name });
     setAsked(true);
     window.setTimeout(() => setAsked(false), 1600);
   };
@@ -87,13 +87,13 @@ export function ServiceCard({ s, rail = false, testId }: { s: ServiceItem; rail?
             <span className="text-[14px] font-bold" style={{ color: OLIVE }}>{t('Quote after a free visit', 'عرض سعر بعد زيارة مجانية')}</span>
           )}
         </div>
-        {sub && (
+        {cat && (
           <Link
-            to={subPath(s.category, sub.key)}
+            to={categoryPathOf(s.category)}
             className={`shrink-0 truncate text-[12px] font-semibold uppercase leading-none underline-offset-4 hover:underline ${isAr ? 'tracking-normal' : 'tracking-[0.2em]'}`}
             style={{ color: RED }}
           >
-            {t(sub.en, sub.ar)}
+            {t(cat.en, cat.ar)}
           </Link>
         )}
       </div>
