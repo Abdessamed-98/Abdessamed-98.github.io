@@ -215,7 +215,7 @@ export const CATEGORIES: LookCategory[] = [
   { key: 'office', img: '/categories/featured/office.webp', en: 'Office Furniture', ar: 'الأثاث المكتبي' },
   { key: 'lighting', img: '/categories/featured/lighting.webp', en: 'Lighting', ar: 'الإنارات' },
   { key: 'rugs', img: '/categories/featured/rugs.webp', en: 'Rugs & Carpets', ar: 'السجاد' },
-  { key: 'bath', img: '/categories/featured/bath.webp', en: 'Bathroom Solutions', ar: 'دورات المياه' },
+  { key: 'bath', img: '/categories/featured/bath.webp', en: 'Bathroom', ar: 'الحمام' },
   { key: 'decor', img: '/categories/featured/decor.webp', en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
 ];
 

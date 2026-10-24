@@ -374,18 +374,6 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               {t('Price includes VAT', 'السعر شامل ضريبة القيمة المضافة')}
             </p>
 
-            {/* Tamara: the total in four interest-free payments */}
-            <div className="mt-4 flex items-center gap-3 border px-4 py-3" style={{ borderColor: HAIR }} data-testid="tamara">
-              <span dir="ltr" className="shrink-0 rounded-full px-3 py-1 font-['Outfit',sans-serif] text-[13px] font-bold lowercase text-[#171512]" style={{ background: 'linear-gradient(90deg,#F5C9B4,#F3E0B5 50%,#C9E4D6)' }}>
-                tamara
-              </span>
-              <p className="min-w-0 text-[13.5px] leading-relaxed text-neutral-600">
-                {t('Split it into 4 payments of ', 'قسّمها على 4 دفعات بقيمة ')}
-                <span className="font-['Outfit',sans-serif] font-bold tabular-nums text-[#171512]">{formatSAR(Math.round(orderTotal / 4))}</span> {t('SAR', 'ر.س')}
-                {t('. No interest, no late fees · Sharia-compliant.', '. بدون فوائد أو رسوم تأخير · متوافقة مع الشريعة.')}
-              </p>
-            </div>
-
             {/* availability */}
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="product-availability">
               <span className="flex items-center gap-2">
@@ -455,6 +443,16 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                 <label className={fieldLabel} htmlFor="area-m2">{t('Area to cover', 'المساحة المطلوبة')}</label>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <div className="inline-flex h-11 items-stretch border bg-white" style={{ borderColor: '#C9C2B4' }}>
+                    <button
+                      type="button"
+                      data-testid="area-minus"
+                      onClick={() => setM2((v) => Math.max(1, Math.round((v - 1) * 10) / 10))}
+                      disabled={m2 <= 1}
+                      aria-label={t('Less area', 'تقليل المساحة')}
+                      className="flex w-11 items-center justify-center transition-colors hover:bg-[#F6F3EC] disabled:opacity-30 disabled:hover:bg-transparent"
+                    >
+                      <Minus size={14} strokeWidth={1.5} />
+                    </button>
                     <input
                       id="area-m2"
                       data-testid="area-input"
@@ -464,13 +462,22 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                       step={0.5}
                       value={m2}
                       onChange={(e) => setM2(Math.max(0, Number(e.target.value)))}
-                      className="w-24 bg-transparent px-3 text-center text-[15px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-16 bg-transparent px-1 text-center text-[15px] font-semibold focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
-                    <span className="flex items-center border-s px-3 text-[14px] text-neutral-500" style={{ borderColor: '#C9C2B4' }}>{t('m²', 'م²')}</span>
+                    <span className="flex items-center px-1 text-[14px] text-neutral-500">{t('m²', 'م²')}</span>
+                    <button
+                      type="button"
+                      data-testid="area-plus"
+                      onClick={() => setM2((v) => Math.round((v + 1) * 10) / 10)}
+                      aria-label={t('More area', 'زيادة المساحة')}
+                      className="flex w-11 items-center justify-center transition-colors hover:bg-[#F6F3EC]"
+                    >
+                      <Plus size={14} strokeWidth={1.5} />
+                    </button>
                   </div>
                   <span className="text-[13.5px] text-neutral-500">{t('Add 10% for cuts and breakage', 'أضف 10% للقص والهدر')}</span>
                 </div>
-                <dl className="mt-4 grid grid-cols-3 gap-3 border-t pt-4 text-[13px]" style={{ borderColor: HAIR }}>
+                <dl className="mt-4 grid grid-cols-2 gap-3 border-t pt-4 text-[13px]" style={{ borderColor: HAIR }}>
                   <div>
                     <dt className="text-neutral-500">{t('Boxes', 'عدد الكراتين')}</dt>
                     <dd className="mt-1 text-[16px] font-bold tabular-nums" data-testid="area-boxes">{boxes}</dd>
@@ -478,10 +485,6 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
                   <div>
                     <dt className="text-neutral-500">{t('Covers', 'تغطي')}</dt>
                     <dd className="mt-1 text-[16px] font-bold tabular-nums">{covered} {t('m²', 'م²')}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-neutral-500">{t('Total', 'الإجمالي')}</dt>
-                    <dd className="mt-1 text-[16px] font-bold tabular-nums" data-testid="area-total">{formatSAR(orderTotal)} {t('SAR', 'ر.س')}</dd>
                   </div>
                 </dl>
                 <p className="mt-3 text-[13px] text-neutral-500">
@@ -527,6 +530,27 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
               </button>
             </div>
             )}
+
+            {/* the total for what is chosen — every product, by the piece or by the box */}
+            <div className="mt-6 flex items-baseline justify-between gap-4 border-t pt-5" style={{ borderColor: HAIR }} data-testid="order-total">
+              <span className="text-[14.5px] font-bold">{t('Total', 'المجموع')}</span>
+              <span className="flex items-baseline gap-1.5">
+                <span className="font-['Outfit',sans-serif] text-[24px] font-bold leading-none tabular-nums" data-testid="area-total">{formatSAR(orderTotal)}</span>
+                <span className="text-[13px] text-neutral-500">{t('SAR', 'ر.س')}</span>
+              </span>
+            </div>
+
+            {/* Tamara, on that total: four interest-free payments */}
+            <div className="mt-3 flex items-center gap-3 border px-4 py-3" style={{ borderColor: HAIR }} data-testid="tamara">
+              <span dir="ltr" className="shrink-0 rounded-full px-3 py-1 font-['Outfit',sans-serif] text-[13px] font-bold lowercase text-[#171512]" style={{ background: 'linear-gradient(90deg,#F5C9B4,#F3E0B5 50%,#C9E4D6)' }}>
+                tamara
+              </span>
+              <p className="min-w-0 text-[13.5px] leading-relaxed text-neutral-600">
+                {t('Split it into 4 payments of ', 'قسّمها على 4 دفعات بقيمة ')}
+                <span className="font-['Outfit',sans-serif] font-bold tabular-nums text-[#171512]">{formatSAR(Math.round(orderTotal / 4))}</span> {t('SAR', 'ر.س')}
+                {t('. No interest, no late fees · Sharia-compliant.', '. بدون فوائد أو رسوم تأخير · متوافقة مع الشريعة.')}
+              </p>
+            </div>
 
             {/* buy */}
             <button

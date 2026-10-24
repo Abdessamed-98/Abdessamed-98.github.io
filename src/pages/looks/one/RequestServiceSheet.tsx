@@ -57,8 +57,6 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
 
   const field = 'h-12 w-full border bg-white px-4 text-[14px] outline-none transition-colors focus:border-[#171512]';
   const label = `mb-2 block text-[11px] ${isAr ? 'tracking-normal' : 'uppercase tracking-[0.22em]'} text-neutral-500`;
-  const chip = (on: boolean) =>
-    `inline-flex items-center gap-1.5 border px-3 py-1.5 text-[13.5px] transition-colors ${on ? 'border-[#171512] bg-[#171512] font-bold text-white' : 'bg-white hover:border-[#171512]'}`;
 
   const addPhotos = (e: ChangeEvent<HTMLInputElement>) => {
     const files: File[] = e.target.files ? Array.from(e.target.files as ArrayLike<File>).filter((f) => f.type.startsWith('image/')) : [];
@@ -125,18 +123,20 @@ export function RequestServiceSheet({ open, onClose, preset }: { open: boolean; 
           {/* the category, then its subcategories — preset when the visitor came from one; not asked on a direct request */}
           {!direct && (
           <div>
-            <p className={label}>{t('Category', 'تصنيف الخدمة')}</p>
-            <div className="flex flex-wrap gap-2" data-testid="request-categories">
-              {SERVICES.map((s) => {
-                const on = category === s.en;
-                return (
-                  <button key={s.en} type="button" aria-pressed={on} onClick={() => setCategory(on ? '' : s.en)} className={chip(on)} style={on ? undefined : { borderColor: HAIR }}>
-                    {on && <Check size={13} strokeWidth={2} />}
-                    {t(s.en, s.ar)}
-                  </button>
-                );
-              })}
-            </div>
+            <label className={label} htmlFor="rs-category">{t('Category', 'تصنيف الخدمة')}</label>
+            <select
+              id="rs-category"
+              data-testid="request-categories"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={field}
+              style={{ borderColor: HAIR }}
+            >
+              <option value="">{t('Choose a category', 'اختر التصنيف')}</option>
+              {SERVICES.map((s) => (
+                <option key={s.en} value={s.en}>{t(s.en, s.ar)}</option>
+              ))}
+            </select>
           </div>
           )}
           <div className={direct ? '' : 'mt-5'}>
