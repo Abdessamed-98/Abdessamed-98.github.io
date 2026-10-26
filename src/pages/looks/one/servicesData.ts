@@ -84,19 +84,19 @@ function svc(
   };
 }
 
-/* the sixteen categories, by their English names (SERVICES order) */
+/* the service categories, by their English names (several aliases now share one) */
 const ID = 'Interior Design';
-const KI = 'Kitchens';
+const KI = 'Custom Carpentry'; // kitchens are bought as products; designing and fitting one is joinery
 const CC = 'Custom Carpentry';
-const FA = 'Furniture Assembly';
+const FA = 'Installation';
 const UP = 'Upholstery';
 const PW = 'Painting & Wallpaper';
 const GC = 'Gypsum & Ceilings';
-const FT = 'Flooring & Tiling';
+const FT = 'Installation'; // tiles are products; laying them is installation
 const EL = 'Electrical & Lighting';
 const PL = 'Plumbing';
-const CB = 'Curtains & Blinds';
-const DG = 'Doors, Windows & Glass';
+const CB = 'Installation';
+const DG = 'Installation';
 const IN = 'Insulation';
 const SC = 'Security & CCTV';
 const MP = 'Moving & Packing';
@@ -258,7 +258,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
   svc('nukhba-doors', DG, 'sliding-doors', { en: 'Sliding and pocket doors', ar: 'أبواب منزلقة ومخفية' }, 2900, U.door, L.w2,
     { en: 'Sliding and pocket systems for tight rooms and wide openings, with soft-close tracks.', ar: 'أنظمة منزلقة ومخفية للغرف الضيقة والفتحات الواسعة، مع مسارات إغلاق ناعم.' },
     [{ en: 'Track and hardware', ar: 'المسار والملحقات' }, { en: 'Wall preparation', ar: 'تجهيز الجدار' }, { en: 'Installation', ar: 'التركيب' }]),
-  svc('nukhba-doors', DG, 'custom-doors', { en: 'Made-to-order doors', ar: 'أبواب حسب الطلب' }, undefined, undefined, L.w4,
+  svc('nukhba-doors', CC, 'custom-doors', { en: 'Made-to-order doors', ar: 'أبواب حسب الطلب' }, undefined, undefined, L.w4,
     { en: 'Entrance and feature doors to your drawing or ours: size, timber, panelling and finish.', ar: 'أبواب مداخل ومميزة حسب رسمك أو رسمنا: المقاس والخشب والتفصيل والتشطيب.' },
     [{ en: 'Design drawing', ar: 'رسم تصميمي' }, { en: 'Sample of the finish', ar: 'عينة التشطيب' }, { en: 'Delivery and installation', ar: 'التوصيل والتركيب' }]),
   svc('zujaj-pro', DG, 'glass-partitions', { en: 'Glass partitions', ar: 'قواطع زجاجية' }, 420, U.m2, L.w2,

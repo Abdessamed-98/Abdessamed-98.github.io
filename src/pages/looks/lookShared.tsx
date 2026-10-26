@@ -9,7 +9,7 @@ import {
   PenTool, DoorOpen, Armchair, PaintRoller, Layers, Sparkles, PanelTop, ShieldCheck,
   Boxes, ScanLine, Truck, CreditCard, Coins, RefreshCw, Gift,
   Camera, Smartphone, Bell, Store, Megaphone, Wrench,
-  ChefHat, Hammer, Sofa, Lightbulb, Droplets, Blinds, ThermometerSun, SprayCan,
+  Hammer, Sofa, Lightbulb, Droplets, ThermometerSun, SprayCan,
 } from 'lucide-react';
 
 /** Icon component shape used across the shared data. */
@@ -27,7 +27,7 @@ export interface LookProduct {
   sale?: boolean;
 }
 
-export type CategoryKey = 'home' | 'office' | 'lighting' | 'rugs' | 'bath' | 'decor';
+export type CategoryKey = 'home' | 'office' | 'kitchens' | 'lighting' | 'flooring' | 'rugs' | 'curtains' | 'doors' | 'bath' | 'decor';
 
 export interface LookCategory {
   key: CategoryKey;
@@ -213,8 +213,12 @@ export const FOOTER_SUPPORT: Bi[] = [
 export const CATEGORIES: LookCategory[] = [
   { key: 'home', img: '/categories/featured/home.webp', en: 'Home Furniture', ar: 'الأثاث المنزلي' },
   { key: 'office', img: '/categories/featured/office.webp', en: 'Office Furniture', ar: 'الأثاث المكتبي' },
+  { key: 'kitchens', img: '/looks/rooms/dining.webp', en: 'Kitchens', ar: 'المطابخ' },
   { key: 'lighting', img: '/categories/featured/lighting.webp', en: 'Lighting', ar: 'الإنارات' },
+  { key: 'flooring', img: '/after.png', en: 'Flooring & Tiles', ar: 'الأرضيات والبلاط' },
   { key: 'rugs', img: '/categories/featured/rugs.webp', en: 'Rugs & Carpets', ar: 'السجاد' },
+  { key: 'curtains', img: '/looks/curtain.webp', en: 'Curtains & Blinds', ar: 'الستائر والبلايند' },
+  { key: 'doors', img: IMG.loungeDark, en: 'Doors & Windows', ar: 'الأبواب والنوافذ' },
   { key: 'bath', img: '/categories/featured/bath.webp', en: 'Bathroom', ar: 'الحمام' },
   { key: 'decor', img: '/categories/featured/decor.webp', en: 'Accessories & Decor', ar: 'الإكسسوارات والديكور' },
 ];
@@ -222,17 +226,13 @@ export const CATEGORIES: LookCategory[] = [
 /** The service categories: one level, the trades people actually book around a home. */
 export const SERVICES: LookService[] = [
   { icon: PenTool, en: 'Interior Design', ar: 'التصميم الداخلي', img: IMG.catHome },
-  { icon: ChefHat, en: 'Kitchens', ar: 'المطابخ', img: '/looks/rooms/dining.webp' },
   { icon: Hammer, en: 'Custom Carpentry', ar: 'النجارة والتفصيل', img: IMG.workshop },
-  { icon: Wrench, en: 'Furniture Assembly', ar: 'تركيب الأثاث', img: '/looks/rooms/living.webp' },
+  { icon: Wrench, en: 'Installation', ar: 'خدمات التركيب', img: '/looks/rooms/living.webp' },
   { icon: Sofa, en: 'Upholstery', ar: 'التنجيد وتجديد الأثاث', img: '/categories/featured/home.webp' },
   { icon: PaintRoller, en: 'Painting & Wallpaper', ar: 'الدهانات وورق الجدران', img: IMG.roomHotspots },
   { icon: Layers, en: 'Gypsum & Ceilings', ar: 'الجبس والأسقف', img: '/categories/featured/lighting.webp' },
-  { icon: PanelTop, en: 'Flooring & Tiling', ar: 'الأرضيات والبلاط', img: IMG.catOffice },
   { icon: Lightbulb, en: 'Electrical & Lighting', ar: 'الكهرباء والإنارة', img: IMG.catLighting },
   { icon: Droplets, en: 'Plumbing', ar: 'السباكة والأدوات الصحية', img: '/categories/featured/bath.webp' },
-  { icon: Blinds, en: 'Curtains & Blinds', ar: 'الستائر والبلايند', img: '/looks/curtain.webp' },
-  { icon: DoorOpen, en: 'Doors, Windows & Glass', ar: 'الأبواب والنوافذ والزجاج', img: IMG.loungeDark },
   { icon: ThermometerSun, en: 'Insulation', ar: 'العزل المائي والحراري', img: '/looks/rooms/office.webp' },
   { icon: ShieldCheck, en: 'Security & CCTV', ar: 'أنظمة الأمان والمراقبة', img: IMG.restaurant },
   { icon: Truck, en: 'Moving & Packing', ar: 'نقل وتغليف الأثاث', img: '/looks/rooms/bedroom.webp' },
@@ -275,8 +275,38 @@ export const PRODUCT_SUBS: Record<CategoryKey, SubCat[]> = {
     { key: 'runners', en: 'Runners & Office Rugs', ar: 'سجاد الممرات والمكاتب' },
     { key: 'outdoor-rugs', en: 'Outdoor Rugs', ar: 'السجاد الخارجي' },
   ],
+  kitchens: [
+    { key: 'ready-kitchens', en: 'Ready-Made Kitchens', ar: 'المطابخ الجاهزة' },
+    { key: 'custom-kitchens', en: 'Made-to-Measure Kitchens', ar: 'مطابخ حسب الطلب' },
+    { key: 'worktops', en: 'Worktops', ar: 'أسطح المطابخ' },
+    { key: 'kitchen-sinks', en: 'Sinks & Taps', ar: 'المغاسل والخلاطات' },
+    { key: 'built-in-appliances', en: 'Built-In Appliances', ar: 'الأجهزة المدمجة' },
+  ],
+  flooring: [
+    { key: 'porcelain', en: 'Porcelain', ar: 'البورسلان' },
+    { key: 'ceramic', en: 'Ceramic', ar: 'السيراميك' },
+    { key: 'marble', en: 'Marble', ar: 'الرخام' },
+    { key: 'parquet', en: 'Parquet & Wood', ar: 'الباركيه والأرضيات الخشبية' },
+    { key: 'spc-vinyl', en: 'SPC & Vinyl', ar: 'أرضيات SPC والفينيل' },
+    { key: 'wall-tiles', en: 'Wall Tiles', ar: 'بلاط الجدران' },
+  ],
+  curtains: [
+    { key: 'fabric-curtains', en: 'Fabric Curtains', ar: 'الستائر القماشية' },
+    { key: 'blackout', en: 'Blackout Curtains', ar: 'ستائر بلاك أوت' },
+    { key: 'roller-blinds', en: 'Roller Blinds', ar: 'بلايند رول' },
+    { key: 'wooden-blinds', en: 'Wooden Blinds', ar: 'بلايند خشبي' },
+    { key: 'motorised', en: 'Motorised Curtains', ar: 'الستائر الكهربائية' },
+    { key: 'curtain-rails', en: 'Rails & Accessories', ar: 'السكك والإكسسوارات' },
+  ],
+  doors: [
+    { key: 'interior-doors', en: 'Interior Doors', ar: 'الأبواب الداخلية' },
+    { key: 'entrance-doors', en: 'Entrance Doors', ar: 'أبواب المداخل' },
+    { key: 'wpc-doors', en: 'WPC Doors', ar: 'أبواب WPC' },
+    { key: 'glass-doors', en: 'Glass Doors', ar: 'الأبواب الزجاجية' },
+    { key: 'aluminium-windows', en: 'Aluminium Windows', ar: 'نوافذ الألمنيوم' },
+    { key: 'door-hardware', en: 'Handles & Locks', ar: 'المقابض والأقفال' },
+  ],
   bath: [
-    { key: 'tiles', en: 'Tiles & Porcelain', ar: 'البلاط والبورسلان' },
     { key: 'basins', en: 'Wash Basins', ar: 'المغاسل' },
     { key: 'faucets', en: 'Faucets', ar: 'الصنابير' },
     { key: 'showers', en: 'Shower Systems', ar: 'أنظمة الاستحمام' },
@@ -975,7 +1005,7 @@ CATALOG.push(
   {
     id: 42, img: '/looks/tiles/concrete-white.webp', gallery: ['/looks/tiles/concrete-white.webp', '/categories/featured/bath.webp'],
     name: { en: 'Saudi Porcelain 60 × 120 — White Matt Concrete', ar: 'بورسلان سعودي 60 × 120 سم — أبيض خرساني مطفي' },
-    store: 'diyar', category: 'bath', room: 'living', style: 'modern',
+    store: 'diyar', category: 'flooring', room: 'living', style: 'modern',
     price: 69, rating: 4.7, reviews: 86, sku: 'DH-TL-6012-WC',
     colors: [{ name: { en: 'White concrete', ar: 'أبيض خرساني' }, hex: '#E2E0DB' }],
     dimensions: TILE_DIMS('60 × 120', 9), materials: { en: 'Glazed porcelain, matt finish, rectified edges', ar: 'بورسلان مزجج، تشطيب مطفي، حواف مشطوفة' }, care: TILE_CARE,
@@ -986,7 +1016,7 @@ CATALOG.push(
   {
     id: 43, img: '/looks/tiles/marble-calacatta.webp', gallery: ['/looks/tiles/marble-calacatta.webp', '/categories/featured/bath.webp'],
     name: { en: 'Porcelain 60 × 60 — Calacatta Marble Look', ar: 'بورسلان 60 × 60 سم — مظهر رخام كالاكاتا' },
-    store: 'diyar', category: 'bath', room: 'living', style: 'luxury',
+    store: 'diyar', category: 'flooring', room: 'living', style: 'luxury',
     price: 85, oldPrice: 98, rating: 4.8, reviews: 54, sku: 'DH-TL-6060-CC',
     colors: [{ name: { en: 'Calacatta white', ar: 'أبيض كالاكاتا' }, hex: '#F0EDE7' }],
     dimensions: TILE_DIMS('60 × 60', 9), materials: { en: 'Glazed porcelain, polished finish', ar: 'بورسلان مزجج، تشطيب لامع' }, care: TILE_CARE,
@@ -997,7 +1027,7 @@ CATALOG.push(
   {
     id: 44, img: '/looks/tiles/wood-oak.webp', gallery: ['/looks/tiles/wood-oak.webp', '/looks/rooms/living.webp'],
     name: { en: 'Wood-Look Porcelain Plank 20 × 120 — Natural Oak', ar: 'بورسلان بمظهر الخشب 20 × 120 سم — بلوط طبيعي' },
-    store: 'diyar', category: 'bath', room: 'living', style: 'modern',
+    store: 'diyar', category: 'flooring', room: 'living', style: 'modern',
     price: 79, rating: 4.6, reviews: 41, sku: 'DH-TL-2012-OK',
     colors: [{ name: { en: 'Natural oak', ar: 'بلوط طبيعي' }, hex: '#AF8A62' }],
     dimensions: TILE_DIMS('20 × 120', 10), materials: { en: 'Glazed porcelain, wood texture, matt', ar: 'بورسلان مزجج، ملمس خشبي، مطفي' }, care: TILE_CARE,
@@ -1029,7 +1059,7 @@ const PRODUCT_SUB_OF: Record<string, number[]> = {
   vases: [12],
   plants: [14, 41],
   cushions: [21, 34],
-  tiles: [42, 43, 44],
+  porcelain: [42, 43, 44],
 };
 for (const [sub, ids] of Object.entries(PRODUCT_SUB_OF)) {
   for (const id of ids) {
@@ -1276,16 +1306,16 @@ export interface QuickCategory {
 export const QUICK_CATEGORIES: QuickCategory[] = [
   { en: 'Bedrooms', ar: 'غرف النوم', icon: '/categories/tiles/غرف النوم.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'bedroom' },
   { en: 'Living Rooms', ar: 'الصالونات', icon: '/categories/tiles/الصالونات.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'living' },
-  { en: 'Kitchens', ar: 'المطابخ', icon: '/categories/tiles/المطابخ.jpg', kind: 'shop', tone: 'light', category: 'home' },
+  { en: 'Kitchens', ar: 'المطابخ', icon: '/categories/tiles/المطابخ.jpg', kind: 'shop', tone: 'light', category: 'kitchens' },
   { en: 'Dining Rooms', ar: 'غرف الطعام', icon: '/categories/tiles/غرف الطعام.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'dining' },
   { en: 'Offices', ar: 'المكاتب', icon: '/categories/tiles/المكاتب.jpg', kind: 'shop', tone: 'light', category: 'office' },
   { en: 'Decor', ar: 'ديكورات', icon: '/categories/tiles/ديكورات.jpg', kind: 'shop', tone: 'light', category: 'decor' },
   { en: 'Lighting', ar: 'الإضاءة', icon: '/categories/tiles/الإضاءة.jpg', kind: 'shop', tone: 'light', category: 'lighting' },
-  { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', tone: 'light', category: 'decor' },
+  { en: 'Curtains', ar: 'الستائر', icon: '/categories/tiles/الستائر.jpg', kind: 'shop', tone: 'light', category: 'curtains' },
   { en: 'Outdoor', ar: 'أثاث خارجي', icon: '/categories/tiles/أثاث خارجي.jpg', kind: 'shop', tone: 'light', category: 'home', room: 'outdoor' },
   { en: 'Bathrooms', ar: 'الحمامات', icon: '/categories/tiles/الحمامات.jpg', kind: 'shop', tone: 'light', category: 'bath' },
   { en: 'Interior Design', ar: 'تصميم داخلي', icon: '/categories/tiles/تصميم داخلي.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=interior-design' },
-  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=furniture-assembly' },
+  { en: 'Installation & Maintenance', ar: 'تركيب وصيانة', icon: '/categories/tiles/تركيب وصيانة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=installation' },
   { en: 'Painting', ar: 'دهانات', icon: '/categories/tiles/دهانات.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=painting-wallpaper' },
   { en: 'Upholstery & Renewal', ar: 'تنجيد وتجديد', icon: '/categories/tiles/تنجيد وتجديد.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=upholstery' },
   { en: 'Custom Carpentry', ar: 'نجارة مخصصة', icon: '/categories/tiles/نجارة مخصصة.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=custom-carpentry' },
@@ -1293,7 +1323,7 @@ export const QUICK_CATEGORIES: QuickCategory[] = [
   { en: 'Moving & Packing', ar: 'نقل وتغليف', icon: '/categories/tiles/نقل وتغليف.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=moving-packing' },
   { en: 'Cleaning & Polishing', ar: 'تنظيف وتلميع', icon: '/categories/tiles/تنظيف وتلميع.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=cleaning' },
   { en: 'Lighting & Electrical', ar: 'إضاءة وكهرباء', icon: '/categories/tiles/إضاءة وكهرباء.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=electrical-lighting' },
-  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=curtains-blinds' },
+  { en: 'Curtain Installation', ar: 'تركيب الستائر', icon: '/categories/tiles/تركيب الستائر.jpg', kind: 'service', tone: 'dark', to: '/look/1/services?category=installation' },
 ];
 
 /** Promo mosaic (the original's five-panel offers grid). `span` is out of a 6-column grid. */

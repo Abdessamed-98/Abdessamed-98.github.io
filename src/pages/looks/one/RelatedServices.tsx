@@ -13,22 +13,30 @@ import { ServiceCard } from './ServiceCard';
 
 /** service categories per product category, in the order they are shown */
 const BY_CATEGORY: Record<CategoryKey, string[]> = {
-  home: ['Furniture Assembly', 'Custom Carpentry', 'Upholstery', 'Interior Design'],
-  office: ['Furniture Assembly', 'Interior Design', 'Doors, Windows & Glass', 'Electrical & Lighting'],
+  home: ['Installation', 'Custom Carpentry', 'Upholstery', 'Interior Design'],
+  office: ['Installation', 'Interior Design', 'Electrical & Lighting', 'Custom Carpentry'],
+  kitchens: ['Installation', 'Custom Carpentry', 'Plumbing', 'Electrical & Lighting'],
   lighting: ['Electrical & Lighting', 'Gypsum & Ceilings', 'Interior Design', 'Painting & Wallpaper'],
-  rugs: ['Cleaning', 'Flooring & Tiling', 'Interior Design', 'Upholstery'],
-  bath: ['Plumbing', 'Flooring & Tiling', 'Doors, Windows & Glass', 'Insulation'],
-  decor: ['Painting & Wallpaper', 'Curtains & Blinds', 'Furniture Assembly', 'Interior Design'],
+  flooring: ['Installation', 'Insulation', 'Cleaning', 'Interior Design'],
+  rugs: ['Cleaning', 'Installation', 'Interior Design', 'Upholstery'],
+  curtains: ['Installation', 'Electrical & Lighting', 'Interior Design', 'Painting & Wallpaper'],
+  doors: ['Installation', 'Custom Carpentry', 'Security & CCTV', 'Painting & Wallpaper'],
+  bath: ['Plumbing', 'Installation', 'Insulation', 'Cleaning'],
+  decor: ['Painting & Wallpaper', 'Installation', 'Interior Design', 'Upholstery'],
 };
 
 /** The service category that installs a product of this category (the product page's «تركيب»). */
 export const INSTALL_CATEGORY: Record<CategoryKey, string> = {
-  home: 'Furniture Assembly',
-  office: 'Furniture Assembly',
+  home: 'Installation',
+  office: 'Installation',
+  kitchens: 'Installation',
   lighting: 'Electrical & Lighting',
-  rugs: 'Furniture Assembly',
+  flooring: 'Installation',
+  rugs: 'Installation',
+  curtains: 'Installation',
+  doors: 'Installation',
   bath: 'Plumbing',
-  decor: 'Furniture Assembly',
+  decor: 'Installation',
 };
 
 /** The best-rated service in each suggested category. */
