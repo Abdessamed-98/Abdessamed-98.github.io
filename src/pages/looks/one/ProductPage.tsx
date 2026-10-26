@@ -159,7 +159,7 @@ function ProductView({ p }: { p: CatalogProduct; key?: string | number }) {
   const savePct = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
   // what the order comes to: the boxes' cover × the m² price, or the pieces × the price
   const orderTotal = p.area ? Math.round(covered * price) : price * qty;
-  const installCategory = p.area ? 'Flooring & Tiling' : INSTALL_CATEGORY[p.category];
+  const installCategory = INSTALL_CATEGORY[p.category];
   const name = p.name[lang];
   const gallery = p.gallery.length ? p.gallery : [p.img];
   const media: Media[] = [...gallery.map((src) => ({ kind: 'img' as const, src })), ROOM_TOUR];

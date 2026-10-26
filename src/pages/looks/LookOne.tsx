@@ -1193,8 +1193,8 @@ export default function LookOne() {
                 style={{ borderColor: HAIR, color: INK }}
               >
                 <div className="mx-auto max-w-[1400px] px-6 py-7 md:px-10">
-                  {/* the earlier text columns, all six on one row: each category with its first subcategories, the rest on its page */}
-                  <div className="grid grid-cols-6 gap-x-8" data-testid="mega-product-groups">
+                  {/* the earlier text columns, five to a row: each category with its first subcategories, the rest on its page */}
+                  <div className="grid grid-cols-5 gap-x-8 gap-y-7" data-testid="mega-product-groups">
                     {SHOP_MENU.map((group, i) => {
                       const key = shopGroupKey(i);
                       if (!key) return null;
@@ -1205,7 +1205,7 @@ export default function LookOne() {
                           to={searchPath(1, { category: key })}
                           itemTo={(it) => searchPath(1, { category: key, sub: (it as { key?: string }).key })}
                           onNavigate={closeMenu}
-                          limit={5}
+                          limit={4}
                         />
                       );
                     })}

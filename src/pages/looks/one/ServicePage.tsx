@@ -17,13 +17,19 @@ const slugify = (en: string) => en.toLowerCase().replace(/[^a-z0-9]+/g, '-').rep
 export const serviceSlug = (s: LookService) => slugify(s.en);
 /** Category slugs from before the categories were redrawn, to their closest category now. */
 const OLD_SLUGS: Record<string, string> = {
-  'door-solutions': 'doors-windows-glass',
+  'door-solutions': 'installation',
   'custom-furniture': 'custom-carpentry',
   'painting-wall-finishes': 'painting-wallpaper',
-  'flooring-solutions': 'flooring-tiling',
+  'flooring-solutions': 'installation',
   'finishing-decorative': 'gypsum-ceilings',
-  'glass-skylight-facades': 'doors-windows-glass',
+  'glass-skylight-facades': 'installation',
   'safety-equipment-systems': 'security-cctv',
+  // these became product categories; their services moved
+  'furniture-assembly': 'installation',
+  kitchens: 'custom-carpentry',
+  'flooring-tiling': 'installation',
+  'curtains-blinds': 'installation',
+  'doors-windows-glass': 'installation',
 };
 /** A category by its slug (an old slug finds its successor). */
 export const categoryBySlug = (slug: string) => SERVICES.find((s) => serviceSlug(s) === (OLD_SLUGS[slug] ?? slug));
